@@ -5,10 +5,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from benchmarks.app_model import load_app, normalize_title, titles_match
+from benchmarks.app_model import load_app, match_title, normalize_title
 from benchmarks.evaluators import evaluate
 from benchmarks.planner import spec_field_count
-from benchmarks.rubric import RUBRIC_VERSION, build_rubric_from_dir
+from benchmarks.rubric import RUBRIC_VERSION, Rubric, build_rubric_from_dir
 
 
 def _component(cid: str, ctype: str, title_key: str | None = None) -> dict:
@@ -39,7 +39,7 @@ def _write_app(
     return root
 
 
-def _golden(root: Path) -> Path:
+def _golden(root: Path, order: list[str] | None = None) -> Path:
     return _write_app(
         root,
         pages={
@@ -52,6 +52,7 @@ def _golden(root: Path) -> Path:
                 _component("nav-two", "NavigationButtons"),
             ],
         },
+        order=order,
         resources={
             "app.field.navn": "A.1 Leverandørvirksomhetens navn",
             "app.field.epost": "A.2 E-postadresse",
@@ -64,8 +65,8 @@ class TestTitleMatching:
         assert normalize_title("A.1 Leverandørvirksomhetens navn:") == ("leverandørvirksomhetens navn")
 
     def test_titles_match_across_naming_styles(self):
-        assert titles_match("A.1 Leverandørvirksomhetens navn", "leverandørvirksomhetens navn")
-        assert not titles_match("E-postadresse", "Organisasjonsnummer")
+        assert match_title("A.1 Leverandørvirksomhetens navn", [("leverandørvirksomhetens navn", "found")]) == ["found"]
+        assert match_title("E-postadresse", [("Organisasjonsnummer", "found")]) == []
 
 
 class TestRubric:
@@ -80,7 +81,7 @@ class TestRubric:
 
 class TestEvaluators:
     def _scores(self, app_dir: Path, rubric: dict) -> dict[str, float]:
-        return {s.name: s.value for s in evaluate(load_app(app_dir), rubric)}
+        return {s.name: s.value for s in evaluate(load_app(app_dir), Rubric.model_validate(rubric))}
 
     def test_identical_app_scores_perfect(self, tmp_path: Path):
         golden = _golden(tmp_path / "golden")
@@ -88,11 +89,9 @@ class TestEvaluators:
         scores = self._scores(golden, rubric)
         assert scores == {
             "bench_pages": 1.0,
-            "bench_order_integrity": 1.0,
             "bench_navigation": 1.0,
             "bench_field_coverage": 1.0,
             "bench_input_count": 1.0,
-            "bench_texts_bound": 1.0,
         }
 
     def test_different_page_and_field_names_still_score_perfect(self, tmp_path: Path):
@@ -133,52 +132,22 @@ class TestEvaluators:
         assert scores["bench_field_coverage"] == 0.5
         assert scores["bench_input_count"] == 0.5
 
-    def test_page_missing_from_order_flagged(self, tmp_path: Path):
+    def test_a_page_missing_from_the_order_is_not_counted(self, tmp_path: Path):
         rubric = build_rubric_from_dir(_golden(tmp_path / "golden"))
-        candidate = _write_app(
-            tmp_path / "candidate",
-            pages={
-                "Side1": [
-                    _component("name-input", "Input", "app.field.navn"),
-                    _component("nav-one", "NavigationButtons"),
-                ],
-                "Side2": [
-                    _component("email-input", "Input", "app.field.epost"),
-                    _component("nav-two", "NavigationButtons"),
-                ],
-            },
-            order=["Side1"],  # Side2 exists on disk but is not registered
-            resources={
-                "app.field.navn": "Leverandørvirksomhetens navn",
-                "app.field.epost": "E-postadresse",
-            },
-        )
-        scores = self._scores(candidate, rubric)
+        scores = self._scores(_golden(tmp_path / "candidate", order=["Side1"]), rubric)
         assert scores["bench_pages"] == 0.0
-        assert scores["bench_order_integrity"] == 0.0
+        assert scores["bench_field_coverage"] == scores["bench_input_count"] == 0.5
 
-    def test_unresolved_text_binding_lowers_texts_bound(self, tmp_path: Path):
-        rubric = build_rubric_from_dir(_golden(tmp_path / "golden"))
-        candidate = _write_app(
-            tmp_path / "candidate",
-            pages={
-                "Side1": [
-                    _component("name-input", "Input", "app.field.navn"),
-                    _component("email-input", "Input", "app.missing.key"),
-                    _component("nav-one", "NavigationButtons"),
-                ],
-                "Side2": [
-                    _component("other-input", "Input", "app.field.epost"),
-                    _component("nav-two", "NavigationButtons"),
-                ],
-            },
-            resources={
-                "app.field.navn": "Leverandørvirksomhetens navn",
-                "app.field.epost": "E-postadresse",
-            },
-        )
-        scores = self._scores(candidate, rubric)
-        assert scores["bench_texts_bound"] == round(2 / 3, 4)
+    def test_two_titles_that_only_numbers_tell_apart_need_two_fields(self, tmp_path: Path):
+        titles = ["A.2 E-postadresse", "B.4 E-postadresse"]
+        rubric = {**build_rubric_from_dir(_golden(tmp_path / "golden")), "expected_titles": titles}
+        assert self._scores(_golden(tmp_path / "candidate"), rubric)["bench_field_coverage"] == 0.5
+
+    def test_each_of_those_titles_finds_its_field_by_its_number(self, tmp_path: Path):
+        inputs = [_component(n, "Input", f"app.field.{n}") for n in ("a1", "b2")]
+        texts = {"app.field.a1": "A1. Fullt navn", "app.field.b2": "B2. Fullt navn"}
+        candidate = _write_app(tmp_path, pages={"Side1": inputs}, resources=texts)
+        assert self._scores(candidate, {"expected_titles": ["A1. Navn", "B2. Navn"]})["bench_field_coverage"] == 1.0
 
 
 def test_the_spec_field_count_leaves_out_headings_and_paragraphs():

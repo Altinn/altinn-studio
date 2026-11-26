@@ -1,4 +1,5 @@
 import { ParagraphText } from '@app/form-component/app-components';
+import { withComponentGrid } from '@app/form-component/layout-components/common/storybook';
 import { List } from '@digdir/designsystemet-react';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
@@ -29,6 +30,7 @@ export const ACCORDION_PROP_CATEGORIES = {
 const meta = {
   title: 'LayoutComponents/Accordion',
   component: Accordion,
+  decorators: [withComponentGrid],
   // ACCORDION_PROP_CATEGORIES is a docs helper, not a story — keep CSF from rendering it as one.
   excludeStories: ['ACCORDION_PROP_CATEGORIES'],
   parameters: {

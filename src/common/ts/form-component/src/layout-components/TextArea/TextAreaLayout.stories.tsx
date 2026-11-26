@@ -1,7 +1,5 @@
 import { useState } from 'react';
 
-import { ComponentGridItem } from '@app/form-component/app-components/ComponentGridItem';
-import { PageRow } from '@app/form-component/app-components/PageRow';
 import { withComponentGrid } from '@app/form-component/layout-components/common/storybook';
 import { fn } from 'storybook/test';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
@@ -51,6 +49,7 @@ function StatefulTextAreaLayout({ value: initialValue, onChange, ...args }: Text
 const meta = {
   title: 'LayoutComponents/TextArea',
   component: TextAreaLayout,
+  decorators: [withComponentGrid],
   excludeStories: ['TEXT_AREA_PROP_CATEGORIES'],
   parameters: { layout: 'padded' },
   args: {
@@ -89,9 +88,8 @@ export const WithValidationMessages: Story = {
   },
 };
 
-/** The label beside the text area from `sm`. Switch viewport to see the breakpoints. */
+/** Label on its own line below `sm` (600px), beside the text area from there. */
 export const LabelBeside: Story = {
-  decorators: [withComponentGrid],
   args: {
     title: 'Kommentar',
     description: 'Skriv din kommentar her.',
@@ -100,26 +98,11 @@ export const LabelBeside: Story = {
   },
 };
 
-/** Two text areas sharing a row from `md`. Switch viewport to see the breakpoints. */
-export const TwoInRow: Story = {
-  render: (args) => (
-    <PageRow>
-      <ComponentGridItem size={{ xs: 12, md: 6 }}>
-        <StatefulTextAreaLayout
-          {...args}
-          componentId='textarea-description'
-          title='Beskrivelse'
-          description='Beskriv saken kort.'
-        />
-      </ComponentGridItem>
-      <ComponentGridItem size={{ xs: 12, md: 6 }}>
-        <StatefulTextAreaLayout
-          {...args}
-          componentId='textarea-comment'
-          title='Kommentar'
-          description='Skriv din kommentar her.'
-        />
-      </ComponentGridItem>
-    </PageRow>
-  ),
+/** Full width below `md` (1024px), half width from there. */
+export const HalfWidth: Story = {
+  parameters: { componentGrid: { size: { xs: 12, md: 6 } } },
+  args: {
+    title: 'Kommentar',
+    description: 'Skriv din kommentar her.',
+  },
 };

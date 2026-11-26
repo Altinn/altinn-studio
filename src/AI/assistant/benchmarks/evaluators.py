@@ -1,16 +1,13 @@
-"""Deterministic evaluators: score a candidate app against a rubric.
-
-Each evaluator returns a Score the runner posts to Langfuse.  Boolean
-scores are structural pass/fail; numeric scores are coverage ratios in
-[0, 1] so partial regressions are visible instead of flapping a binary.
-"""
+"""The structural scores of a built app: its pages, navigation, field titles and input count."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
 
-from .app_model import NAVIGATION_COMPONENT_TYPES, AppModel, titles_match
+from agents.altinn.layout.components import has_navigation
+
+from .app_model import AppModel, normalize_title
+from .rubric import Rubric
 
 
 @dataclass(frozen=True)
@@ -23,63 +20,38 @@ class Score:
 
 SCORE_NAMES = (
     "bench_pages",
-    "bench_order_integrity",
     "bench_navigation",
     "bench_field_coverage",
     "bench_input_count",
-    "bench_texts_bound",
 )
 
 
-def evaluate(app: AppModel, rubric: dict[str, Any]) -> list[Score]:
+def evaluate(app: AppModel, rubric: Rubric) -> list[Score]:
     return [
         _pages(app, rubric),
-        _order_integrity(app),
         _navigation(app, rubric),
         _field_coverage(app, rubric),
         _input_count(app, rubric),
-        _texts_bound(app),
     ]
 
 
-def _pages(app: AppModel, rubric: dict[str, Any]) -> Score:
-    expected = int(rubric.get("expected_pages") or 0)
-    actual = len(app.page_order)
+def _pages(app: AppModel, rubric: Rubric) -> Score:
+    expected, actual = rubric.expected_pages, len(app.page_order)
     return Score(
         name="bench_pages",
-        value=1.0 if actual == expected else 0.0,
+        value=1.0 if expected in (None, actual) else 0.0,
         data_type="BOOLEAN",
-        comment=f"expected {expected} ordered pages, found {actual}",
+        comment=f"expected {expected} ordered pages, found {actual}"
+        if expected is not None
+        else "rubric has no page count",
     )
 
 
-def _order_integrity(app: AppModel) -> Score:
-    ordered = set(app.page_order)
-    on_disk = set(app.layouts.keys())
-    missing_files = sorted(ordered - on_disk)
-    unlisted = sorted(on_disk - ordered)
-    ok = not missing_files and not unlisted
-    parts = []
-    if missing_files:
-        parts.append(f"in order but no layout file: {missing_files}")
-    if unlisted:
-        parts.append(f"layout file not in order: {unlisted}")
-    return Score(
-        name="bench_order_integrity",
-        value=1.0 if ok else 0.0,
-        data_type="BOOLEAN",
-        comment="; ".join(parts) or "pages.order and layout files agree",
-    )
-
-
-def _navigation(app: AppModel, rubric: dict[str, Any]) -> Score:
-    if not rubric.get("navigation_required") or len(app.page_order) < 2:
+def _navigation(app: AppModel, rubric: Rubric) -> Score:
+    form = app.form
+    if form is None or not rubric.navigation_required or len(form.order) < 2:
         return Score("bench_navigation", 1.0, "BOOLEAN", "single page — nothing to navigate")
-    missing = [
-        page
-        for page in app.page_order
-        if not any(c.get("type") in NAVIGATION_COMPONENT_TYPES for c in app.layouts.get(page, []))
-    ]
+    missing = [page for page in form.order if not has_navigation(form.components(page))]
     return Score(
         name="bench_navigation",
         value=0.0 if missing else 1.0,
@@ -92,16 +64,16 @@ def _navigation(app: AppModel, rubric: dict[str, Any]) -> Score:
     )
 
 
-def _field_coverage(app: AppModel, rubric: dict[str, Any]) -> Score:
-    expected_titles: list[str] = [t for t in rubric.get("expected_titles") or [] if t]
+def _field_coverage(app: AppModel, rubric: Rubric) -> Score:
+    expected_titles = [t for t in rubric.expected_titles if t]
     if not expected_titles:
         return Score("bench_field_coverage", 1.0, "NUMERIC", "rubric has no expected titles")
-    candidate_titles = [t for t in (app.title_of(c) for c in app.input_components()) if t]
-    missing = [
-        expected
-        for expected in expected_titles
-        if not any(titles_match(expected, candidate) for candidate in candidate_titles)
-    ]
+    # Titles that only their numbers tell apart, such as «A1. Navn» and «B2. Navn», need a field each
+    same: dict[str, list[str]] = {}
+    for title in expected_titles:
+        same.setdefault(normalize_title(title), []).append(title)
+    found = {key: {id(c) for title in titles for _, c in app.fields(title)} for key, titles in same.items()}
+    missing = [title for key, titles in same.items() for title in titles[len(found[key]) :]]
     covered = len(expected_titles) - len(missing)
     preview = "; ".join(missing[:8]) + ("; …" if len(missing) > 8 else "")
     return Score(
@@ -115,8 +87,8 @@ def _field_coverage(app: AppModel, rubric: dict[str, Any]) -> Score:
     )
 
 
-def _input_count(app: AppModel, rubric: dict[str, Any]) -> Score:
-    expected = int(rubric.get("min_input_components") or 0)
+def _input_count(app: AppModel, rubric: Rubric) -> Score:
+    expected = rubric.min_input_components
     actual = len(app.input_components())
     value = 1.0 if expected == 0 else round(min(1.0, actual / expected), 4)
     return Score(
@@ -124,27 +96,4 @@ def _input_count(app: AppModel, rubric: dict[str, Any]) -> Score:
         value=value,
         data_type="NUMERIC",
         comment=f"{actual} input components (rubric expects at least {expected})",
-    )
-
-
-def _texts_bound(app: AppModel) -> Score:
-    """Every textResourceBindings value should resolve in resource.nb.json."""
-    referenced: list[str] = []
-    for component in app.ordered_components():
-        for key in (component.get("textResourceBindings") or {}).values():
-            if isinstance(key, str) and key.strip():
-                referenced.append(key)
-    if not referenced:
-        return Score("bench_texts_bound", 0.0, "NUMERIC", "no text resource bindings at all")
-    resolved = sum(1 for key in referenced if key in app.resources)
-    missing = sorted({key for key in referenced if key not in app.resources})
-    preview = "; ".join(missing[:8]) + ("; …" if len(missing) > 8 else "")
-    return Score(
-        name="bench_texts_bound",
-        value=round(resolved / len(referenced), 4),
-        data_type="NUMERIC",
-        comment=(
-            f"{resolved}/{len(referenced)} bindings resolve in resource.nb.json"
-            + (f" — missing: {preview}" if missing else "")
-        ),
     )

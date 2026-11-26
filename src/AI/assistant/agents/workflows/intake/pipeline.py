@@ -1,8 +1,6 @@
-"""Intake workflow pipeline for generating repository-aware planning context."""
+"""Intake workflow pipeline that turns the user's goal into a high-level plan."""
 
 from __future__ import annotations
-
-from dataclasses import dataclass, field
 
 from agents.prompts import get_prompt_with_langfuse, render_template
 from agents.services.llm import LLMClient
@@ -13,31 +11,15 @@ from shared.utils.logging_utils import get_logger
 log = get_logger(__name__)
 
 
-@dataclass
-class RepositoryContext:
-    available_locales: list[str] = field(default_factory=lambda: ["nb", "nn"])
-    source_of_truth: str = "json_schema"
-    layout_pages: list[str] = field(default_factory=list)
-    model_files: list[str] = field(default_factory=list)
-    resource_files: list[str] = field(default_factory=list)
-
-
-def _build_context(facts: dict[str, list[str]]) -> RepositoryContext:
-    # Simplified - just return defaults since intake doesn't scan
-    return RepositoryContext()
-
-
 def run_intake_pipeline(
     repo_path: str,
     user_goal: str,
     *,
     attachments: list[AgentAttachment] | None = None,
     conversation_history: list | None = None,
-) -> dict[str, object]:
-    """Execute the intake workflow and return plan WITHOUT repository context."""
+) -> str:
+    """Execute the intake workflow and return the plan."""
 
-    # Don't scan here - let the scan node handle repository discovery
-    context = RepositoryContext()  # Use defaults
     system_prompt, lf_prompt = get_prompt_with_langfuse("intake_planning")
     user_prompt = render_template("intake_planning_user", user_goal=user_goal)
 
@@ -71,11 +53,7 @@ def run_intake_pipeline(
         response = client.call_sync(system_prompt, user_prompt, langfuse_prompt=lf_prompt)
         span.update(output={"response": response[:5000]})
 
-    return {
-        "plan": response.strip(),
-        "facts": None,  # Don't provide facts here
-        "context": context,
-    }
+    return response.strip()
 
 
 def _summarize_attachments(attachments: list[AgentAttachment] | None) -> str:

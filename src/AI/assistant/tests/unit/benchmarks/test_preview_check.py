@@ -83,7 +83,7 @@ class TestOptIn:
 
         monkeypatch.setattr("benchmarks.preview_check._render_results", raise_unavailable)
 
-        assert run("assistant_abc123", ["Side1"]) == []
+        assert run("ttd/bench", "assistant_abc123", ["Side1"]) == []
 
 
 class TestItRunsInsideTheExperimentRunner:
@@ -97,7 +97,7 @@ class TestItRunsInsideTheExperimentRunner:
 
         calling_thread = {}
 
-        def fake_render_results(branch, pages):
+        def fake_render_results(repo, branch, pages):
             calling_thread["name"] = threading.current_thread().name
             try:
                 asyncio.get_running_loop()
@@ -109,7 +109,7 @@ class TestItRunsInsideTheExperimentRunner:
         monkeypatch.setattr(preview_check, "_render_results", fake_render_results)
 
         async def run_like_the_sdk_does():
-            return preview_check.collect("assistant_abcd1234", ["Side1"])
+            return preview_check.collect("ttd/bench", "assistant_abcd1234", ["Side1"])
 
         assert asyncio.run(run_like_the_sdk_does()) == []
         assert calling_thread["loop"] is False, (
@@ -121,12 +121,12 @@ class TestItRunsInsideTheExperimentRunner:
         from benchmarks import preview_check
         from benchmarks.preview_check import PreviewCheckUnavailable
 
-        def unavailable(branch, pages):
+        def unavailable(repo, branch, pages):
             raise PreviewCheckUnavailable("playwright not installed")
 
         monkeypatch.setattr(preview_check, "_render_results", unavailable)
 
-        assert preview_check.collect("assistant_abcd1234", ["Side1"]) is None
+        assert preview_check.collect("ttd/bench", "assistant_abcd1234", ["Side1"]) is None
 
 
 class TestAPreviewThatNeverAnsweredIsNotAFailure:

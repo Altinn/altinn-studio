@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo } from 'react';
 
-import { useIsFetching, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useAppQueries } from 'src/core/queries/AppQueriesProvider';
 import {
   backendValidationQuery,
   backendValidationQueryKeys,
 } from 'src/core/queries/backendValidation/backendValidation.queries';
+import { useIsFetchingQueries } from 'src/core/queries/useIsFetchingData';
 import { FormStore } from 'src/features/form/FormContext';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
@@ -48,7 +49,7 @@ export function useUpdateInitialValidations() {
 }
 
 export function useIsUpdatingInitialValidations() {
-  return useIsFetching({ queryKey: backendValidationQueryKeys.all() }) > 0;
+  return useIsFetchingQueries({ queryKey: backendValidationQueryKeys.all() });
 }
 
 function useBackendValidationQueryOptions(onlyIncrementalValidators: boolean) {
