@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
-import { skipToken, useQuery } from '@tanstack/react-query';
+import { skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { UseQueryOptions } from '@tanstack/react-query';
 
 import { delayedContext } from 'src/core/contexts/delayedContext';
@@ -8,7 +8,7 @@ import { createQueryContext } from 'src/core/contexts/queryContext';
 import { useAppQueries } from 'src/core/queries/AppQueriesProvider';
 import { paymentQueryKeys } from 'src/core/queries/payment/payment.queries';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
-import { useProcessQuery } from 'src/features/instance/useProcessQuery';
+import { useIsAwaitingMessages, useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useIsPayment } from 'src/features/payment/utils';
 import type { PaymentResponsePayload } from 'src/features/payment/types';
@@ -34,6 +34,18 @@ const usePaymentInformationQuery = () => {
   const enabled = useIsPayment();
 
   const result = useQuery(usePaymentInformationQueryDef(enabled, instanceId));
+  const refetchPaymentInformation = useRefetchPaymentInformation();
+
+  // The payment changes when a payment attempt opens or ends, which a poll of the process may be the first to show.
+  // The page keeps showing the payment it has until the new one arrives.
+  const isAwaitingMessages = useIsAwaitingMessages();
+  const wasAwaitingMessages = useRef(isAwaitingMessages);
+  useEffect(() => {
+    if (wasAwaitingMessages.current !== isAwaitingMessages) {
+      wasAwaitingMessages.current = isAwaitingMessages;
+      void refetchPaymentInformation();
+    }
+  }, [isAwaitingMessages, refetchPaymentInformation]);
 
   useEffect(() => {
     result.error && window.logError('Fetching paymentInfo failed:\n', result.error);
@@ -58,3 +70,28 @@ const { Provider, useCtx } = delayedContext(() =>
 
 export const PaymentInformationProvider = Provider;
 export const usePaymentInformation = () => useCtx();
+
+export function useRefetchPaymentInformation() {
+  const instanceId = useLaxInstanceId();
+  const queryClient = useQueryClient();
+  return useCallback(
+    () => queryClient.invalidateQueries({ queryKey: paymentQueryKeys.informationForInstance(instanceId) }),
+    [instanceId, queryClient],
+  );
+}
+
+/** Shows a payment that a request answered with, without reading it again. */
+export function useSetPaymentInformation() {
+  const instanceId = useLaxInstanceId();
+  const selectedLanguage = useCurrentLanguage();
+  const queryClient = useQueryClient();
+  return useCallback(
+    (paymentInformation: PaymentResponsePayload): void => {
+      queryClient.setQueryData(
+        paymentQueryKeys.information(instanceId, selectedLanguage, paymentInformation.taskId),
+        paymentInformation,
+      );
+    },
+    [instanceId, selectedLanguage, queryClient],
+  );
+}

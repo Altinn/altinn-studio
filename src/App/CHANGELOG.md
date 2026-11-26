@@ -25,6 +25,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Breaking: `PUT .../process/next` no longer moves a payment task on, not even once the payment is paid; any action but `reject` answers `409 Conflict`. Only the payment attempt moves the task on. Custom frontends and systems that confirm after paying must stop, and an app's own `confirm` action on a payment task no longer runs. ([#22134](https://github.com/Altinn/altinn-studio/pull/22134))
 - A payment processor an app implements (`IPaymentProcessor`) gets no route for its own events, so its payments complete through the user's check or at the 24-hour deadline. It cannot cancel a reservation, so an `Authorized` payment at the deadline keeps failing until an operator steps in. ([#22134](https://github.com/Altinn/altinn-studio/pull/22134))
 - The Nets webhook URL ends with the payment attempt's mailbox id: `.../payment/nets-webhook-listener/{mailboxId}`. Update allowlists that match the whole URL. ([#22134](https://github.com/Altinn/altinn-studio/pull/22134))
+- While a payment is open at Nets, the payment page shows **Continue to payment** and **Back**, and the rest of the page is read-only. **Back** cancels the payment at Nets. ([#22135](https://github.com/Altinn/altinn-studio/pull/22135))
+- A paid payment no longer shows **Next**: the payment moves the process on by itself. The form also calls `pay` for a `Paid`, `Authorized` or `Skipped` payment, which `pay` takes over without sending the user to Nets. ([#22135](https://github.com/Altinn/altinn-studio/pull/22135))
 
 ### Fixed
 

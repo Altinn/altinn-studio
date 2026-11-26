@@ -1,12 +1,21 @@
 import { createContext, useContext, useEffect } from 'react';
 import type { FC, ReactNode } from 'react';
 
+import { isHttpError } from '@studio/http-client';
 import type { HttpError } from '@studio/http-client';
 
 import { Loader } from 'src/core/loading/Loader';
-import { usePaymentInformation, usePerformPayActionMutation } from 'src/core/queries/payment';
+import {
+  useCheckPaymentMutation,
+  usePaymentInformation,
+  usePerformPayActionMutation,
+  useSetPaymentInformation,
+} from 'src/core/queries/payment';
+import { usePollingWithBackoff } from 'src/core/queries/usePollingWithBackoff';
+import { useIsAwaitingMessages } from 'src/features/instance/useProcessQuery';
 import { PaymentStatus } from 'src/features/payment/types';
 import { useIsPayment } from 'src/features/payment/utils';
+import { useRefreshProcess } from 'src/features/process/useProcessNext';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useIsPdf } from 'src/hooks/useIsPdf';
 import { useOurEffectEvent } from 'src/hooks/useOurEffectEvent';
@@ -23,21 +32,47 @@ type PaymentContextProvider = {
 
 export const PaymentContext = createContext<PaymentContextProps | undefined>(undefined);
 
-// Module-level tracking to prevent duplicate payment calls across component remounts
-const paymentInitiatedForInstance = new Map<string, boolean>();
+// Instances that this page load has called pay for, so a remount does not call it again
+const paymentInitiatedForInstance = new Set<string>();
+
+// Instances whose open payment attempt this page load has checked
+const paymentCheckedForInstance = new Set<string>();
+
+// A payment that went through, or no payment at all: pay adopts the payment or starts one, without asking the user
+const statusesToPayOnLanding = [
+  PaymentStatus.Uninitialized,
+  PaymentStatus.Paid,
+  PaymentStatus.Authorized,
+  PaymentStatus.Skipped,
+];
 
 export const PaymentProvider: FC<PaymentContextProvider> = ({ children }) => {
   const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
   const instanceGuid = useNavigationParam('instanceGuid');
   const {
     mutateAsync,
-    error: paymentError,
+    error: payError,
     isPending: isPaymentPending,
   } = usePerformPayActionMutation(instanceOwnerPartyId, instanceGuid);
+  const refreshProcess = useRefreshProcess();
+  const isAwaitingMessages = useIsAwaitingMessages();
+
+  // A pay that failed after its attempt opened is stale: the open attempt is what the page shows and checks
+  const paymentError = isAwaitingMessages ? null : payError;
 
   const isLoading = isPaymentPending;
 
-  const performPayment = useOurEffectEvent(() => mutateAsync());
+  // Without a redirect, pay has moved the process on or opened an attempt on a reserved payment. A failure can also
+  // come after the attempt opened or the process moved; a 409 reloads the page instead.
+  const performPayment = useOurEffectEvent(async () => {
+    const isRedirectOrReload = await mutateAsync().then(
+      (result) => !!result?.redirectUrl,
+      (error) => isHttpError(error) && error.response?.status === 409,
+    );
+    if (!isRedirectOrReload) {
+      await refreshProcess();
+    }
+  });
 
   const contextValue = useShallowMemo({ performPayment, paymentError });
 
@@ -54,28 +89,50 @@ function PaymentNavigation() {
   const isPdf = useIsPdf();
   const { performPayment } = usePayment();
   const instanceGuid = useNavigationParam('instanceGuid');
+  const isAwaitingMessages = useIsAwaitingMessages();
+  const { mutateAsync: checkPayment, isPending: isChecking } = useCheckPaymentMutation();
+  const setPaymentInformation = useSetPaymentInformation();
+  const refreshProcess = useRefreshProcess();
 
-  const paymentDoesNotExist = paymentInfo?.status === PaymentStatus.Uninitialized;
+  const status = paymentInfo?.status;
+  const shouldPay = status !== undefined && statusesToPayOnLanding.includes(status) && !isAwaitingMessages;
   const isPaymentProcess = useIsPayment();
 
-  // If when landing on payment task, PaymentStatus is Uninitialized, initiate it by calling the pay action and
-  // go to payment provider
   useEffect(() => {
-    if (isPaymentProcess && paymentDoesNotExist && !isPdf && instanceGuid) {
-      // Check module-level map to prevent duplicate calls across remounts
-      if (!paymentInitiatedForInstance.get(instanceGuid)) {
-        paymentInitiatedForInstance.set(instanceGuid, true);
+    if (isPaymentProcess && shouldPay && !isPdf && instanceGuid) {
+      if (!paymentInitiatedForInstance.has(instanceGuid)) {
+        paymentInitiatedForInstance.add(instanceGuid);
         performPayment();
       }
-    } else if (
-      instanceGuid &&
-      paymentInfo?.status !== undefined &&
-      paymentInfo.status !== PaymentStatus.Uninitialized
-    ) {
-      // Clean up the flag once payment status is known and no longer Uninitialized
+    } else if (instanceGuid && status !== undefined) {
+      // Clean up the flag once payment status is known and no longer one to pay for
       paymentInitiatedForInstance.delete(instanceGuid);
     }
-  }, [isPaymentProcess, paymentDoesNotExist, performPayment, isPdf, instanceGuid, paymentInfo?.status]);
+  }, [isPaymentProcess, shouldPay, performPayment, isPdf, instanceGuid, status]);
+
+  // Completes a payment that no webhook reported, such as in local development. A failed check changes nothing: the
+  // page keeps showing the stored payment, and polling the process still follows the attempt.
+  const checkOpenAttempt = useOurEffectEvent(async () => {
+    if (isChecking) {
+      return;
+    }
+    const checked = await checkPayment().catch(() => undefined);
+    if (checked && checked.status !== status) {
+      setPaymentInformation(checked);
+      await refreshProcess();
+    }
+  });
+
+  const canCheck = isPaymentProcess && isAwaitingMessages && !isPdf;
+  useEffect(() => {
+    if (canCheck && instanceGuid && !paymentCheckedForInstance.has(instanceGuid)) {
+      paymentCheckedForInstance.add(instanceGuid);
+      checkOpenAttempt();
+    }
+  }, [canCheck, instanceGuid, checkOpenAttempt]);
+
+  // The payment processor charges a reserved payment some time after the reservation, and no webhook may report it
+  usePollingWithBackoff(checkOpenAttempt, canCheck && status === PaymentStatus.Authorized);
 
   return null;
 }

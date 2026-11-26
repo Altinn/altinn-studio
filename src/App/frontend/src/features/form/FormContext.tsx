@@ -80,9 +80,10 @@ export interface FormStoreState {
   // prevent automatic effects from happening.
   readOnly: boolean;
 
-  // True on a service task's own page. The task owns the instance until the process moves on, and the server rejects
-  // every change until then, so the form is read-only and locked: components render as read-only and buttons that
-  // change the instance are disabled. Never set in PDF mode.
+  // True on a service task's own page (never in PDF mode), and while a user action holds the task and waits for
+  // messages. The server rejects every change to the instance meanwhile, so components render as read-only, writes to
+  // the data models are refused, unsaved changes wait for the release, and buttons that change the instance are
+  // disabled.
   instanceLocked: boolean;
 
   data: FormDataSliceState & FormDataMethods;

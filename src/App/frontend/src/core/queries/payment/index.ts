@@ -9,7 +9,13 @@ import {
   useRefetchOrderDetails,
 } from 'src/core/queries/payment/OrderDetailsProvider';
 import { paymentQueryKeys } from 'src/core/queries/payment/payment.queries';
-import { PaymentInformationProvider, usePaymentInformation } from 'src/core/queries/payment/PaymentInformationProvider';
+import {
+  PaymentInformationProvider,
+  usePaymentInformation,
+  useRefetchPaymentInformation,
+  useSetPaymentInformation,
+} from 'src/core/queries/payment/PaymentInformationProvider';
+import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 
 export const usePerformPayActionMutation = (partyId?: string, instanceGuid?: string) => {
@@ -26,7 +32,7 @@ export const usePerformPayActionMutation = (partyId?: string, instanceGuid?: str
     onError: (error: HttpError) => {
       window.logError('Error performing pay action', error);
       if (error.response?.status === 409) {
-        // The payment has already been paid, reload the page to get the updated status and go to receipt
+        // A payment attempt or a transition holds the instance, or it changed: reload to show its current state
         window.location.reload();
       }
     },
@@ -43,9 +49,48 @@ export const usePerformPayActionMutation = (partyId?: string, instanceGuid?: str
   return mutationResult(mutation);
 };
 
+/** Ends the open payment attempt: the process moves back, or on when the payment has gone through. */
+export const useCancelPaymentMutation = () => {
+  const instanceId = useLaxInstanceId();
+  const { doCancelPayment } = useAppMutations();
+  const selectedLanguage = useCurrentLanguage();
+  const refetchPaymentInformation = useRefetchPaymentInformation();
+  const mutation = useMutation({
+    mutationFn: async () => {
+      if (instanceId) {
+        return await doCancelPayment(instanceId, selectedLanguage);
+      }
+    },
+    // A cancel that went through moves the process or lets the instance go, and the page reads the payment again then
+    onError: (error: HttpError) => {
+      window.logError('Error cancelling payment', error);
+      return refetchPaymentInformation();
+    },
+  });
+  return mutationResult(mutation);
+};
+
+/** Asks the payment processor for the payment's status, and sends it to the open payment attempt when it changed. */
+export const useCheckPaymentMutation = () => {
+  const instanceId = useLaxInstanceId();
+  const { doCheckPayment } = useAppMutations();
+  const selectedLanguage = useCurrentLanguage();
+  const mutation = useMutation({
+    mutationFn: async () => {
+      if (instanceId) {
+        return await doCheckPayment(instanceId, selectedLanguage);
+      }
+    },
+    onError: (error: HttpError) => window.logError('Error checking payment', error),
+  });
+  return mutationResult(mutation);
+};
+
 export {
   PaymentInformationProvider,
   usePaymentInformation,
+  useRefetchPaymentInformation,
+  useSetPaymentInformation,
   OrderDetailsProvider,
   useOrderDetails,
   useRefetchOrderDetails,

@@ -346,9 +346,13 @@ export function nb() {
       'Du kan endre [profilinnstillingene]({0}) dine for å ikke bli spurt om aktør hver gang du starter utfylling av et nytt skjema. Du finner denne innstillingen under **Profil** > **Aktører**.',
     'party_selection.seeing_this_override': 'Denne appen er satt opp til å alltid spørre om aktør.',
     'payment.pay': 'Betal',
+    'payment.continue': 'Fortsett til betaling',
+    'payment.cancel_failed': 'Du kan ikke gå tilbake akkurat nå. Prøv igjen senere.',
     'payment.summary': 'Oppsummering',
     'payment.alert.paid': 'Du har betalt!',
     'payment.alert.failed': 'Betalingen feilet',
+    'payment.alert.processing':
+      'Betalingen din behandles. Siden oppdateres når betalingen er fullført.',
     'payment.receipt.title': 'Betalingskvittering',
     'payment.receipt.payment_id': 'Betalings-ID',
     'payment.receipt.altinn_ref': 'Altinn reference',

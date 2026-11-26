@@ -206,8 +206,8 @@ function makeActions(
   const debounceOnBlur = getFeature('saveOnBlur').value;
   let calculationsInitialized = false;
 
-  function isWritable(dataType: string) {
-    return !locked && dataModels[dataType]?.writable === true;
+  function isWritable(state: FormStoreState, dataType: string) {
+    return !locked && !state.instanceLocked && dataModels[dataType]?.writable === true;
   }
 
   function setDebounceTimeout(state: FormStoreState, change: FDChange) {
@@ -321,7 +321,7 @@ function makeActions(
       (model) => !deepEqual(model.currentData, model.debouncedCurrentData),
     );
     if (!calculationsInitialized || hasChanges) {
-      runCalculations(state, getCalculationDataSources(), isWritable);
+      runCalculations(state, getCalculationDataSources(), (dataType) => isWritable(state, dataType));
       calculationsInitialized = true;
     }
 
@@ -375,7 +375,7 @@ function makeActions(
   }
 
   function setLeafValueInState(state: FormStoreState, { reference, newValue, callback, ...rest }: FDNewValue) {
-    if (!isWritable(reference.dataType)) {
+    if (!isWritable(state, reference.dataType)) {
       window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
       callback?.(FDSetValueReadOnly);
       return;
@@ -427,7 +427,7 @@ function makeActions(
     appendToListUnique: ({ reference, newValue }) =>
       set((state) => {
         const dataState = state.data;
-        if (!isWritable(reference.dataType)) {
+        if (!isWritable(state, reference.dataType)) {
           window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
           return;
         }
@@ -444,7 +444,7 @@ function makeActions(
       }),
     appendToList: ({ reference, newValue }) =>
       set((state) => {
-        if (!isWritable(reference.dataType)) {
+        if (!isWritable(state, reference.dataType)) {
           window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
           return;
         }
@@ -473,7 +473,7 @@ function makeActions(
       }),
     removeIndexFromList: ({ reference, index }) =>
       set((state) => {
-        if (!isWritable(reference.dataType)) {
+        if (!isWritable(state, reference.dataType)) {
           window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
           return;
         }
@@ -488,7 +488,7 @@ function makeActions(
 
     removeValueFromList: ({ reference, value }) =>
       set((state) => {
-        if (!isWritable(reference.dataType)) {
+        if (!isWritable(state, reference.dataType)) {
           window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
           return;
         }
@@ -502,7 +502,7 @@ function makeActions(
       }),
     removeFromListCallback: ({ reference, startAtIndex, callback }) =>
       set((state) => {
-        if (!isWritable(reference.dataType)) {
+        if (!isWritable(state, reference.dataType)) {
           window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
           return;
         }
@@ -536,7 +536,7 @@ function makeActions(
       set((state) => {
         const changedTypes = new Set<string>();
         for (const { reference, newValue } of changes) {
-          if (!isWritable(reference.dataType)) {
+          if (!isWritable(state, reference.dataType)) {
             window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
             continue;
           }

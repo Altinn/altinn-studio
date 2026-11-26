@@ -24,6 +24,15 @@ export function useProcessWorkflow(): IProcessWorkflow | undefined {
   return data?.workflow;
 }
 
+/** Whether a user action, such as a payment attempt, holds the current task and waits for messages. */
+export function isAwaitingMessages(workflow: IProcessWorkflow | undefined): boolean {
+  return workflow?.status === 'processing' && workflow.awaitingMessages === true;
+}
+
+export function useIsAwaitingMessages(): boolean {
+  return isAwaitingMessages(useProcessWorkflow());
+}
+
 export const useIsAuthorized = () => {
   const { data } = useProcessQuery();
 

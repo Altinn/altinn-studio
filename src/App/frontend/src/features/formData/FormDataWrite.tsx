@@ -177,6 +177,7 @@ function FormDataEffects() {
     s.data.debounceTimeout,
     s.data.manualSaveRequested,
   ]);
+  const instanceLocked = FormStore.useIsInstanceLocked();
   const hasUnsavedChanges = useHasUnsavedChanges();
   const hasInvalidData = FormStore.raw.useSelector((state) => hasInvalidFormData(state));
   const shouldWarnBeforeUnload = hasUnsavedChanges || hasInvalidData;
@@ -270,7 +271,8 @@ function FormDataEffects() {
 
   // Save the data model when the data has been frozen/debounced, and we're ready
   const needsToSave = FormStore.raw.useSelector((state) => hasDebouncedUnsavedChanges(state));
-  const canSaveNow = !isSaving && !lockedBy && !isUpdatingInitialValidations;
+  // The server refuses saves while the instance is locked, so changes from before the lock wait for its release
+  const canSaveNow = !isSaving && !lockedBy && !isUpdatingInitialValidations && !instanceLocked;
   // A root save also flushes mounted subforms, including forms that only autosave on page changes.
   const shouldSave =
     (autoSaving && needsToSave) || ((manualSaveRequested || rootManualSaveRequested) && hasUnsavedChangesNow());
@@ -290,11 +292,11 @@ function FormDataEffects() {
   // to trigger when the user is typing, which is not what we want.
   useEffect(
     () => () => {
-      if (hasUnsavedChangesNow()) {
+      if (hasUnsavedChangesNow() && !store.getState().instanceLocked) {
         performSave();
       }
     },
-    [hasUnsavedChangesNow, performSave],
+    [hasUnsavedChangesNow, performSave, store],
   );
 
   // Sets the debounced data in the window object, so that Cypress tests can access it.
@@ -428,7 +430,8 @@ const useWaitForSave = ({ includeRoot = false }: { includeRoot?: boolean } = {})
           return true;
         }
 
-        const hasChanges = hasUnsavedChanges(state) || state.nestedFormStatus.unsaved > 0;
+        // Changes wait for the release of a locked instance (see canSaveNow), which callers should not wait for
+        const hasChanges = !state.instanceLocked && (hasUnsavedChanges(state) || state.nestedFormStatus.unsaved > 0);
         if (requestManualSave && !state.data.manualSaveRequested && hasChanges) {
           state.data.requestManualSave();
           return false;

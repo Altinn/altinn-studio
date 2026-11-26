@@ -10,7 +10,9 @@ import type { Mock } from 'vitest';
 import { ignoredConsoleMessages } from 'test/e2e/support/fail-on-console-log';
 
 import { getDataModelBootstrapMock, getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
+import { paymentResponsePayload } from 'src/__mocks__/getPaymentPayloadMock';
 import { FormStore } from 'src/features/form/FormContext';
+import { PaymentStatus } from 'src/features/payment/types';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { SubformWrapper } from 'src/layout/Subform/SubformWrapper';
 import { ensureAppsDirIsSet, getAllApps } from 'src/test/allApps';
@@ -191,6 +193,8 @@ describe('All known UI folders should render successfully', () => {
             );
           }),
         fetchLayoutSchema: async () => layoutSchema as unknown as JSONSchema7,
+        // On a payment task's page, a paid payment would make the frontend call pay instead of rendering the page
+        fetchPaymentInformationForTask: async () => ({ ...paymentResponsePayload, status: PaymentStatus.Created }),
       },
     });
 

@@ -6,9 +6,11 @@ import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 
 describe('PaymentReceiptDetails', () => {
   it('renders receiver and payer details as valid table bodies', async () => {
+    // As in the receipt PDF of a payment task. On the task's page, the frontend calls pay for a paid payment.
     await renderGenericComponentTest({
       type: 'Payment',
       renderer: () => <PaymentReceiptDetails />,
+      query: 'pdf=1',
       queries: {
         getInstance: async () => {
           const instance = getInstanceWithProcessMock();

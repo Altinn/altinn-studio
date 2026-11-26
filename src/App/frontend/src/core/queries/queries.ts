@@ -32,6 +32,8 @@ import {
   getFormBootstrapUrlForStateless,
   getLayoutsUrl,
   getOrderDetailsUrl,
+  getPaymentCancelUrl,
+  getPaymentCheckUrl,
   getPaymentInformationForTaskUrl,
   getProcessNextUrl,
   getProcessResumeUrl,
@@ -167,6 +169,12 @@ export const fetchPaymentInformationForTask = (
   language?: string,
   taskId?: string,
 ): Promise<PaymentResponsePayload> => httpGet(getPaymentInformationForTaskUrl(instanceId, language, taskId));
+
+export const doCancelPayment = async (instanceId: string, language?: string): Promise<PaymentResponsePayload> =>
+  (await httpPost<PaymentResponsePayload>(getPaymentCancelUrl(instanceId, language))).data;
+
+export const doCheckPayment = async (instanceId: string, language?: string): Promise<PaymentResponsePayload> =>
+  (await httpPost<PaymentResponsePayload>(getPaymentCheckUrl(instanceId, language))).data;
 
 export const fetchOrderDetails = (instanceId: string, language?: string): Promise<OrderDetails> =>
   httpGet(getOrderDetailsUrl(instanceId, language));

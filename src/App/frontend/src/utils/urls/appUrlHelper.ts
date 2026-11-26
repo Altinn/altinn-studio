@@ -22,6 +22,16 @@ export const getPaymentInformationForTaskUrl = (instanceId: string, language?: s
   return `${origin}/${org}/${app}/instances/${instanceId}/payment${queryString}`;
 };
 
+export const getPaymentCancelUrl = (instanceId: string, language?: string) => {
+  const queryString = getQueryStringFromObject({ language });
+  return `${origin}/${org}/${app}/instances/${instanceId}/payment/cancel${queryString}`;
+};
+
+export const getPaymentCheckUrl = (instanceId: string, language?: string) => {
+  const queryString = getQueryStringFromObject({ language });
+  return `${origin}/${org}/${app}/instances/${instanceId}/payment/check${queryString}`;
+};
+
 export const getOrderDetailsUrl = (instanceId: string, language?: string) => {
   const queryString = getQueryStringFromObject({ language });
   return `${origin}/${org}/${app}/instances/${instanceId}/payment/order-details${queryString}`;

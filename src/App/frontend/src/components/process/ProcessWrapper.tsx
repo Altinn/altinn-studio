@@ -18,6 +18,7 @@ import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import {
   findProcessTask,
+  isAwaitingMessages,
   useGetTaskTypeById,
   useProcessQuery,
   useProcessWorkflow,
@@ -216,7 +217,10 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   // A service task's page is never replaced (see above): it owns the waiting presentation, without
   // the loading view's "taking a long time" message. The replacement stays for transitions toward
   // other tasks, service tasks without a page, and stale URLs until navigation converges.
-  if (!isPdfMode && workflow?.status === 'processing') {
+  //
+  // A user action that holds the current task and waits for messages, such as a payment attempt,
+  // leaves the task's view on screen. Only a page that renders through FormProvider is read-only then.
+  if (!isPdfMode && workflow?.status === 'processing' && !isAwaitingMessages(workflow)) {
     return <WorkflowProcessing />;
   }
 

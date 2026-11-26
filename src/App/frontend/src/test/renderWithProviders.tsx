@@ -186,6 +186,8 @@ function createQueryMocks({ queries, mutations }: QueryOverrides = {}) {
     ),
     doAttachmentRemove: queryPromiseMock('doAttachmentRemove', mutations?.doAttachmentRemove),
     doPerformAction: queryPromiseMock('doPerformAction', mutations?.doPerformAction),
+    doCancelPayment: queryPromiseMock('doCancelPayment', mutations?.doCancelPayment),
+    doCheckPayment: queryPromiseMock('doCheckPayment', mutations?.doCheckPayment),
     doSubformEntryAdd: queryPromiseMock('doSubformEntryAdd', mutations?.doSubformEntryAdd),
     doSubformEntryDelete: queryPromiseMock('doSubformEntryDelete', mutations?.doSubformEntryDelete),
     doPatchMultipleFormData: queryPromiseMock('doPatchMultipleFormData', mutations?.doPatchMultipleFormData),
