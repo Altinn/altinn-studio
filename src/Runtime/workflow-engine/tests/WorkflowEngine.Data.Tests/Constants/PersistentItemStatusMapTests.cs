@@ -38,6 +38,12 @@ public class PersistentItemStatusMapTests
             PersistentItemStatusMap.ToSqlList(PersistentItemStatusMap.Incomplete)
         );
         Assert.Equal(
+            PersistentItemStatusMap.IncompleteExceptEnqueuedSqlList,
+            PersistentItemStatusMap.ToSqlList([
+                .. PersistentItemStatusMap.Incomplete.Where(s => s != PersistentItemStatus.Enqueued),
+            ])
+        );
+        Assert.Equal(
             PersistentItemStatusMap.FetchableSqlList,
             PersistentItemStatusMap.ToSqlList(PersistentItemStatusMap.Fetchable)
         );

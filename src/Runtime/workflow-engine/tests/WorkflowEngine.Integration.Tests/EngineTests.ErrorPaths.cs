@@ -98,7 +98,7 @@ public partial class EngineTests
         // Arrange — seed the cached workflow count to match the threshold
         var engineStatus = fixture.Services.GetRequiredService<IEngineStatus>();
         var settings = fixture.Services.GetRequiredService<IOptions<EngineSettings>>().Value;
-        engineStatus.UpdateWorkflowCounts(active: settings.Concurrency.BackpressureThreshold, scheduled: 0, failed: 0);
+        engineStatus.UpdateActiveWorkflowCounts(active: settings.Concurrency.BackpressureThreshold, scheduled: 0);
 
         var request = _testHelpers.CreateEnqueueRequest(
             _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/backpressure")])
@@ -111,7 +111,7 @@ public partial class EngineTests
         Assert.Equal(HttpStatusCode.TooManyRequests, response.StatusCode);
 
         // Clean up — restore counts so other tests aren't affected
-        engineStatus.UpdateWorkflowCounts(active: 0, scheduled: 0, failed: 0);
+        engineStatus.UpdateActiveWorkflowCounts(active: 0, scheduled: 0);
     }
 
     [Fact]
@@ -120,7 +120,7 @@ public partial class EngineTests
         // Arrange — seed the cached workflow count to match the threshold
         var engineStatus = fixture.Services.GetRequiredService<IEngineStatus>();
         var settings = fixture.Services.GetRequiredService<IOptions<EngineSettings>>().Value;
-        engineStatus.UpdateWorkflowCounts(active: settings.Concurrency.BackpressureThreshold, scheduled: 0, failed: 0);
+        engineStatus.UpdateActiveWorkflowCounts(active: settings.Concurrency.BackpressureThreshold, scheduled: 0);
 
         // Act
         using var client = fixture.CreateEngineClient();
@@ -134,6 +134,6 @@ public partial class EngineTests
         Assert.Contains("QueueFull", body, StringComparison.Ordinal);
 
         // Clean up — restore counts so other tests aren't affected
-        engineStatus.UpdateWorkflowCounts(active: 0, scheduled: 0, failed: 0);
+        engineStatus.UpdateActiveWorkflowCounts(active: 0, scheduled: 0);
     }
 }

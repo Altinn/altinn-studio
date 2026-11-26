@@ -2,7 +2,6 @@ using System.Text.Json;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Extensions;
@@ -79,25 +78,20 @@ internal sealed class MetricsCollector(
                     mailboxDeliveryBuffer.QueueDepth
                 );
 
-                var counts = await engineRepository.CountWorkflowsByStatus(stoppingToken);
-                var active = SumStatuses(counts.ByStatus, PersistentItemStatusMap.Incomplete);
+                var counts = await engineRepository.CountIncompleteWorkflowsByStatus(stoppingToken);
+                var active = counts.ByStatus.Values.Sum();
                 var scheduled = counts.Scheduled;
                 var waiting = counts.ByStatus.GetValueOrDefault(PersistentItemStatus.Waiting);
-                var failed = SumStatuses(counts.ByStatus, PersistentItemStatusMap.Failed);
-                var successful = SumStatuses(counts.ByStatus, PersistentItemStatusMap.Successful);
                 Metrics.SetActiveWorkflowsCount(active);
                 Metrics.SetScheduledWorkflowsCount(scheduled);
                 Metrics.SetWaitingWorkflowsCount(waiting);
-                Metrics.SetFailedWorkflowsCount(failed);
-                Metrics.SetSuccessfulWorkflowsCount(successful);
-                Metrics.SetFinishedWorkflowsCount(failed + successful);
 
                 Metrics.SetUsedInboxSlots(active);
                 Metrics.SetAvailableInboxSlots(
                     Math.Max(0, engineSettings.Value.Concurrency.BackpressureThreshold - active)
                 );
 
-                engine.UpdateWorkflowCounts(active, scheduled, failed);
+                engine.UpdateActiveWorkflowCounts(active, scheduled);
 
                 // Deliberately last, so a throw here costs this gauge alone. The grace is the sweep's own cadence:
                 // counting a mailbox the sweep has not had a tick to reach would leave the gauge permanently
@@ -126,11 +120,6 @@ internal sealed class MetricsCollector(
 
         logger.ShuttingDown();
     }
-
-    private static int SumStatuses(
-        IReadOnlyDictionary<PersistentItemStatus, int> counts,
-        IReadOnlyCollection<PersistentItemStatus> statuses
-    ) => statuses.Sum(s => counts.GetValueOrDefault(s));
 }
 
 internal static partial class MetricsCollectorLogs

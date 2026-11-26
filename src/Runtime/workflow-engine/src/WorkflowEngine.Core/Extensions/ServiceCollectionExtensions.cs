@@ -92,6 +92,7 @@ public static class ServiceCollectionExtensions
             services.AddHostedService<WorkflowProcessor>();
             services.AddHostedService<MetricsCollector>();
             services.AddHostedService<WorkflowCountCollector>();
+            services.AddHostedService<FinishedWorkflowCountCollector>();
 
             services.AddScoped<WorkflowHandler>();
 
@@ -182,6 +183,11 @@ public static class OptionsBuilderExtensions
 
                 if (config.WorkflowCountCollectionInterval <= TimeSpan.Zero)
                     config.WorkflowCountCollectionInterval = Defaults.EngineSettings.WorkflowCountCollectionInterval;
+
+                if (config.FinishedWorkflowCountCollectionInterval <= TimeSpan.Zero)
+                    config.FinishedWorkflowCountCollectionInterval = Defaults
+                        .EngineSettings
+                        .FinishedWorkflowCountCollectionInterval;
 
                 if (config.DefaultStepCommandTimeout <= TimeSpan.Zero)
                     config.DefaultStepCommandTimeout = Defaults.EngineSettings.DefaultStepCommandTimeout;

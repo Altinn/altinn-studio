@@ -707,19 +707,31 @@ sum by ("altinn.workflow_engine.workflow.is_head") (
 
 ### Workflow counts
 
-Every `MetricsCollectionInterval` (5 seconds) the engine counts all its retained workflows by status, for the
-database-wide gauges: `workflow.active` is every non-terminal status, `workflow.scheduled` the enqueued workflows
-with a future start, `workflow.waiting`, `workflow.failed` (`Failed`, `Canceled` and `DependencyFailed`),
-`workflow.successful` and `workflow.finished`. The same count feeds backpressure and health.
+The engine counts its workflows in three reads, each in its own loop, so a read that is slow or fails holds up
+neither of the others.
 
-Every `WorkflowCountCollectionInterval` (15 seconds, how often deployments export) a separate read counts the
+- **Every `MetricsCollectionInterval` (5 seconds) it counts the incomplete workflows by status.** The read touches
+  only those, so its cost grows with them and not with the table. It feeds backpressure, the health check's active and
+  scheduled counts, and the database-wide gauges `workflow.active` (every non-terminal status), `workflow.scheduled`
+  (the enqueued workflows with a future start) and `workflow.waiting`.
+- **Every `FinishedWorkflowCountCollectionInterval` (1 minute) it counts all workflows by status.** That read covers
+  every workflow the database retains, 90 days by default, so it runs less often. It feeds the database-wide gauges
+  `workflow.failed` (`Failed`, `Canceled` and `DependencyFailed`), `workflow.successful` and `workflow.finished` (the
+  two together), and the health check's `failed_workflows`. All four read 0 from start until this read first
+  completes. For failures you need to see sooner, read `workflow.count` below.
+
+Each loop waits its interval after a read, so a value can be as old as the interval plus two reads: a little over a
+minute for the failed, successful and finished counts, a little over 5 seconds for the incomplete ones.
+
+Every `WorkflowCountCollectionInterval` (15 seconds, how often deployments export) the third read counts the
 incomplete and failed workflows per namespace, through partial indexes over those statuses, so its cost grows with
 them and not with the table. `workflow.count` reports it with `altinn.workflow_engine.namespace` and
 `altinn.workflow_engine.workflow.status`: `scheduled`, `enqueued`, `processing`, `requeued`, `waiting`, `held`,
 `failed`, `canceled` and `dependency_failed`, the status names in snake_case. `scheduled` holds the enqueued workflows
 with a future start and `enqueued` the rest, so no workflow is in two statuses and any of them can be summed.
-Completed and abandoned workflows are only in the database-wide gauges. The two reads run at different times, so the
-per-namespace counts can differ from the database-wide ones for a moment.
+Completed and abandoned workflows are only in the database-wide gauges. The reads run at different times, so the
+per-namespace counts can differ from the database-wide ones: for a moment for the incomplete workflows, and for up to
+a minute for the failed.
 
 - **A namespace keeps every status's series until the process stops,** at 0 where it has no workflows in that status.
   A count that drops to zero reads as zero, not as the last value of a series that went away.

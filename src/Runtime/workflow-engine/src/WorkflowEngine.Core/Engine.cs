@@ -115,7 +115,7 @@ internal interface IEngineStatus
     int MaxWorkers { get; }
 
     /// <summary>
-    /// Active (enqueued + processing) workflows in DB.
+    /// Workflows in DB in any incomplete status, held ones included.
     /// Updated by <see cref="MetricsCollector"/> every <see cref="EngineSettings.MetricsCollectionInterval"/>.
     /// </summary>
     int ActiveWorkflowCount { get; }
@@ -128,14 +128,20 @@ internal interface IEngineStatus
 
     /// <summary>
     /// Failed workflows in DB.
-    /// Updated by <see cref="MetricsCollector"/> every <see cref="EngineSettings.MetricsCollectionInterval"/>.
+    /// Updated by <see cref="FinishedWorkflowCountCollector"/> every
+    /// <see cref="EngineSettings.FinishedWorkflowCountCollectionInterval"/>.
     /// </summary>
     int FailedWorkflowCount { get; }
 
     /// <summary>
-    /// Updates workflow counts for dashboard, health checks, and metrics.
+    /// Updates the active and scheduled counts, which backpressure and the health check read.
     /// </summary>
-    void UpdateWorkflowCounts(int active, int scheduled, int failed);
+    void UpdateActiveWorkflowCounts(int active, int scheduled);
+
+    /// <summary>
+    /// Updates the failed count, which the health check reads.
+    /// </summary>
+    void UpdateFailedWorkflowCount(int failed);
 
     /// <summary>
     /// Signals that the database is unavailable (e.g. connection failures in the processing loop).
@@ -205,12 +211,14 @@ internal sealed class Engine(
     public int FailedWorkflowCount => _failedWorkflowCount;
 
     /// <inheritdoc/>
-    public void UpdateWorkflowCounts(int active, int scheduled, int failed)
+    public void UpdateActiveWorkflowCounts(int active, int scheduled)
     {
         _activeWorkflowCount = active;
         _scheduledWorkflowCount = scheduled;
-        _failedWorkflowCount = failed;
     }
+
+    /// <inheritdoc/>
+    public void UpdateFailedWorkflowCount(int failed) => _failedWorkflowCount = failed;
 
     /// <inheritdoc/>
     public void SetDatabaseUnavailable() => _databaseUnavailable = true;

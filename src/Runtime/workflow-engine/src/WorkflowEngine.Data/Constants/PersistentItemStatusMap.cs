@@ -57,6 +57,16 @@ internal static class PersistentItemStatusMap
     public const string IncompleteSqlList = "0, 1, 2, 8, 9";
 
     /// <summary>
+    /// <see cref="Incomplete"/> without <see cref="PersistentItemStatus.Enqueued"/>, for counts that read the enqueued
+    /// workflows in a branch of their own. Same constancy contract as <see cref="FinishedSqlList"/>.
+    /// </summary>
+    /// <remarks>
+    /// A list keeps the enqueued rows out of the index read. Excluding them with <c>&lt;&gt;</c> happens after that
+    /// read, which then visits the heap for every enqueued row not yet marked visible.
+    /// </remarks>
+    public const string IncompleteExceptEnqueuedSqlList = "1, 2, 8, 9";
+
+    /// <summary>
     /// <see cref="Fetchable"/> as integer literals, interpolated into the partial index filter so the index
     /// and the set cannot drift. Same constancy contract as <see cref="FinishedSqlList"/>.
     /// </summary>

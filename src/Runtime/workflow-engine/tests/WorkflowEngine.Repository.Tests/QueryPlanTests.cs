@@ -581,34 +581,18 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task IncompleteAndFailedWorkflowCounts_ReadOnlyTheRowsTheyCount_WhateverTheVisibilityMap()
     {
-        // Runs every few seconds, and the completed and abandoned workflows are most of a 90-day table. Every index
-        // read has to be confined to the counted statuses, by the index's own filter or by a condition on
-        // ix_workflows_status, whichever scan the visibility map makes the planner pick. Checked against the
-        // indexes as the database has them, not their names.
+        // Runs every few seconds, and the completed and abandoned workflows are most of a 90-day table, so whichever
+        // scan the visibility map makes the planner pick must leave them out.
         var ct = TestContext.Current.CancellationToken;
         await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
 
         var plan = await ExplainIncompleteAndFailedWorkflowCounts(dataSource, ct);
 
-        QueryPlanHelper.AssertNoSeqScan(plan, "workflows");
-        var indexReads = QueryPlanHelper.GetAllNodes(plan).Where(n => n.IndexName is not null).ToList();
-        Assert.NotEmpty(indexReads);
-        var filters = await IndexFilters(dataSource, indexReads.Select(n => n.IndexName!), ct);
-        int[] countedStatuses =
-        [
-            .. PersistentItemStatusMap.Incomplete.Concat(PersistentItemStatusMap.Failed).Select(s => (int)s),
-        ];
-        Assert.All(
-            indexReads,
-            n =>
-                Assert.True(
-                    Statuses(filters[n.IndexName!]) is { } indexed && indexed.All(countedStatuses.Contains)
-                        || n.IndexName == "ix_workflows_status"
-                            && Statuses(n.IndexCond) is { } read
-                            && read.All(countedStatuses.Contains),
-                    $"{n.NodeType} on {n.IndexName} (filter {filters[n.IndexName!] ?? "none"}) with condition "
-                        + $"{n.IndexCond ?? "none"} reads uncounted rows"
-                )
+        await AssertReadsOnlyWorkflowsIn(
+            [.. PersistentItemStatusMap.Incomplete, .. PersistentItemStatusMap.Failed],
+            plan,
+            dataSource,
+            ct
         );
     }
 
@@ -648,6 +632,129 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
             [new NpgsqlParameter<DateTimeOffset>("now", _now)],
             ct
         );
+
+    [Fact]
+    public async Task IncompleteWorkflowCounts_ReadOnlyTheIncompleteRows_WhateverTheVisibilityMap()
+    {
+        // Runs every few seconds on every replica and feeds backpressure, so its cost has to follow the incomplete
+        // workflows, whichever scan the visibility map makes the planner pick.
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        var plan = await ExplainIncompleteWorkflowCounts(dataSource, ct);
+
+        await AssertReadsOnlyWorkflowsIn(PersistentItemStatusMap.Incomplete, plan, dataSource, ct);
+    }
+
+    [Fact]
+    public async Task IncompleteWorkflowCounts_CountAllButTheEnqueuedFromAnIndexAlone_OnceVacuumed()
+    {
+        // Only the enqueued rows need start_at, for the scheduled split. The rest are counted without a heap visit,
+        // so a storm of processing or held workflows costs index pages, not table pages.
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+        await using (var vacuum = dataSource.CreateCommand("VACUUM (ANALYZE) engine.workflows"))
+        {
+            await vacuum.ExecuteNonQueryAsync(ct);
+        }
+
+        var plan = await ExplainIncompleteWorkflowCounts(dataSource, ct);
+
+        Assert.Contains(QueryPlanHelper.GetScanNodes(plan, "workflows"), n => n.NodeType == "Index Only Scan");
+    }
+
+    [Theory]
+    [InlineData(nameof(EngineRepository.IncompleteWorkflowCountsSql))]
+    [InlineData(nameof(EngineRepository.IncompleteAndFailedWorkflowCountsSql))]
+    public async Task IncompleteCounts_ReadTheEnqueuedRowsInOneBranchOnly(string statement)
+    {
+        // The other incomplete statuses are counted from an index alone. A branch whose index read also returns the
+        // enqueued rows and drops them afterwards visits the heap for each one not yet marked visible, which during an
+        // enqueue backlog is most of them.
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+        var sql =
+            statement == nameof(EngineRepository.IncompleteWorkflowCountsSql)
+                ? EngineRepository.IncompleteWorkflowCountsSql
+                : EngineRepository.IncompleteAndFailedWorkflowCountsSql;
+
+        var plan = await QueryPlanHelper.ExplainAsync(
+            dataSource,
+            sql,
+            [new NpgsqlParameter<DateTimeOffset>("now", _now)],
+            ct
+        );
+
+        var indexReads = QueryPlanHelper.GetAllNodes(plan).Where(n => n.IndexName is not null).ToList();
+        var filters = await IndexFilters(dataSource, indexReads.Select(n => n.IndexName!), ct);
+        var enqueued = (int)PersistentItemStatus.Enqueued;
+        Assert.Single(
+            indexReads,
+            n => (Statuses(n.IndexCond) ?? Statuses(filters[n.IndexName!]))?.Contains(enqueued) ?? true
+        );
+    }
+
+    [Fact]
+    public async Task WorkflowCountsByStatus_CountFromTheStatusIndexAlone_OnceVacuumed()
+    {
+        // Reads the whole table once a minute. Vacuumed, as autovacuum leaves most of it, the status index answers it
+        // without a heap visit; a filter on the finished statuses once let the planner pick the partial index on
+        // updated_at instead and visit the heap for every row.
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+        await using (var vacuum = dataSource.CreateCommand("VACUUM (ANALYZE) engine.workflows"))
+        {
+            await vacuum.ExecuteNonQueryAsync(ct);
+        }
+
+        var plan = await QueryPlanHelper.ExplainAsync(dataSource, EngineRepository.WorkflowCountsByStatusSql, null, ct);
+
+        var scans = QueryPlanHelper.GetScanNodes(plan, "workflows");
+        Assert.NotEmpty(scans);
+        Assert.All(scans, n => Assert.Equal(("Index Only Scan", "ix_workflows_status"), (n.NodeType, n.IndexName)));
+    }
+
+    private static Task<JsonElement> ExplainIncompleteWorkflowCounts(
+        NpgsqlDataSource dataSource,
+        CancellationToken ct
+    ) =>
+        QueryPlanHelper.ExplainAsync(
+            dataSource,
+            EngineRepository.IncompleteWorkflowCountsSql,
+            [new NpgsqlParameter<DateTimeOffset>("now", _now)],
+            ct
+        );
+
+    /// <summary>
+    /// Asserts that the plan reads no workflow outside <paramref name="statuses"/>: no sequential scan, and every
+    /// index read confined to them by the index's own filter or by a condition on <c>ix_workflows_status</c>. Checked
+    /// against the indexes as the database has them, not their names.
+    /// </summary>
+    private static async Task AssertReadsOnlyWorkflowsIn(
+        IReadOnlyCollection<PersistentItemStatus> statuses,
+        JsonElement plan,
+        NpgsqlDataSource dataSource,
+        CancellationToken ct
+    )
+    {
+        QueryPlanHelper.AssertNoSeqScan(plan, "workflows");
+        var indexReads = QueryPlanHelper.GetAllNodes(plan).Where(n => n.IndexName is not null).ToList();
+        Assert.NotEmpty(indexReads);
+        var filters = await IndexFilters(dataSource, indexReads.Select(n => n.IndexName!), ct);
+        int[] allowed = [.. statuses.Select(s => (int)s)];
+        Assert.All(
+            indexReads,
+            n =>
+                Assert.True(
+                    Statuses(filters[n.IndexName!]) is { } indexed && indexed.All(allowed.Contains)
+                        || n.IndexName == "ix_workflows_status"
+                            && Statuses(n.IndexCond) is { } read
+                            && read.All(allowed.Contains),
+                    $"{n.NodeType} on {n.IndexName} (filter {filters[n.IndexName!] ?? "none"}) with condition "
+                        + $"{n.IndexCond ?? "none"} reads uncounted rows"
+                )
+        );
+    }
 
     /// <summary>
     /// The filter of each named index as the database reports it, or null for an index without one.

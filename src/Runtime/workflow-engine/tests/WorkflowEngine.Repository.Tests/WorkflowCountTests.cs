@@ -2,6 +2,7 @@ using Microsoft.Extensions.Time.Testing;
 using Npgsql;
 using NpgsqlTypes;
 using WorkflowEngine.Data;
+using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Models;
 using WorkflowEngine.Repository.Tests.Fixtures;
 
@@ -48,6 +49,74 @@ public sealed class WorkflowCountTests(PostgresFixture fixture) : IAsyncLifetime
             new("ttd/b", PersistentItemStatus.DependencyFailed, Scheduled: false, 1),
         ];
         Assert.Equal(Ordered(expected), Ordered(counts));
+    }
+
+    [Fact]
+    public async Task TheIncompleteCount_CountsEachIncompleteWorkflowOnce_WithFutureStartsAlsoCountedAsScheduled()
+    {
+        await Insert("ttd/a", PersistentItemStatus.Enqueued, startAt: null);
+        await Insert("ttd/a", PersistentItemStatus.Enqueued, startAt: _now);
+        await Insert("ttd/a", PersistentItemStatus.Enqueued, startAt: _now.AddSeconds(1));
+        await Insert("ttd/b", PersistentItemStatus.Enqueued, startAt: _now.AddHours(1));
+        await Insert("ttd/a", PersistentItemStatus.Processing, startAt: null);
+        await Insert("ttd/a", PersistentItemStatus.Requeued, startAt: _now.AddHours(1));
+        await Insert("ttd/b", PersistentItemStatus.Waiting, startAt: null);
+        await Insert("ttd/b", PersistentItemStatus.Held, startAt: null);
+        await Insert("ttd/b", PersistentItemStatus.Held, startAt: null);
+        await InsertOneOfEachFinishedStatus();
+
+        var counts = await fixture
+            .CreateRepository(new FakeTimeProvider(_now))
+            .CountIncompleteWorkflowsByStatus(TestContext.Current.CancellationToken);
+
+        Assert.Equal(
+            new Dictionary<PersistentItemStatus, int>
+            {
+                [PersistentItemStatus.Enqueued] = 4,
+                [PersistentItemStatus.Processing] = 1,
+                [PersistentItemStatus.Requeued] = 1,
+                [PersistentItemStatus.Waiting] = 1,
+                [PersistentItemStatus.Held] = 2,
+            },
+            counts.ByStatus
+        );
+        Assert.Equal(2, counts.Scheduled);
+    }
+
+    [Fact]
+    public async Task TheStatusCount_CountsEachWorkflowUnderItsStatus()
+    {
+        await InsertOneOfEachFinishedStatus();
+        await Insert("ttd/b", PersistentItemStatus.Completed, startAt: null);
+        foreach (var status in PersistentItemStatusMap.Incomplete)
+            await Insert("ttd/a", status, startAt: null);
+
+        var counts = await fixture
+            .CreateRepository(new FakeTimeProvider(_now))
+            .CountWorkflowsByStatus(TestContext.Current.CancellationToken);
+
+        Assert.Equal(
+            new Dictionary<PersistentItemStatus, int>
+            {
+                [PersistentItemStatus.Enqueued] = 1,
+                [PersistentItemStatus.Processing] = 1,
+                [PersistentItemStatus.Requeued] = 1,
+                [PersistentItemStatus.Waiting] = 1,
+                [PersistentItemStatus.Held] = 1,
+                [PersistentItemStatus.Completed] = 2,
+                [PersistentItemStatus.Failed] = 1,
+                [PersistentItemStatus.Canceled] = 1,
+                [PersistentItemStatus.DependencyFailed] = 1,
+                [PersistentItemStatus.Abandoned] = 1,
+            },
+            counts
+        );
+    }
+
+    private async Task InsertOneOfEachFinishedStatus()
+    {
+        foreach (var status in PersistentItemStatusMap.Finished)
+            await Insert("ttd/a", status, startAt: _now.AddDays(1));
     }
 
     private static IEnumerable<NamespaceStatusCount> Ordered(IEnumerable<NamespaceStatusCount> counts) =>

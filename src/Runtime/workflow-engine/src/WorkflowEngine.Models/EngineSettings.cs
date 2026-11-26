@@ -67,6 +67,14 @@ public sealed record EngineSettings
     public TimeSpan WorkflowCountCollectionInterval { get; set; }
 
     /// <summary>
+    /// Interval at which the engine counts the failed and successful workflows. Slower than
+    /// <see cref="MetricsCollectionInterval"/>: the read covers every workflow the database retains, and the counts
+    /// feed only gauges and the health check.
+    /// </summary>
+    [JsonPropertyName("finishedWorkflowCountCollectionInterval")]
+    public TimeSpan FinishedWorkflowCountCollectionInterval { get; set; }
+
+    /// <summary>
     /// The default timeout for command execution. Max allowed time to wait for a command to complete.
     /// </summary>
     [JsonPropertyName("defaultStepCommandTimeout")]

@@ -2,7 +2,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Time.Testing;
 using Moq;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
@@ -222,22 +221,6 @@ public class WorkflowCountCollectorTests
 
         Assert.False(readEarly, "the collector read again before WorkflowCountCollectionInterval had passed");
         Assert.Equal(Grid(["ttd/a"], ("ttd/a", "failed", 1)), gauge);
-    }
-
-    /// <summary>
-    /// A fake clock that signals each time the code under test starts a delay on it, so a test can advance it by
-    /// exactly that delay.
-    /// </summary>
-    private sealed class DelayWatchingTimeProvider(DateTimeOffset start) : FakeTimeProvider(start)
-    {
-        public SemaphoreSlim DelayStarted { get; } = new(0);
-
-        public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
-        {
-            var timer = base.CreateTimer(callback, state, dueTime, period);
-            DelayStarted.Release();
-            return timer;
-        }
     }
 
     [Fact]

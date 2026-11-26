@@ -60,6 +60,7 @@ public class EngineSettingsConfigurationTests
         // Metrics
         Assert.Equal(TimeSpan.FromSeconds(5), settings.MetricsCollectionInterval);
         Assert.Equal(TimeSpan.FromSeconds(15), settings.WorkflowCountCollectionInterval);
+        Assert.Equal(TimeSpan.FromMinutes(1), settings.FinishedWorkflowCountCollectionInterval);
 
         // Heartbeat
         Assert.Equal(TimeSpan.FromSeconds(10), settings.HeartbeatInterval);
@@ -218,6 +219,7 @@ public class EngineSettingsConfigurationTests
               "EngineSettings": {
                 "MetricsCollectionInterval": "00:00:00",
                 "WorkflowCountCollectionInterval": "00:00:00",
+                "FinishedWorkflowCountCollectionInterval": "00:00:00",
                 "Concurrency": { "MaxWorkers": 0 },
                 "WriteBuffer": { "MaxBatchSize": 0 }
               }
@@ -227,6 +229,7 @@ public class EngineSettingsConfigurationTests
 
         Assert.Equal(TimeSpan.FromSeconds(5), settings.MetricsCollectionInterval);
         Assert.Equal(TimeSpan.FromSeconds(15), settings.WorkflowCountCollectionInterval);
+        Assert.Equal(TimeSpan.FromMinutes(1), settings.FinishedWorkflowCountCollectionInterval);
         Assert.Equal(400, settings.Concurrency.MaxWorkers);
         Assert.Equal(100, settings.WriteBuffer.MaxBatchSize);
     }
@@ -243,6 +246,7 @@ public class EngineSettingsConfigurationTests
 
         Assert.Equal(TimeSpan.FromSeconds(5), settings.MetricsCollectionInterval);
         Assert.Equal(TimeSpan.FromSeconds(15), settings.WorkflowCountCollectionInterval);
+        Assert.Equal(TimeSpan.FromMinutes(1), settings.FinishedWorkflowCountCollectionInterval);
         Assert.Equal(TimeSpan.FromSeconds(10), settings.DatabaseCommandTimeout);
     }
 
