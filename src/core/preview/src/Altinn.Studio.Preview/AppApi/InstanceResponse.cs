@@ -1,45 +1,79 @@
+using System.Globalization;
+using System.Text.Json.Nodes;
+
 namespace Altinn.Studio.Preview.AppApi;
 
-// An instance as the app's enriched instance endpoint returns it: the instance, with what the user may do in the
-// current task and the type of every task. In preview the user may do everything.
-
-internal sealed record EnrichedInstance(
+/// <summary>The instance endpoints' answer. Its owner has a party, which Storage's instance doesn't.</summary>
+internal sealed record InstanceResponse<TProcess>(
     string Id,
-    InstanceOwner InstanceOwner,
+    InstanceOwnerResponse InstanceOwner,
     string AppId,
     string Org,
     DateTimeOffset Created,
+    string CreatedBy,
     DateTimeOffset LastChanged,
-    EnrichedProcess Process,
+    string LastChangedBy,
+    DateTimeOffset? DueBefore,
+    DateTimeOffset? VisibleAfter,
+    ResourceLinks SelfLinks,
+    TProcess Process,
     InstanceStatus Status,
     IReadOnlyList<DataElement> Data,
     IReadOnlyList<object> CompleteConfirmations,
     IReadOnlyDictionary<string, string> PresentationTexts,
     IReadOnlyDictionary<string, string> DataValues
-)
+);
+
+internal static class InstanceResponse
 {
-    public static EnrichedInstance From(Instance instance, ProcessDefinition? process) =>
+    public static InstanceResponse<ProcessState> From(Instance instance) => From(instance, instance.Process);
+
+    /// <summary>
+    /// The instance as the enriched instance endpoint answers with it, with what the user may do in the current task
+    /// and the type of every task. In preview the user may do everything.
+    /// </summary>
+    public static InstanceResponse<EnrichedProcess> Enriched(Instance instance, ProcessDefinition? process) =>
+        From(instance, EnrichedProcess.From(instance.Process, process));
+
+    private static InstanceResponse<TProcess> From<TProcess>(Instance instance, TProcess process) =>
         new(
             instance.Id,
-            instance.InstanceOwner,
+            InstanceOwnerResponse.From(instance.InstanceOwner),
             instance.AppId,
             instance.Org,
             instance.Created,
+            instance.CreatedBy,
             instance.LastChanged,
-            EnrichedProcess.From(instance.Process, process),
-            new InstanceStatus(
-                IsArchived: instance.Process.Ended is not null,
-                IsSoftDeleted: false,
-                IsHardDeleted: false
-            ),
+            instance.LastChangedBy,
+            instance.DueBefore,
+            instance.VisibleAfter,
+            instance.SelfLinks,
+            process,
+            instance.Status,
             instance.Data,
-            [],
-            new Dictionary<string, string>(),
-            new Dictionary<string, string>()
+            instance.CompleteConfirmations,
+            instance.PresentationTexts,
+            instance.DataValues
         );
 }
 
-internal sealed record InstanceStatus(bool IsArchived, bool IsSoftDeleted, bool IsHardDeleted);
+internal sealed record InstanceOwnerResponse(
+    string PartyId,
+    string? PersonNumber,
+    string? OrganisationNumber,
+    string? Username,
+    JsonObject Party
+)
+{
+    public static InstanceOwnerResponse From(InstanceOwner owner) =>
+        new(
+            owner.PartyId,
+            owner.PersonNumber,
+            owner.OrganisationNumber,
+            owner.Username,
+            MockUser.Party(int.Parse(owner.PartyId, CultureInfo.InvariantCulture))
+        );
+}
 
 internal sealed record EnrichedProcess(
     DateTimeOffset Started,

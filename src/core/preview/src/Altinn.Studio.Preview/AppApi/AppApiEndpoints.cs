@@ -66,7 +66,7 @@ internal static partial class AppApiEndpoints
         );
         return created is null
             ? Results.NotFound()
-            : Results.Json(created.Result, statusCode: StatusCodes.Status201Created);
+            : Results.Json(InstanceResponse.From(created.Result), statusCode: StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> GetInstance(
@@ -77,7 +77,7 @@ internal static partial class AppApiEndpoints
         CancellationToken cancellationToken
     ) =>
         await Find(context, sessionStore, instanceOwnerPartyId, instanceGuid, cancellationToken) is { } instance
-            ? Results.Json(instance.Instance)
+            ? Results.Json(InstanceResponse.From(instance.Instance))
             : Results.NotFound();
 
     private static async Task<IResult> GetEnrichedInstance(
@@ -88,7 +88,7 @@ internal static partial class AppApiEndpoints
         CancellationToken cancellationToken
     ) =>
         await Find(context, sessionStore, instanceOwnerPartyId, instanceGuid, cancellationToken) is { } instance
-            ? Results.Json(EnrichedInstance.From(instance.Instance, Files(context).Process()))
+            ? Results.Json(InstanceResponse.Enriched(instance.Instance, Files(context).Process()))
             : Results.NotFound();
 
     /// <summary>
@@ -243,7 +243,7 @@ internal static partial class AppApiEndpoints
         }
 
         return returnInstance
-            ? Results.Json(EnrichedInstance.From(instance, app.Process))
+            ? Results.Json(InstanceResponse.Enriched(instance, app.Process))
             : Results.Json(EnrichedProcess.From(instance.Process, app.Process));
     }
 

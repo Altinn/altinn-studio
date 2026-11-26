@@ -12,6 +12,15 @@
     <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <!-- What V9TemplateTests check preview against. -->
+  <PropertyGroup>
+    <AppTemplate>..\..\..\..\App\template\v9\src\</AppTemplate>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="$(AppTemplate)**" Exclude="$(AppTemplate)**\bin\**;$(AppTemplate)**\obj\**" LinkBase="AppTemplate" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\..\App\backend\test\Altinn.App.Api.Tests\OpenApi\OpenApiSpecChangeDetection.SaveJsonSwagger.verified.json" Link="AppApi\app-api.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <ItemGroup>
     <Using Include="Xunit" />
     <!-- Like the service, which opens files with Linux system calls. -->

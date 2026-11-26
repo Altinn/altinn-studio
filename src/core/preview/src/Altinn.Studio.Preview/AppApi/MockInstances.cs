@@ -193,7 +193,7 @@ internal static class MockInstances
     private static void AddFormData(MockInstance instance, Guid instanceGuid, DataType dataType, DateTimeOffset now)
     {
         Guid dataElementGuid = Guid.NewGuid();
-        string user = MockUser.UserId.ToString(CultureInfo.InvariantCulture);
+        string user = MockUser.Id;
         instance.Instance.Data.Add(
             new DataElement
             {

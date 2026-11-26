@@ -81,6 +81,11 @@ Marshalling
 @paths src/core/preview/src/Altinn.Studio.Preview/AppApi/MockUser.cs
 organisation
 
+# Storage's InstanceOwner.organisationNumber wire property
+@identifiers OrganisationNumber
+@paths src/core/preview/src/Altinn.Studio.Preview/AppApi/Instance.cs src/core/preview/src/Altinn.Studio.Preview/AppApi/InstanceResponse.cs
+Organisation
+
 # MaskinportenSettings member name apps configure by key
 @identifiers ExhangeToAltinnToken
 Exhange

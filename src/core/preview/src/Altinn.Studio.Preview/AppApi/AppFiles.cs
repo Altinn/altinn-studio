@@ -41,10 +41,18 @@ internal sealed partial class AppFiles(AppFolder folder)
                 .Select(match => match.Groups["language"].Value),
         ];
 
-    public JsonNode? TextResources(string language) =>
-        TextFileName().IsMatch($"resource.{language}.json")
-            ? ReadJson($"App/config/texts/resource.{language}.json")
-            : null;
+    public JsonNode? TextResources(string language)
+    {
+        if (!TextFileName().IsMatch($"resource.{language}.json"))
+        {
+            return null;
+        }
+
+        JsonNode? texts = ReadJson($"App/config/texts/resource.{language}.json");
+        // The app backend answers without it.
+        (texts as JsonObject)?.Remove("$schema");
+        return texts;
+    }
 
     /// <summary>The app's UI folders, one for each task and stateless page set, with their settings.</summary>
     public IReadOnlyDictionary<string, JsonNode?> UiFolders() =>
