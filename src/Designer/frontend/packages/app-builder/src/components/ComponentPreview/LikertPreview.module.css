@@ -88,11 +88,16 @@
   margin-left: var(--ds-size-2);
 }
 
-/* A text button: the builder's chevron and the accent colour mark it as a menu, without a frame. */
+/*
+  A text button: the builder's chevron and the accent colour mark it as a menu, without a frame.
+  It has a line of its own under the question, with room between them, so it does not run into
+  the text.
+*/
 .requiredButton {
-  display: inline-flex;
+  display: flex;
+  width: fit-content;
   align-items: center;
-  margin-top: 2px;
+  margin-top: var(--ds-size-2);
   padding: 2px 0;
   font: inherit;
   font-size: var(--ds-body-sm-font-size, 0.875rem);
