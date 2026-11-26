@@ -1,7 +1,7 @@
 {
   "axes": {
     "actor_prompt": "0f3e7fbcdbe6",
-    "code": "74a59f3 clean",
+    "code": "9a62946 clean",
     "dataset": "85 items b0923ba3df4f",
     "environment": "local",
     "evaluators": "not recorded",
@@ -9,10 +9,10 @@
     "models": "actor gpt-6.1-terra, decision gpt-6-luna, default gpt-6-luna, planner gpt-6.1-sol",
     "prompts": "not recorded",
     "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
-    "tools": "c79057565da1"
+    "tools": "15831d5846d6"
   },
-  "check_id": "20261126T081557Z-skills-rewrite-21793-on-74a59f3982-e24e",
-  "label": "skills rewrite #21793 on 74a59f3982",
-  "recorded_at": "2026-11-26T08:25:10+00:00",
-  "why": "#21793 rewrites the skills, so the actor prompt and the skill text change. Full check with e2e on 74a59f3982 with a clean tree, against the local Designer stack, with the preview check off as in production. The quick evals match the last baseline, except gen_required_tools on Loop/traces, which rose from 0.889 to 1.000. Both builds committed an app, in about four minutes each, and every skill check passed on v8 and v9. The last baseline failed the v8 gateway, signing task and receipt, and prefill targets that started with Model. in both versions. The v9 build left UserProfile out of prefill.json, and told the user that A3 and A5 are not prefilled in v9. actor.writes-usable-component-content stays at 0.000, as in the last baseline. The run is adopted with --force for the four render behaviors that the render check leaves unscored. The judge is gpt-6.1-sol."
+  "check_id": "20261126T091353Z-skills-rewrite-21793-on-9a62946f9c-3445",
+  "label": "skills rewrite #21793 on 9a62946f9c",
+  "recorded_at": "2026-11-26T09:23:06+00:00",
+  "why": "#21793 adds three rules to the skills after the bench apps were run in localtest: the full names of the policy match functions, a title on the submit Button, and the next and back texts in v8. It also trusts the docs pages that Altinn/altinn-studio-docs#3246, #3268 and #3338 brought up to date. Only the skill text changes. Full check with e2e on 9a62946f9c with a clean tree, against the local Designer stack, with the preview check off as in production. Both builds committed an app, in about four minutes each, and every skill check passed on v8 and v9, as in the last baseline. actor.picks-allowed-tool is 0.889, as in the baseline from #22112: in the replay build-verifies-before-committing, the actor loads a skill where the item expects verify_changes. The last baseline passed that replay, so it changes between runs. actor.writes-usable-component-content stays at 0.000. The run is adopted with --force for the four render behaviors that the render check leaves unscored. The judge is gpt-6.1-sol."
 }
