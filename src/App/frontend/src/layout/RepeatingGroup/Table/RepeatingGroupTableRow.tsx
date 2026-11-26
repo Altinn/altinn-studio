@@ -123,7 +123,8 @@ export function RepeatingGroupTableRow({
     rowValidations,
     editableIds,
     mobileView,
-    showsRowObjectMessages: config.edit?.mode === 'onlyTable' || editableIds.size > 0,
+    // Tables with editable cells show them all the time. Otherwise they show while the row's editor is open.
+    showsRowObjectMessages: isEditingRow || config.edit?.mode === 'onlyTable' || editableIds.size > 0,
     groupNodeId: ownerIndexedId,
   });
   const panelSeverity = getHighestSeverity(panelMessages.map(({ validation }) => validation));
