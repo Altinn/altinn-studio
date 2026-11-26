@@ -385,6 +385,59 @@ public sealed class AppCollectorTests(LibraryFixture fixture) : IClassFixture<Li
         Assert.True(Assert.Single(api, e => e.Symbol == $"T:{Ns}.PerFramework").Visible);
     }
 
+    [Fact]
+    public void ReadAssemblies_KeepsWhatEachTargetFrameworksSignatureExposes()
+    {
+        IAssemblySymbol Compile(string returned) =>
+            CSharpCompilation
+                .Create(
+                    "Altinn.App.Core",
+                    [
+                        CSharpSyntaxTree.ParseText(
+                            $$"""
+                            namespace {{Ns}};
+                            public sealed class Ten { }
+                            public sealed class Eleven { }
+                            public sealed class Holder { public {{returned}} Get() => null!; }
+                            """
+                        ),
+                    ],
+                    [MetadataReference.CreateFromFile(typeof(object).Assembly.Location)]
+                )
+                .Assembly;
+
+        List<LibraryApiEntry> api = LibraryApiReader.ReadAssemblies(
+            [Compile("Ten"), Compile("Eleven")],
+            sourceRoot: null
+        );
+
+        Assert.Equal(
+            [$"T:{Ns}.Eleven", $"T:{Ns}.Ten"],
+            Assert.Single(api, e => e.Symbol == $"M:{Ns}.Holder.Get").Exposes
+        );
+    }
+
+    [Fact]
+    public void TestProjectNotes_CountTheErrorsAGeneratorReports_AndSayWhenOneThrew()
+    {
+        static Diagnostic Make(string id, DiagnosticSeverity severity) =>
+            Diagnostic.Create(
+                new DiagnosticDescriptor(id, "title", "message", "category", severity, isEnabledByDefault: true),
+                Location.None
+            );
+
+        List<string> notes = AppCollector.TestProjectNotes(
+            "Tests/Tests.csproj",
+            [Make("CS0103", DiagnosticSeverity.Error), Make("CS0168", DiagnosticSeverity.Warning)],
+            [Make("REV001", DiagnosticSeverity.Error), Make("CS8785", DiagnosticSeverity.Warning)]
+        );
+
+        Assert.Equal(2, notes.Count);
+        Assert.Equal("Tests/Tests.csproj: 2 compile errors, so some of its uses are missing", notes[0]);
+        Assert.StartsWith("Tests/Tests.csproj: a source generator failed", notes[1], StringComparison.Ordinal);
+        Assert.Empty(AppCollector.TestProjectNotes("Tests/Tests.csproj", [], []));
+    }
+
     [Theory]
     [InlineData("CS8785", DiagnosticSeverity.Warning, true, true)]
     [InlineData("CS8784", DiagnosticSeverity.Warning, true, true)]

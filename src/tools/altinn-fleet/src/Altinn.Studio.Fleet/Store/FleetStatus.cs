@@ -129,15 +129,17 @@ public static class FleetStoreReader
     /// <exception cref="FleetException">There is no such file.</exception>
     public static SqliteConnection OpenFileForQueries(FleetStore store, string path)
     {
-        if (!File.Exists(path))
+        // The absolute path, so that SQLite does not take a name such as :memory: or file:... for something else.
+        string fullPath = Path.GetFullPath(path);
+        if (!File.Exists(fullPath))
         {
-            throw new FleetException($"There is no file at {path}.");
+            throw new FleetException($"There is no file at {fullPath}.");
         }
 
         var connection = new SqliteConnection(
             new SqliteConnectionStringBuilder
             {
-                DataSource = path,
+                DataSource = fullPath,
                 Mode = SqliteOpenMode.ReadOnly,
                 Pooling = false,
             }.ToString()

@@ -402,6 +402,13 @@ internal static class LibraryApiReader
 
             FileLinePositionSpan? location = symbol.Locations.FirstOrDefault(l => l.IsInSource)?.GetLineSpan();
             INamedTypeSymbol? type = symbol as INamedTypeSymbol ?? symbol.ContainingType;
+            IReadOnlyList<string> exposes = visible ? Exposed(symbol) : [];
+            if (visible && entries.TryGetValue(id, out LibraryApiEntry? earlier) && earlier.Visible)
+            {
+                // Each framework's signature can name other types, and the symbol exposes all of them.
+                exposes = [.. earlier.Exposes.Union(exposes, StringComparer.Ordinal).Order(StringComparer.Ordinal)];
+            }
+
             entries[id] = new LibraryApiEntry(
                 id,
                 symbol.ContainingAssembly.Name,
@@ -413,7 +420,7 @@ internal static class LibraryApiReader
                 type is { TypeKind: TypeKind.Interface } or { TypeKind: TypeKind.Class, IsAbstract: true },
                 location is { } span ? SourcePath(span.Path) : null,
                 location is { } line ? line.StartLinePosition.Line + 1 : null,
-                visible ? Exposed(symbol) : []
+                exposes
             );
         }
 

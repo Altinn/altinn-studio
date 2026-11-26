@@ -90,6 +90,20 @@ public sealed class AnalysisRunner(
             RefuseToLoseResults(analysis, options);
         }
 
+        // Every environment's apps are read before a new version of an analysis replaces its tables, so that a store
+        // that cannot be read stops the run while the earlier results are still there.
+        var apps = new Dictionary<RuntimeEnvironment, List<StoredApp>>();
+        foreach (RuntimeEnvironment environment in options.Environments)
+        {
+            apps[environment] =
+            [
+                .. FleetStoreReader
+                    .ListApps(store, environment)
+                    .Where(app => options.Orgs is null || options.Orgs.Contains(app.App.Org)),
+            ];
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
         foreach (IAppAnalysis analysis in _analyses)
         {
             database.Prepare(analysis);
@@ -102,7 +116,9 @@ public sealed class AnalysisRunner(
             var results = new List<AnalysisRunResult>();
             foreach (RuntimeEnvironment environment in options.Environments)
             {
-                results.AddRange(await Run(environment, options, workFolder, observer, cancellationToken));
+                results.AddRange(
+                    await Run(environment, apps[environment], options, workFolder, observer, cancellationToken)
+                );
             }
 
             var items = new List<AnalysisItemsResult>();
@@ -145,18 +161,13 @@ public sealed class AnalysisRunner(
 
     private async Task<List<AnalysisRunResult>> Run(
         RuntimeEnvironment environment,
+        List<StoredApp> apps,
         AnalysisOptions options,
         string workFolder,
         IAnalysisObserver? observer,
         CancellationToken cancellationToken
     )
     {
-        List<StoredApp> apps =
-        [
-            .. FleetStoreReader
-                .ListApps(store, environment)
-                .Where(app => options.Orgs is null || options.Orgs.Contains(app.App.Org)),
-        ];
         HashSet<AppIdentifier> running = [.. apps.Select(app => app.App)];
         var jobs = new List<(IAppAnalysis Analysis, StoredApp App)>();
         var removed = new Dictionary<string, int>();

@@ -140,8 +140,23 @@ from the last run that read it is kept, and `api_usage_library_versions` says wh
 - Uses in the app's own code, in code that source generators add to it and in its test projects are told apart,
   since a test project that uses a type is a weaker reason to keep it public than the app itself.
 - Members that code calls without naming them count too, such as `GetEnumerator` in a `foreach`, `GetAwaiter` in an
-  `await`, `Deconstruct` and a collection initializer's `Add`.
+  `await`, `Deconstruct`, a collection initializer's `Add`, a conversion operator in a cast, and the base class
+  constructor that a constructor calls without `: base(...)`.
 - Third-party packages that the apps use and that are built on the app library are read from the IL of their
   implementation assemblies, including packages named `Altinn.App.*`. The app library's own assemblies are not read,
   whatever package carries them, and neither are packages named `Microsoft.*`, `System.*` or `runtime.*`. IL
   references are not bound, so a member that a package uses stands for every overload of that name.
+
+These cases are known to come out incomplete. No app or library version in production has them, which is why they
+are not handled:
+
+- An app project that targets several frameworks is compiled for one of them, so uses in code that only another one
+  compiles, behind `#if`, are missing.
+- The assets file is looked for in the folders above the project's intermediate output, within the app's folder. An
+  app that restores its packages to a folder elsewhere, and declares them in a file that the project imports, is
+  recorded without a library version or packages.
+- A base class constructor that a constructor calls without `: base(...)` is taken to be the one with the fewest
+  parameters among those that need no arguments. A base class with two of them, such as one with optional parameters
+  and one with `params`, may have the other one recorded.
+- A published version's public API is read from the assemblies for one target framework. A version whose builds for
+  different frameworks have different public members has only that framework's.

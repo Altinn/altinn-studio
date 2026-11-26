@@ -369,8 +369,13 @@ public sealed class AnalysisRunnerTests
         again.Prepare(new FakeAnalysis());
     }
 
-    [Fact]
-    public void Open_AnSqliteFileThatFleetDidNotWrite_LeavesItAsItWas()
+    [Theory]
+    [InlineData("")]
+    // A version marker like fleet's does not make it fleet's.
+    [InlineData(
+        "CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT); INSERT INTO meta VALUES ('schema_version', '2');"
+    )]
+    public void Open_AnSqliteFileThatFleetDidNotWrite_LeavesItAsItWas(string meta)
     {
         using var context = new FleetTestContext();
         string path = DatabasePath(context);
@@ -378,7 +383,7 @@ public sealed class AnalysisRunnerTests
         {
             connection.Open();
             using SqliteCommand command = connection.CreateCommand();
-            command.CommandText = "PRAGMA journal_mode = WAL; CREATE TABLE notes (text TEXT);";
+            command.CommandText = $"PRAGMA journal_mode = WAL; CREATE TABLE notes (text TEXT); {meta}";
             command.ExecuteNonQuery();
         }
 
@@ -391,7 +396,7 @@ public sealed class AnalysisRunnerTests
         tables.CommandText = "SELECT group_concat(name) FROM sqlite_master; PRAGMA journal_mode;";
         using SqliteDataReader reader = tables.ExecuteReader();
         Assert.True(reader.Read());
-        Assert.Equal("notes", reader.GetString(0));
+        Assert.Equal(meta.Length == 0 ? "notes" : "notes,meta,sqlite_autoindex_meta_1", reader.GetString(0));
         Assert.True(reader.NextResult() && reader.Read());
         Assert.Equal("wal", reader.GetString(0));
     }
@@ -436,6 +441,41 @@ public sealed class AnalysisRunnerTests
     }
 
     [Fact]
+    public async Task Run_OfANewVersion_WhenTheStoreCannotBeRead_KeepsTheEarlierResults()
+    {
+        using var context = new FleetTestContext();
+        context.Altinn.Deploy("prod", "ttd", "app-one", "1.0.0");
+        await context.SyncProd();
+        await Run(context, new FakeAnalysis());
+        var newer = new FakeAnalysis { Version = 2 };
+
+        using (AnalysisDatabase database = AnalysisDatabase.Open(DatabasePath(context)))
+        {
+            // tt02 has no index in the store.
+            await Assert.ThrowsAsync<FleetException>(() =>
+                new AnalysisRunner(context.Store, database, [newer], new InProcessExecutor([newer])).Run(
+                    new AnalysisOptions
+                    {
+                        Environments = [FleetTestContext.Prod, Common.Domain.RuntimeEnvironment.TT02],
+                    },
+                    null,
+                    TestContext.Current.CancellationToken
+                )
+            );
+        }
+
+        Assert.Equal(
+            [
+                ["1", "1"],
+            ],
+            Query(
+                context,
+                "SELECT (SELECT count(*) FROM runs), (SELECT value FROM meta WHERE key = 'analysis.fake.version')"
+            )
+        );
+    }
+
+    [Fact]
     public async Task Run_InAGivenWorkFolder_UsesAFolderOfItsOwnThere()
     {
         using var context = new FleetTestContext();
@@ -468,7 +508,8 @@ public sealed class AnalysisRunnerTests
             connection.Open();
             using SqliteCommand command = connection.CreateCommand();
             command.CommandText =
-                "CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT); INSERT INTO meta VALUES ('schema_version', '1');";
+                "CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT); INSERT INTO meta VALUES ('schema_version', '1');"
+                + "CREATE TABLE runs (analysis TEXT);";
             command.ExecuteNonQuery();
         }
 

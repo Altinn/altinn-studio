@@ -112,15 +112,13 @@ internal static class AppCollector
                     ?? await workspace.OpenProjectAsync(testProjectFile, cancellationToken: cancellationToken);
                 if (await testProject.GetCompilationAsync(cancellationToken) is { } compilation)
                 {
-                    // A test project that does not compile is noted, not a failure: tests are the weaker signal,
-                    // and an app with stale tests would otherwise be analyzed again on every run.
-                    int testErrors = compilation
-                        .GetDiagnostics(cancellationToken)
-                        .Count(d => d.Severity == DiagnosticSeverity.Error);
-                    if (testErrors > 0)
-                    {
-                        loadFailures.Add($"{relative}: {testErrors} compile errors, so some of its uses are missing");
-                    }
+                    loadFailures.AddRange(
+                        TestProjectNotes(
+                            relative,
+                            compilation.GetDiagnostics(cancellationToken),
+                            await Generators.Run(testProject, compilation, cancellationToken)
+                        )
+                    );
 
                     HashSet<string> documents = DocumentPaths(testProject);
                     await uses.Walk(
@@ -311,6 +309,40 @@ internal static class AppCollector
             )
             .Where(r => r.FilePath is not null && LibrarySymbols.IsLibraryAssembly(r.Assembly))
             .Select(r => (r.Assembly!, r.FilePath!));
+
+    /// <summary>
+    /// What to note about a test project that does not compile, or whose source generators fail. That is noted, not a
+    /// failure: tests are the weaker signal, and an app with stale tests would otherwise be analyzed again on every
+    /// run.
+    /// </summary>
+    /// <param name="project">The test project, relative to the app's folder.</param>
+    /// <param name="compiled">What its compilation reports.</param>
+    /// <param name="generated">What its source generators report.</param>
+    internal static List<string> TestProjectNotes(
+        string project,
+        IEnumerable<Diagnostic> compiled,
+        IEnumerable<Diagnostic> generated
+    )
+    {
+        var notes = new List<string>();
+        int errors =
+            compiled.Count(d => d.Severity == DiagnosticSeverity.Error)
+            + generated.Count(d => !Generators.Threw(d) && d.Severity == DiagnosticSeverity.Error);
+        if (errors > 0)
+        {
+            notes.Add($"{project}: {errors} compile errors, so some of its uses are missing");
+        }
+
+        if (generated.FirstOrDefault(Generators.Threw) is { } threw)
+        {
+            notes.Add(
+                $"{project}: a source generator failed, so the code it would write is missing: "
+                    + threw.ToString().Split('\n')[0].Trim()
+            );
+        }
+
+        return notes;
+    }
 
     /// <summary>
     /// What the app's files say about it, as the store's index reads it, such as which project is the app's: see

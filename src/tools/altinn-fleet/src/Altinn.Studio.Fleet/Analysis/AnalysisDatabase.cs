@@ -103,14 +103,16 @@ public sealed class AnalysisDatabase : IDisposable
             using (SqliteTransaction transaction = connection.BeginTransaction(deferred: false))
             {
                 string? version = database.ReadMeta("schema_version", transaction);
+                List<string> objects = database.Objects(null, transaction);
+                // A file with tables of its own is not one to add these to, and neither is one with a version but
+                // without the runs that fleet keeps in every file it writes.
+                if (version is null ? objects.Count > 0 : !objects.Contains("runs"))
+                {
+                    throw new FleetException($"{fullPath} is not a file that fleet analysis wrote.");
+                }
+
                 if (version is null)
                 {
-                    // A file with tables of its own is not one to add these to.
-                    if (database.Objects(null, transaction).Count > 0)
-                    {
-                        throw new FleetException($"{fullPath} is not a file that fleet analysis wrote.");
-                    }
-
                     database.Execute(transaction, Schema, []);
                     database.SetMeta("schema_version", Invariant(SchemaVersion), transaction);
                 }
