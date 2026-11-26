@@ -54,16 +54,6 @@ public sealed class RuntimeEnvironmentTests
         Assert.NotEqual(RuntimeEnvironment.TT02, RuntimeEnvironment.Production);
     }
 
-    [Theory]
-    [InlineData("prod", "ttd.apps.altinn.no")]
-    [InlineData("production", "ttd.apps.altinn.no")]
-    [InlineData("tt02", "ttd.apps.tt02.altinn.no")]
-    [InlineData("at22", "ttd.apps.at22.altinn.cloud")]
-    public void AppsHost_IsTheHostThatServesAServiceOwnersApps(string name, string expected)
-    {
-        Assert.Equal(expected, RuntimeEnvironment.Parse(name).AppsHost(ServiceOwnerCode.Parse("ttd")));
-    }
-
     [Fact]
     public void Name_ThrowsForTheDefaultValue()
     {

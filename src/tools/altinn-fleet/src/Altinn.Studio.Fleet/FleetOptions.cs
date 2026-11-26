@@ -1,4 +1,4 @@
-using Altinn.Studio.Common.Domain;
+using Altinn.Studio.Common.Cdn;
 
 namespace Altinn.Studio.Fleet;
 
@@ -8,6 +8,15 @@ public sealed class FleetOptions
     /// <summary>The service owner registry, which says which environments each service owner has.</summary>
     public Uri ServiceOwnerRegistry { get; init; } = new("https://altinncdn.no/orgs/altinn-orgs.json");
 
+    /// <summary>The environment registry, which says where each environment serves the service owners' apps.</summary>
+    public Uri EnvironmentRegistry { get; init; } = new("https://altinncdn.no/config/environments.json");
+
+    /// <summary>
+    /// How the host that serves a service owner's apps is made from the environment registry. See
+    /// <see cref="AltinnEnvironmentsRegistry.DefaultAppsHostPattern"/>.
+    /// </summary>
+    public string AppsHostPattern { get; init; } = AltinnEnvironmentsRegistry.DefaultAppsHostPattern;
+
     /// <summary>The Studio installations, in the order a release is looked up in.</summary>
     public IReadOnlyList<StudioHost> StudioHosts { get; init; } =
     [
@@ -15,13 +24,6 @@ public sealed class FleetOptions
         new("staging", Host("staging.altinn.studio")),
         new("dev", Host("dev.altinn.studio")),
     ];
-
-    /// <summary>
-    /// The host that serves a service owner's apps in an environment, as <see cref="RuntimeEnvironment.AppsHost"/>
-    /// says, or <c>null</c> when that is not a host name.
-    /// </summary>
-    public static HostName? AppsHost(ServiceOwnerCode org, RuntimeEnvironment environment) =>
-        HostName.TryParse(environment.AppsHost(org), out HostName? host) ? host : null;
 
     private static HostName Host(string value) =>
         HostName.TryParse(value, out HostName? host) ? host : throw new ArgumentException(value, nameof(value));

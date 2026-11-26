@@ -30,6 +30,10 @@ index's schema.
 - Apps come from Gitea's archive of the commit, so the folders have no `.git` for the volume to copy.
 - agentctl asks before it copies a file named `.env`, so those are left out, with links and paths outside the app.
   On Windows, so are names Windows cannot store. The index's `skipped` table lists them.
+- Which service owners have which environments comes from the service owner registry on Altinn's CDN, and where an
+  environment serves their apps from its environment registry, `environments.json`, as `{org}.{appPrefix}.{hostname}`.
+  So the apps' host names are not in the code, and a service owner in an environment that registry does not list keeps
+  its apps.
 - A service owner whose cluster cannot be reached keeps its apps, rather than losing them, and so does an app listed
   with a version that cannot be read. A service owner that the registry no longer lists for the environment has left
   it, so its apps are removed.
