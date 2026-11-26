@@ -70,14 +70,23 @@ Every value a v9 app reads belongs to one of these kinds, and each kind has one 
 
 ### The pod around the app
 
-We own how the app runs in its pod, and no app configures it. The contract names:
-
-- the port the app listens on
-- the path the app is served under, `/<org>/<app>/`
-- the path each of the startup, readiness and liveness probes calls
-
-The runtime sets the probes' timings and thresholds. In runtime version 9, all three probes call `/health`. The v9
-libraries serve it, and an app of another kind serves it itself.
+- We decide how an app runs, with defaults that suit most apps, so most apps configure nothing. The contract names
+  the defaults:
+  - the port the app listens on
+  - the path the app is served under, `/<org>/<app>/`
+  - the path each of the startup, readiness and liveness probes calls. In runtime version 9, all three call
+    `/health`. The v9 libraries serve it, and an app of another kind serves it itself.
+  - the probes' timings and thresholds
+- An app that needs something else can change a few of them in `deployment/app.yaml`, such as listening on more
+  ports or giving the probes more time. Each such field:
+  - says what the app needs, not how Kubernetes provides it, so the field still means the same if the runtime runs
+    on something other than Kubernetes
+  - is optional, and an app without it keeps the default
+  - comes when apps need it, as an addition to the runtime version
+  - stays for as long as its runtime version does, since removing it breaks the apps that use it
+- `deployment/app.yaml` exposes no Kubernetes objects and no part of the pod spec, such as volumes, service
+  accounts, security settings or where the pod runs. They would tie every app that sets them to Kubernetes, and some
+  would let an app weaken its isolation from other apps.
 
 ### The runtime directory
 
@@ -638,8 +647,10 @@ The runtime version:
 - The OTLP exporter's settings are environment variables, because that is how OpenTelemetry SDKs in every language
   read them, and how our own services get them. They apply only at startup, so a file would not let them change
   while the app runs.
-- We own the probes, as we own the rest of the pod, so we can change how the runtime checks apps without app
+- We set how an app runs, so most apps configure nothing, and we can change how the runtime runs apps without app
   changes. The probe paths are in the contract because the app serves them.
+- An app that needs more gets a field in its own terms rather than a part of Kubernetes. The contract then survives
+  a move off Kubernetes, and we keep each field we add, since apps depend on it.
 
 `deployment/app.yaml` here, the deploy model in its own ADR:
 
