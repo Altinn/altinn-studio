@@ -30,15 +30,15 @@ The decisions:
 
 Every value a v9 app reads belongs to one of these kinds, and each kind has one owner and one way into the app.
 
-| Kind                  | Examples                                                                                             | Owner              | Deployed app                                                                                   | Local run                                              | App can override |
-| --------------------- | ---------------------------------------------------------------------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ---------------- |
-| Provisioned secrets   | The app's Maskinporten client, app codes, the APIM subscription key                                  | Team Altinn Studio | Files the runtime operator writes into `provisioned-secrets/`                                  | Files studioctl writes into `provisioned-secrets/`     | No               |
-| Runtime configuration | Altinn Platform endpoints, host names, cookie names, links to other Altinn services, the OTLP export | Team Altinn Studio | JSON files in `runtime-config/`, from `infra/runtime/apps-config` and from the runtime cluster | JSON files studioctl writes into `runtime-config/`     | No               |
-| Startup values        | The environment's name, where the runtime directory is, the app's version, the pod's UID             | Team Altinn Studio | Environment variables the runtime cluster sets                                                 | Environment variables studioctl sets                   | No               |
-| Contracts             | The validation message prefixes that app code writes and the app libraries parse                     | Team Altinn Studio | Constants in the app libraries                                                                 | The same                                               | No               |
-| App configuration     | Which validations run, PDF settings, the app's own integrations                                      | The app            | `appsettings*.json`, over defaults in the app libraries                                        | The same                                               | Yes              |
-| App secrets           | API keys for the app's own integrations                                                              | The service owner  | The service owner's vault, which the runtime operator writes into `app-secrets/`               | Values studioctl stores and writes into `app-secrets/` | Yes              |
-| Deployment settings   | Replicas, resources, which shared secrets the app reads                                              | The app            | `deployment/app.yaml`                                                                          | studioctl reads the same file                          | -                |
+| Kind                  | Examples                                                                                             | Owner              | Deployed app                                                                                   | Local run                                                                                            | App can override |
+| --------------------- | ---------------------------------------------------------------------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ---------------- |
+| Provisioned secrets   | The app's Maskinporten client, app codes, the APIM subscription key                                  | Team Altinn Studio | Files the runtime operator writes into `provisioned-secrets/`                                  | Files studioctl writes into `provisioned-secrets/`                                                   | No               |
+| Runtime configuration | Altinn Platform endpoints, host names, cookie names, links to other Altinn services, the OTLP export | Team Altinn Studio | JSON files in `runtime-config/`, from `infra/runtime/apps-config` and from the runtime cluster | JSON files studioctl writes into `runtime-config/`                                                   | No               |
+| Startup values        | The environment's name, where the runtime directory is, the app's version, the pod's UID             | Team Altinn Studio | Environment variables the runtime cluster sets                                                 | Environment variables studioctl sets                                                                 | No               |
+| Contracts             | The validation message prefixes that app code writes and the app libraries parse                     | Team Altinn Studio | Constants in the app libraries                                                                 | The same                                                                                             | No               |
+| App configuration     | Which validations run, PDF settings, the app's own integrations                                      | The app            | `appsettings*.json`, over defaults in the app libraries                                        | The same, plus user secrets and `appsettings.Local.json`                                             | Yes              |
+| App secrets           | API keys for the app's own integrations                                                              | The service owner  | The service owner's vault, which the runtime operator writes into `app-secrets/`               | Values studioctl stores and writes into `app-secrets/`, or user secrets and `appsettings.Local.json` | Yes              |
+| Deployment settings   | Replicas, resources, which shared secrets the app reads                                              | The app            | `deployment/app.yaml`                                                                          | studioctl reads the same file                                                                        | -                |
 
 ### The runtime directory
 
@@ -67,9 +67,10 @@ The app's configuration is layered from lowest to highest:
 
 1. Defaults in the app libraries, for app configuration only
 2. `appsettings.json`, then `appsettings.<ASP.NET Core environment>.json`
-3. Environment variables, then the command line
-4. App secrets: the files in `app-secrets/`, in name order
-5. Runtime configuration: the files in `runtime-config/`, in name order
+3. In Development only: user secrets, then `appsettings.Local.json`
+4. Environment variables, then the command line
+5. App secrets: the files in `app-secrets/`, in name order
+6. Runtime configuration: the files in `runtime-config/`, in name order
 
 - The order is compiled into the app libraries. App secrets always come below runtime configuration, so no secret in
   the service owner's vault can change a value we own.
@@ -80,11 +81,10 @@ The app's configuration is layered from lowest to highest:
   source after them, and names it.
 - How the libraries set this up does not depend on the order of calls in the app's `Program.cs`, since that file is
   the app's and v9 writes it once.
-- v9 drops `appsettings.Local.json` and user secrets. The app libraries stop loading `appsettings.Local.json`, which
-  they load last in every environment today, and the template and the upgrade remove the app's `UserSecretsId`. A
-  developer stores local secrets, and local values for the app's own configuration that should not be committed,
-  with studioctl, which writes them into `app-secrets/`. Values we own come from studioctl's files, and nothing on
-  the developer's machine overrides them.
+- User secrets and `appsettings.Local.json` stay, for local runs only. ASP.NET Core loads user secrets in
+  Development. The app libraries load `appsettings.Local.json` right after them, and only in Development, where
+  today they load it last in every environment. Both hold the developer's local values for the app's own
+  configuration and secrets, and neither can override a value we own.
 
 ### Runtime configuration
 
@@ -148,7 +148,11 @@ The app's configuration is layered from lowest to highest:
 - A run from an IDE or `dotnet run` asks studioctl where the directory is.
 - Without studioctl, the startup check stops the app and says how to start it.
 - A local run that needs a different value, such as a `tt02` endpoint, gets it from studioctl. An environment
-  variable in the developer's shell does not override runtime configuration.
+  variable in the developer's shell, user secrets and `appsettings.Local.json` do not override runtime
+  configuration.
+- A developer can keep local app secrets in user secrets or `appsettings.Local.json`, as today, or store them with
+  studioctl, which writes them into `app-secrets/` as the runtime operator does for a deployed app. studioctl's
+  values win.
 
 ### Provisioned secrets
 
@@ -185,7 +189,8 @@ configuration in a library that does not know it.
   `Azure.Extensions.AspNetCore.Configuration.Secrets` and the retired `Microsoft.Azure.KeyVault` package go.
 - App code reads a secret like any other setting, through `IConfiguration` or the Options pattern.
 - For a local run, studioctl stores the developer's values for the app, as it stores a Maskinporten client today, and
-  writes the same file. A local run needs no Azure login.
+  writes the same file. A local run needs no Azure login. User secrets and `appsettings.Local.json` also work, below
+  studioctl's values.
 
 ### Altinn Platform endpoints and the subscription key
 
@@ -441,8 +446,8 @@ We weigh the alternatives against the [architecture principles](../architecture.
 - Bad, because every app needs Azure to start. An app that cannot read its vault stops, also when it restarts during
   an outage.
 - Bad, because every app reads every secret in its service owner's vault.
-- Bad, because a local run needs another source for secrets, such as user secrets or `appsettings.Local.json`,
-  against D4.
+- Bad, because a local run cannot read secrets the way a deployed app does, and has to use another source, such as
+  user secrets or `appsettings.Local.json`, against D4.
 
 ### A3.1: Secrets through configuration only
 
@@ -529,6 +534,10 @@ Runtime configuration (A1.3):
   owner's vault from changing our values.
 - A contract file that drives the startup check, and tests against it in every supplier, keep the check and the
   suppliers from drifting apart.
+- User secrets and `appsettings.Local.json` stay for local runs, below every value we own. Developers keep the
+  tools they use today, and a local run works before studioctl stores app secrets. The cost is that a local value
+  can exist where the deployed app has none, which the startup check does not see, since it checks only the values
+  we own.
 - A1.4 protects runtime configuration best, but apps have good reasons to read it. Putting our values last gives the
   same result for overrides and keeps reading simple.
 
