@@ -1,0 +1,1 @@
+{"taskId": "Task_2", "status": "Created", "orderDetails": {"paymentProcessorId": "Test Payment Processor", "receiver": {}, "currency": "NOK", "orderLines": [{"id": "fee", "name": "Fee", "priceExVat": 100, "quantity": 1, "vatPercent": 25}]}, "paymentDetails": {"paymentId": "test-payment-id", "redirectUrl": "https://payment.example/checkout"}, "language": "en"}

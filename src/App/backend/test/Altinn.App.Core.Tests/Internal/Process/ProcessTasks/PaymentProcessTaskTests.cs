@@ -2,19 +2,19 @@ using System.Text.Json;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Payment.Models;
-using Altinn.App.Core.Features.Payment.Processors;
+using Altinn.App.Core.Features.Payment.Services;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Process;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
 namespace Altinn.App.Core.Tests.Internal.Process.ProcessTasks;
@@ -106,91 +106,85 @@ public class PaymentProcessTaskTests
 
     private readonly Mock<IPdfService> _pdfServiceMock;
     private readonly Mock<IProcessReader> _processReaderMock;
-    private readonly Mock<IPaymentProcessor> _paymentProcessorMock;
+    private readonly Mock<IPaymentService> _paymentServiceMock;
+    private readonly Mock<ITranslationService> _translationServiceMock;
     private readonly PaymentProcessTask _paymentProcessTask;
 
     public PaymentProcessTaskTests()
     {
         _pdfServiceMock = new Mock<IPdfService>();
         _processReaderMock = new Mock<IProcessReader>();
-        _paymentProcessorMock = new Mock<IPaymentProcessor>();
-        _paymentProcessorMock.Setup(x => x.PaymentProcessorId).Returns("paymentProcessorId");
-
-        var services = new ServiceCollection();
-        services.AddSingleton(_paymentProcessorMock.Object);
-        var appImplementationFactory = new AppImplementationFactory(services.BuildServiceProvider());
+        _paymentServiceMock = new Mock<IPaymentService>(MockBehavior.Strict);
+        _translationServiceMock = new Mock<ITranslationService>();
 
         _paymentProcessTask = new PaymentProcessTask(
             _pdfServiceMock.Object,
             _processReaderMock.Object,
-            appImplementationFactory
+            _paymentServiceMock.Object,
+            _translationServiceMock.Object
         );
     }
 
-    [Fact]
-    public async Task Start_ShouldTerminateProcessorAndRemovePaymentData()
+    // The payment service is the task's only way to the payment processor, and it is a strict mock with no setups.
+    [Theory]
+    [InlineData(nameof(PaymentProcessTask.DefineStart), PaymentStatus.Created)]
+    [InlineData(nameof(PaymentProcessTask.DefineStart), PaymentStatus.Authorized)]
+    [InlineData(nameof(PaymentProcessTask.DefineStart), PaymentStatus.Paid)]
+    [InlineData(nameof(PaymentProcessTask.DefineAbandon), PaymentStatus.Created)]
+    [InlineData(nameof(PaymentProcessTask.DefineAbandon), PaymentStatus.Authorized)]
+    [InlineData(nameof(PaymentProcessTask.DefineAbandon), PaymentStatus.Paid)]
+    public async Task StartOrAbandon_PaymentThatCanStillComplete_KeepsRecordWithoutContactingProcessor(
+        string step,
+        PaymentStatus status
+    )
     {
-        PaymentInformation paymentInformation = CreatePaymentInformation(PaymentStatus.Created);
-        string paymentId = paymentInformation.PaymentDetails!.PaymentId;
         DataElement paymentDataElement = CreatePaymentDataElement();
-        Instance instance = CreateInstance(paymentDataElement);
-        var dataMutator = CreateDataMutator(instance);
-        dataMutator
-            .Setup(x => x.GetBinaryData(paymentDataElement))
-            .ReturnsAsync(JsonSerializer.SerializeToUtf8Bytes(paymentInformation));
+        var dataMutator = CreateDataMutator(CreateInstance(paymentDataElement));
+        SetupPaymentInformation(dataMutator, paymentDataElement, status);
+        SetupPaymentConfiguration();
 
-        var altinnTaskExtension = new AltinnTaskExtension { PaymentConfiguration = CreatePaymentConfiguration() };
-        _processReaderMock.Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>())).Returns(altinnTaskExtension);
-        _paymentProcessorMock
-            .Setup(x =>
-                x.TerminatePayment(
-                    instance,
-                    It.Is<PaymentInformation>(payment =>
-                        payment.PaymentDetails != null && payment.PaymentDetails.PaymentId == paymentId
-                    ),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(true);
-
-        StageResult result = await RunStart(dataMutator.Object);
+        StageResult result = await RunStartOrAbandon(step, dataMutator.Object);
         Assert.IsType<CompletedStageResult>(result);
 
-        _paymentProcessorMock.Verify(x =>
-            x.TerminatePayment(
-                instance,
-                It.Is<PaymentInformation>(payment =>
-                    payment.PaymentDetails != null && payment.PaymentDetails.PaymentId == paymentId
-                ),
-                It.IsAny<CancellationToken>()
-            )
-        );
-        dataMutator.Verify(x => x.RemoveDataElement(paymentDataElement));
-    }
-
-    [Fact]
-    public async Task Start_PaidPayment_ShouldLeaveStoredPaymentUntouched()
-    {
-        PaymentInformation paymentInformation = CreatePaymentInformation(PaymentStatus.Paid);
-        DataElement paymentDataElement = CreatePaymentDataElement();
-        Instance instance = CreateInstance(paymentDataElement);
-        var dataMutator = CreateDataMutator(instance);
-        dataMutator
-            .Setup(x => x.GetBinaryData(paymentDataElement))
-            .ReturnsAsync(JsonSerializer.SerializeToUtf8Bytes(paymentInformation));
-
-        var altinnTaskExtension = new AltinnTaskExtension { PaymentConfiguration = CreatePaymentConfiguration() };
-        _processReaderMock.Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>())).Returns(altinnTaskExtension);
-
-        StageResult result = await RunStart(dataMutator.Object);
-        Assert.IsType<CompletedStageResult>(result);
-
-        _paymentProcessorMock.Verify(
-            x =>
-                x.TerminatePayment(It.IsAny<Instance>(), It.IsAny<PaymentInformation>(), It.IsAny<CancellationToken>()),
-            Times.Never
-        );
         dataMutator.Verify(x => x.RemoveDataElement(It.IsAny<DataElementIdentifier>()), Times.Never);
+        _paymentServiceMock.VerifyNoOtherCalls();
+    }
+
+    [Theory]
+    [InlineData(nameof(PaymentProcessTask.DefineStart), PaymentStatus.Skipped)]
+    [InlineData(nameof(PaymentProcessTask.DefineStart), PaymentStatus.Cancelled)]
+    [InlineData(nameof(PaymentProcessTask.DefineStart), PaymentStatus.Failed)]
+    [InlineData(nameof(PaymentProcessTask.DefineAbandon), PaymentStatus.Skipped)]
+    [InlineData(nameof(PaymentProcessTask.DefineAbandon), PaymentStatus.Cancelled)]
+    [InlineData(nameof(PaymentProcessTask.DefineAbandon), PaymentStatus.Failed)]
+    public async Task StartOrAbandon_PaymentThatCannotComplete_RemovesRecordWithoutContactingProcessor(
+        string step,
+        PaymentStatus status
+    )
+    {
+        DataElement paymentDataElement = CreatePaymentDataElement();
+        var dataMutator = CreateDataMutator(CreateInstance(paymentDataElement));
+        SetupPaymentInformation(dataMutator, paymentDataElement, status);
+        SetupPaymentConfiguration();
+
+        StageResult result = await RunStartOrAbandon(step, dataMutator.Object);
+        Assert.IsType<CompletedStageResult>(result);
+
+        dataMutator.Verify(x => x.RemoveDataElement(paymentDataElement));
+        _paymentServiceMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Start_NoPayment_DoesNothing()
+    {
+        var dataMutator = CreateDataMutator(CreateInstance());
+        SetupPaymentConfiguration();
+
+        StageResult result = await RunStart(dataMutator.Object);
+        Assert.IsType<CompletedStageResult>(result);
+
+        dataMutator.Verify(x => x.RemoveDataElement(It.IsAny<DataElementIdentifier>()), Times.Never);
+        _paymentServiceMock.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -343,44 +337,52 @@ public class PaymentProcessTaskTests
     }
 
     [Fact]
-    public async Task Abandon_ShouldTerminateProcessorAndRemovePaymentData()
+    public async Task PrepareAbandon_CanAbandon_LetsTheRejectGoAhead()
     {
-        PaymentInformation paymentInformation = CreatePaymentInformation(PaymentStatus.Created);
-        string paymentId = paymentInformation.PaymentDetails!.PaymentId;
-        DataElement paymentDataElement = CreatePaymentDataElement();
-        Instance instance = CreateInstance(paymentDataElement);
-        var dataMutator = CreateDataMutator(instance);
-        dataMutator
-            .Setup(x => x.GetBinaryData(paymentDataElement))
-            .ReturnsAsync(JsonSerializer.SerializeToUtf8Bytes(paymentInformation));
+        var dataMutator = CreateDataMutator(CreateInstance());
+        SetupPaymentConfiguration();
+        SetupPrepareAbandon(dataMutator, alreadyPaid: false);
 
-        var altinnTaskExtension = new AltinnTaskExtension { PaymentConfiguration = CreatePaymentConfiguration() };
-        _processReaderMock.Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>())).Returns(altinnTaskExtension);
-        _paymentProcessorMock
+        ProcessChangeResult? result = await _paymentProcessTask.PrepareAbandon(
+            dataMutator.Object,
+            "Task_1",
+            CancellationToken.None
+        );
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task PrepareAbandon_AlreadyPaid_RefusesWithTranslatedPaymentAlreadyCompletedIssue()
+    {
+        var dataMutator = CreateDataMutator(CreateInstance());
+        dataMutator.Setup(x => x.Language).Returns("en");
+        SetupPaymentConfiguration();
+        SetupPrepareAbandon(dataMutator, alreadyPaid: true);
+        _translationServiceMock
             .Setup(x =>
-                x.TerminatePayment(
-                    instance,
-                    It.Is<PaymentInformation>(payment =>
-                        payment.PaymentDetails != null && payment.PaymentDetails.PaymentId == paymentId
-                    ),
-                    It.IsAny<CancellationToken>()
+                x.TranslateTextKey(
+                    "validation_errors.payment_already_completed",
+                    "en",
+                    It.IsAny<Dictionary<string, string>?>()
                 )
             )
-            .ReturnsAsync(true);
+            .ReturnsAsync("The payment has already gone through, so you cannot go back.");
 
-        StageResult result = await RunAbandon(dataMutator.Object);
-        Assert.IsType<CompletedStageResult>(result);
-
-        _paymentProcessorMock.Verify(x =>
-            x.TerminatePayment(
-                instance,
-                It.Is<PaymentInformation>(payment =>
-                    payment.PaymentDetails != null && payment.PaymentDetails.PaymentId == paymentId
-                ),
-                It.IsAny<CancellationToken>()
-            )
+        ProcessChangeResult? result = await _paymentProcessTask.PrepareAbandon(
+            dataMutator.Object,
+            "Task_1",
+            CancellationToken.None
         );
-        dataMutator.Verify(x => x.RemoveDataElement(paymentDataElement));
+
+        Assert.NotNull(result);
+        Assert.False(result.Success);
+        Assert.Equal(ProcessErrorType.Conflict, result.ErrorType);
+        var issue = Assert.Single(result.ValidationIssues ?? []);
+        Assert.Equal("PaymentAlreadyCompleted", issue.Code);
+        Assert.Equal("validation_errors.payment_already_completed", issue.CustomTextKey);
+        Assert.Equal("The payment has already gone through, so you cannot go back.", issue.Description);
+        Assert.Equal(typeof(PaymentProcessTask).FullName, issue.Source);
     }
 
     [Fact]
@@ -467,6 +469,22 @@ public class PaymentProcessTaskTests
         await act.Should().NotThrowAsync();
     }
 
+    private void SetupPaymentConfiguration() =>
+        _processReaderMock
+            .Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>()))
+            .Returns(new AltinnTaskExtension { PaymentConfiguration = CreatePaymentConfiguration() });
+
+    private void SetupPrepareAbandon(Mock<IInstanceDataMutator> dataMutator, bool alreadyPaid) =>
+        _paymentServiceMock
+            .Setup(x =>
+                x.PrepareAbandon(
+                    dataMutator.Object,
+                    It.Is<ValidAltinnPaymentConfiguration>(c => c.PaymentDataType == "paymentDataType"),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(alreadyPaid);
+
     private static Mock<IInstanceDataMutator> CreateDataMutator(Instance instance)
     {
         var dataMutator = new Mock<IInstanceDataMutator>();
@@ -513,6 +531,9 @@ public class PaymentProcessTaskTests
         }
         return StageResult.Completed();
     }
+
+    private Task<StageResult> RunStartOrAbandon(string step, IInstanceDataMutator dataMutator) =>
+        step == nameof(PaymentProcessTask.DefineStart) ? RunStart(dataMutator) : RunAbandon(dataMutator);
 
     private static Instance CreateInstance(params DataElement[] dataElements)
     {

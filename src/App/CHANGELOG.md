@@ -10,6 +10,24 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- `PaymentStatus` and `GET .../payment` have a new status `Authorized`: reserved but not yet charged. The form shows it as being processed, and a custom `IPaymentProcessor` can return it. ([#21478](https://github.com/Altinn/altinn-studio/pull/21478))
+
+### Changed
+
+- `PUT .../process/next` with `reject` on a payment task cancels the payment at Nets first. It answers `409 Conflict` with the validation issue `PaymentAlreadyCompleted` when the payment has gone through, and `500` when Nets cannot cancel it right now; try again. ([#21478](https://github.com/Altinn/altinn-studio/pull/21478))
+- `GET .../payment` reports `Cancelled` for a payment that was cancelled at Nets. For a cancelled or failed payment, the form offers to pay again or go back. ([#21478](https://github.com/Altinn/altinn-studio/pull/21478))
+
+### Fixed
+
+- A payment task no longer leaves the instance stuck in `processing` when `PUT .../process/next` confirms before the payment is paid, or rejects just after the user paid. An early `confirm` answers `409 Conflict` with the validation issue `PaymentNotCompleted`. ([#21478](https://github.com/Altinn/altinn-studio/pull/21478))
+- The `pay` action no longer fails when a payment the user started earlier has since been paid at Nets. It answers `409` with `PaymentAlreadyCompleted`, as for any paid payment. ([#21478](https://github.com/Altinn/altinn-studio/pull/21478))
+- A Nets payment charged after the checkout completed now moves the process on. A Nets webhook that arrives after the process has ended no longer fails with `400`, so Nets does not keep retrying it. ([#21478](https://github.com/Altinn/altinn-studio/pull/21478))
+- A payment the Nets webhook confirms no longer stays on the payment task when `config/authorization/policy.xml` does not give the app owner `confirm` on it. The webhook needs no rule, and records its process events as the app owner with authentication level 0. ([#21478](https://github.com/Altinn/altinn-studio/pull/21478))
+- A payment's stored status, such as `Paid`, no longer goes back to an earlier one when a Nets webhook arrives at the same time as another webhook, the form's status check (`GET .../payment`) or the `pay` action. ([#21478](https://github.com/Altinn/altinn-studio/pull/21478))
+- The payment receipt PDF is now in the language of the user who paid when the Nets webhook moves the process on. ([#21478](https://github.com/Altinn/altinn-studio/pull/21478))
+
 ## [9.0.0-preview.15] - 2026-11-25
 
 ### Added

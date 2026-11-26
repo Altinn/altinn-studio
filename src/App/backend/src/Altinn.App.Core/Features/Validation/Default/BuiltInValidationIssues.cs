@@ -259,6 +259,50 @@ internal static class BuiltInValidationIssues
             [dataElementId, filename ?? "", dataType ?? ""]
         );
 
+    // Payment
+
+    public static readonly ValidationIssueDefinition PaymentNotCompletedDefinition = new()
+    {
+        Code = "PaymentNotCompleted",
+        Severity = ValidationIssueSeverity.Error,
+        Description =
+            "The stored status of a payment task's payment is neither paid nor skipped, so the task cannot be completed.",
+        TextResource = new()
+        {
+            Key = "validation_errors.payment_not_completed",
+            Texts = new LocalizedText(
+                nb: "Betalingen er ikke fullført.",
+                nn: "Betalinga er ikkje fullført.",
+                en: "The payment has not been completed."
+            ),
+            Variables = [_dataType],
+        },
+    };
+
+    public static ValidationIssue PaymentNotCompleted(string dataType) =>
+        PaymentNotCompletedDefinition.Create(dataElementId: null, field: null, [dataType]);
+
+    public static readonly ValidationIssueDefinition PaymentAlreadyCompletedDefinition = new()
+    {
+        Code = "PaymentAlreadyCompleted",
+        Severity = ValidationIssueSeverity.Error,
+        Description =
+            "Raised by `PUT …/process/next` with `reject` on a payment task when the payment has already gone through at the payment processor.",
+        TextResource = new()
+        {
+            Key = "validation_errors.payment_already_completed",
+            Texts = new LocalizedText(
+                nb: "Betalingen er allerede gjennomført, så du kan ikke gå tilbake.",
+                nn: "Betalinga er allereie gjennomført, så du kan ikkje gå tilbake.",
+                en: "The payment has already gone through, so you cannot go back."
+            ),
+            Variables = [_dataType],
+        },
+    };
+
+    public static ValidationIssue PaymentAlreadyCompleted(string dataType) =>
+        PaymentAlreadyCompletedDefinition.Create(dataElementId: null, field: null, [dataType]);
+
     // Data model
 
     public static readonly ValidationIssueDefinition RequiredDefinition = new()
@@ -343,6 +387,8 @@ internal static class BuiltInValidationIssues
         TooFewDataElementsDefinition,
         MissingSignaturesDefinition,
         InvalidSignatureHashDefinition,
+        PaymentNotCompletedDefinition,
+        PaymentAlreadyCompletedDefinition,
         RequiredDefinition,
         XsdValidationDefinition,
     ];

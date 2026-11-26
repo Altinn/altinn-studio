@@ -1,0 +1,22 @@
+{
+  "id": "9a1f3c52-6d0e-4b7a-8c21-5e4f7d1b2a61",
+  "instanceGuid": "9a1f3c52-6d0e-4b7a-8c21-5e4f7d1b2a60",
+  "dataType": "paymentInformation",
+  "filename": "paymentInformation.json",
+  "contentType": "application/json",
+  "blobStoragePath": null,
+  "selfLinks": null,
+  "size": 0,
+  "contentHash": null,
+  "locked": false,
+  "refs": null,
+  "isRead": true,
+  "tags": [],
+  "deleteStatus": null,
+  "fileScanResult": "NotApplicable",
+  "references": null,
+  "created": "2026-10-22T08:05:00Z",
+  "createdBy": null,
+  "lastChanged": "2026-10-22T08:05:00Z",
+  "lastChangedBy": null
+}
