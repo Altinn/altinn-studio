@@ -75,6 +75,12 @@ Analyser
 @paths src/core/preview/**
 Marshalling
 
+# The application metadata's partyTypesAllowed.organisation key, which preview
+# writes into the global data the app frontend reads
+@identifiers organisation
+@paths src/core/preview/src/Altinn.Studio.Preview/AppApi/IndexPage.cs
+organisation
+
 # MaskinportenSettings member name apps configure by key
 @identifiers ExhangeToAltinnToken
 Exhange

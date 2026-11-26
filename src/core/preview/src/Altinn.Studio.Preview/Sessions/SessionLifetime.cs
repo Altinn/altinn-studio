@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Caching.Distributed;
-
 namespace Altinn.Studio.Preview.Sessions;
 
 /// <summary>
@@ -15,9 +13,17 @@ internal static class SessionLifetime
     public static readonly TimeSpan Maximum = TimeSpan.FromHours(24);
 
     /// <summary>
-    /// The cache entry for a session that started at <paramref name="startedAt"/>. Each read of the entry restarts
-    /// its idle time, up to the maximum.
+    /// How long a session that started at <paramref name="startedAt"/> lasts from <paramref name="now"/>, if no other
+    /// request comes, or <c>null</c> when it has ended.
     /// </summary>
-    public static DistributedCacheEntryOptions EntryFor(DateTimeOffset startedAt) =>
-        new() { SlidingExpiration = Idle, AbsoluteExpiration = startedAt + Maximum };
+    public static TimeSpan? TimeToLive(DateTimeOffset startedAt, DateTimeOffset now)
+    {
+        TimeSpan left = startedAt + Maximum - now;
+        if (left <= TimeSpan.Zero)
+        {
+            return null;
+        }
+
+        return left < Idle ? left : Idle;
+    }
 }
