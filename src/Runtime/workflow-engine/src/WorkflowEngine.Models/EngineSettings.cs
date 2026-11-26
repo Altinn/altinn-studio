@@ -60,6 +60,13 @@ public sealed record EngineSettings
     public required TimeSpan MetricsCollectionInterval { get; set; }
 
     /// <summary>
+    /// Interval at which the engine reads the per-namespace workflow counts. Slower than
+    /// <see cref="MetricsCollectionInterval"/>: the counts only feed a gauge, which deployments export every 15 seconds.
+    /// </summary>
+    [JsonPropertyName("workflowCountCollectionInterval")]
+    public TimeSpan WorkflowCountCollectionInterval { get; set; }
+
+    /// <summary>
     /// The default timeout for command execution. Max allowed time to wait for a command to complete.
     /// </summary>
     [JsonPropertyName("defaultStepCommandTimeout")]

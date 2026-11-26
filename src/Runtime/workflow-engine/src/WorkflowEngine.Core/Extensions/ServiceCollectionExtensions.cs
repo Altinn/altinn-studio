@@ -87,6 +87,7 @@ public static class ServiceCollectionExtensions
             services.AddHostedService<CancellationWatcherService>();
             services.AddHostedService<WorkflowProcessor>();
             services.AddHostedService<MetricsCollector>();
+            services.AddHostedService<WorkflowCountCollector>();
 
             services.AddScoped<WorkflowHandler>();
 
@@ -174,6 +175,9 @@ public static class OptionsBuilderExtensions
 
                 if (config.MetricsCollectionInterval <= TimeSpan.Zero)
                     config.MetricsCollectionInterval = Defaults.EngineSettings.MetricsCollectionInterval;
+
+                if (config.WorkflowCountCollectionInterval <= TimeSpan.Zero)
+                    config.WorkflowCountCollectionInterval = Defaults.EngineSettings.WorkflowCountCollectionInterval;
 
                 if (config.DefaultStepCommandTimeout <= TimeSpan.Zero)
                     config.DefaultStepCommandTimeout = Defaults.EngineSettings.DefaultStepCommandTimeout;

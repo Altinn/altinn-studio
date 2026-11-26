@@ -70,6 +70,12 @@ internal static class PersistentItemStatusMap
     public const string FailedSqlList = "4, 5, 6";
 
     /// <summary>
+    /// <see cref="PersistentItemStatus.Enqueued"/> as an integer literal, for interpolation
+    /// into compile-time-constant SQL. Same constancy contract as <see cref="FinishedSqlList"/>.
+    /// </summary>
+    public const string EnqueuedSqlLiteral = "0";
+
+    /// <summary>
     /// <see cref="PersistentItemStatus.Processing"/> as an integer literal, for interpolation
     /// into compile-time-constant SQL. Same constancy contract as <see cref="FinishedSqlList"/>.
     /// </summary>

@@ -675,7 +675,8 @@ The one exception is `altinn.workflow_engine.namespace`, which is unbounded acro
 counters, as the [failure-throttling ADR](../../../../docs/adr/2026-08-13-workflow-engine-failure-throttling.md)
 records, on the errors counter's `workflow_handling` errors, and on the step and workflow failure counters, so the
 dashboard shows which app fails. All of them count rare events: an app gets a series only once it has failed in the
-process's lifetime. Its value is the namespace as the engine stores it, `{org}/{app}` for the Altinn apps.
+process's lifetime. The [workflow count gauge](#workflow-counts) carries it too, with a cap on the namespaces it names.
+Its value is the namespace as the engine stores it, `{org}/{app}` for the Altinn apps.
 
 ### Alerting on terminal failures
 
@@ -703,6 +704,31 @@ sum by ("altinn.workflow_engine.workflow.is_head") (
   increase_pure({"altinn.workflow_engine.workflow.execution.failed", "altinn.workflow_engine.reason"=~"execution|poisoned"}[5m])
 ) > 0
 ```
+
+### Workflow counts
+
+Every `MetricsCollectionInterval` (5 seconds) the engine counts all its retained workflows by status, for the
+database-wide gauges: `workflow.active` is every non-terminal status, `workflow.scheduled` the enqueued workflows
+with a future start, `workflow.waiting`, `workflow.failed` (`Failed`, `Canceled` and `DependencyFailed`),
+`workflow.successful` and `workflow.finished`. The same count feeds backpressure and health.
+
+Every `WorkflowCountCollectionInterval` (15 seconds, how often deployments export) a separate read counts the
+incomplete and failed workflows per namespace, through partial indexes over those statuses, so its cost grows with
+them and not with the table. `workflow.count` reports it with `altinn.workflow_engine.namespace` and
+`altinn.workflow_engine.workflow.status`: `Scheduled`, `Enqueued`, `Processing`, `Requeued`, `Waiting`, `Held`,
+`Failed`, `Canceled` and `DependencyFailed`. `Scheduled` holds the enqueued workflows with a future start and
+`Enqueued` the rest, so no workflow is in two statuses and any of them can be summed. Completed and abandoned
+workflows are only in the database-wide gauges. The two reads run at different times, so the per-namespace counts
+can differ from the database-wide ones for a moment.
+
+- **A namespace keeps every status's series until the process stops,** at 0 where it has no workflows in that status.
+  A count that drops to zero reads as zero, not as the last value of a series that went away.
+- **Every count gauge keeps the last values read until a read succeeds,** through a database outage too, whether the
+  reads fail or hang.
+- **The series are namespaces × statuses per process,** 9 statuses for each of up to 1,000 namespaces. The caller
+  chooses the namespace, so once 1,000 are named, the workflows of any other namespace are counted under `_OTHER`.
+  Every replica reports the same counts, so take the `max` over replicas per series before summing. Past the cap,
+  replicas that started at different times name different namespaces, so take totals from the database-wide gauges.
 
 ### Mailbox metrics
 

@@ -659,6 +659,20 @@ public static class Metrics
         unit: "{workflow}"
     );
 
+    private static Measurement<long>[] _workflowCounts = [];
+
+    /// <summary>
+    /// Gauge of the incomplete and failed workflows, per namespace (<c>altinn.workflow_engine.namespace</c>) and status
+    /// (<c>altinn.workflow_engine.workflow.status</c>), with <c>Scheduled</c> split from <c>Enqueued</c>.
+    /// </summary>
+    /// <remarks>One series per namespace and status; the workflow count collector bounds the namespaces.</remarks>
+    public static readonly ObservableGauge<long> WorkflowCount = Meter.CreateObservableGauge(
+        "altinn.workflow_engine.workflow.count",
+        static () => _workflowCounts,
+        unit: "{workflow}",
+        description: "Number of incomplete and failed workflows, per namespace and status"
+    );
+
     private static long _overdueOpenMailboxesCount;
 
     /// <summary>
@@ -849,6 +863,19 @@ public static class Metrics
     /// Sets the value reported by <see cref="FinishedWorkflows"/>.
     /// </summary>
     public static void SetFinishedWorkflowsCount(long count) => _finishedWorkflowsCount = count;
+
+    /// <summary>
+    /// Replaces every series <see cref="WorkflowCount"/> reports: a series left out of
+    /// <paramref name="counts"/> is no longer reported.
+    /// </summary>
+    public static void SetWorkflowCounts(IEnumerable<(string Namespace, string Status, long Count)> counts) =>
+        _workflowCounts = [
+            .. counts.Select(c => new Measurement<long>(
+                c.Count,
+                new KeyValuePair<string, object?>(TelemetryAttributes.Namespace, c.Namespace),
+                new KeyValuePair<string, object?>(TelemetryAttributes.WorkflowStatus, c.Status)
+            )),
+        ];
 
     /// <summary>Sets the value reported by <see cref="OverdueOpenMailboxes"/>.</summary>
     public static void SetOverdueOpenMailboxesCount(long count) => _overdueOpenMailboxesCount = count;

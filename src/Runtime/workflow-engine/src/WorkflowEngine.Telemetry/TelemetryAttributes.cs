@@ -33,9 +33,9 @@ public static class TelemetryAttributes
     /// <remarks>
     /// Unbounded across the fleet, so a metric carries it only where its values are rare events — the
     /// throttle counters, whose cardinality is bounded by incident count (a documented decision in the
-    /// failure-throttling ADR), the errors counter, and the step and workflow failure counters. Each engine
-    /// serves one service owner, so a process's series are bounded by that owner's apps, and only the apps that
-    /// failed in the process's lifetime get one.
+    /// failure-throttling ADR), the errors counter, and the step and workflow failure counters — or where the
+    /// engine caps its values, as on the workflow count gauge. Each engine serves one service owner, so a process's
+    /// series are bounded by that owner's apps.
     /// </remarks>
     public const string Namespace = "altinn.workflow_engine.namespace";
 
@@ -92,7 +92,8 @@ public static class TelemetryAttributes
 
     /// <summary>
     /// A workflow's lifecycle status, such as <c>Processing</c>, <c>Completed</c> or <c>Failed</c>: the status
-    /// names of the engine API.
+    /// names of the engine API. The workflow count gauge adds <c>Scheduled</c>, for the enqueued workflows with a
+    /// future start, and counts only the rest as <c>Enqueued</c>.
     /// </summary>
     public const string WorkflowStatus = "altinn.workflow_engine.workflow.status";
 
