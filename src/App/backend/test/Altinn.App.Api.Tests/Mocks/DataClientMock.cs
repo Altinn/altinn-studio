@@ -678,7 +678,6 @@ internal sealed class DataClientMock : IDataClient, IDataClientWithStorageMetada
     {
         _storageMetadata.RegisterAggregateMutationRequest();
         var instanceIdentifier = new InstanceIdentifier(instanceOwnerPartyId, instanceGuid);
-        _storageMetadata.ValidateAggregatePreconditions(instanceIdentifier, mutation, preconditions);
         (string org, string app) = GetInstanceOrgApp(instanceIdentifier);
         string instancePath = TestData.GetInstancePath(org, app, instanceOwnerPartyId, instanceGuid);
 
@@ -689,6 +688,19 @@ internal sealed class DataClientMock : IDataClient, IDataClientWithStorageMetada
                 dataElement => dataElement.Id
             ),
         ];
+
+        if (_storageMetadata.FindReplayedMutation(instanceIdentifier, preconditions) is { } replayedCreations)
+        {
+            SetBlobVersionIds(instanceIdentifier, instance);
+            return new InstanceMutationWithStorageMetadata(
+                instance,
+                _storageMetadata.GetVersions(instanceIdentifier),
+                replayedCreations,
+                replayed: true
+            );
+        }
+
+        _storageMetadata.ValidateAggregatePreconditions(instanceIdentifier, mutation, preconditions);
 
         HashSet<Guid> changedDataElementIds = [];
         HashSet<Guid> deletedDataElementIds = [];
@@ -824,6 +836,13 @@ internal sealed class DataClientMock : IDataClient, IDataClientWithStorageMetada
             processStateChanged
         );
 
+        SetBlobVersionIds(instanceIdentifier, instance);
+        _storageMetadata.RecordCommittedMutation(instanceIdentifier, preconditions, versions, createdDataElementIds);
+        return new InstanceMutationWithStorageMetadata(instance, versions, createdDataElementIds);
+    }
+
+    private void SetBlobVersionIds(InstanceIdentifier instanceIdentifier, Instance instance)
+    {
         foreach (DataElement dataElement in instance.Data)
         {
             dataElement.BlobVersionId = _storageMetadata.GetDataElementBlobVersionId(
@@ -831,8 +850,6 @@ internal sealed class DataClientMock : IDataClient, IDataClientWithStorageMetada
                 Guid.Parse(dataElement.Id)
             );
         }
-
-        return new InstanceMutationWithStorageMetadata(instance, versions, createdDataElementIds);
     }
 
     private static async Task WriteDataBlob(

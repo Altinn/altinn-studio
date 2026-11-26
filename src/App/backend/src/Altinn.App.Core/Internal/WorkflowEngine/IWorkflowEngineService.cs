@@ -1,6 +1,7 @@
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
+using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Notifications.Future;
 using Altinn.App.Core.Models.Process;
 using Altinn.Platform.Storage.Interface.Models;
@@ -39,24 +40,6 @@ internal interface IWorkflowEngineService
     );
 
     /// <summary>
-    /// Enqueues the acquire workflow for a transition the app itself starts, run as <paramref name="actor"/>, and waits
-    /// for that workflow to end, as long as process/next waits, but not for the transition it starts.
-    /// </summary>
-    /// <remarks>
-    /// The idempotency key is the one process/next uses for <paramref name="instanceVersions"/>, so a call on the same
-    /// snapshot as a user's process/next joins its workflow when it prepares the same transition, and is rejected with
-    /// 409 when it does not. A superseded acquire completes too, so the caller tells the two apart from the instance.
-    /// </remarks>
-    Task<AcquireWorkflowResult> EnqueueAndWaitForAcquire(
-        Instance instance,
-        StorageVersionMetadata instanceVersions,
-        string state,
-        ProcessStateChange processStateChange,
-        Actor actor,
-        CancellationToken cancellationToken = default
-    );
-
-    /// <summary>
     /// Enqueues the acquire workflow for the action pipeline <paramref name="pipelineId"/> on the current task, run as
     /// <paramref name="actor"/>, and waits until the pipeline opens, moves the process or ends.
     /// </summary>
@@ -77,6 +60,21 @@ internal interface IWorkflowEngineService
     /// The first active workflow in the instance's collection, which holds the instance now, or null when none runs.
     /// </summary>
     Task<Guid?> FindActiveWorkflow(Instance instance, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Whether the engine knows <paramref name="mailboxId"/> as a mailbox of the instance's collection.
+    /// </summary>
+    Task<bool> IsMailboxOfInstance(
+        InstanceIdentifier instanceId,
+        Guid mailboxId,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Whether the mailbox <paramref name="mailboxId"/> still accepts messages. False for a mailbox the engine does not
+    /// know.
+    /// </summary>
+    Task<bool> IsMailboxOpen(Guid mailboxId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Waits, from the workflow <paramref name="sinceWorkflowId"/> on, until the action pipeline has handled the

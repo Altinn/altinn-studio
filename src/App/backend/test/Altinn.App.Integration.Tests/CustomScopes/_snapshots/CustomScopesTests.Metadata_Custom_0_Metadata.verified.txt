@@ -998,7 +998,35 @@
         }
       },
       {
-        endpoint: POST {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/payment/nets-webhook-listener,
+        endpoint: POST {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/payment/cancel,
+        metadata: {
+          errorMessageTextResourceKeyUser: authorization.scopes.insufficient,
+          errorMessageTextResourceKeyServiceOwner: authorization.scopes.insufficient,
+          requiredScopesUsers: [
+            custom:instances.write,
+            altinn:portal/enduser
+          ],
+          requiredScopesServiceOwners: [
+            custom:serviceowner/instances.write
+          ]
+        }
+      },
+      {
+        endpoint: POST {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/payment/check,
+        metadata: {
+          errorMessageTextResourceKeyUser: authorization.scopes.insufficient,
+          errorMessageTextResourceKeyServiceOwner: authorization.scopes.insufficient,
+          requiredScopesUsers: [
+            custom:instances.write,
+            altinn:portal/enduser
+          ],
+          requiredScopesServiceOwners: [
+            custom:serviceowner/instances.write
+          ]
+        }
+      },
+      {
+        endpoint: POST {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/payment/nets-webhook-listener/{mailboxId:guid?},
         metadata: {
           errorMessageTextResourceKeyUser: null,
           errorMessageTextResourceKeyServiceOwner: null,

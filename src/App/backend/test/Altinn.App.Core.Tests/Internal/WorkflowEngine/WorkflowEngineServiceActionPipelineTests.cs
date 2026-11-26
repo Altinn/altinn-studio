@@ -488,6 +488,71 @@ public class WorkflowEngineServiceActionPipelineTests
         Assert.Equal(active ? headId : null, found);
     }
 
+    [Theory]
+    [InlineData("thisInstance", true)]
+    [InlineData("anotherInstance", false)]
+    [InlineData("none", false)]
+    public async Task IsMailboxOfInstance_IsWhetherTheMailboxWasMintedInTheInstancesCollection(
+        string mintedFor,
+        bool expected
+    )
+    {
+        _client
+            .Setup(c => c.GetMailbox(Namespace, _mailboxId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                mintedFor == "none"
+                    ? null
+                    : new MailboxResponse
+                    {
+                        Id = _mailboxId,
+                        Namespace = Namespace,
+                        IdempotencyKey = "mint",
+                        CollectionKey = mintedFor == "thisInstance" ? _collectionKey : Guid.NewGuid().ToString(),
+                        Timeout = TimeSpan.FromDays(1),
+                        Deadline = _now.AddDays(1),
+                        Status = MailboxStatus.Open,
+                        NextIdx = 0,
+                        NextSeq = 1,
+                        CreatedAt = _now,
+                    }
+            );
+
+        bool result = await CreateService().IsMailboxOfInstance(new InstanceIdentifier(CreateInstance()), _mailboxId);
+
+        Assert.Equal(expected, result);
+    }
+
+    [Theory]
+    [InlineData("open", true)]
+    [InlineData("closed", false)]
+    [InlineData("unknown", false)]
+    public async Task IsMailboxOpen_IsWhetherTheEngineReportsTheMailboxOpen(string mailbox, bool expected)
+    {
+        _client
+            .Setup(c => c.GetMailbox(Namespace, _mailboxId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                mailbox != "unknown"
+                    ? new MailboxResponse
+                    {
+                        Id = _mailboxId,
+                        Namespace = Namespace,
+                        IdempotencyKey = "mint",
+                        CollectionKey = _collectionKey,
+                        Timeout = TimeSpan.FromDays(1),
+                        Deadline = _now.AddDays(1),
+                        Status = mailbox == "open" ? MailboxStatus.Open : MailboxStatus.Disposed,
+                        NextIdx = 0,
+                        NextSeq = 1,
+                        CreatedAt = _now,
+                    }
+                    : null
+            );
+
+        bool result = await CreateService().IsMailboxOpen(_mailboxId);
+
+        Assert.Equal(expected, result);
+    }
+
     [Fact]
     public async Task WaitForActionPipelineMessage_ReturnsOnceTheReceiverAfterItsMessageExists()
     {

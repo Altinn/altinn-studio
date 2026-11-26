@@ -36,4 +36,10 @@ internal interface INetsClient
     /// <param name="cancellationToken">An optional cancellation token</param>
     /// <returns></returns>
     Task<bool> TerminatePayment(string paymentId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Cancels <paramref name="amount"/>, in the lowest monetary unit, of a payment that is reserved and not charged.
+    /// </summary>
+    /// <returns>Whether Nets accepted the cancel.</returns>
+    Task<bool> CancelPayment(string paymentId, int amount, CancellationToken cancellationToken = default);
 }

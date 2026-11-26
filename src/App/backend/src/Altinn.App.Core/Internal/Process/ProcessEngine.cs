@@ -10,7 +10,6 @@ using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
-using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.Base;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
@@ -245,66 +244,6 @@ internal class ProcessEngine : IProcessEngine
 
         activity?.SetProcessChangeResult(result);
         return result;
-    }
-
-    /// <inheritdoc/>
-    public async Task<ProcessChangeResult> EnqueueNextForApp(
-        Instance instance,
-        StorageVersionMetadata instanceVersions,
-        string action,
-        Actor actor,
-        CancellationToken cancellationToken = default
-    )
-    {
-        using Activity? activity = _telemetry?.StartProcessNextActivity(instance, action);
-
-        if (
-            !TryGetCurrentTaskIdAndAltinnTaskType(
-                instance,
-                out CurrentTaskIdAndAltinnTaskType? currentTaskIdAndAltinnTaskType,
-                out ProcessChangeResult? invalidProcessStateError
-            )
-        )
-        {
-            activity?.SetProcessChangeResult(invalidProcessStateError);
-            return invalidProcessStateError;
-        }
-
-        (string currentTaskId, string altinnTaskType) = currentTaskIdAndAltinnTaskType;
-
-        if (await GetProcessStatusBlockedResult(instance, cancellationToken) is { } processStatusBlockedResult)
-        {
-            activity?.SetProcessChangeResult(processStatusBlockedResult);
-            return processStatusBlockedResult;
-        }
-
-        ServiceResult<PreparedTransition, ProcessChangeResult> preparedTransition = await PrepareTransition(
-            instance,
-            instanceVersions,
-            currentTaskId,
-            altinnTaskType,
-            action,
-            actor.Language,
-            actor.Language ?? LanguageConst.Nb,
-            StorageAuthenticationMethod.ServiceOwner(),
-            restartServiceTask: false,
-            cancellationToken
-        );
-        if (!preparedTransition.Success)
-        {
-            activity?.SetProcessChangeResult(preparedTransition.Error);
-            return preparedTransition.Error;
-        }
-
-        ProcessChangeResult enqueuedResult = await EnqueueTransitionForApp(
-            preparedTransition.Ok.TransitionData,
-            action,
-            preparedTransition.Ok.ProcessStateChange,
-            actor,
-            cancellationToken
-        );
-        activity?.SetProcessChangeResult(enqueuedResult);
-        return enqueuedResult;
     }
 
     /// <inheritdoc/>
@@ -736,7 +675,6 @@ internal class ProcessEngine : IProcessEngine
             request.Action,
             request.Language,
             await _authenticationContext.Current.GetLanguage(request.Language),
-            dataAuthentication: null,
             restartServiceTask,
             cancellationToken
         );
@@ -918,8 +856,8 @@ internal class ProcessEngine : IProcessEngine
     }
 
     /// <summary>
-    /// The part of process/next that also runs when the app moves the process on itself: validation, the gateways'
-    /// choice of transition and, for a reject, the abandoned task's preparation.
+    /// What process/next does before it enqueues the transition: validation, the gateways' choice of transition and,
+    /// for a reject, the abandoned task's preparation.
     /// </summary>
     private async Task<ServiceResult<PreparedTransition, ProcessChangeResult>> PrepareTransition(
         Instance instance,
@@ -929,7 +867,6 @@ internal class ProcessEngine : IProcessEngine
         string? action,
         string? language,
         string transitionLanguage,
-        StorageAuthenticationMethod? dataAuthentication,
         bool restartServiceTask,
         CancellationToken cancellationToken
     )
@@ -948,10 +885,7 @@ internal class ProcessEngine : IProcessEngine
         }
         else
         {
-            if (
-                await GetValidationError(instance, versions, currentTaskId, language, dataAuthentication) is
-                { } validationError
-            )
+            if (await GetValidationError(instance, versions, currentTaskId, language) is { } validationError)
             {
                 return validationError;
             }
@@ -1000,7 +934,6 @@ internal class ProcessEngine : IProcessEngine
                 currentTaskId,
                 altinnTaskType,
                 language,
-                dataAuthentication,
                 cancellationToken
             );
 
@@ -1039,16 +972,14 @@ internal class ProcessEngine : IProcessEngine
         Instance instance,
         StorageVersionMetadata versions,
         string currentTaskId,
-        string? language,
-        StorageAuthenticationMethod? dataAuthentication
+        string? language
     )
     {
         InstanceDataUnitOfWork dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(
             instance,
             versions,
             currentTaskId,
-            language,
-            dataAuthentication
+            language
         );
         List<ValidationIssueWithSource> validationIssues = await _validationService.ValidateInstanceAtTask(
             dataAccessor,
@@ -1147,7 +1078,6 @@ internal class ProcessEngine : IProcessEngine
         string currentTaskId,
         string altinnTaskType,
         string? language,
-        StorageAuthenticationMethod? dataAuthentication,
         CancellationToken cancellationToken
     )
     {
@@ -1163,8 +1093,7 @@ internal class ProcessEngine : IProcessEngine
             instance,
             versions,
             currentTaskId,
-            language,
-            dataAuthentication
+            language
         );
         ProcessChangeResult? refusal = await abandonPreparer.PrepareAbandon(
             dataMutator,
@@ -1463,66 +1392,6 @@ internal class ProcessEngine : IProcessEngine
             language,
             cancellationToken: cancellationToken
         );
-    }
-
-    /// <summary>
-    /// Hands a transition the app starts to the workflow engine, and returns once the transition has started, or once
-    /// its acquire workflow has ended without starting it.
-    /// </summary>
-    private async Task<ProcessChangeResult> EnqueueTransitionForApp(
-        InstanceDataUnitOfWork transitionData,
-        string? action,
-        ProcessStateChange processStateChange,
-        Actor appActor,
-        CancellationToken cancellationToken
-    )
-    {
-        using var activity = _telemetry?.StartProcessMoveToNextActivity(transitionData.Instance, action);
-
-        string state = await _workflowCallbackStateService.CaptureState(transitionData);
-        AcquireWorkflowResult acquireResult = await _workflowEngineService.EnqueueAndWaitForAcquire(
-            transitionData.Instance,
-            transitionData.StorageVersions,
-            state,
-            processStateChange,
-            appActor,
-            cancellationToken
-        );
-
-        switch (acquireResult)
-        {
-            case AcquireWorkflowResult.NotCompleted { Failure: var failure }:
-                // It failed, or has not ended yet, so it says nothing about whether the instance changed.
-                return new ProcessChangeResult
-                {
-                    Success = false,
-                    ErrorType = ProcessErrorType.Internal,
-                    ErrorTitle = "The transition has not started.",
-                    ErrorMessage = CreateWorkflowFailureMessage(failure),
-                    WorkflowFailure = failure,
-                };
-
-            case AcquireWorkflowResult.Completed { Instance: var afterAcquire }:
-                // An acquire that lost to a change after the snapshot was read completes too, and leaves the instance
-                // idle on the same task. A processing instance, or one that has moved on, has a transition under way
-                // or done.
-                if (
-                    ProcessStatusHelper.IsIdle(afterAcquire.Instance)
-                    && !HasAdvanced(transitionData.Instance.Process, afterAcquire.Instance.Process)
-                )
-                {
-                    return CreateInstanceChangedResult(afterAcquire.Instance, afterAcquire.Metadata);
-                }
-
-                return new ProcessChangeResult(afterAcquire.Instance, afterAcquire.Metadata)
-                {
-                    Success = true,
-                    ProcessStateChange = processStateChange,
-                };
-
-            default:
-                throw new UnreachableException($"Unknown acquire workflow result type: {acquireResult.GetType().Name}");
-        }
     }
 
     /// <inheritdoc/>

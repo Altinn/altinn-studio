@@ -30,4 +30,10 @@ public class PaymentInformation
     /// in this language, so the payment receipt is in it too.
     /// </summary>
     public string? Language { get; set; }
+
+    /// <summary>
+    /// The mailbox of the payment attempt this payment belongs to. Messages about the payment, from the user or the
+    /// payment processor, go to it while the attempt is open.
+    /// </summary>
+    public Guid? MailboxId { get; set; }
 }

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Payment;
@@ -9,10 +10,12 @@ using Altinn.App.Core.Features.Payment.Services;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
-using Altinn.App.Core.Internal.Storage;
+using Altinn.App.Core.Internal.Process.ProcessTasks;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using IAuthorizationService = Altinn.App.Core.Internal.Auth.IAuthorizationService;
 
 namespace Altinn.App.Api.Controllers;
 
@@ -25,9 +28,10 @@ namespace Altinn.App.Api.Controllers;
 public class PaymentController : ControllerBase
 {
     private readonly IInstanceClient _instanceClient;
-    private readonly IInstanceClientWithStorageMetadata _instanceClientWithStorageMetadata;
     private readonly IProcessReader _processReader;
     private readonly IPaymentService _paymentService;
+    private readonly PaymentAttemptRequests _attemptRequests;
+    private readonly IAuthorizationService _authorizationService;
     private readonly AppImplementationFactory _appImplementationFactory;
     private readonly ILogger<PaymentController> _logger;
     private readonly INetsWebhookSecretProvider? _netsWebhookSecretProvider;
@@ -47,22 +51,24 @@ public class PaymentController : ControllerBase
         _logger = logger;
         _netsWebhookSecretProvider = serviceProvider.GetService<INetsWebhookSecretProvider>();
         _paymentService = serviceProvider.GetRequiredService<IPaymentService>();
-        _instanceClientWithStorageMetadata = serviceProvider.GetRequiredService<IInstanceClientWithStorageMetadata>();
+        _attemptRequests = serviceProvider.GetRequiredService<PaymentAttemptRequests>();
+        _authorizationService = serviceProvider.GetRequiredService<IAuthorizationService>();
         _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
     }
 
     /// <summary>
-    /// Get updated payment information for the instance. Will contact the payment processor to check the status of the payment. Current task must be a payment task, or a payment task ID must be supplied via the <c>taskId</c> query parameter. See payment related documentation.
+    /// Get the stored payment information for the instance. Current task must be a payment task, or a payment task ID must be supplied via the <c>taskId</c> query parameter. Without stored payment information, it returns the status <c>Uninitialized</c> with the calculated order details. See payment related documentation.
     /// </summary>
     /// <param name="org">unique identifier of the organization responsible for the app</param>
     /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that this the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
     /// <param name="language">The currently used language by the user (or null if not available)</param>
-    /// <param name="taskId">If payment information should be loaded for a different task than the current one. Useful for retrieving payment information for a completed payment task. Updates from the processor are not persisted when this is set.</param>
+    /// <param name="taskId">If payment information should be loaded for a different task than the current one. Useful for retrieving payment information for a completed payment task.</param>
     /// <param name="cancellationToken">Cancellation token, populated by the framework</param>
-    /// <returns>An object containing updated payment information</returns>
+    /// <returns>The stored payment information</returns>
     [HttpGet]
+    [Authorize]
     [ProducesResponseType(typeof(PaymentInformation), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetPaymentInformation(
@@ -75,68 +81,146 @@ public class PaymentController : ControllerBase
         [FromQuery] string? taskId = null
     )
     {
-        InstanceWithStorageMetadata fetchedInstance =
-            await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
-                app,
-                org,
-                instanceOwnerPartyId,
-                instanceGuid,
-                authenticationMethod: null,
-                cancellationToken
-            );
-        Instance instance = fetchedInstance.Instance;
+        Instance instance = await _instanceClient.GetInstance(
+            app,
+            org,
+            instanceOwnerPartyId,
+            instanceGuid,
+            authenticationMethod: null,
+            cancellationToken
+        );
 
-        string? finalTaskId = taskId ?? instance.Process?.CurrentTask?.ElementId;
-        AltinnPaymentConfiguration? paymentConfiguration = finalTaskId is null
-            ? null
-            : _processReader.GetAltinnTaskExtension(finalTaskId)?.PaymentConfiguration;
-
-        if (finalTaskId is null || paymentConfiguration is null)
+        if (GetPaymentTask(taskId ?? instance.Process?.CurrentTask?.ElementId) is not { } paymentTask)
         {
             return NotPaymentTask();
         }
 
-        var validPaymentConfiguration = paymentConfiguration.Validate();
-
-        // Persist updates only when the requested task is still the instance's current task.
-        // After the webhook advances the process, the frontend may still poll with the (now historical) payment task id —
-        // we want to return its status without overwriting payment data that no longer belongs to the current task.
-        bool isCurrentTask = finalTaskId == instance.Process?.CurrentTask?.ElementId;
-
-        PaymentInformation paymentInformation;
-        if (isCurrentTask && ProcessStatusHelper.IsIdle(instance))
-        {
-            paymentInformation = await _paymentService.CheckAndStorePaymentStatus(
-                fetchedInstance,
-                validPaymentConfiguration,
-                language,
-                cancellationToken
-            );
-        }
-        else
-        {
-            paymentInformation = await _paymentService.CheckPaymentStatus(
+        return Ok(
+            await _paymentService.GetPaymentInformation(
                 instance,
-                validPaymentConfiguration,
-                finalTaskId,
+                paymentTask.Configuration,
+                paymentTask.Id,
                 language,
                 cancellationToken
-            );
-        }
-
-        return Ok(paymentInformation);
+            )
+        );
     }
 
-    private static BadRequestObjectResult NotPaymentTask()
+    /// <summary>
+    /// Cancels the payment attempt that holds the current payment task, for Back while the user is paying. Moves the
+    /// process back, or on when the payment has gone through, or releases the task when the process has no way back.
+    /// </summary>
+    /// <param name="org">unique identifier of the organization responsible for the app</param>
+    /// <param name="app">application identifier which is unique within an organization</param>
+    /// <param name="instanceOwnerPartyId">unique id of the party that this the owner of the instance</param>
+    /// <param name="instanceGuid">unique id to identify the instance</param>
+    /// <param name="language">The currently used language by the user (or null if not available)</param>
+    /// <param name="cancellationToken">Cancellation token, populated by the framework</param>
+    /// <returns>The payment information stored once the cancel was handled</returns>
+    [HttpPost("cancel")]
+    [Authorize]
+    [ProducesResponseType(typeof(PaymentInformation), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status503ServiceUnavailable)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status504GatewayTimeout)]
+    public async Task<IActionResult> CancelPaymentAttempt(
+        [FromRoute] string org,
+        [FromRoute] string app,
+        [FromRoute] int instanceOwnerPartyId,
+        [FromRoute] Guid instanceGuid,
+        CancellationToken cancellationToken,
+        [FromQuery] string? language = null
+    )
     {
-        return new BadRequestObjectResult(
-            new ProblemDetails
-            {
-                Title = "Not a payment task",
-                Detail =
-                    "This endpoint is only callable while the current task is a payment task, or when the taskId query param is set to a payment task's ID.",
-                Status = StatusCodes.Status400BadRequest,
-            }
+        Instance instance = await _instanceClient.GetInstance(
+            app,
+            org,
+            instanceOwnerPartyId,
+            instanceGuid,
+            authenticationMethod: null,
+            cancellationToken
+        );
+        if (GetPaymentTask(instance.Process?.CurrentTask?.ElementId) is not { } paymentTask)
+        {
+            return NotPaymentTask();
+        }
+
+        if (!await AuthorizeAction(instance, "reject", paymentTask.Id, cancellationToken))
+        {
+            return Forbid();
+        }
+
+        return ToResult(
+            await _attemptRequests.Cancel(
+                instance,
+                paymentTask.Id,
+                paymentTask.Configuration,
+                language,
+                cancellationToken
+            )
+        );
+    }
+
+    /// <summary>
+    /// Checks the payment of the attempt that holds the current payment task with the payment processor, and tells
+    /// the attempt when its status changed, so a payment completes without the processor's webhook. Call it each time
+    /// the payment page loads while the attempt is open.
+    /// </summary>
+    /// <param name="org">unique identifier of the organization responsible for the app</param>
+    /// <param name="app">application identifier which is unique within an organization</param>
+    /// <param name="instanceOwnerPartyId">unique id of the party that this the owner of the instance</param>
+    /// <param name="instanceGuid">unique id to identify the instance</param>
+    /// <param name="language">The currently used language by the user (or null if not available)</param>
+    /// <param name="cancellationToken">Cancellation token, populated by the framework</param>
+    /// <returns>The payment information stored once any change was handled</returns>
+    [HttpPost("check")]
+    [Authorize]
+    [ProducesResponseType(typeof(PaymentInformation), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status502BadGateway)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status503ServiceUnavailable)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status504GatewayTimeout)]
+    public async Task<IActionResult> CheckPaymentAttempt(
+        [FromRoute] string org,
+        [FromRoute] string app,
+        [FromRoute] int instanceOwnerPartyId,
+        [FromRoute] Guid instanceGuid,
+        CancellationToken cancellationToken,
+        [FromQuery] string? language = null
+    )
+    {
+        Instance instance = await _instanceClient.GetInstance(
+            app,
+            org,
+            instanceOwnerPartyId,
+            instanceGuid,
+            authenticationMethod: null,
+            cancellationToken
+        );
+        if (GetPaymentTask(instance.Process?.CurrentTask?.ElementId) is not { } paymentTask)
+        {
+            return NotPaymentTask();
+        }
+
+        if (!await AuthorizeAction(instance, PaymentProcessTask.PayAction, paymentTask.Id, cancellationToken))
+        {
+            return Forbid();
+        }
+
+        return ToResult(
+            await _attemptRequests.Check(
+                instance,
+                paymentTask.Id,
+                paymentTask.Configuration,
+                language,
+                cancellationToken
+            )
         );
     }
 
@@ -188,17 +272,19 @@ public class PaymentController : ControllerBase
     }
 
     /// <summary>
-    /// Endpoint to receive payment webhooks from the payment processor.
+    /// Endpoint to receive payment webhooks from the payment processor. Forwards the event to the payment attempt
+    /// whose mailbox the URL names, or, for a payment created without one, the mailbox its stored payment names.
     /// </summary>
     /// <param name="org">unique identifier of the organization responsible for the app</param>
     /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that this the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
+    /// <param name="mailboxId">The mailbox of the payment attempt that created the payment</param>
     /// <param name="webhookPayload">The webhook payload from nets</param>
     /// <param name="authorizationHeader"></param>
     /// <param name="cancellationToken">Cancellation token, populated by the framework</param>
     /// <returns>Acknowledgement of the webhook</returns>
-    [HttpPost("nets-webhook-listener")]
+    [HttpPost("nets-webhook-listener/{mailboxId:guid?}")]
     [ApiExplorerSettings(IgnoreApi = true)]
     [AllowAnonymous] // Authorization is handled via a shared secret in the header, not via middleware
     public async Task<IActionResult> PaymentWebhookListener(
@@ -206,6 +292,7 @@ public class PaymentController : ControllerBase
         [FromRoute] string app,
         [FromRoute] int instanceOwnerPartyId,
         [FromRoute] Guid instanceGuid,
+        [FromRoute] Guid? mailboxId,
         [FromBody] NetsCompleteWebhookPayload webhookPayload,
         [FromHeader(Name = "Authorization")] string authorizationHeader,
         CancellationToken cancellationToken
@@ -227,62 +314,106 @@ public class PaymentController : ControllerBase
         }
 
         _logger.LogInformation(
-            "Received valid Nets webhook callback for instance {InstanceGuid} for {Payment}",
+            "Received valid Nets webhook callback {EventName} for instance {InstanceGuid} for {Payment}",
+            webhookPayload.EventName,
             instanceGuid,
             webhookPayload.Data.PaymentId
         );
+        await _attemptRequests.ForwardNetsEvent(
+            new AppIdentifier(org, app),
+            new InstanceIdentifier(instanceOwnerPartyId, instanceGuid),
+            mailboxId,
+            webhookPayload,
+            cancellationToken
+        );
+        return Ok();
+    }
 
-        InstanceWithStorageMetadata fetchedInstance =
-            await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
-                app,
-                org,
-                instanceOwnerPartyId,
-                instanceGuid,
-                StorageAuthenticationMethod.ServiceOwner(),
-                cancellationToken
-            );
-        Instance instance = fetchedInstance.Instance;
-
-        if (instance.Process?.CurrentTask?.ElementId is null)
+    private IActionResult ToResult(PaymentAttemptAnswer answer) =>
+        answer switch
         {
-            // Nets calls more than once for a payment, and an earlier call often ended the process, since the payment
-            // task is commonly the last one. Answer OK, as for a task that is not a payment task, so Nets stops calling.
-            _logger.LogInformation(
-                "The process of instance {InstanceId} has ended. Ignoring the Nets webhook callback.",
-                instance.Id
-            );
-            return Ok(new ProblemDetails() { Detail = "The process of the instance has ended" });
-        }
+            PaymentAttemptAnswer.Record record => Ok(record.Payment),
+            PaymentAttemptAnswer.NotOpen => PaymentProblem(
+                StatusCodes.Status409Conflict,
+                "payment-attempt-not-open",
+                "No payment attempt holds the task.",
+                "Move the process with process/next instead."
+            ),
+            PaymentAttemptAnswer.Reserved => PaymentProblem(
+                StatusCodes.Status409Conflict,
+                "payment-authorized",
+                "The payment is reserved.",
+                "The payment has gone through at the payment processor and can no longer be cancelled."
+            ),
+            PaymentAttemptAnswer.ProcessorUnavailable => PaymentProblem(
+                StatusCodes.Status502BadGateway,
+                "payment-processor-unavailable",
+                "The payment processor could not be asked.",
+                "Nothing was sent to the payment attempt. Try again later."
+            ),
+            PaymentAttemptAnswer.EngineUnavailable => PaymentProblem(
+                StatusCodes.Status503ServiceUnavailable,
+                "workflow-engine-unavailable",
+                "The message could not be sent to the payment attempt.",
+                "Try again."
+            ),
+            PaymentAttemptAnswer.MessageLimit => PaymentProblem(
+                StatusCodes.Status409Conflict,
+                "payment-attempt-message-limit",
+                "The payment attempt takes no more messages.",
+                "Wait until the payment attempt ends."
+            ),
+            PaymentAttemptAnswer.Refused refused => ProcessController.CreateErrorResult(
+                refused.Result,
+                _logger,
+                workflowFailureTitle: "Something went wrong while the payment attempt handled the request."
+            ),
+            _ => throw new UnreachableException($"Unknown payment attempt answer {answer.GetType().Name}."),
+        };
 
-        AltinnPaymentConfiguration? paymentConfiguration = _processReader
-            .GetAltinnTaskExtension(instance.Process.CurrentTask.ElementId)
-            ?.PaymentConfiguration;
-
-        if (paymentConfiguration == null)
-        {
-            _logger.LogInformation(
-                "Payment configuration not found in AltinnTaskExtension for task {CurrentTask}. Cannot process Nets webhook callback for instance {InstanceId}. Likely the callback is for an old payment.",
-                instance.Process.CurrentTask?.ElementId,
-                instance.Id
-            );
-            // If the current task is not a payment task, just log and return OK with a ProblemDetails that nets ignore, but might be logged.
-            return Ok(
-                new ProblemDetails()
-                {
-                    Detail =
-                        $"Payment configuration not found in AltinnTaskExtension for task {instance.Process.CurrentTask?.ElementId}",
-                }
-            );
-        }
-
-        var validPaymentConfiguration = paymentConfiguration.Validate();
-
-        var responseText = await _paymentService.HandlePaymentCompletedWebhook(
-            fetchedInstance,
-            validPaymentConfiguration,
+    private Task<bool> AuthorizeAction(
+        Instance instance,
+        string action,
+        string taskId,
+        CancellationToken cancellationToken
+    ) =>
+        _authorizationService.AuthorizeAction(
+            new AppIdentifier(instance),
+            new InstanceIdentifier(instance),
+            HttpContext.User,
+            action,
+            taskId,
             cancellationToken
         );
 
-        return Ok(responseText);
+    private PaymentTask? GetPaymentTask(string? taskId) =>
+        taskId is not null && _processReader.GetAltinnTaskExtension(taskId)?.PaymentConfiguration is { } configuration
+            ? new PaymentTask(taskId, configuration.Validate())
+            : null;
+
+    private static JsonResult PaymentProblem(int status, string type, string title, string detail) =>
+        ProcessStatusProblemResult.Create(
+            new ProblemDetails
+            {
+                Type = type,
+                Title = title,
+                Detail = detail,
+                Status = status,
+            }
+        );
+
+    private static BadRequestObjectResult NotPaymentTask()
+    {
+        return new BadRequestObjectResult(
+            new ProblemDetails
+            {
+                Title = "Not a payment task",
+                Detail =
+                    "This endpoint is only callable while the current task is a payment task, or when the taskId query param is set to a payment task's ID.",
+                Status = StatusCodes.Status400BadRequest,
+            }
+        );
     }
+
+    private sealed record PaymentTask(string Id, ValidAltinnPaymentConfiguration Configuration);
 }

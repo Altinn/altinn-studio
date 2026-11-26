@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Payment;
@@ -5,22 +7,18 @@ using Altinn.App.Core.Features.Payment.Exceptions;
 using Altinn.App.Core.Features.Payment.Models;
 using Altinn.App.Core.Features.Payment.Processors;
 using Altinn.App.Core.Features.Payment.Services;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Data;
-using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Storage;
-using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
+using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Models;
-using Altinn.App.Core.Models.Process;
-using Altinn.App.Core.Models.Validation;
 using Altinn.App.Tests.Common.Fixtures;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit.Abstractions;
 
@@ -31,18 +29,24 @@ public sealed class PaymentServiceTests
     private readonly MockedServiceCollection _fixture = new();
 
     private const string Language = LanguageConst.Nb;
+    private const string TaskId = "Task_1";
+    private const string PaymentDataTypeId = "paymentInformation";
+    private static readonly Guid _mailboxId = Guid.Parse("0f8b3c1e-5d2a-4e7b-9c4d-6a1f2b3c4d5e");
+    private static readonly Guid _stepId = Guid.Parse("5c2e8f41-7a3b-4d6e-9f10-2b4c6d8e0a13");
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web);
 
     private readonly Instance _instance = new Instance()
     {
         Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d",
         Process = new ProcessState
         {
-            CurrentTask = new ProcessElementInfo { AltinnTaskType = AltinnTaskTypes.Payment, ElementId = "Task_1" },
+            CurrentTask = new ProcessElementInfo { AltinnTaskType = AltinnTaskTypes.Payment, ElementId = TaskId },
         },
         Data = [],
     };
 
-    private const string PaymentDataTypeId = "paymentInformation";
+    /// <summary>A payment processor of the app library's own, which a payment attempt can ask for more.</summary>
+    private readonly Mock<IPaymentProcessor> _attemptProcessor = new(MockBehavior.Strict);
 
     public PaymentServiceTests(ITestOutputHelper outputHelper)
     {
@@ -51,1446 +55,964 @@ public sealed class PaymentServiceTests
             new DataType() { Id = PaymentDataTypeId, AllowedContentTypes = ["application/json"] }
         );
         _fixture.Storage.AddInstance(_instance);
-        // Add required services
         _fixture.Services.AddTransient<IPaymentService, PaymentService>();
-        _fixture.Mock<IProcessEngine>();
-    }
-
-    private void SetupPaymentProcessor(OrderDetails orderDetails)
-    {
+        _fixture.Mock<IProcessReader>();
         _fixture
-            .Mock<IOrderDetailsCalculator>()
-            .Setup(p =>
-                p.CalculateOrderDetails(
-                    It.Is<Instance>(instance => instance.Id == _instance.Id),
-                    Language,
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(orderDetails);
-
-        _fixture.Mock<IPaymentProcessor>().Setup(pp => pp.PaymentProcessorId).Returns(orderDetails.PaymentProcessorId);
-    }
-
-    [Fact]
-    public async Task StartPayment_ReturnsRedirectUrl_WhenPaymentStartedSuccessfully()
-    {
-        OrderDetails orderDetails = CreateOrderDetails();
-        ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
-        PaymentInformation paymentInformation = CreatePaymentInformation();
-        PaymentDetails paymentDetails =
-            paymentInformation.PaymentDetails ?? throw new NullReferenceException("PaymentDetails should not be null");
-
-        SetupPaymentProcessor(orderDetails);
-        _fixture
-            .Mock<IPaymentProcessor>()
-            .Setup(p => p.StartPayment(_instance, orderDetails, Language))
-            .ReturnsAsync(paymentDetails)
-            .Verifiable(Times.Once);
-
-        // Act
-        await using var provider = _fixture.BuildServiceProvider();
-        var paymentService = provider.GetRequiredService<IPaymentService>();
-        (PaymentInformation paymentInformationResult, bool alreadyPaid) = await paymentService.StartPayment(
-            _instance,
-            paymentConfiguration,
-            Language
-        );
-
-        // Assert
-        paymentInformationResult.PaymentDetails.Should().NotBeNull();
-        paymentInformationResult
-            .PaymentDetails!.RedirectUrl.Should()
-            .Be(paymentInformation.PaymentDetails!.RedirectUrl);
-        paymentInformationResult.OrderDetails.Should().BeEquivalentTo(orderDetails);
-        paymentInformationResult
-            .OrderDetails.PaymentProcessorId.Should()
-            .Be(paymentInformation.OrderDetails.PaymentProcessorId);
-        alreadyPaid.Should().BeFalse();
-
-        _fixture.VerifyMocks();
-    }
-
-    [Fact]
-    public async Task StartPayment_ReturnsAlreadyPaidTrue_WhenPaymentIsAlreadyPaid()
-    {
-        OrderDetails orderDetails = CreateOrderDetails();
-        ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
-
-        // Add OrderDetailsCalculator mock with no setup (it is never used, but required for the service to initialize)
-        _fixture.Mock<IOrderDetailsCalculator>();
-
-        // Act
-        await using var sp = _fixture.BuildServiceProvider();
-        var paymentService = sp.GetRequiredService<IPaymentService>();
-        var dataService = sp.GetRequiredService<IDataService>();
-        // setup dat
-        await dataService.InsertJsonObject(
-            new InstanceIdentifier(_instance),
-            PaymentDataTypeId,
-            new PaymentInformation
-            {
-                TaskId = "Task_1",
-                Status = PaymentStatus.Paid,
-                OrderDetails = orderDetails,
-                PaymentDetails = new PaymentDetails { PaymentId = "id", RedirectUrl = "url" },
-            }
-        );
-        (PaymentInformation paymentInformationResult, bool alreadyPaid) = await paymentService.StartPayment(
-            _instance,
-            paymentConfiguration,
-            Language
-        );
-
-        // Assert
-        paymentInformationResult.PaymentDetails.Should().NotBeNull();
-        alreadyPaid.Should().BeTrue();
-        _fixture.VerifyMocks();
-    }
-
-    [Fact]
-    public async Task StartPayment_ThrowsException_WhenOrderDetailsCannotBeRetrieved()
-    {
-        ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
-
-        _fixture
-            .Mock<IOrderDetailsCalculator>()
-            .Setup(odc => odc.CalculateOrderDetails(_instance, Language, It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new Exception("Could not calculate order details"));
-
-        _fixture.Mock<IPaymentProcessor>().Setup(x => x.PaymentProcessorId).Returns("paymentProcessorId");
-
-        // Act & Assert
-        await using var sp = _fixture.BuildServiceProvider();
-        var paymentService = sp.GetRequiredService<IPaymentService>();
-        var exception = await Assert.ThrowsAsync<Exception>(() =>
-            paymentService.StartPayment(_instance, paymentConfiguration, Language)
-        );
-        Assert.Equal("Could not calculate order details", exception.Message);
-        _fixture.VerifyMocks();
-    }
-
-    [Fact]
-    public async Task StartPayment_ThrowsException_WhenPaymentCannotBeStarted()
-    {
-        OrderDetails orderDetails = CreateOrderDetails();
-        ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
-
-        _fixture
-            .Mock<IOrderDetailsCalculator>()
-            .Setup(pp => pp.CalculateOrderDetails(_instance, Language, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(orderDetails)
-            .Verifiable(Times.Once);
-
-        _fixture
-            .Mock<IPaymentProcessor>()
-            .Setup(x => x.PaymentProcessorId)
-            .Returns(orderDetails.PaymentProcessorId)
-            .Verifiable(Times.AtLeastOnce);
-        _fixture
-            .Mock<IPaymentProcessor>()
-            .Setup(pp => pp.StartPayment(_instance, orderDetails, Language, It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new Exception("ddasdfg"))
-            .Verifiable(Times.Once);
-
-        // Act & Assert
-        await using var sp = _fixture.BuildServiceProvider();
-        var paymentService = sp.GetRequiredService<IPaymentService>();
-        var exception = await Assert.ThrowsAsync<Exception>(() =>
-            paymentService.StartPayment(_instance, paymentConfiguration, Language)
-        );
-        Assert.Equal("ddasdfg", exception.Message);
-        _fixture.VerifyMocks();
-    }
-
-    [Fact]
-    public async Task StartPayment_ThrowsException_WhenPaymentInformationCannotBeStored()
-    {
-        OrderDetails orderDetails = CreateOrderDetails();
-        ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
-        PaymentInformation paymentInformation = CreatePaymentInformation();
-        PaymentDetails paymentDetails =
-            paymentInformation.PaymentDetails ?? throw new NullReferenceException("PaymentDetails should not be null");
-
-        _fixture
-            .Mock<IOrderDetailsCalculator>()
-            .Setup(p => p.CalculateOrderDetails(_instance, Language, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(orderDetails);
-        _fixture
-            .Mock<IDataService>()
-            .Setup(ds =>
-                ds.InsertJsonObject(
-                    It.IsAny<InstanceIdentifier>(),
-                    It.IsAny<string>(),
-                    It.IsAny<object>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ThrowsAsync(new Exception("Could not insert json object"));
-        SetupPaymentProcessor(orderDetails);
-        _fixture
-            .Mock<IPaymentProcessor>()
-            .Setup(p => p.StartPayment(_instance, orderDetails, Language))
-            .ReturnsAsync(paymentDetails)
-            .Verifiable(Times.Once);
-
-        // Act & Assert
-        await using var sp = _fixture.BuildServiceProvider();
-        var paymentService = sp.GetRequiredService<IPaymentService>();
-        var exception = await Assert.ThrowsAsync<Exception>(() =>
-            paymentService.StartPayment(_instance, paymentConfiguration, Language)
-        );
-        Assert.Equal("Could not insert json object", exception.Message);
-        _fixture.VerifyMocks();
-    }
-
-    [Fact]
-    public async Task CheckAndStorePaymentInformation_ReturnsNull_WhenNoPaymentInformationFound()
-    {
-        OrderDetails orderDetails = CreateOrderDetails();
-        ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
-
-        SetupPaymentProcessor(orderDetails);
-
-        // Act
-        await using var sp = _fixture.BuildServiceProvider();
-        var paymentService = sp.GetRequiredService<IPaymentService>();
-        PaymentInformation? result = await paymentService.CheckAndStorePaymentStatus(
-            await ReadInstance(sp),
-            paymentConfiguration,
-            Language
-        );
-
-        // Assert
-        result.Should().NotBeNull();
-        _instance.Process.CurrentTask.ElementId.Should().Be(result!.TaskId);
-        orderDetails.Should().BeEquivalentTo(result.OrderDetails);
-        result.PaymentDetails.Should().BeNull();
-        Assert.Contains(
-            sp.Logs,
-            log => log.Body != null && log.Body.Contains("No payment information stored yet for instance")
-        );
-        _fixture.VerifyMocks();
-    }
-
-    [Fact]
-    public async Task CheckAndStorePaymentInformation_ThrowsException_WhenUnableToCheckPaymentStatus()
-    {
-        OrderDetails orderDetails = CreateOrderDetails();
-        ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
-        PaymentInformation paymentInformation = CreatePaymentInformation();
-
-        SetupPaymentProcessor(orderDetails);
-
-        _fixture
-            .Mock<IPaymentProcessor>()
-            .Setup(x =>
-                x.GetPaymentStatus(
-                    It.IsAny<Instance>(),
-                    It.IsAny<string>(),
-                    It.IsAny<decimal>(),
-                    Language,
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ThrowsAsync(new PaymentException("Some exception"));
-
-        // Act & Assert
-        await using var sp = _fixture.BuildServiceProvider();
-        var dataService = sp.GetRequiredService<IDataService>();
-        await dataService.InsertJsonObject(new InstanceIdentifier(_instance), PaymentDataTypeId, paymentInformation);
-        var paymentService = sp.GetRequiredService<IPaymentService>();
-        InstanceWithStorageMetadata fetchedInstance = await ReadInstance(sp);
-        var exception = await Assert.ThrowsAsync<PaymentException>(() =>
-            paymentService.CheckAndStorePaymentStatus(fetchedInstance, paymentConfiguration, Language)
-        );
-        Assert.Equal("Some exception", exception.Message);
-        _fixture.VerifyMocks();
-    }
-
-    [Fact]
-    public async Task CheckAndStorePaymentInformation_ReturnsPaymentInformation_WhenPaymentStatusCheckedSuccessfully()
-    {
-        OrderDetails orderDetails = CreateOrderDetails();
-        ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
-        PaymentInformation paymentInformation = CreatePaymentInformation();
-
-        SetupPaymentProcessor(orderDetails);
-
-        _fixture
-            .Mock<IPaymentProcessor>()
-            .Setup(pp =>
-                pp.GetPaymentStatus(
-                    It.IsAny<Instance>(),
-                    It.IsAny<string>(),
-                    It.IsAny<decimal>(),
-                    Language,
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(
-                (PaymentStatus.Paid, new PaymentDetails { PaymentId = "paymentId", RedirectUrl = "redirect url" })
-            );
-
-        // Act
-        await using var sp = _fixture.BuildServiceProvider();
-
-        var dataService = sp.GetRequiredService<IDataService>();
-        await dataService.InsertJsonObject(new InstanceIdentifier(_instance), PaymentDataTypeId, paymentInformation);
-
-        var paymentService = sp.GetRequiredService<IPaymentService>();
-        PaymentInformation? result = await paymentService.CheckAndStorePaymentStatus(
-            await ReadInstance(sp),
-            paymentConfiguration,
-            Language
-        );
-
-        // Assert
-        result.Should().NotBeNull();
-        result!.PaymentDetails.Should().NotBeNull();
-        result.Status.Should().Be(PaymentStatus.Paid);
-        Assert.Equal(PaymentStatus.Paid, await ReadStoredStatus(sp));
-        _fixture.VerifyMocks();
-    }
-
-    [Fact]
-    public async Task CheckAndStorePaymentStatus_WritesNothing_WhenTheStatusIsUnchanged()
-    {
-        SetupPaymentProcessor(CreateOrderDetails());
-        SetupProcessorStatus(() =>
-            (PaymentStatus.Authorized, new PaymentDetails { PaymentId = "paymentId", RedirectUrl = "Redirect URL" })
-        );
-
-        await using var sp = _fixture.BuildServiceProvider();
-        await StorePaymentInformation(sp, PaymentStatus.Authorized);
-        InstanceWithStorageMetadata fetchedInstance = await ReadInstance(sp);
-
-        PaymentInformation result = await sp.GetRequiredService<IPaymentService>()
-            .CheckAndStorePaymentStatus(fetchedInstance, CreatePaymentConfiguration(), Language);
-
-        Assert.Equal(PaymentStatus.Authorized, result.Status);
-        Assert.Equal(fetchedInstance.Metadata, (await ReadInstance(sp)).Metadata);
-        _fixture.VerifyMocks();
-    }
-
-    [Theory]
-    [InlineData(PaymentStatus.Created, true)]
-    [InlineData(PaymentStatus.Authorized, true)]
-    [InlineData(PaymentStatus.Cancelled, false)]
-    [InlineData(PaymentStatus.Failed, false)]
-    [InlineData(PaymentStatus.Skipped, false)]
-    public async Task StartPayment_ReplacesPaymentThatCannotComplete_TerminatingOnlyWhenItCouldStillComplete(
-        PaymentStatus existingStatus,
-        bool terminates
-    )
-    {
-        // Arrange
-        ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
-        OrderDetails orderDetails = CreateOrderDetails();
-        PaymentInformation paymentInformation = CreatePaymentInformation();
-        PaymentDetails paymentDetails =
-            paymentInformation.PaymentDetails ?? throw new NullReferenceException("PaymentDetails should not be null");
-
-        paymentInformation.Status = existingStatus;
-
-        SetupPaymentProcessor(orderDetails);
-        _fixture
-            .Mock<IPaymentProcessor>()
-            .Setup(p => p.StartPayment(_instance, orderDetails, Language))
-            .ReturnsAsync(paymentDetails)
-            .Verifiable(Times.Once);
-
-        DataElement existingDataElement = SeedPaymentInformation(paymentInformation);
-
-        _fixture
-            .Mock<IDataService>()
-            .Setup(ds =>
-                ds.DeleteById(
-                    It.IsAny<InstanceIdentifier>(),
-                    Guid.Parse(existingDataElement.Id),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(true)
-            .Verifiable(Times.Once);
-
-        _fixture
-            .Mock<IDataService>()
-            .Setup(x =>
-                x.InsertJsonObject(
-                    It.IsAny<InstanceIdentifier>(),
-                    paymentConfiguration.PaymentDataType!,
-                    It.IsAny<object>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(new DataElement())
-            .Verifiable(Times.Once);
-
-        _fixture
-            .Mock<IPaymentProcessor>()
-            .Setup(pp =>
-                pp.TerminatePayment(It.IsAny<Instance>(), It.IsAny<PaymentInformation>(), It.IsAny<CancellationToken>())
-            )
+            .Mock<IWorkflowEngineService>()
+            .Setup(s => s.IsMailboxOpen(_mailboxId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
-
-        // Act
-        await using var sp = _fixture.BuildServiceProvider();
-        var paymentService = sp.GetRequiredService<IPaymentService>();
-        var (paymentInfo, alreadyPaid) = await paymentService.StartPayment(_instance, paymentConfiguration, Language);
-        Assert.False(alreadyPaid);
-        Assert.Equal(PaymentStatus.Created, paymentInfo.Status);
-        Assert.Equal(orderDetails, paymentInfo.OrderDetails);
-        Assert.Equal(Language, paymentInfo.Language);
-        _fixture
-            .Mock<IPaymentProcessor>()
-            .Verify(
-                pp =>
-                    pp.TerminatePayment(
-                        It.IsAny<Instance>(),
-                        It.IsAny<PaymentInformation>(),
-                        It.IsAny<CancellationToken>()
-                    ),
-                terminates ? Times.Once : Times.Never
-            );
-        _fixture.VerifyMocks();
+        _attemptProcessor.As<IPaymentAttemptProcessor>();
+        _attemptProcessor.Setup(p => p.PaymentProcessorId).Returns("paymentProcessorId");
     }
 
-    [Fact]
-    public async Task StartPayment_Throws_WhenProcessorRefusesToTerminateAPaymentThatHasNotGoneThrough()
-    {
-        // Arrange
-        OrderDetails orderDetails = CreateOrderDetails();
-        ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
-        PaymentInformation paymentInformation = CreatePaymentInformation();
-        PaymentDetails paymentDetails =
-            paymentInformation.PaymentDetails ?? throw new NullReferenceException("PaymentDetails should not be null");
-
-        SetupPaymentProcessor(orderDetails);
-
-        _fixture
-            .Mock<IDataService>()
-            .Setup(ds =>
-                ds.InsertJsonObject(
-                    It.IsAny<InstanceIdentifier>(),
-                    It.IsAny<string>(),
-                    It.IsAny<object>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(new DataElement());
-        SeedPaymentInformation(paymentInformation);
-        _fixture
-            .Mock<IPaymentProcessor>()
-            .Setup(pp =>
-                pp.TerminatePayment(It.IsAny<Instance>(), It.IsAny<PaymentInformation>(), It.IsAny<CancellationToken>())
-            )
-            .ReturnsAsync(false)
-            .Verifiable(Times.Once);
-        _fixture
-            .Mock<IPaymentProcessor>()
-            .Setup(pp =>
-                pp.GetPaymentStatus(
-                    _instance,
-                    paymentDetails.PaymentId,
-                    paymentInformation.OrderDetails.TotalPriceIncVat,
-                    Language,
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync((PaymentStatus.Created, paymentDetails))
-            .Verifiable(Times.Once);
-
-        // Act
-        await using var sp = _fixture.BuildServiceProvider();
-        var paymentService = sp.GetRequiredService<IPaymentService>();
-        var exception = await Assert.ThrowsAsync<PaymentException>(async () =>
-            await paymentService.StartPayment(_instance, paymentConfiguration, Language)
-        );
-
-        // Act & Assert
-        Assert.Equal(
-            $"Unable to cancel existing {orderDetails.PaymentProcessorId} payment with ID: {paymentDetails.PaymentId}.",
-            exception.Message
-        );
-        _fixture
-            .Mock<IDataService>()
-            .Verify(
-                ds =>
-                    ds.DeleteById(
-                        It.IsAny<InstanceIdentifier>(),
-                        It.IsAny<Guid>(),
-                        It.IsAny<StorageAuthenticationMethod?>(),
-                        It.IsAny<CancellationToken>()
-                    ),
-                Times.Never
-            );
-        _fixture.VerifyMocks();
-    }
-
+    // The verdict table. Every row reads the processor's status first; a call to the processor follows only where the
+    // table names one, and a refused call reads again. "retryable" stores nothing: the step is tried again.
     [Theory]
-    [InlineData(PaymentStatus.Paid)]
-    [InlineData(PaymentStatus.Authorized)]
-    public async Task StartPayment_StoresStatusAndReturnsAlreadyPaid_WhenProcessorRefusesToTerminateAPaymentThatHasGoneThrough(
-        PaymentStatus processorStatus
+    // A check, or a Nets event other than a failed charge.
+    [InlineData("check", new[] { PaymentStatus.Paid }, null, null, PaymentStatus.Paid, "confirm")]
+    [InlineData("netsEvent", new[] { PaymentStatus.Paid }, null, null, PaymentStatus.Paid, "confirm")]
+    [InlineData("netsEvent", new[] { PaymentStatus.Authorized }, null, null, PaymentStatus.Authorized, "await")]
+    [InlineData("check", new[] { PaymentStatus.Created }, null, null, PaymentStatus.Created, "await")]
+    [InlineData("check", new[] { PaymentStatus.Cancelled }, null, null, PaymentStatus.Cancelled, "release")]
+    // A failed charge.
+    [InlineData("chargeFailed", new[] { PaymentStatus.Authorized }, null, true, PaymentStatus.Failed, "release")]
+    [InlineData(
+        "chargeFailed",
+        new[] { PaymentStatus.Authorized, PaymentStatus.Paid },
+        null,
+        false,
+        PaymentStatus.Paid,
+        "confirm"
+    )]
+    [InlineData(
+        "chargeFailed",
+        new[] { PaymentStatus.Authorized, PaymentStatus.Cancelled },
+        null,
+        false,
+        PaymentStatus.Failed,
+        "release"
+    )]
+    [InlineData(
+        "chargeFailed",
+        new[] { PaymentStatus.Authorized, PaymentStatus.Authorized },
+        null,
+        false,
+        null,
+        "retryable"
+    )]
+    [InlineData("chargeFailed", new[] { PaymentStatus.Created }, null, null, PaymentStatus.Created, "await")]
+    [InlineData("chargeFailed", new[] { PaymentStatus.Cancelled }, null, null, PaymentStatus.Failed, "release")]
+    // A cancel.
+    [InlineData("cancel", new[] { PaymentStatus.Created }, true, null, PaymentStatus.Cancelled, "reject")]
+    [InlineData(
+        "cancel",
+        new[] { PaymentStatus.Created, PaymentStatus.Paid },
+        false,
+        null,
+        PaymentStatus.Paid,
+        "confirm"
+    )]
+    [InlineData(
+        "cancel",
+        new[] { PaymentStatus.Created, PaymentStatus.Authorized },
+        false,
+        null,
+        PaymentStatus.Authorized,
+        "await"
+    )]
+    [InlineData(
+        "cancel",
+        new[] { PaymentStatus.Created, PaymentStatus.Cancelled },
+        false,
+        null,
+        PaymentStatus.Cancelled,
+        "reject"
+    )]
+    [InlineData("cancel", new[] { PaymentStatus.Created, PaymentStatus.Created }, false, null, null, "retryable")]
+    [InlineData("cancel", new[] { PaymentStatus.Paid }, null, null, PaymentStatus.Paid, "confirm")]
+    [InlineData("cancel", new[] { PaymentStatus.Authorized }, null, null, PaymentStatus.Authorized, "await")]
+    [InlineData("cancel", new[] { PaymentStatus.Cancelled }, null, null, PaymentStatus.Cancelled, "reject")]
+    // The deadline.
+    [InlineData("deadline", new[] { PaymentStatus.Paid }, null, null, PaymentStatus.Paid, "confirm")]
+    [InlineData("deadline", new[] { PaymentStatus.Authorized }, null, true, PaymentStatus.Cancelled, "release")]
+    [InlineData(
+        "deadline",
+        new[] { PaymentStatus.Authorized, PaymentStatus.Authorized },
+        null,
+        false,
+        null,
+        "retryable"
+    )]
+    [InlineData("deadline", new[] { PaymentStatus.Created }, true, null, PaymentStatus.Cancelled, "release")]
+    [InlineData(
+        "deadline",
+        new[] { PaymentStatus.Created, PaymentStatus.Paid },
+        false,
+        null,
+        PaymentStatus.Paid,
+        "confirm"
+    )]
+    [InlineData(
+        "deadline",
+        new[] { PaymentStatus.Created, PaymentStatus.Authorized },
+        false,
+        true,
+        PaymentStatus.Cancelled,
+        "release"
+    )]
+    [InlineData("deadline", new[] { PaymentStatus.Created, PaymentStatus.Created }, false, null, null, "retryable")]
+    [InlineData("deadline", new[] { PaymentStatus.Cancelled }, null, null, PaymentStatus.Cancelled, "release")]
+    // A failed payment, which only a processor an app implements reports.
+    [InlineData("check", new[] { PaymentStatus.Failed }, null, null, PaymentStatus.Failed, "release")]
+    [InlineData("cancel", new[] { PaymentStatus.Failed }, null, null, PaymentStatus.Failed, "reject")]
+    // A status no started payment can have.
+    [InlineData("check", new[] { PaymentStatus.Skipped }, null, null, null, "permanent")]
+    public async Task AttemptVerdict_FollowsTheVerdictTable(
+        string trigger,
+        PaymentStatus[] reports,
+        bool? terminateAccepted,
+        bool? cancelReservationAccepted,
+        PaymentStatus? stored,
+        string ending
     )
     {
-        // Arrange
-        OrderDetails orderDetails = CreateOrderDetails();
-        ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
-        PaymentDetails chargedPaymentDetails = new() { PaymentId = "paymentId", RedirectUrl = "Charged redirect URL" };
+        Mock<IInstanceDataMutator> dataMutator = CreateDataMutator(CreatePaymentInformation(PaymentStatus.Created));
+        UseProcessor(_attemptProcessor, reports);
+        SetupTerminate(_attemptProcessor, terminateAccepted);
+        SetupCancelReservation(cancelReservationAccepted);
+        AllowReject(true);
 
-        _fixture.Mock<IOrderDetailsCalculator>();
-        SetupRefusedTermination(() => Task.FromResult((processorStatus, chargedPaymentDetails)));
+        ServiceTaskExchangeResult result = await Settle(dataMutator, trigger);
 
-        // Act
-        await using var sp = _fixture.BuildServiceProvider();
-        await StorePaymentInformation(sp, PaymentStatus.Created);
-        var paymentService = sp.GetRequiredService<IPaymentService>();
-        (PaymentInformation result, bool alreadyPaid) = await paymentService.StartPayment(
-            _instance,
-            paymentConfiguration,
-            Language
-        );
-
-        // Assert
-        Assert.True(alreadyPaid);
-        Assert.Equal(processorStatus, result.Status);
-        Assert.Same(chargedPaymentDetails, result.PaymentDetails);
-        Assert.Equal(processorStatus, await ReadStoredStatus(sp));
-        _fixture
-            .Mock<IPaymentProcessor>()
-            .Verify(
-                pp =>
-                    pp.StartPayment(
-                        It.IsAny<Instance>(),
-                        It.IsAny<OrderDetails>(),
-                        It.IsAny<string?>(),
-                        It.IsAny<CancellationToken>()
-                    ),
-                Times.Never
-            );
-        _fixture.VerifyMocks();
-    }
-
-    [Fact]
-    public async Task StartPayment_FailsAndKeepsTheNewerRecord_WhenTheWebhookStoredOneWhileTheProcessorWasAsked()
-    {
-        // The processor answers before the charge, and the webhook stores the charged payment before this saves.
-        WrappedServiceProvider? provider = null;
-        DataElement? paymentDataElement = null;
-        _fixture.Mock<IOrderDetailsCalculator>();
-        SetupRefusedTermination(async () =>
-        {
-            if (provider is not null && paymentDataElement is not null)
-            {
-                await provider
-                    .GetRequiredService<IDataService>()
-                    .UpdateJsonObject(
-                        new InstanceIdentifier(_instance),
-                        PaymentDataTypeId,
-                        Guid.Parse(paymentDataElement.Id),
-                        CreatePaymentInformation(PaymentStatus.Paid)
-                    );
-            }
-            return (PaymentStatus.Authorized, new PaymentDetails { PaymentId = "paymentId", RedirectUrl = "" });
-        });
-
-        await using var sp = _fixture.BuildServiceProvider();
-        provider = sp;
-        paymentDataElement = await StorePaymentInformation(sp, PaymentStatus.Created);
-        // A copy, as the request read it: the fake Storage updates its own instance object on every write.
-        Instance requestInstance = (await ReadInstance(sp)).Instance;
-
-        await Assert.ThrowsAnyAsync<InstanceStateConflictException>(() =>
-            sp.GetRequiredService<IPaymentService>()
-                .StartPayment(requestInstance, CreatePaymentConfiguration(), Language)
-        );
-        Assert.Equal(PaymentStatus.Paid, await ReadStoredStatus(sp));
-        _fixture.VerifyMocks();
-    }
-
-    private void SetupRefusedTermination(Func<Task<(PaymentStatus, PaymentDetails)>> status)
-    {
-        _fixture.Mock<IPaymentProcessor>().Setup(pp => pp.PaymentProcessorId).Returns("paymentProcessorId");
-        _fixture
-            .Mock<IPaymentProcessor>()
-            .Setup(pp =>
-                pp.TerminatePayment(
-                    It.Is<Instance>(instance => instance.Id == _instance.Id),
-                    It.IsAny<PaymentInformation>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(false)
-            .Verifiable(Times.Once);
-        _fixture
-            .Mock<IPaymentProcessor>()
-            .Setup(pp =>
-                pp.GetPaymentStatus(
-                    It.Is<Instance>(instance => instance.Id == _instance.Id),
-                    "paymentId",
-                    It.IsAny<decimal>(),
-                    Language,
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .Returns(status)
-            .Verifiable(Times.Once);
-    }
-
-    [Fact]
-    public async Task StartPayment_StartsNewPayment_WhenProcessorRefusesToTerminateAnAlreadyTerminatedPayment()
-    {
-        // Arrange
-        OrderDetails orderDetails = CreateOrderDetails();
-        ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
-        PaymentInformation paymentInformation = CreatePaymentInformation();
-        PaymentDetails paymentDetails =
-            paymentInformation.PaymentDetails ?? throw new NullReferenceException("PaymentDetails should not be null");
-        Guid dataElementId = Guid.Parse(SeedPaymentInformation(paymentInformation).Id);
-
-        SetupPaymentProcessor(orderDetails);
-        _fixture
-            .Mock<IPaymentProcessor>()
-            .Setup(pp => pp.TerminatePayment(_instance, It.IsAny<PaymentInformation>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false)
-            .Verifiable(Times.Once);
-        _fixture
-            .Mock<IPaymentProcessor>()
-            .Setup(pp =>
-                pp.GetPaymentStatus(
-                    _instance,
-                    paymentDetails.PaymentId,
-                    paymentInformation.OrderDetails.TotalPriceIncVat,
-                    Language,
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync((PaymentStatus.Cancelled, paymentDetails))
-            .Verifiable(Times.Once);
-        _fixture
-            .Mock<IDataService>()
-            .Setup(ds =>
-                ds.DeleteById(
-                    It.IsAny<InstanceIdentifier>(),
-                    dataElementId,
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(true)
-            .Verifiable(Times.Once);
-        _fixture
-            .Mock<IPaymentProcessor>()
-            .Setup(p => p.StartPayment(_instance, orderDetails, Language, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new PaymentDetails { PaymentId = "newPaymentId", RedirectUrl = "New redirect URL" })
-            .Verifiable(Times.Once);
-        _fixture
-            .Mock<IDataService>()
-            .Setup(ds =>
-                ds.InsertJsonObject(
-                    It.IsAny<InstanceIdentifier>(),
-                    PaymentDataTypeId,
-                    It.IsAny<object>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(new DataElement())
-            .Verifiable(Times.Once);
-
-        // Act
-        await using var sp = _fixture.BuildServiceProvider();
-        var paymentService = sp.GetRequiredService<IPaymentService>();
-        (PaymentInformation result, bool alreadyPaid) = await paymentService.StartPayment(
-            _instance,
-            paymentConfiguration,
-            Language
-        );
-
-        // Assert
-        Assert.False(alreadyPaid);
-        Assert.Equal(PaymentStatus.Created, result.Status);
-        Assert.Equal("newPaymentId", result.PaymentDetails?.PaymentId);
-        _fixture.VerifyMocks();
-    }
-
-    [Fact]
-    public async Task StartPayment_ShouldThrowPaymentException_WhenOrderDetailsCalculatorIsNull()
-    {
-        // Arrange
-        ValidAltinnPaymentConfiguration paymentConfiguration = new() { PaymentDataType = "paymentDataType" };
-
-        // Act & Assert
-        await using var sp = _fixture.BuildServiceProvider();
-        var paymentService = sp.GetRequiredService<IPaymentService>();
-        var exception = await Assert.ThrowsAsync<PaymentException>(async () =>
-            await paymentService.StartPayment(_instance, paymentConfiguration, Language)
-        );
-
-        Assert.Equal(
-            "You must add an implementation of the IOrderDetailsCalculator interface to the DI container. See payment related documentation.",
-            exception.Message
-        );
-    }
-
-    [Fact]
-    public async Task CheckPaymentStatus_DoesNotPersistUpdatedStatus()
-    {
-        OrderDetails orderDetails = CreateOrderDetails();
-        ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
-        PaymentInformation paymentInformation = CreatePaymentInformation();
-
-        SetupPaymentProcessor(orderDetails);
-
-        _fixture
-            .Mock<IPaymentProcessor>()
-            .Setup(pp =>
-                pp.GetPaymentStatus(
+        Assert.Equal(ending, Describe(result));
+        Assert.Equal(stored, GetStoredRecord(dataMutator)?.Status);
+        _attemptProcessor.Verify(
+            p =>
+                p.GetPaymentStatus(
                     It.IsAny<Instance>(),
                     It.IsAny<string>(),
                     It.IsAny<decimal>(),
-                    Language,
+                    It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(
-                (PaymentStatus.Paid, new PaymentDetails { PaymentId = "paymentId", RedirectUrl = "redirect url" })
-            );
+                ),
+            Times.Exactly(reports.Length)
+        );
+        VerifyCalls(terminateAccepted, cancelReservationAccepted);
+    }
 
-        await using var sp = _fixture.BuildServiceProvider();
-
-        var dataService = sp.GetRequiredService<IDataService>();
-        await dataService.InsertJsonObject(new InstanceIdentifier(_instance), PaymentDataTypeId, paymentInformation);
-
-        var paymentService = sp.GetRequiredService<IPaymentService>();
-        PaymentInformation? result = await paymentService.CheckPaymentStatus(
-            _instance,
-            paymentConfiguration,
-            taskId: "Task_other",
-            Language
+    // Releasing or moving back on a payment the processor reports as open needs the call the verdict names, accepted.
+    [Theory]
+    [InlineData("Release", null, null, PaymentStatus.Created, false)]
+    [InlineData("Release", "Terminate", null, PaymentStatus.Created, false)]
+    [InlineData("GoBack", "Terminate", null, PaymentStatus.Created, false)]
+    [InlineData("Release", "CancelReservation", "Terminate", PaymentStatus.Authorized, false)]
+    [InlineData("Release", "Terminate", "Terminate", PaymentStatus.Created, true)]
+    [InlineData("GoBack", "Terminate", "Terminate", PaymentStatus.Created, true)]
+    [InlineData("Release", null, null, PaymentStatus.Cancelled, true)]
+    [InlineData("AwaitNextMessage", null, null, PaymentStatus.Created, true)]
+    public void AttemptVerdict_EndsOnAnOpenPayment_OnlyAfterTheCallItNamesWasAccepted(
+        string ending,
+        string? namedCall,
+        string? acceptedCall,
+        PaymentStatus reported,
+        bool mayEnd
+    )
+    {
+        var verdict = new PaymentAttemptVerdict(
+            PaymentStatus.Cancelled,
+            Enum.Parse<PaymentAttemptEnding>(ending),
+            namedCall is null ? null : Enum.Parse<PaymentProcessorCall>(namedCall)
         );
 
-        result.Should().NotBeNull();
-        result!.Status.Should().Be(PaymentStatus.Paid);
-
-        // Status on disk should be unchanged.
-        (_, PaymentInformation? stored) = await dataService.GetByType<PaymentInformation>(_instance, PaymentDataTypeId);
-        stored.Should().NotBeNull();
-        stored!.Status.Should().NotBe(PaymentStatus.Paid);
-
-        _fixture.VerifyMocks();
-    }
-
-    [Fact]
-    public async Task CheckAndStorePaymentStatus_ShouldThrowPaymentException_WhenOrderDetailsCalculatorIsNull()
-    {
-        var paymentConfiguration = new AltinnPaymentConfiguration
-        {
-            PaymentDataType = "paymentDataType",
-            PaymentReceiptPdfDataType = "paymentReceiptPdfDataType",
-        };
-
-        // Act
-        await using var sp = _fixture.BuildServiceProvider();
-        var paymentService = sp.GetRequiredService<IPaymentService>();
-        InstanceWithStorageMetadata fetchedInstance = await ReadInstance(sp);
-        var exception = await Assert.ThrowsAsync<PaymentException>(async () =>
-            await paymentService.CheckAndStorePaymentStatus(
-                fetchedInstance,
-                paymentConfiguration.Validate(),
-                LanguageConst.En
-            )
+        Exception? exception = Record.Exception(() =>
+            verdict.EnsureMayEnd(reported, acceptedCall is null ? null : Enum.Parse<PaymentProcessorCall>(acceptedCall))
         );
 
-        // Assert
-        Assert.Equal(
-            "You must add an implementation of the IOrderDetailsCalculator interface to the DI container. See payment related documentation.",
-            exception.Message
-        );
-        _fixture.VerifyMocks();
+        Assert.Equal(mayEnd, exception is null);
     }
 
     [Fact]
-    public async Task IsPaymentCompleted_ShouldThrowPaymentException_WhenPaymentInformationNotFound()
+    public async Task Cancel_WhenTheTaskHasNoWayBack_TerminatesAndReleases()
     {
-        // Arrange
-        ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
+        Mock<IInstanceDataMutator> dataMutator = CreateDataMutator(CreatePaymentInformation(PaymentStatus.Created));
+        UseProcessor(_attemptProcessor, PaymentStatus.Created);
+        SetupTerminate(_attemptProcessor, true);
+        AllowReject(false);
 
-        // Act & Assert
-        await using var sp = _fixture.BuildServiceProvider();
-        var paymentService = sp.GetRequiredService<IPaymentService>();
-        var exception = await Assert.ThrowsAsync<PaymentException>(async () =>
-            await paymentService.GetPaymentStatus(_instance, paymentConfiguration)
-        );
-        Assert.Equal("Payment information not found.", exception.Message);
-        _fixture.VerifyMocks();
+        ServiceTaskExchangeResult result = await Settle(dataMutator, "cancel");
+
+        Assert.Equal("release", Describe(result));
+        Assert.Equal(PaymentStatus.Cancelled, GetStoredRecord(dataMutator)?.Status);
     }
 
-    [Fact]
-    public async Task GetPaymentStatus_ShouldReturn_CorrectStatus()
+    // Every step of an attempt that ends in a way the relay acts on stores which step it was and how it ended, so the
+    // record changes even when the processor reports nothing new.
+    // The stored ending is the one the run returns: a cancel on a task with no way back releases.
+    [Theory]
+    [InlineData("check", PaymentStatus.Created, null, true, "AwaitNextMessage")]
+    [InlineData("check", PaymentStatus.Paid, null, true, "MoveOn")]
+    [InlineData("cancel", PaymentStatus.Created, true, true, "GoBack")]
+    [InlineData("cancel", PaymentStatus.Created, true, false, "Release")]
+    [InlineData("deadline", PaymentStatus.Created, true, true, "Release")]
+    public async Task AttemptStep_StoresItsStepIdAndEnding(
+        string trigger,
+        PaymentStatus reported,
+        bool? terminateAccepted,
+        bool taskHasWayBack,
+        string ending
+    )
     {
-        // Arrange
-        ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
-        PaymentInformation paymentInformation = CreatePaymentInformation();
-        paymentInformation.Status = PaymentStatus.Paid;
+        PaymentInformation payment = CreatePaymentInformation(PaymentStatus.Created);
+        Mock<IInstanceDataMutator> dataMutator = CreateDataMutator(payment);
+        UseProcessor(_attemptProcessor, reported, payment.PaymentDetails);
+        SetupTerminate(_attemptProcessor, terminateAccepted);
+        AllowReject(taskHasWayBack);
 
-        _fixture
-            .Mock<IDataService>()
-            .Setup(ds =>
-                ds.GetByType<PaymentInformation>(
-                    _instance,
-                    PaymentDataTypeId,
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync((Guid.NewGuid(), paymentInformation));
+        await Settle(dataMutator, trigger);
 
-        // Act
-        await using var sp = _fixture.BuildServiceProvider();
-        var paymentService = sp.GetRequiredService<IPaymentService>();
-        PaymentStatus result = await paymentService.GetPaymentStatus(_instance, paymentConfiguration);
-
-        // Assert
-        result.Should().Be(PaymentStatus.Paid);
-        _fixture.VerifyMocks();
+        Assert.Equal((_stepId, ending), GetStoredStep(dataMutator));
     }
 
-    [Fact]
-    public async Task StartPayment_StoresPaymentInformation_WhenRequestIsCancelledAfterPaymentWasCreated()
+    // A step that runs again after its save committed cannot read the record against its state, and reads it as Storage
+    // has it now. When the record names the step, it ends as that run did, without asking the processor or storing.
+    [Theory]
+    [InlineData("check", "AwaitNextMessage", "await")]
+    [InlineData("netsEvent", "MoveOn", "confirm")]
+    [InlineData("cancel", "GoBack", "reject")]
+    [InlineData("deadline", "Release", "release")]
+    public async Task AttemptStep_RunAgainAfterItsSaveCommitted_EndsAsTheStoredRunDid(
+        string trigger,
+        string storedEnding,
+        string ending
+    )
     {
-        // A payment that exists at the processor must always get its reference stored, or nothing could ever
-        // terminate or verify it. The data service honours the token it is given, as the real client does.
-        OrderDetails orderDetails = CreateOrderDetails();
-        ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
-        PaymentDetails paymentDetails =
-            CreatePaymentInformation().PaymentDetails
-            ?? throw new NullReferenceException("PaymentDetails should not be null");
-        using var cts = new CancellationTokenSource();
+        Mock<IInstanceDataMutator> dataMutator = CreateDataMutator(CreatePaymentInformation(PaymentStatus.Created));
+        StoreAfterTheStateWasCaptured(dataMutator, _stepId, storedEnding);
+        UseProcessor(_attemptProcessor);
+        AllowReject(true);
 
-        SetupPaymentProcessor(orderDetails);
-        _fixture
-            .Mock<IPaymentProcessor>()
-            .Setup(p => p.StartPayment(_instance, orderDetails, Language, cts.Token))
-            .ReturnsAsync(() =>
-            {
-                cts.Cancel();
-                return paymentDetails;
-            })
-            .Verifiable(Times.Once);
-        _fixture
-            .Mock<IDataService>()
-            .Setup(ds =>
-                ds.InsertJsonObject(
-                    It.IsAny<InstanceIdentifier>(),
-                    PaymentDataTypeId,
-                    It.IsAny<PaymentInformation>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .Returns(
-                (
-                    InstanceIdentifier _,
-                    string _,
-                    object _,
-                    StorageAuthenticationMethod? _,
-                    CancellationToken cancellationToken
-                ) =>
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    return Task.FromResult(new DataElement());
-                }
-            )
-            .Verifiable(Times.Once);
+        ServiceTaskExchangeResult result = await Settle(dataMutator, trigger);
 
-        await using var sp = _fixture.BuildServiceProvider();
-        var paymentService = sp.GetRequiredService<IPaymentService>();
-        (PaymentInformation paymentInformation, bool alreadyPaid) = await paymentService.StartPayment(
-            _instance,
-            paymentConfiguration,
-            Language,
-            cts.Token
-        );
-
-        paymentInformation.Status.Should().Be(PaymentStatus.Created);
-        paymentInformation.PaymentDetails.Should().BeSameAs(paymentDetails);
-        alreadyPaid.Should().BeFalse();
-        _fixture.VerifyMocks();
-    }
-
-    [Fact]
-    public async Task StartPayment_DeletesStalePaymentInformation_WhenRequestIsCancelledAfterPaymentWasTerminated()
-    {
-        // Once the processor has terminated the earlier payment, its record must be deleted even if the request
-        // ends right then; left behind, the next attempt would try to terminate the same payment again. The
-        // cancellable work that follows the deletion still observes the cancellation.
-        OrderDetails orderDetails = CreateOrderDetails();
-        ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
-        PaymentInformation stalePaymentInformation = CreatePaymentInformation();
-        using var cts = new CancellationTokenSource();
-
-        _fixture.Mock<IPaymentProcessor>().Setup(pp => pp.PaymentProcessorId).Returns(orderDetails.PaymentProcessorId);
-        _fixture
-            .Mock<IPaymentProcessor>()
-            .Setup(pp => pp.TerminatePayment(_instance, It.IsAny<PaymentInformation>(), cts.Token))
-            .ReturnsAsync(() =>
-            {
-                cts.Cancel();
-                return true;
-            })
-            .Verifiable(Times.Once);
-        SeedPaymentInformation(stalePaymentInformation);
-        _fixture
-            .Mock<IDataService>()
-            .Setup(ds =>
-                ds.DeleteById(
-                    It.IsAny<InstanceIdentifier>(),
-                    It.IsAny<Guid>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .Returns(
-                (InstanceIdentifier _, Guid _, StorageAuthenticationMethod? _, CancellationToken cancellationToken) =>
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    return Task.FromResult(true);
-                }
-            )
-            .Verifiable(Times.Once);
-        _fixture
-            .Mock<IOrderDetailsCalculator>()
-            .Setup(c => c.CalculateOrderDetails(_instance, Language, cts.Token))
-            .Returns(
-                (Instance _, string? _, CancellationToken cancellationToken) =>
-                    Task.FromCanceled<OrderDetails>(cancellationToken)
-            )
-            .Verifiable(Times.Once);
-
-        await using var sp = _fixture.BuildServiceProvider();
-        var paymentService = sp.GetRequiredService<IPaymentService>();
-
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
-            paymentService.StartPayment(_instance, paymentConfiguration, Language, cts.Token)
-        );
-        _fixture.VerifyMocks();
-    }
-
-    [Fact]
-    public async Task HandlePaymentCompletedWebhook_StoresPaidAndMovesTheProcessOnAsTheServiceOwner()
-    {
-        SetupWebhookProcessor(PaymentStatus.Paid);
-        SetupMoveOn(new ProcessChangeResult { Success = true, ProcessStateChange = new ProcessStateChange() });
-
-        await using var sp = _fixture.BuildServiceProvider();
-        await StorePaymentInformation(sp, PaymentStatus.Created);
-
-        string result = await HandleWebhook(sp);
-
-        Assert.Contains("The process moves on", result);
-        Assert.Equal(PaymentStatus.Paid, await ReadStoredStatus(sp));
-        _fixture
-            .Mock<IProcessEngine>()
-            .Verify(
-                engine =>
-                    engine.EnqueueNextForApp(
-                        It.Is<Instance>(instance => instance.Id == _instance.Id),
-                        It.IsAny<StorageVersionMetadata>(),
-                        "confirm",
-                        It.Is<Actor>(actor =>
-                            actor.OrgId == MockedServiceCollection.Org
-                            && actor.UserId == null
-                            && actor.Language == LanguageConst.Nb
-                        ),
-                        It.IsAny<CancellationToken>()
-                    ),
-                Times.Once
-            );
-    }
-
-    [Fact]
-    public async Task HandlePaymentCompletedWebhook_MovesTheProcessOnFromTheVersionsItsSaveLeft()
-    {
-        SetupWebhookProcessor(PaymentStatus.Paid);
-        SetupMoveOn(new ProcessChangeResult { Success = true, ProcessStateChange = new ProcessStateChange() });
-
-        await using var sp = _fixture.BuildServiceProvider();
-        await StorePaymentInformation(sp, PaymentStatus.Created);
-
-        await HandleWebhook(sp);
-
-        StorageVersionMetadata afterSave = (await ReadInstance(sp)).Metadata;
-        _fixture
-            .Mock<IProcessEngine>()
-            .Verify(
-                engine =>
-                    engine.EnqueueNextForApp(
-                        It.IsAny<Instance>(),
-                        afterSave,
-                        "confirm",
-                        It.IsAny<Actor>(),
-                        It.IsAny<CancellationToken>()
-                    ),
-                Times.Once
-            );
-    }
-
-    [Fact]
-    public async Task HandlePaymentCompletedWebhook_MovesTheProcessOnInTheLanguageOfTheUserWhoPaid()
-    {
-        SetupWebhookProcessor(PaymentStatus.Paid);
-        SetupMoveOn(new ProcessChangeResult { Success = true, ProcessStateChange = new ProcessStateChange() });
-
-        await using var sp = _fixture.BuildServiceProvider();
-        await StorePaymentInformation(sp, PaymentStatus.Created, language: "en");
-
-        await HandleWebhook(sp);
-
-        _fixture
-            .Mock<IProcessEngine>()
-            .Verify(
-                engine =>
-                    engine.EnqueueNextForApp(
-                        It.IsAny<Instance>(),
-                        It.IsAny<StorageVersionMetadata>(),
-                        "confirm",
-                        It.Is<Actor>(actor => actor.Language == "en"),
-                        It.IsAny<CancellationToken>()
-                    ),
-                Times.Once
-            );
-    }
-
-    [Fact]
-    public async Task HandlePaymentCompletedWebhook_DoesNotMoveTheProcessOn_WhenThePaymentIsNotPaid()
-    {
-        SetupWebhookProcessor(PaymentStatus.Authorized);
-        _fixture.Mock<IProcessEngine>();
-
-        await using var sp = _fixture.BuildServiceProvider();
-        await StorePaymentInformation(sp, PaymentStatus.Created);
-
-        string result = await HandleWebhook(sp);
-
-        Assert.Equal($"Payment status is Authorized for instance {_instance.Id}.", result);
-        Assert.Equal(PaymentStatus.Authorized, await ReadStoredStatus(sp));
-        _fixture.Mock<IProcessEngine>().VerifyNoOtherCalls();
-    }
-
-    [Fact]
-    public async Task HandlePaymentCompletedWebhook_DoesNotMoveTheProcessOn_WhenTheProcessHasMovedOn()
-    {
-        _instance.Process.CurrentTask = new ProcessElementInfo { AltinnTaskType = "data", ElementId = "Task_2" };
-        SetupWebhookProcessor(PaymentStatus.Paid);
-        _fixture.Mock<IProcessEngine>();
-
-        await using var sp = _fixture.BuildServiceProvider();
-        await StorePaymentInformation(sp, PaymentStatus.Created);
-
-        string result = await HandleWebhook(sp);
-
-        Assert.Contains("has moved on from payment task Task_1", result);
-        Assert.Equal(PaymentStatus.Created, await ReadStoredStatus(sp));
-        _fixture.Mock<IProcessEngine>().VerifyNoOtherCalls();
-    }
-
-    [Fact]
-    public async Task HandlePaymentCompletedWebhook_DoesNotAskTheProcessor_WhenThePaymentWasSkipped()
-    {
-        _fixture.Mock<IPaymentProcessor>();
-        _fixture.Mock<IProcessEngine>();
-
-        await using var sp = _fixture.BuildServiceProvider();
-        await StorePaymentInformation(sp, PaymentStatus.Skipped);
-
-        string result = await HandleWebhook(sp);
-
-        Assert.Contains("Payment status is Skipped", result);
-        _fixture.Mock<IPaymentProcessor>().VerifyNoOtherCalls();
-        _fixture.Mock<IProcessEngine>().VerifyNoOtherCalls();
-    }
-
-    [Fact]
-    public async Task HandlePaymentCompletedWebhook_WritesNothing_WhenTheStatusIsUnchanged()
-    {
-        SetupWebhookProcessor(PaymentStatus.Paid);
-        SetupMoveOn(new ProcessChangeResult { Success = true, ProcessStateChange = new ProcessStateChange() });
-
-        await using var sp = _fixture.BuildServiceProvider();
-        // The processor puts the language in the redirect URL, so asking without the payer's language would change it.
-        await StorePaymentInformation(sp, PaymentStatus.Paid, language: LanguageConst.Nb);
-        InstanceWithStorageMetadata before = await ReadInstance(sp);
-
-        await HandleWebhook(sp);
-
-        _fixture
-            .Mock<IProcessEngine>()
-            .Verify(
-                engine =>
-                    engine.EnqueueNextForApp(
-                        It.IsAny<Instance>(),
-                        before.Metadata,
-                        "confirm",
-                        It.IsAny<Actor>(),
-                        It.IsAny<CancellationToken>()
-                    ),
-                Times.Once
-            );
-        Assert.Equal(before.Metadata, (await ReadInstance(sp)).Metadata);
-    }
-
-    [Fact]
-    public async Task HandlePaymentCompletedWebhook_StartsOverOnce_WhenTheRecordChangedBeforeTheSave()
-    {
-        // The other webhook stores its answer between this one's read and its save.
-        int calls = 0;
-        DataElement? paymentDataElement = null;
-        WrappedServiceProvider? provider = null;
-        SetupWebhookProcessor(
-            PaymentStatus.Paid,
-            async () =>
-            {
-                if (calls++ == 0 && provider is not null && paymentDataElement is not null)
-                {
-                    await provider
-                        .GetRequiredService<IDataService>()
-                        .UpdateJsonObject(
-                            new InstanceIdentifier(_instance),
-                            PaymentDataTypeId,
-                            Guid.Parse(paymentDataElement.Id),
-                            CreatePaymentInformation(PaymentStatus.Authorized)
-                        );
-                }
-            }
-        );
-        SetupMoveOn(new ProcessChangeResult { Success = true, ProcessStateChange = new ProcessStateChange() });
-
-        await using var sp = _fixture.BuildServiceProvider();
-        provider = sp;
-        paymentDataElement = await StorePaymentInformation(sp, PaymentStatus.Created);
-
-        await HandleWebhook(sp);
-
-        Assert.Equal(2, calls);
-        Assert.Equal(PaymentStatus.Paid, await ReadStoredStatus(sp));
-        _fixture
-            .Mock<IProcessEngine>()
-            .Verify(
-                engine =>
-                    engine.EnqueueNextForApp(
-                        It.IsAny<Instance>(),
-                        It.IsAny<StorageVersionMetadata>(),
-                        "confirm",
-                        It.IsAny<Actor>(),
-                        It.IsAny<CancellationToken>()
-                    ),
-                Times.Once
-            );
-    }
-
-    [Fact]
-    public async Task HandlePaymentCompletedWebhook_Throws_WhenTheRecordKeepsChanging()
-    {
-        DataElement? paymentDataElement = null;
-        WrappedServiceProvider? provider = null;
-        SetupWebhookProcessor(
-            PaymentStatus.Paid,
-            async () =>
-            {
-                if (provider is not null && paymentDataElement is not null)
-                {
-                    await provider
-                        .GetRequiredService<IDataService>()
-                        .UpdateJsonObject(
-                            new InstanceIdentifier(_instance),
-                            PaymentDataTypeId,
-                            Guid.Parse(paymentDataElement.Id),
-                            CreatePaymentInformation(PaymentStatus.Authorized)
-                        );
-                }
-            }
-        );
-        _fixture.Mock<IProcessEngine>();
-
-        await using var sp = _fixture.BuildServiceProvider();
-        provider = sp;
-        paymentDataElement = await StorePaymentInformation(sp, PaymentStatus.Created);
-
-        await Assert.ThrowsAsync<InstanceDataStaleException>(() => HandleWebhook(sp));
-        Assert.Equal(PaymentStatus.Authorized, await ReadStoredStatus(sp));
-        _fixture.Mock<IProcessEngine>().VerifyNoOtherCalls();
+        Assert.Equal(ending, Describe(result));
+        Assert.Null(GetStoredRecord(dataMutator));
+        _attemptProcessor.VerifyNoOtherCalls();
     }
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task HandlePaymentCompletedWebhook_AnswersOk_WhenATransitionAlreadyHoldsTheInstance(
-        bool transitionStillRunning
+    [InlineData(true, "AwaitNextMessage", nameof(CompletedServiceTaskOpeningStageResult))]
+    [InlineData(true, "MoveOn", "confirm")]
+    [InlineData(false, "AwaitNextMessage", nameof(CompletedServiceTaskOpeningStageResult))]
+    [InlineData(false, "MoveOn", "confirm")]
+    public async Task StartAttempt_RunAgainAfterItsSaveCommitted_EndsAsTheStoredRunDid(
+        bool earlierRecord,
+        string storedEnding,
+        string ending
     )
     {
-        SetupWebhookProcessor(PaymentStatus.Paid);
-        SetupMoveOn(
-            transitionStillRunning
-                ? new ProcessChangeResult
-                {
-                    Success = false,
-                    ErrorType = ProcessErrorType.Conflict,
-                    ProcessNextState = ProcessNextState.Retrying,
-                }
-                : new ProcessChangeResult
-                {
-                    Success = false,
-                    ErrorType = ProcessErrorType.Conflict,
-                    ErrorMessage = "Processing",
-                    BlockingProcessStatus = Altinn.Platform.Storage.Interface.Enums.ProcessStatus.Processing,
-                }
+        Mock<IInstanceDataMutator> dataMutator = CreateDataMutator(
+            earlierRecord ? CreatePaymentInformation(PaymentStatus.Created) : null
         );
+        StoreAfterTheStateWasCaptured(dataMutator, _stepId, storedEnding);
+        UseProcessor(_attemptProcessor);
 
-        await using var sp = _fixture.BuildServiceProvider();
-        await StorePaymentInformation(sp, PaymentStatus.Created);
-
-        string result = await HandleWebhook(sp);
-
-        Assert.Contains("A transition is already moving the process", result);
-    }
-
-    [Fact]
-    public async Task HandlePaymentCompletedWebhook_AnswersOk_WhenValidationStopsTheProcess()
-    {
-        SetupWebhookProcessor(PaymentStatus.Paid);
-        SetupMoveOn(
-            new ProcessChangeResult
-            {
-                Success = false,
-                ErrorType = ProcessErrorType.Conflict,
-                ValidationIssues =
-                [
-                    new ValidationIssueWithSource
-                    {
-                        Severity = ValidationIssueSeverity.Error,
-                        Code = "required",
-                        Description = "Required",
-                        Source = "Required",
-                    },
-                ],
-            }
-        );
-
-        await using var sp = _fixture.BuildServiceProvider();
-        await StorePaymentInformation(sp, PaymentStatus.Created);
-
-        string result = await HandleWebhook(sp);
+        ServiceTaskOpeningStageResult result = await StartAttempt(dataMutator);
 
         Assert.Equal(
-            $"Payment status is Paid for instance {_instance.Id}, but validation stopped the process.",
-            result
+            ending,
+            result is CompletedServiceTaskOpeningStageResult ? result.GetType().Name : Describe(result)
         );
+        Assert.Null(GetStoredRecord(dataMutator));
+        _attemptProcessor.VerifyNoOtherCalls();
     }
 
-    [Fact]
-    public async Task HandlePaymentCompletedWebhook_StartsTheTransitionOnceMore_WhenAChangeStoppedItFromStarting()
+    // The record changed under the step, and not by an earlier run of it.
+    [Theory]
+    [InlineData("open", true)]
+    [InlineData("open", false)]
+    [InlineData("check", true)]
+    public async Task AttemptStep_ThatFindsARecordAnotherStepStored_FailsOnTheConflict(string step, bool earlierRecord)
     {
-        SetupWebhookProcessor(PaymentStatus.Paid);
-        List<StorageVersionMetadata> startedOn = [];
-        int calls = 0;
-        await using var sp = _fixture.BuildServiceProvider();
-        DataElement paymentDataElement = await StorePaymentInformation(sp, PaymentStatus.Created);
-        SetupMoveOn()
-            .Callback<Instance, StorageVersionMetadata, string, Actor, CancellationToken>(
-                (_, versions, _, _, _) => startedOn.Add(versions)
-            )
-            .Returns(async () =>
-            {
-                if (calls++ > 0)
-                {
-                    return new ProcessChangeResult { Success = true, ProcessStateChange = new ProcessStateChange() };
-                }
-
-                // Something writes between the webhook's read and the transition's start, which supersedes it.
-                await sp.GetRequiredService<IDataService>()
-                    .UpdateJsonObject(
-                        new InstanceIdentifier(_instance),
-                        PaymentDataTypeId,
-                        Guid.Parse(paymentDataElement.Id),
-                        CreatePaymentInformation(PaymentStatus.Paid)
-                    );
-                return await CreateInstanceChangedResult(sp);
-            });
-
-        string result = await HandleWebhook(sp);
-
-        Assert.Contains("The process moves on", result);
-        Assert.Equal(2, startedOn.Count);
-        // The second start is fenced on the instance as the change left it.
-        Assert.NotEqual(startedOn[0], startedOn[1]);
-        Assert.Equal((await ReadInstance(sp)).Metadata, startedOn[1]);
-    }
-
-    [Fact]
-    public async Task HandlePaymentCompletedWebhook_Throws_WhenChangesStopTheTransitionFromStartingTwice()
-    {
-        SetupWebhookProcessor(PaymentStatus.Paid);
-        await using var sp = _fixture.BuildServiceProvider();
-        await StorePaymentInformation(sp, PaymentStatus.Created);
-        SetupMoveOn().Returns(async () => await CreateInstanceChangedResult(sp));
-
-        // Not answering lets Nets call again later, from a fresh read.
-        await Assert.ThrowsAsync<PaymentException>(() => HandleWebhook(sp));
-        _fixture
-            .Mock<IProcessEngine>()
-            .Verify(
-                engine =>
-                    engine.EnqueueNextForApp(
-                        It.IsAny<Instance>(),
-                        It.IsAny<StorageVersionMetadata>(),
-                        "confirm",
-                        It.IsAny<Actor>(),
-                        It.IsAny<CancellationToken>()
-                    ),
-                Times.Exactly(2)
-            );
-    }
-
-    [Fact]
-    public async Task HandlePaymentCompletedWebhook_Throws_WhenTheTransitionDoesNotStartInTime()
-    {
-        SetupWebhookProcessor(PaymentStatus.Paid);
-        SetupMoveOn(
-            new ProcessChangeResult
-            {
-                Success = false,
-                ErrorType = ProcessErrorType.Internal,
-                ErrorTitle = "The transition did not start in time.",
-                WorkflowFailure = new WorkflowFailure { Kind = WorkflowFailureKind.Timeout },
-            }
+        Mock<IInstanceDataMutator> dataMutator = CreateDataMutator(
+            earlierRecord ? CreatePaymentInformation(PaymentStatus.Created) : null
         );
+        StoreAfterTheStateWasCaptured(dataMutator, Guid.NewGuid(), "AwaitNextMessage");
+        UseProcessor(_attemptProcessor);
 
-        await using var sp = _fixture.BuildServiceProvider();
-        await StorePaymentInformation(sp, PaymentStatus.Created);
-
-        PaymentException exception = await Assert.ThrowsAsync<PaymentException>(() => HandleWebhook(sp));
-        Assert.Contains("The transition did not start in time.", exception.Message);
-        Assert.Equal(PaymentStatus.Paid, await ReadStoredStatus(sp));
+        await Assert.ThrowsAsync<DataElementContentConflictException>(() =>
+            step == "open" ? StartAttempt(dataMutator) : Settle(dataMutator, step)
+        );
+        Assert.Null(GetStoredRecord(dataMutator));
+        _attemptProcessor.VerifyNoOtherCalls();
     }
 
-    private async Task<ProcessChangeResult> CreateInstanceChangedResult(WrappedServiceProvider sp)
+    // A record that names this step with an ending this version does not know, as after a rollback across a version
+    // that added one: the step fails, to be retried, instead of deciding again. Whether or not the step could read the
+    // record against its state.
+    [Theory]
+    [InlineData("open", true)]
+    [InlineData("open", false)]
+    [InlineData("check", true)]
+    [InlineData("check", false)]
+    public async Task AttemptStep_WhoseStoredEndingThisVersionDoesNotKnow_FailsWithoutDecidingAgain(
+        string step,
+        bool storedAfterTheStateWasCaptured
+    )
     {
-        InstanceWithStorageMetadata current = await ReadInstance(sp);
-        return new ProcessChangeResult(current.Instance, current.Metadata)
+        Mock<IInstanceDataMutator> dataMutator = CreateDataMutator(CreatePaymentInformation(PaymentStatus.Created));
+        if (storedAfterTheStateWasCaptured)
         {
-            Success = false,
-            ErrorType = ProcessErrorType.Conflict,
-            ProcessNextState = ProcessNextState.InstanceChanged,
-        };
+            StoreAfterTheStateWasCaptured(dataMutator, _stepId, "Released");
+        }
+        else
+        {
+            dataMutator
+                .Setup(x => x.GetBinaryData(It.IsAny<DataElementIdentifier>()))
+                .ReturnsAsync(CreateRecordStoredBy(_stepId, "Released"));
+        }
+        UseProcessor(_attemptProcessor);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            step == "open" ? StartAttempt(dataMutator) : Settle(dataMutator, step)
+        );
+        Assert.Null(GetStoredRecord(dataMutator));
+        _attemptProcessor.VerifyNoOtherCalls();
     }
 
-    private void SetupWebhookProcessor(PaymentStatus status, Func<Task>? whileAsking = null)
+    // An opening stage that released stored nothing; its closed mailbox tells a later run to release again.
+    [Fact]
+    public async Task StartAttempt_WhoseMailboxIsClosed_ReleasesWithoutAskingTheProcessor()
     {
-        _fixture.Mock<IPaymentProcessor>().Setup(pp => pp.PaymentProcessorId).Returns("paymentProcessorId");
+        Mock<IInstanceDataMutator> dataMutator = CreateDataMutator(CreatePaymentInformation(PaymentStatus.Created));
+        UseProcessor(_attemptProcessor);
         _fixture
-            .Mock<IPaymentProcessor>()
-            .Setup(pp =>
-                pp.GetPaymentStatus(
+            .Mock<IWorkflowEngineService>()
+            .Setup(s => s.IsMailboxOpen(_mailboxId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        ServiceTaskOpeningStageResult result = await StartAttempt(dataMutator);
+
+        Assert.Equal("release", Describe(result));
+        Assert.Null(GetStoredRecord(dataMutator));
+        _attemptProcessor.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Deadline_WhenTheProcessorCannotBeAsked_FailsWithoutReleasing()
+    {
+        Mock<IInstanceDataMutator> dataMutator = CreateDataMutator(CreatePaymentInformation(PaymentStatus.Created));
+        UseProcessor(_attemptProcessor);
+        _attemptProcessor
+            .Setup(p =>
+                p.GetPaymentStatus(
                     It.IsAny<Instance>(),
-                    "paymentId",
+                    It.IsAny<string>(),
                     It.IsAny<decimal>(),
                     It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .Returns(
-                async (Instance _, string _, decimal _, string? language, CancellationToken _) =>
-                {
-                    if (whileAsking is not null)
-                    {
-                        await whileAsking();
-                    }
-                    return (
-                        status,
-                        new PaymentDetails { PaymentId = "paymentId", RedirectUrl = RedirectUrl(language) }
-                    );
-                }
+            .ThrowsAsync(new PaymentException("Failed to retrieve payment"));
+
+        // The step fails retryable on the exception.
+        await Assert.ThrowsAsync<PaymentException>(() => Settle(dataMutator, "deadline"));
+        Assert.Null(GetStoredRecord(dataMutator));
+    }
+
+    [Fact]
+    public async Task Deadline_OnAReservationAnAppsProcessorCannotCancel_IsRetryable()
+    {
+        var appProcessor = new Mock<IPaymentProcessor>(MockBehavior.Strict);
+        appProcessor.Setup(p => p.PaymentProcessorId).Returns("paymentProcessorId");
+        Mock<IInstanceDataMutator> dataMutator = CreateDataMutator(CreatePaymentInformation(PaymentStatus.Created));
+        UseProcessor(appProcessor, PaymentStatus.Authorized, PaymentStatus.Authorized);
+
+        ServiceTaskExchangeResult result = await Settle(dataMutator, "deadline");
+
+        Assert.Equal("retryable", Describe(result));
+        Assert.Null(GetStoredRecord(dataMutator));
+    }
+
+    [Fact]
+    public async Task Message_ThatIsNotAPaymentAttemptMessage_FailsPermanently()
+    {
+        Mock<IInstanceDataMutator> dataMutator = CreateDataMutator(CreatePaymentInformation(PaymentStatus.Created));
+        UseProcessor(_attemptProcessor);
+
+        ServiceTaskExchangeResult result = await HandleMessage(dataMutator, """{"kind":"refund"}""");
+
+        Assert.Equal("permanent", Describe(result));
+        Assert.Null(GetStoredRecord(dataMutator));
+    }
+
+    [Fact]
+    public async Task StartAttempt_CreatesThePaymentForTheAttemptsMailbox_AndStoresIt()
+    {
+        Mock<IInstanceDataMutator> dataMutator = CreateDataMutator(stored: null);
+        OrderDetails orderDetails = SetupOrderDetails(totalPriceExVat: 1000);
+        UseProcessor(_attemptProcessor);
+        var paymentDetails = new PaymentDetails { PaymentId = "newPaymentId", RedirectUrl = "https://checkout" };
+        _attemptProcessor
+            .As<IPaymentAttemptProcessor>()
+            .Setup(p =>
+                p.StartPayment(It.IsAny<Instance>(), orderDetails, Language, _mailboxId, It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(paymentDetails);
+
+        ServiceTaskOpeningStageResult result = await StartAttempt(dataMutator);
+
+        Assert.IsType<CompletedServiceTaskOpeningStageResult>(result);
+        PaymentInformation stored = Assert.IsType<PaymentInformation>(GetStoredRecord(dataMutator));
+        Assert.Equal(PaymentStatus.Created, stored.Status);
+        Assert.Equal(_mailboxId, stored.MailboxId);
+        Assert.Equal(Language, stored.Language);
+        Assert.Equal(TaskId, stored.TaskId);
+        Assert.Equal("newPaymentId", stored.PaymentDetails?.PaymentId);
+        Assert.Equal((_stepId, "AwaitNextMessage"), GetStoredStep(dataMutator));
+        _attemptProcessor
+            .As<IPaymentAttemptProcessor>()
+            .Verify(
+                p =>
+                    p.StartPayment(
+                        It.IsAny<Instance>(),
+                        It.IsAny<OrderDetails>(),
+                        It.IsAny<string?>(),
+                        It.IsAny<Guid>(),
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Once
             );
     }
 
-    /// <summary>
-    /// The redirect URL the processor reports, which like Nets' carries the language it is asked in.
-    /// </summary>
-    private static string RedirectUrl(string? language) =>
-        language is null ? "Redirect URL" : $"Redirect URL?language={language}";
+    [Fact]
+    public async Task StartAttempt_WithAnAppsOwnProcessor_CreatesThePaymentThroughItsPublicInterface()
+    {
+        var appProcessor = new Mock<IPaymentProcessor>(MockBehavior.Strict);
+        appProcessor.Setup(p => p.PaymentProcessorId).Returns("paymentProcessorId");
+        Mock<IInstanceDataMutator> dataMutator = CreateDataMutator(stored: null);
+        OrderDetails orderDetails = SetupOrderDetails(totalPriceExVat: 1000);
+        UseProcessor(appProcessor);
+        appProcessor
+            .Setup(p => p.StartPayment(It.IsAny<Instance>(), orderDetails, Language, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new PaymentDetails { PaymentId = "newPaymentId", RedirectUrl = "https://checkout" });
 
-    private void SetupMoveOn(ProcessChangeResult result) => SetupMoveOn().ReturnsAsync(result);
+        ServiceTaskOpeningStageResult result = await StartAttempt(dataMutator);
 
-    private Moq.Language.Flow.ISetup<IProcessEngine, Task<ProcessChangeResult>> SetupMoveOn() =>
-        _fixture
-            .Mock<IProcessEngine>()
-            .Setup(engine =>
-                engine.EnqueueNextForApp(
+        Assert.IsType<CompletedServiceTaskOpeningStageResult>(result);
+        Assert.Equal(_mailboxId, GetStoredRecord(dataMutator)?.MailboxId);
+    }
+
+    [Fact]
+    public async Task StartAttempt_OrderThatCostsNothing_StoresSkippedAndMovesOnWithoutAPayment()
+    {
+        Mock<IInstanceDataMutator> dataMutator = CreateDataMutator(stored: null);
+        SetupOrderDetails(totalPriceExVat: 0);
+        UseProcessor(_attemptProcessor);
+
+        ServiceTaskOpeningStageResult result = await StartAttempt(dataMutator);
+
+        Assert.Equal("confirm", Describe(result));
+        Assert.Equal(PaymentStatus.Skipped, GetStoredRecord(dataMutator)?.Status);
+        Assert.Equal((_stepId, "MoveOn"), GetStoredStep(dataMutator));
+        _attemptProcessor
+            .As<IPaymentAttemptProcessor>()
+            .Verify(
+                p =>
+                    p.StartPayment(
+                        It.IsAny<Instance>(),
+                        It.IsAny<OrderDetails>(),
+                        It.IsAny<string?>(),
+                        It.IsAny<Guid>(),
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Never
+            );
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task StartAttempt_ThatCannotCreateThePayment_ReleasesWithNothingStored(bool orderCalculationFails)
+    {
+        Mock<IInstanceDataMutator> dataMutator = CreateDataMutator(stored: null);
+        if (orderCalculationFails)
+        {
+            _fixture
+                .Mock<IOrderDetailsCalculator>()
+                .Setup(c => c.CalculateOrderDetails(It.IsAny<Instance>(), Language, It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new InvalidOperationException("The order cannot be calculated."));
+        }
+        else
+        {
+            SetupOrderDetails(totalPriceExVat: 1000);
+        }
+        UseProcessor(_attemptProcessor);
+        _attemptProcessor
+            .As<IPaymentAttemptProcessor>()
+            .Setup(p =>
+                p.StartPayment(
                     It.IsAny<Instance>(),
-                    It.IsAny<StorageVersionMetadata>(),
-                    "confirm",
-                    It.IsAny<Actor>(),
+                    It.IsAny<OrderDetails>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<Guid>(),
                     It.IsAny<CancellationToken>()
                 )
+            )
+            .ThrowsAsync(new PaymentException("Failed to create payment"));
+
+        ServiceTaskOpeningStageResult result = await StartAttempt(dataMutator);
+
+        Assert.Equal("release", Describe(result));
+        Assert.Null(GetStoredRecord(dataMutator));
+    }
+
+    // A payment record from an earlier visit to the task, such as one v8 left. "create" starts a new payment over it,
+    // "adopt" opens the attempt on the reserved payment without creating one.
+    [Theory]
+    [InlineData(PaymentStatus.Paid, null, null, PaymentStatus.Paid, "confirm")]
+    [InlineData(PaymentStatus.Created, true, null, PaymentStatus.Created, "create")]
+    [InlineData(PaymentStatus.Created, false, PaymentStatus.Paid, PaymentStatus.Paid, "confirm")]
+    [InlineData(PaymentStatus.Created, false, PaymentStatus.Authorized, PaymentStatus.Authorized, "adopt")]
+    [InlineData(PaymentStatus.Authorized, false, PaymentStatus.Authorized, PaymentStatus.Authorized, "adopt")]
+    [InlineData(PaymentStatus.Created, false, PaymentStatus.Cancelled, PaymentStatus.Created, "create")]
+    [InlineData(PaymentStatus.Created, false, PaymentStatus.Created, null, "release")]
+    [InlineData(PaymentStatus.Cancelled, null, null, PaymentStatus.Created, "create")]
+    [InlineData(PaymentStatus.Failed, null, null, PaymentStatus.Created, "create")]
+    [InlineData(PaymentStatus.Skipped, null, null, PaymentStatus.Created, "create")]
+    public async Task StartAttempt_OverAnEarlierPayment_SettlesItFirst(
+        PaymentStatus existingStatus,
+        bool? terminateAccepted,
+        PaymentStatus? reported,
+        PaymentStatus? stored,
+        string outcome
+    )
+    {
+        Mock<IInstanceDataMutator> dataMutator = CreateDataMutator(CreatePaymentInformation(existingStatus));
+        SetupOrderDetails(totalPriceExVat: 1000);
+        UseProcessor(_attemptProcessor, reported is { } status ? new[] { status } : Array.Empty<PaymentStatus>());
+        SetupTerminate(_attemptProcessor, terminateAccepted);
+        _attemptProcessor
+            .As<IPaymentAttemptProcessor>()
+            .Setup(p =>
+                p.StartPayment(
+                    It.IsAny<Instance>(),
+                    It.IsAny<OrderDetails>(),
+                    It.IsAny<string?>(),
+                    _mailboxId,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new PaymentDetails { PaymentId = "newPaymentId", RedirectUrl = "https://checkout" });
+
+        ServiceTaskOpeningStageResult result = await StartAttempt(dataMutator);
+
+        PaymentInformation? storedRecord = GetStoredRecord(dataMutator);
+        Assert.Equal(stored, storedRecord?.Status);
+        string actual = (result, storedRecord?.PaymentDetails?.PaymentId) switch
+        {
+            (CompletedServiceTaskOpeningStageResult, "newPaymentId") => "create",
+            (CompletedServiceTaskOpeningStageResult, "paymentId") => "adopt",
+            _ => Describe(result),
+        };
+        Assert.Equal(outcome, actual);
+        if (actual is "create" or "adopt")
+        {
+            Assert.Equal(_mailboxId, storedRecord?.MailboxId);
+        }
+        VerifyCalls(terminateAccepted, cancelReservationAccepted: null);
+    }
+
+    // At the task's end, a record that does not show the payment as paid takes what the processor reports, with its
+    // details; a paid one is not asked about.
+    [Theory]
+    [InlineData(PaymentStatus.Authorized, PaymentStatus.Paid)]
+    [InlineData(PaymentStatus.Created, PaymentStatus.Paid)]
+    [InlineData(PaymentStatus.Created, PaymentStatus.Authorized)]
+    [InlineData(PaymentStatus.Paid, null)]
+    public async Task RefreshUnpaidPayment_StagesWhatTheProcessorReportsForARecordNotShownAsPaid(
+        PaymentStatus stored,
+        PaymentStatus? reported
+    )
+    {
+        Mock<IInstanceDataMutator> dataMutator = CreateDataMutator(CreatePaymentInformation(stored));
+        var reportedDetails = new PaymentDetails { PaymentId = "paymentId", ChargedDate = "2026-11-26" };
+        if (reported is { } status)
+        {
+            UseProcessor(_attemptProcessor, status, reportedDetails);
+        }
+        else
+        {
+            _fixture.Services.AddSingleton(_attemptProcessor.Object);
+        }
+
+        await WithPaymentService(async service =>
+        {
+            await service.RefreshUnpaidPayment(dataMutator.Object, CreatePaymentConfiguration());
+            return true;
+        });
+
+        PaymentInformation? staged = GetStoredRecord(dataMutator);
+        Assert.Equal(reported, staged?.Status);
+        Assert.Equal(reported is null ? null : "2026-11-26", staged?.PaymentDetails?.ChargedDate);
+    }
+
+    [Fact]
+    public async Task GetPaymentInformation_ReturnsTheStoredRecordWithoutAskingTheProcessor()
+    {
+        await using var sp = _fixture.BuildServiceProvider();
+        PaymentInformation payment = CreatePaymentInformation(PaymentStatus.Created);
+        await sp.GetRequiredService<IDataService>()
+            .InsertJsonObject(new InstanceIdentifier(_instance), PaymentDataTypeId, payment);
+
+        PaymentInformation result = await sp.GetRequiredService<IPaymentService>()
+            .GetPaymentInformation(_instance, CreatePaymentConfiguration(), TaskId, Language);
+
+        Assert.Equal(PaymentStatus.Created, result.Status);
+        Assert.Equal("paymentId", result.PaymentDetails?.PaymentId);
+        _attemptProcessor.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task GetPaymentInformation_WithoutARecord_IsUninitializedWithTheOrderDetails()
+    {
+        OrderDetails orderDetails = SetupOrderDetails(totalPriceExVat: 1000);
+        await using var sp = _fixture.BuildServiceProvider();
+
+        PaymentInformation result = await sp.GetRequiredService<IPaymentService>()
+            .GetPaymentInformation(_instance, CreatePaymentConfiguration(), TaskId, Language);
+
+        Assert.Equal(PaymentStatus.Uninitialized, result.Status);
+        Assert.Same(orderDetails, result.OrderDetails);
+        Assert.Equal(TaskId, result.TaskId);
+    }
+
+    [Theory]
+    [InlineData("paymentId", true)]
+    [InlineData("anotherPaymentId", false)]
+    public async Task FindPaymentRecord_FindsTheRecordThatHoldsThePayment(string paymentId, bool found)
+    {
+        _fixture
+            .Mock<IProcessReader>()
+            .Setup(r => r.GetProcessTasks())
+            .Returns([
+                new() { Id = "Task_Data" },
+                new()
+                {
+                    Id = TaskId,
+                    ExtensionElements = new()
+                    {
+                        TaskExtension = new() { PaymentConfiguration = new() { PaymentDataType = PaymentDataTypeId } },
+                    },
+                },
+            ]);
+        await using var sp = _fixture.BuildServiceProvider();
+        await sp.GetRequiredService<IDataService>()
+            .InsertJsonObject(
+                new InstanceIdentifier(_instance),
+                PaymentDataTypeId,
+                CreatePaymentInformation(PaymentStatus.Created)
             );
 
-    /// <summary>
-    /// Stores a payment record directly in the fake Storage, for tests that replace the data service with a mock.
-    /// </summary>
-    private DataElement SeedPaymentInformation(PaymentInformation paymentInformation) =>
-        _fixture.Storage.AddData(
-            _instance,
-            PaymentDataTypeId,
-            "application/json",
-            System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(
-                paymentInformation,
-                new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web)
+        PaymentInformation? result = await sp.GetRequiredService<IPaymentService>()
+            .FindPaymentRecord(_instance, paymentId);
+
+        Assert.Equal(found, result is not null);
+    }
+
+    private async Task<ServiceTaskExchangeResult> Settle(Mock<IInstanceDataMutator> dataMutator, string trigger) =>
+        trigger switch
+        {
+            "deadline" => await WithPaymentService(service =>
+                service.SettleAtDeadline(CreateStageContext(dataMutator), CreatePaymentConfiguration())
+            ),
+            "check" => await HandleMessage(dataMutator, PaymentAttemptMessage.Check),
+            "cancel" => await HandleMessage(dataMutator, PaymentAttemptMessage.Cancel),
+            "netsEvent" => await HandleMessage(
+                dataMutator,
+                PaymentAttemptMessage.NetsEvent("payment.checkout.completed")
+            ),
+            "chargeFailed" => await HandleMessage(
+                dataMutator,
+                PaymentAttemptMessage.NetsEvent("payment.charge.failed")
+            ),
+            _ => throw new ArgumentOutOfRangeException(nameof(trigger), trigger, null),
+        };
+
+    private Task<ServiceTaskExchangeResult> HandleMessage(Mock<IInstanceDataMutator> dataMutator, string payload) =>
+        WithPaymentService(service =>
+            service.HandleAttemptMessage(
+                CreateStageContext(dataMutator),
+                new ServiceTaskReply
+                {
+                    Payload = payload,
+                    IdempotencyKey = "key",
+                    AcceptedAt = DateTimeOffset.UtcNow,
+                    Position = 0,
+                },
+                CreatePaymentConfiguration()
             )
         );
 
-    private async Task<DataElement> StorePaymentInformation(
-        WrappedServiceProvider sp,
-        PaymentStatus status,
-        string? language = null
+    private Task<ServiceTaskOpeningStageResult> StartAttempt(Mock<IInstanceDataMutator> dataMutator) =>
+        WithPaymentService(service =>
+            service.StartAttempt(
+                CreateStageContext(dataMutator),
+                new ServiceTaskMailbox { Id = _mailboxId, Deadline = DateTimeOffset.UtcNow.AddHours(24) },
+                CreatePaymentConfiguration()
+            )
+        );
+
+    private async Task<T> WithPaymentService<T>(Func<IPaymentService, Task<T>> act)
+    {
+        await using var sp = _fixture.BuildServiceProvider();
+        return await act(sp.GetRequiredService<IPaymentService>());
+    }
+
+    private static StageContext CreateStageContext(Mock<IInstanceDataMutator> dataMutator) =>
+        new()
+        {
+            InstanceDataMutator = dataMutator.Object,
+            WorkflowId = Guid.NewGuid(),
+            StepId = _stepId,
+        };
+
+    private static string Describe(ServiceTaskExchangeResult result) =>
+        result switch
+        {
+            ServiceTaskAwaitNextReplyResult => "await",
+            SuccessfulServiceTaskResult { Action: { } action } => action,
+            ReleasedServiceTaskResult => "release",
+            FailedServiceTaskResult { Kind: FailureKind.Retryable } => "retryable",
+            FailedServiceTaskResult { Kind: FailureKind.Permanent } => "permanent",
+            _ => result.ToString(),
+        };
+
+    private static string Describe(ServiceTaskOpeningStageResult result) =>
+        result switch
+        {
+            ConcludedServiceTaskOpeningStageResult { Result: var conclusion } => Describe(conclusion),
+            _ => result.ToString(),
+        };
+
+    /// <summary>
+    /// Registers <paramref name="processor"/> as the payment's processor, reporting <paramref name="reports"/> in turn.
+    /// </summary>
+    private void UseProcessor(Mock<IPaymentProcessor> processor, params PaymentStatus[] reports) =>
+        UseProcessor(processor, reports, details: null);
+
+    private void UseProcessor(Mock<IPaymentProcessor> processor, PaymentStatus report, PaymentDetails? details) =>
+        UseProcessor(processor, [report], details);
+
+    private void UseProcessor(Mock<IPaymentProcessor> processor, PaymentStatus[] reports, PaymentDetails? details)
+    {
+        _fixture.Services.AddSingleton(processor.Object);
+        var sequence = processor.SetupSequence(p =>
+            p.GetPaymentStatus(
+                It.IsAny<Instance>(),
+                "paymentId",
+                It.IsAny<decimal>(),
+                It.IsAny<string?>(),
+                It.IsAny<CancellationToken>()
+            )
+        );
+        foreach (PaymentStatus report in reports)
+        {
+            sequence = sequence.ReturnsAsync(
+                (report, details ?? new PaymentDetails { PaymentId = "paymentId", RedirectUrl = "https://checkout" })
+            );
+        }
+    }
+
+    private static void SetupTerminate(Mock<IPaymentProcessor> processor, bool? accepted)
+    {
+        if (accepted is { } terminated)
+        {
+            processor
+                .Setup(p =>
+                    p.TerminatePayment(
+                        It.IsAny<Instance>(),
+                        It.Is<PaymentInformation>(payment => payment.PaymentDetails!.PaymentId == "paymentId"),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
+                .ReturnsAsync(terminated);
+        }
+    }
+
+    private void SetupCancelReservation(bool? accepted)
+    {
+        if (accepted is { } cancelled)
+        {
+            _attemptProcessor
+                .As<IPaymentAttemptProcessor>()
+                .Setup(p =>
+                    p.CancelReservation(
+                        It.IsAny<Instance>(),
+                        It.Is<PaymentInformation>(payment => payment.PaymentDetails!.PaymentId == "paymentId"),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
+                .ReturnsAsync(cancelled);
+        }
+    }
+
+    private void VerifyCalls(bool? terminateAccepted, bool? cancelReservationAccepted)
+    {
+        _attemptProcessor.Verify(
+            p =>
+                p.TerminatePayment(It.IsAny<Instance>(), It.IsAny<PaymentInformation>(), It.IsAny<CancellationToken>()),
+            terminateAccepted is null ? Times.Never() : Times.Once()
+        );
+        _attemptProcessor
+            .As<IPaymentAttemptProcessor>()
+            .Verify(
+                p =>
+                    p.CancelReservation(
+                        It.IsAny<Instance>(),
+                        It.IsAny<PaymentInformation>(),
+                        It.IsAny<CancellationToken>()
+                    ),
+                cancelReservationAccepted is null ? Times.Never() : Times.Once()
+            );
+    }
+
+    private void AllowReject(bool allowed) =>
+        _fixture
+            .Mock<IProcessReader>()
+            .Setup(r => r.GetAltinnTaskExtension(TaskId))
+            .Returns(new AltinnTaskExtension { AltinnActions = allowed ? [new AltinnAction("reject")] : [] });
+
+    private OrderDetails SetupOrderDetails(decimal totalPriceExVat)
+    {
+        OrderDetails orderDetails = CreateOrderDetails();
+        orderDetails.OrderLines[0].PriceExVat = totalPriceExVat;
+        _fixture
+            .Mock<IOrderDetailsCalculator>()
+            .Setup(c => c.CalculateOrderDetails(It.IsAny<Instance>(), Language, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(orderDetails);
+        return orderDetails;
+    }
+
+    /// <summary>A data mutator for the payment task, holding <paramref name="stored"/> as the payment record.</summary>
+    private Mock<IInstanceDataMutator> CreateDataMutator(PaymentInformation? stored)
+    {
+        var paymentDataElement = new DataElement
+        {
+            Id = Guid.NewGuid().ToString(),
+            DataType = PaymentDataTypeId,
+            ContentType = "application/json",
+        };
+        var instance = new Instance
+        {
+            Id = _instance.Id,
+            AppId = "ttd/mocked-app",
+            Process = _instance.Process,
+            Data = stored is null ? [] : [paymentDataElement],
+        };
+        var dataMutator = new Mock<IInstanceDataMutator>();
+        dataMutator
+            .As<IReloadableInstanceData>()
+            .Setup(x => x.ReloadFromStorage(It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        dataMutator.Setup(x => x.Instance).Returns(instance);
+        dataMutator.Setup(x => x.TaskId).Returns(TaskId);
+        dataMutator.Setup(x => x.Language).Returns(Language);
+        if (stored is not null)
+        {
+            dataMutator
+                .Setup(x => x.GetBinaryData(paymentDataElement))
+                .ReturnsAsync(JsonSerializer.SerializeToUtf8Bytes(stored, _jsonSerializerOptions));
+        }
+
+        return dataMutator;
+    }
+
+    /// <summary>
+    /// Makes Storage hold a record that <paramref name="stepId"/> stored, ending with <paramref name="ending"/>, after the
+    /// state of <paramref name="dataMutator"/> was captured: a record the state shows can no longer be read against it,
+    /// and one it does not show appears on a reload.
+    /// </summary>
+    private static void StoreAfterTheStateWasCaptured(
+        Mock<IInstanceDataMutator> dataMutator,
+        Guid stepId,
+        string ending
     )
     {
-        PaymentInformation paymentInformation = CreatePaymentInformation(status);
-        paymentInformation.Language = language;
-        paymentInformation.PaymentDetails = new PaymentDetails
-        {
-            PaymentId = "paymentId",
-            RedirectUrl = RedirectUrl(language),
-        };
-        return await sp.GetRequiredService<IDataService>()
-            .InsertJsonObject(new InstanceIdentifier(_instance), PaymentDataTypeId, paymentInformation);
+        Instance instance = dataMutator.Object.Instance;
+        DataElement paymentDataElement =
+            instance.Data.SingleOrDefault()
+            ?? new DataElement
+            {
+                Id = Guid.NewGuid().ToString(),
+                DataType = PaymentDataTypeId,
+                ContentType = "application/json",
+            };
+        byte[] current = CreateRecordStoredBy(stepId, ending);
+        var conflict = new DataElementContentConflictException(instance.Id, Guid.Parse(paymentDataElement.Id));
+        bool reloaded = false;
+        dataMutator
+            .As<IReloadableInstanceData>()
+            .Setup(x => x.ReloadFromStorage(It.IsAny<CancellationToken>()))
+            .Callback(() =>
+            {
+                reloaded = true;
+                instance.Data = [paymentDataElement];
+            })
+            .Returns(Task.CompletedTask);
+        dataMutator
+            .Setup(x => x.GetBinaryData(paymentDataElement))
+            .Returns(() => reloaded ? Task.FromResult<ReadOnlyMemory<byte>>(current) : throw conflict);
     }
 
-    private async Task<InstanceWithStorageMetadata> ReadInstance(WrappedServiceProvider sp) =>
-        await sp.GetRequiredService<IInstanceClientWithStorageMetadata>()
-            .GetInstanceWithStorageMetadata(
-                _instance,
-                StorageAuthenticationMethod.ServiceOwner(),
-                CancellationToken.None
-            );
-
-    private async Task<PaymentStatus?> ReadStoredStatus(WrappedServiceProvider sp)
+    /// <summary>A record of a created payment that <paramref name="stepId"/> stored, ending with <paramref name="ending"/>.</summary>
+    private static byte[] CreateRecordStoredBy(Guid stepId, string ending)
     {
-        InstanceWithStorageMetadata current = await ReadInstance(sp);
-        (_, PaymentInformation? paymentInformation) = await sp.GetRequiredService<IDataService>()
-            .GetByType<PaymentInformation>(current.Instance, PaymentDataTypeId);
-        return paymentInformation?.Status;
+        JsonObject record = JsonSerializer
+            .SerializeToNode(CreatePaymentInformation(PaymentStatus.Created), _jsonSerializerOptions)!
+            .AsObject();
+        record["attemptStep"] = new JsonObject { ["stepId"] = stepId.ToString(), ["ending"] = ending };
+        return JsonSerializer.SerializeToUtf8Bytes(record, _jsonSerializerOptions);
     }
 
-    private async Task<string> HandleWebhook(WrappedServiceProvider sp) =>
-        await sp.GetRequiredService<IPaymentService>()
-            .HandlePaymentCompletedWebhook(await ReadInstance(sp), CreatePaymentConfiguration());
+    /// <summary>The step id and ending the stored record names; null when the step staged none.</summary>
+    private static (Guid, string)? GetStoredStep(Mock<IInstanceDataMutator> dataMutator)
+    {
+        IInvocation? write = dataMutator.Invocations.SingleOrDefault(invocation =>
+            invocation.Method.Name
+                is nameof(IInstanceDataMutator.UpdateBinaryDataElement)
+                    or nameof(IInstanceDataMutator.AddBinaryDataElement)
+        );
+        if (write is null)
+        {
+            return null;
+        }
+
+        int bytesIndex = write.Method.Name == nameof(IInstanceDataMutator.UpdateBinaryDataElement) ? 2 : 3;
+        JsonNode? step = JsonNode.Parse(((ReadOnlyMemory<byte>)write.Arguments[bytesIndex]).Span)?["attemptStep"];
+        return step is null
+            ? null
+            : (Guid.Parse(step["stepId"]!.GetValue<string>()), step["ending"]!.GetValue<string>());
+    }
+
+    /// <summary>The payment record the step staged, over the old one or as a new one; null when it staged none.</summary>
+    private static PaymentInformation? GetStoredRecord(Mock<IInstanceDataMutator> dataMutator)
+    {
+        IInvocation? write = dataMutator.Invocations.SingleOrDefault(invocation =>
+            invocation.Method.Name
+                is nameof(IInstanceDataMutator.UpdateBinaryDataElement)
+                    or nameof(IInstanceDataMutator.AddBinaryDataElement)
+        );
+        if (write is null)
+        {
+            return null;
+        }
+
+        Assert.Equal("application/json", write.Arguments[1]);
+        int bytesIndex = write.Method.Name == nameof(IInstanceDataMutator.UpdateBinaryDataElement) ? 2 : 3;
+        return JsonSerializer.Deserialize<PaymentInformation>(
+            ((ReadOnlyMemory<byte>)write.Arguments[bytesIndex]).Span,
+            _jsonSerializerOptions
+        );
+    }
 
     private static PaymentInformation CreatePaymentInformation(PaymentStatus status)
     {

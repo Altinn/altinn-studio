@@ -35,7 +35,7 @@ internal enum WorkflowAggregateSaveOutcome
 ///
 /// Do not add this to the DI container, as it should only be created explicitly because of data leak potential.
 /// </summary>
-internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
+internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator, IReloadableInstanceData
 {
     /// <inheritdoc />
     public IReadOnlyDictionary<DataType, StorageAuthenticationMethod> AuthenticationMethodOverrides
@@ -886,7 +886,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         // Replay can only occur for preconditions carrying an idempotency key (workflow-owned saves).
         if (result.Replayed)
         {
-            await RebuildFromStorageAfterReplay(cancellationToken);
+            await ReloadFromStorage(cancellationToken);
             throw new InstanceMutationReplayedException(
                 "Storage replayed the workflow-owned instance mutation. The unit of work has been rebuilt from Storage state."
             );
@@ -1163,7 +1163,8 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         }
     }
 
-    private async Task RebuildFromStorageAfterReplay(CancellationToken cancellationToken)
+    /// <inheritdoc />
+    public async Task ReloadFromStorage(CancellationToken cancellationToken)
     {
         var appIdentifier = GetAppIdentifierForStorageLookup();
         InstanceWithStorageMetadata freshInstance = await _instanceClient.GetInstanceWithStorageMetadata(

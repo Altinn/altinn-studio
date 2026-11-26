@@ -19,10 +19,17 @@ using Altinn.Platform.Storage.Interface.Enums;
 namespace Altinn.App.Core.Internal.Process.ProcessTasks;
 
 /// <summary>
-/// Represents the process task responsible for collecting user payment.
+/// Represents the process task responsible for collecting user payment. Only a payment attempt, the action pipeline
+/// that <c>pay</c> starts, moves it on.
 /// </summary>
-internal sealed class PaymentProcessTask : IProcessTask, IProcessTaskAbandonPreparer
+internal sealed class PaymentProcessTask : IActionPipelineTask, IProcessTaskAbandonPreparer
 {
+    /// <summary>How long a payment attempt waits for the payment before it settles it with the payment processor.</summary>
+    internal static readonly TimeSpan AttemptTimeout = TimeSpan.FromHours(24);
+
+    /// <summary>The user action that starts a payment attempt.</summary>
+    internal const string PayAction = "pay";
+
     private readonly IPdfService _pdfService;
     private readonly IProcessReader _processReader;
     private readonly IPaymentService _paymentService;
@@ -51,6 +58,19 @@ internal sealed class PaymentProcessTask : IProcessTask, IProcessTaskAbandonPrep
     public string Type => AltinnTaskTypes.Payment;
 
     /// <inheritdoc/>
+    public string StartAction => PayAction;
+
+    /// <inheritdoc/>
+    public ServiceTaskPipeline DefineActionPipeline(PipelineBuilder pipeline) =>
+        pipeline
+            .Stage(StartAttempt, new MailboxOptions { Timeout = AttemptTimeout }, out MailboxHandle attempt)
+            .ConcludeOnReplies(attempt, onMessage: HandleAttemptMessage, onClosed: SettleAtDeadline);
+
+    /// <inheritdoc/>
+    public ValidationIssue ProcessNextRefusal(string taskId) =>
+        BuiltInValidationIssues.PaymentNotCompleted(GetAltinnPaymentConfiguration(taskId).Validate().PaymentDataType);
+
+    /// <inheritdoc/>
     public IEnumerable<string> ValidateConfiguration(ProcessTaskValidationContext context)
     {
         try
@@ -75,7 +95,8 @@ internal sealed class PaymentProcessTask : IProcessTask, IProcessTaskAbandonPrep
     public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) => pipeline.Stage(RemoveClosedPayment).Build();
 
     /// <inheritdoc/>
-    public ProcessTaskPipeline DefineEnd(PipelineBuilder pipeline) => pipeline.Stage(StoreReceipt).Build();
+    public ProcessTaskPipeline DefineEnd(PipelineBuilder pipeline) =>
+        pipeline.Stage(RefreshUnpaidPayment).Stage(StoreReceipt).Build();
 
     /// <inheritdoc/>
     /// <remarks>
@@ -115,6 +136,34 @@ internal sealed class PaymentProcessTask : IProcessTask, IProcessTaskAbandonPrep
         };
     }
 
+    private Task<ServiceTaskOpeningStageResult> StartAttempt(StageContext context, ServiceTaskMailbox mailbox) =>
+        _paymentService.StartAttempt(context, mailbox, GetPaymentConfiguration(context.InstanceDataMutator));
+
+    private Task<ServiceTaskExchangeResult> HandleAttemptMessage(StageContext context, ServiceTaskReply reply) =>
+        _paymentService.HandleAttemptMessage(context, reply, GetPaymentConfiguration(context.InstanceDataMutator));
+
+    private Task<ServiceTaskResult> SettleAtDeadline(StageContext context, MailboxClosedReason _) =>
+        _paymentService.SettleAtDeadline(context, GetPaymentConfiguration(context.InstanceDataMutator));
+
+    private ValidAltinnPaymentConfiguration GetPaymentConfiguration(IInstanceDataAccessor dataAccessor) =>
+        GetAltinnPaymentConfiguration(GetTaskId(dataAccessor)).Validate();
+
+    /// <summary>
+    /// Stores what the payment processor reports for a payment the record does not show as paid, in a stage of its own
+    /// because the receipt is made from the record in Storage. It is the net for two runs of one attempt step that
+    /// overlap, where Storage keeps one run's record and the engine the other's ending: the process then moves on with a
+    /// record that still shows the payment reserved.
+    /// </summary>
+    private async Task<StageResult> RefreshUnpaidPayment(StageContext context)
+    {
+        await _paymentService.RefreshUnpaidPayment(
+            context.InstanceDataMutator,
+            GetPaymentConfiguration(context.InstanceDataMutator),
+            context.CancellationToken
+        );
+        return StageResult.Completed();
+    }
+
     /// <summary>
     /// Stores the receipt of a completed payment. One stage: whether a receipt is due is read from the stored
     /// payment, which costs nothing to repeat, so only generating the receipt is worth retrying. A receipt this
@@ -130,7 +179,7 @@ internal sealed class PaymentProcessTask : IProcessTask, IProcessTaskAbandonPrep
             dataMutator,
             configuration.PaymentDataType
         );
-        // PaymentTaskValidator refuses the transition before it starts; this is a safety net.
+        // Only a payment attempt moves the task on, after storing Paid or Skipped; this is a safety net.
         if (storedPayment is null)
         {
             return StageResult.FailedRetryable("Payment information not found.");

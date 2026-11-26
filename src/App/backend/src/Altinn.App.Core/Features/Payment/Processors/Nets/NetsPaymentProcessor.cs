@@ -13,7 +13,7 @@ namespace Altinn.App.Core.Features.Payment.Processors.Nets;
 /// <summary>
 /// Implementation of IPaymentProcessor for Nets. https://developer.nexigroup.com/nexi-checkout/en-EU/api/
 /// </summary>
-internal class NetsPaymentProcessor : IPaymentProcessor
+internal class NetsPaymentProcessor : IPaymentProcessor, IPaymentAttemptProcessor
 {
     private readonly NetsPaymentSettings _settings;
     private readonly GeneralSettings _generalSettings;
@@ -38,6 +38,15 @@ internal class NetsPaymentProcessor : IPaymentProcessor
     private const string ChargeCreatedEventName = "payment.charge.created.v2";
 
     /// <summary>
+    /// Sent when a charge failed. The payment API cannot be asked whether one did, so this event is the only sign.
+    /// https://developer.nexigroup.com/nexi-checkout/en-EU/api/payment-webhooks-v1/
+    /// </summary>
+    internal const string ChargeFailedEventName = "payment.charge.failed";
+
+    /// <summary>Nets' limit on a webhook URL.</summary>
+    private const int MaxWebhookUrlLength = 256;
+
+    /// <summary>
     /// Implementation of IPaymentProcessor for Nets.
     /// </summary>
     public NetsPaymentProcessor(
@@ -59,11 +68,21 @@ internal class NetsPaymentProcessor : IPaymentProcessor
     public string PaymentProcessorId => "Nets Easy";
 
     /// <inheritdoc />
-    public async Task<PaymentDetails> StartPayment(
+    /// <remarks>Not called: a Nets payment starts in a payment attempt, which names the mailbox for its events.</remarks>
+    public Task<PaymentDetails> StartPayment(
         Instance instance,
         OrderDetails orderDetails,
         string? language,
         CancellationToken cancellationToken = default
+    ) => throw new NotSupportedException("A Nets payment starts in a payment attempt, which names its mailbox.");
+
+    /// <inheritdoc />
+    public async Task<PaymentDetails> StartPayment(
+        Instance instance,
+        OrderDetails orderDetails,
+        string? language,
+        Guid mailboxId,
+        CancellationToken cancellationToken
     )
     {
         var instanceIdentifier = new InstanceIdentifier(instance);
@@ -137,9 +156,16 @@ internal class NetsPaymentProcessor : IPaymentProcessor
         if (!_env.IsDevelopment())
         {
             string webhookSecret = _webhookSecretProvider.GetSigningSecret();
-            string webhookUrl = $"{baseUrl}instances/{instance.Id}/payment/nets-webhook-listener";
-            // The checkout can complete before the automatic charge, and the listener asks Nets for the status anyway,
-            // so the charge event makes sure a listener call sees the payment as paid.
+            string webhookUrl = $"{baseUrl}instances/{instance.Id}/payment/nets-webhook-listener/{mailboxId:D}";
+            if (webhookUrl.Length > MaxWebhookUrlLength)
+            {
+                throw new PaymentException(
+                    $"The Nets webhook URL {webhookUrl} is longer than the {MaxWebhookUrlLength} characters Nets allows."
+                );
+            }
+
+            // The checkout can complete before the automatic charge, and the attempt asks Nets for the status anyway,
+            // so the charge event makes sure a message finds the payment paid.
             payment.Notifications = new NetsNotifications()
             {
                 WebHooks =
@@ -155,6 +181,12 @@ internal class NetsPaymentProcessor : IPaymentProcessor
                         Authorization = webhookSecret,
                         Url = webhookUrl,
                         EventName = ChargeCreatedEventName,
+                    },
+                    new NetsWebHook()
+                    {
+                        Authorization = webhookSecret,
+                        Url = webhookUrl,
+                        EventName = ChargeFailedEventName,
                     },
                 ],
             };
@@ -198,6 +230,25 @@ internal class NetsPaymentProcessor : IPaymentProcessor
             cancellationToken
         );
         return result;
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> CancelReservation(
+        Instance instance,
+        PaymentInformation paymentInformation,
+        CancellationToken cancellationToken
+    )
+    {
+        if (paymentInformation.PaymentDetails?.PaymentId is null)
+        {
+            throw new PaymentException("PaymentId is missing in paymentInformation. Can't cancel.");
+        }
+
+        return await _netsClient.CancelPayment(
+            paymentInformation.PaymentDetails.PaymentId,
+            (int)(paymentInformation.OrderDetails.TotalPriceIncVat * LowestMonetaryUnitMultiplier),
+            cancellationToken
+        );
     }
 
     /// <inheritdoc />

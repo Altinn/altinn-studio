@@ -182,7 +182,7 @@ public class ProcessController : ControllerBase
 
             if (!result.Success)
             {
-                return GetResultForError(result);
+                return CreateErrorResult(result, _logger);
             }
 
             if (returnInstance)
@@ -288,7 +288,7 @@ public class ProcessController : ControllerBase
 
             if (!result.Success)
             {
-                return GetResultForError(result);
+                return CreateErrorResult(result, _logger);
             }
 
             Instance freshInstance = result.MutatedInstance ?? instance;
@@ -371,7 +371,14 @@ public class ProcessController : ControllerBase
             ? lang.ToString()
             : null;
 
-    private ActionResult GetResultForError(ProcessChangeResult result)
+    /// <summary>
+    /// The answer to a process change that did not succeed.
+    /// </summary>
+    internal static ActionResult CreateErrorResult(
+        ProcessChangeResult result,
+        ILogger logger,
+        string workflowFailureTitle = "Something went wrong while moving to the next task."
+    )
     {
         if (result.BlockingProcessStatus is { } blockingProcessStatus)
         {
@@ -390,7 +397,7 @@ public class ProcessController : ControllerBase
             // internal infrastructure text, so it is logged server-side and never serialized to
             // clients - the response ships a stable generic message plus the sanitized structured
             // failure, mirroring the read-path annotation rule (see AppProcessWorkflowFailure).
-            _logger.LogError(
+            logger.LogError(
                 "Process action failed with a workflow failure ({WorkflowFailureKind}): {WorkflowFailureDetail}",
                 result.WorkflowFailure.Kind,
                 result.ErrorMessage
@@ -400,7 +407,7 @@ public class ProcessController : ControllerBase
             {
                 Detail = CreateClientWorkflowFailureDetail(result.WorkflowFailure.Kind),
                 Status = statusCode,
-                Title = "Something went wrong while moving to the next task.",
+                Title = workflowFailureTitle,
             };
             problemDetails.Extensions["workflowFailure"] = SanitizeWorkflowFailureForClient(result.WorkflowFailure);
             if (result.ProcessStateOnFailure is not null)
@@ -409,7 +416,7 @@ public class ProcessController : ControllerBase
                 problemDetails.Extensions["processState"] = result.ProcessStateOnFailure;
             }
 
-            return StatusCode(statusCode, problemDetails);
+            return new ObjectResult(problemDetails) { StatusCode = statusCode };
         }
 
         switch (result.ErrorType)
@@ -421,7 +428,7 @@ public class ProcessController : ControllerBase
                     extensions["processNextState"] = ToProcessNextStateValue(processNextState);
                 }
 
-                return Conflict(
+                return new ConflictObjectResult(
                     new ProblemDetails()
                     {
                         Detail = result.ErrorMessage,
@@ -431,35 +438,41 @@ public class ProcessController : ControllerBase
                     }
                 );
             case ProcessErrorType.Internal:
-                return StatusCode(
-                    500,
+                return new ObjectResult(
                     new ProblemDetails()
                     {
                         Detail = result.ErrorMessage,
                         Status = StatusCodes.Status500InternalServerError,
                         Title = result.ErrorTitle ?? "Internal server error",
                     }
-                );
+                )
+                {
+                    StatusCode = StatusCodes.Status500InternalServerError,
+                };
             case ProcessErrorType.Unauthorized:
-                return StatusCode(
-                    403,
+                return new ObjectResult(
                     new ProblemDetails()
                     {
                         Detail = result.ErrorMessage,
                         Status = StatusCodes.Status403Forbidden,
                         Title = result.ErrorTitle ?? "Unauthorized",
                     }
-                );
+                )
+                {
+                    StatusCode = StatusCodes.Status403Forbidden,
+                };
             default:
-                return StatusCode(
-                    500,
+                return new ObjectResult(
                     new ProblemDetails()
                     {
                         Detail = $"Unknown ProcessErrorType {result.ErrorType}",
                         Status = StatusCodes.Status500InternalServerError,
                         Title = result.ErrorTitle ?? "Internal server error",
                     }
-                );
+                )
+                {
+                    StatusCode = StatusCodes.Status500InternalServerError,
+                };
         }
     }
 
