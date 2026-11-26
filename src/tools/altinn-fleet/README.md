@@ -117,11 +117,15 @@ The checkout is restored and compiled on every run. When it does not compile, or
 from the last run that read it is kept, and `api_usage_library_versions` says why the read failed.
 [ApiUsageAnalysis.cs](src/Altinn.Studio.Fleet/Analysis/ApiUsage/ApiUsageAnalysis.cs) has the analysis's tables.
 
-- It needs the .NET SDKs the apps' `global.json` files select, and network access to the NuGet feeds the apps use.
-  An app whose restore or compilation fails is recorded as failed with the reason, and tried again on the next run.
-  The uses found are kept, but those in the code that does not compile are missing. A test project that does not
-  compile is noted in `load_failures` instead, and so is a source generator that fails on the app's code, since it
-  fails in the app's own build too, and the app runs without what it would write.
+- It needs the .NET SDKs the apps' `global.json` files select, and network access to the NuGet feeds the apps use. An
+  app whose restore or compilation fails is recorded as failed with the reason, and tried again on the next run. The
+  uses found are kept, but those in the code that does not compile are missing. A test project that does not compile is
+  noted in `load_failures` instead, and so is a source generator that fails on the app's code, since it fails in the
+  app's own build too, and the app runs without what it would write. An app's library version is that of the
+  `Altinn.App.Api` assembly, or else `Altinn.App.Core`, that its compilation uses, which is the one its build ships when
+  packages bring several versions. When its code also uses library assemblies of another version, such as
+  `Altinn.App.PlatformServices` 6.0.2 that a package depends on beside v8, that is noted in `load_failures` too, since
+  those uses are compared with its library version's API.
 - Uses in the app's own code, in code that source generators add to it and in its test projects are told apart,
   since a test project that uses a type is a weaker reason to keep it public than the app itself.
 - Members that code calls without naming them count too, such as `GetEnumerator` in a `foreach`, `GetAwaiter` in an

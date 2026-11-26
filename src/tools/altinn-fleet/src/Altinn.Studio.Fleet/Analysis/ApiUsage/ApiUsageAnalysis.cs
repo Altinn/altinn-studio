@@ -22,7 +22,8 @@ public sealed class ApiUsageAnalysis : IItemAnalysis
 
     // 2 records the app library's package version rather than its assembly version, and the public API of each
     // version the apps use. 3 records the package the version comes from, so that builds of pull requests are read.
-    public int Version => 3;
+    // 4 takes the version from the assembly the app's compilation uses, which is the one its build ships.
+    public int Version => 4;
 
     public string ItemsName => "app library versions";
 
@@ -40,8 +41,8 @@ public sealed class ApiUsageAnalysis : IItemAnalysis
                 org TEXT NOT NULL,
                 app TEXT NOT NULL,
                 project TEXT,
-                library_package TEXT, -- the Altinn.App package that gives library_version, such as Altinn.App.Api
-                library_version TEXT, -- the version of it that the restore resolved
+                library_package TEXT, -- the Altinn.App package its build ships, such as Altinn.App.Api
+                library_version TEXT, -- the version of library_package
                 restore_error TEXT,
                 compile_errors INTEGER NOT NULL,
                 sample_errors TEXT,

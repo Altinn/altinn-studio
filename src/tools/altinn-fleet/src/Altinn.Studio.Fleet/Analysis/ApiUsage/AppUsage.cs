@@ -5,11 +5,12 @@ namespace Altinn.Studio.Fleet.Analysis.ApiUsage;
 /// <summary>What one app uses of the app library, or why that could not be found out.</summary>
 /// <param name="Project">The app's project, relative to the app's folder.</param>
 /// <param name="LibraryPackage">
-/// The Altinn.App package that says which version of the app library the app uses, such as <c>Altinn.App.Api</c>, or
-/// <c>Altinn.App.Api.Experimental</c> for a build of a pull request. <c>null</c> when it uses none, such as with a
-/// project reference to the app library.
+/// The Altinn.App package that the app's build ships the app library from, such as <c>Altinn.App.Api</c>, or
+/// <c>Altinn.App.Api.Experimental</c> for a build of a pull request. See
+/// <see cref="AppCollector.CompiledLibraryPackage"/>. <c>null</c> when it ships none, such as with a project reference
+/// to the app library.
 /// </param>
-/// <param name="LibraryVersion">The version of <paramref name="LibraryPackage"/> that the restore resolved.</param>
+/// <param name="LibraryVersion">The version of <paramref name="LibraryPackage"/>.</param>
 /// <param name="Failure">
 /// Why the app could not be analyzed, or not completely, or <c>null</c>. Uses found despite it are still listed.
 /// </param>

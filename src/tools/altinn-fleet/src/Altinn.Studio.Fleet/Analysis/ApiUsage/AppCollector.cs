@@ -43,6 +43,7 @@ internal static class AppCollector
         var uses = new UseCollector(appDir);
         var errors = new List<Diagnostic>();
         var references = new List<AssemblyIdentity>();
+        var libraryFiles = new List<(string Assembly, string File)>();
 
         // The app project, and the app's own library projects that it references: some apps reach the app library
         // only through those.
@@ -62,6 +63,11 @@ internal static class AppCollector
             }
 
             references.AddRange(compilation.ReferencedAssemblyNames);
+            if (current.Id == appProject.Id)
+            {
+                libraryFiles.AddRange(LibraryFiles(compilation));
+            }
+
             errors.AddRange(
                 compilation.GetDiagnostics(cancellationToken).Where(d => d.Severity == DiagnosticSeverity.Error)
             );
@@ -129,6 +135,17 @@ internal static class AppCollector
 
         bool referencesLibrary = references.Any(a => LibrarySymbols.IsLibraryAssembly(a.Name));
         using ProjectAssets? assets = ProjectAssets.Read(Path.GetDirectoryName(projectFile) ?? appDir);
+        List<SymbolUse> found = uses.ToList();
+        AltinnAppPackage? libraryPackage = assets is null ? null : CompiledLibraryPackage(assets, libraryFiles);
+        if (
+            assets is not null
+            && libraryPackage is not null
+            && MixedLibraryNote(assets, libraryPackage, libraryFiles, found) is { } mixed
+        )
+        {
+            loadFailures.Add($"{project}: {mixed}");
+        }
+
         // Uses in code that does not compile are missing. So a run with errors is a failure, with the uses that were
         // found, and the next run tries the app again. A restore that failed for a moment, such as a feed that did not
         // answer, is one too, even when what it left compiles.
@@ -141,18 +158,116 @@ internal static class AppCollector
             : null;
         return new AppUsage(
             project,
-            assets?.LibraryPackage?.Name,
-            assets?.LibraryPackage?.Version,
+            libraryPackage?.Name,
+            libraryPackage?.Version,
             failure,
             restoreError,
             loadFailures,
             errors.Count,
             [.. errors.Take(SampleErrorCount).Select(e => e.ToString())],
             testProjects,
-            uses.ToList(),
+            found,
             assets is null ? [] : BinaryReferences.Scan(assets)
         );
     }
+
+    /// <summary>
+    /// The version of the app library that a project ships with: the package of the first of
+    /// <see cref="AltinnAppPackage.LibraryPackageNames"/> whose assembly its compilation references from one of
+    /// <see cref="AltinnAppPackage.PackageNames"/>, which is <c>Altinn.App.Api</c>, or <c>Altinn.App.Core</c> without
+    /// it. A restore can resolve several, such as a published <c>Altinn.App.Core</c> that a package depends on beside
+    /// a build of a pull request, but MSBuild compiles against one of the assemblies of a name and copies that one to
+    /// the build's output. <c>null</c> when none comes from a package, such as with a project reference to the app
+    /// library's source.
+    /// </summary>
+    /// <param name="assets">The project's restored packages.</param>
+    /// <param name="libraryFiles">The app library assemblies the compilation references, and their files.</param>
+    internal static AltinnAppPackage? CompiledLibraryPackage(
+        ProjectAssets assets,
+        IReadOnlyList<(string Assembly, string File)> libraryFiles
+    )
+    {
+        foreach (string name in AltinnAppPackage.LibraryPackageNames)
+        {
+            foreach ((string assembly, string file) in libraryFiles)
+            {
+                if (
+                    assembly == name
+                    && assets.PackageOf(file) is { } package
+                    && AltinnAppPackage.TryParse(
+                        new PackageReference(package.Name, package.Version),
+                        out AltinnAppPackage? library
+                    )
+                )
+                {
+                    return library;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Says when a project's code uses app library assemblies that it compiles against from a package of another
+    /// version than <paramref name="libraryPackage"/>, such as <c>Altinn.App.PlatformServices</c> 6.0.2 that a
+    /// package depends on, beside v8. The app then ships with two versions, and those uses are compared with the API of
+    /// the one its library version names. <c>null</c> when it uses none, or when every assembly comes from that
+    /// version.
+    /// </summary>
+    /// <param name="assets">The project's restored packages.</param>
+    /// <param name="libraryPackage">The package the project's library version is taken from.</param>
+    /// <param name="libraryFiles">The app library assemblies the compilation references, and their files.</param>
+    /// <param name="uses">The uses found, of which those in tests do not count.</param>
+    internal static string? MixedLibraryNote(
+        ProjectAssets assets,
+        AltinnAppPackage libraryPackage,
+        IEnumerable<(string Assembly, string File)> libraryFiles,
+        IEnumerable<SymbolUse> uses
+    )
+    {
+        Dictionary<string, int> symbols = uses.Where(u => u.Source != UseSources.Test)
+            .GroupBy(u => u.Assembly, StringComparer.Ordinal)
+            .ToDictionary(g => g.Key, g => g.Select(u => u.Symbol).Distinct(StringComparer.Ordinal).Count());
+        List<string> others =
+        [
+            .. libraryFiles
+                .Select(f => (f.Assembly, Package: assets.PackageOf(f.File)))
+                .Where(f =>
+                    f.Package is { } package
+                    && symbols.ContainsKey(f.Assembly)
+                    && (
+                        !package.Version.Equals(libraryPackage.Version, StringComparison.OrdinalIgnoreCase)
+                        || package.Name.EndsWith(
+                            AltinnAppPackage.ExperimentalSuffix,
+                            StringComparison.OrdinalIgnoreCase
+                        ) != libraryPackage.IsExperimental
+                    )
+                )
+                .OrderBy(f => f.Assembly, StringComparer.Ordinal)
+                .Select(f =>
+                    $"{symbols[f.Assembly]} {(symbols[f.Assembly] == 1 ? "symbol" : "symbols")} of {f.Assembly} "
+                    + f.Package!.Version
+                ),
+        ];
+        return others.Count == 0
+            ? null
+            : $"its code uses {string.Join(", ", others)}, which it ships with beside {libraryPackage.Name} "
+                + $"{libraryPackage.Version}, so those uses are compared with {libraryPackage.Version}'s API";
+    }
+
+    // The app library assemblies a compilation references, with their files.
+    private static IEnumerable<(string Assembly, string File)> LibraryFiles(Compilation compilation) =>
+        compilation
+            .References.OfType<PortableExecutableReference>()
+            .Select(reference =>
+                (
+                    Assembly: (compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol)?.Name,
+                    reference.FilePath
+                )
+            )
+            .Where(r => r.FilePath is not null && LibrarySymbols.IsLibraryAssembly(r.Assembly))
+            .Select(r => (r.Assembly!, r.FilePath!));
 
     /// <summary>
     /// What the app's files say about it, as the store's index reads it, such as which project is the app's: see

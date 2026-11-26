@@ -54,31 +54,23 @@ internal sealed class ProjectAssets : IDisposable
     /// <summary>Each package once, from the first target framework that has it.</summary>
     public IReadOnlyList<AssetsPackage> Packages { get; }
 
-    /// <summary>
-    /// The Altinn.App package that says which version of the app library the project uses: the first of
-    /// <see cref="AltinnAppPackage.PackageNames"/> it resolved, also from a build of a pull request. <c>null</c> when
-    /// it resolved none, such as with a project reference to the app library's source.
-    /// </summary>
-    public AltinnAppPackage? LibraryPackage
+    /// <summary>The package that a file, such as an assembly a compilation references, is in, or <c>null</c>.</summary>
+    public AssetsPackage? PackageOf(string file)
     {
-        get
-        {
-            foreach (string name in AltinnAppPackage.PackageNames)
-            {
-                if (
-                    Packages.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase)) is { } found
-                    && AltinnAppPackage.TryParse(
-                        new PackageReference(found.Name, found.Version),
-                        out AltinnAppPackage? package
-                    )
+        StringComparison comparison = OperatingSystem.IsWindows()
+            ? StringComparison.OrdinalIgnoreCase
+            : StringComparison.Ordinal;
+        string path = System.IO.Path.GetFullPath(file);
+        return Packages.FirstOrDefault(package =>
+            package.Path is { } relative
+            && PackageFolders.Any(folder =>
+                path.StartsWith(
+                    System.IO.Path.GetFullPath(System.IO.Path.Join(folder, relative))
+                        + System.IO.Path.DirectorySeparatorChar,
+                    comparison
                 )
-                {
-                    return package;
-                }
-            }
-
-            return null;
-        }
+            )
+        );
     }
 
     /// <summary>Reads a restored project's assets, or returns <c>null</c> when it has none.</summary>

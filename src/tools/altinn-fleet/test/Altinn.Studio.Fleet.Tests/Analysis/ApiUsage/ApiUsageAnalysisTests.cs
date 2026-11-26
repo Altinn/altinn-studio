@@ -1,3 +1,4 @@
+using Altinn.Studio.Common.Domain.App;
 using Altinn.Studio.Fleet.Analysis;
 using Altinn.Studio.Fleet.Analysis.ApiUsage;
 
@@ -39,25 +40,63 @@ public sealed class ApiUsageAnalysisTests : IDisposable
     }
 
     [Theory]
-    [InlineData("Altinn.App.Core/8.12.17,Altinn.App.Api/8.12.17,Some.Package/1.0.0", "Altinn.App.Api/8.12.17")]
-    [InlineData("Altinn.App.Core/8.12.17,Some.Package/1.0.0", "Altinn.App.Core/8.12.17")]
-    [InlineData("Altinn.App.Api/6.0.2,Altinn.App.Common/6.0.2", "Altinn.App.Api/6.0.2")]
+    // A published Altinn.App.Api that a package depends on beside a build of a pull request, whose assemblies win.
     [InlineData(
-        "Altinn.App.Core.Experimental/8.7.0-pr.1973.x.0124a541,Altinn.App.Api.Experimental/8.7.0-pr.1973.x.0124a541",
-        "Altinn.App.Api.Experimental/8.7.0-pr.1973.x.0124a541"
+        "Altinn.App.Api=Altinn.App.Api.Experimental/8.7.0-pr.1,Altinn.App.Core=Altinn.App.Core.Experimental/8.7.0-pr.1",
+        "Altinn.App.Api.Experimental/8.7.0-pr.1"
     )]
-    [InlineData("Some.Package/1.0.0", null)]
-    public void LibraryPackage_IsTheFirstAltinnAppPackageTheRestoreResolved(string libraries, string? expected)
+    [InlineData("Altinn.App.Core=Altinn.App.Core/8.12.17", "Altinn.App.Core/8.12.17")]
+    [InlineData(
+        "Altinn.App.Common=Altinn.App.Common/6.0.2,Altinn.App.Api=Altinn.App.Api/6.0.2",
+        "Altinn.App.Api/6.0.2"
+    )]
+    [InlineData("Altinn.App.Api=", null)]
+    public void CompiledLibraryPackage_IsThePackageOfTheApiOrCoreAssemblyTheCompilationUses(
+        string files,
+        string? expected
+    )
     {
-        string targets = string.Join(
-            ',',
-            libraries.Split(',').Select(library => $"\"{library}\": {{ \"type\": \"package\" }}")
+        using ProjectAssets assets = Assets();
+
+        AltinnAppPackage? package = AppCollector.CompiledLibraryPackage(assets, LibraryFiles(files));
+
+        Assert.Equal(expected, package is null ? null : $"{package.Name}/{package.Version}");
+    }
+
+    [Theory]
+    [InlineData("app", "Altinn.App.PlatformServices=Altinn.App.PlatformServices/6.0.2", true)]
+    [InlineData("test", "Altinn.App.PlatformServices=Altinn.App.PlatformServices/6.0.2", false)]
+    [InlineData("app", "Altinn.App.Core=Altinn.App.Core/8.11.3", false)]
+    public void MixedLibraryNote_SaysWhenTheAppsCodeUsesAnAssemblyOfAnotherVersion(
+        string source,
+        string usedFile,
+        bool expected
+    )
+    {
+        using ProjectAssets assets = Assets();
+        string used = usedFile.Split('=')[0];
+        SymbolUse[] uses =
+        [
+            new($"T:{used}.Used", used, UseKinds.Type, source, 2, "App/Program.cs:1"),
+            new($"T:{used}.Also", used, UseKinds.Type, source, 1, "App/Program.cs:2"),
+        ];
+
+        string? note = AppCollector.MixedLibraryNote(
+            assets,
+            AltinnAppPackage.TryParse(new PackageReference("Altinn.App.Api", "8.11.3"), out var library)
+                ? library
+                : throw new InvalidOperationException(),
+            LibraryFiles($"Altinn.App.Api=Altinn.App.Api/8.11.3,{usedFile}"),
+            uses
         );
-        Write("obj/project.assets.json", $$"""{ "targets": { "net8.0": { {{targets}} } } }""");
 
-        using ProjectAssets? assets = ProjectAssets.Read(_folder);
-
-        Assert.Equal(expected, assets?.LibraryPackage is { } package ? $"{package.Name}/{package.Version}" : null);
+        Assert.Equal(
+            expected
+                ? "its code uses 2 symbols of Altinn.App.PlatformServices 6.0.2, which it ships with beside "
+                    + "Altinn.App.Api 8.11.3, so those uses are compared with 8.11.3's API"
+                : null,
+            note
+        );
     }
 
     [Fact]
@@ -217,6 +256,59 @@ public sealed class ApiUsageAnalysisTests : IDisposable
     }
 
     public void Dispose() => Directory.Delete(_folder, recursive: true);
+
+    private static readonly string[] s_packages =
+    [
+        "Altinn.App.Api/6.0.2",
+        "Altinn.App.Common/6.0.2",
+        "Altinn.App.PlatformServices/6.0.2",
+        "Altinn.App.Api/8.6.6",
+        "Altinn.App.Api/8.11.3",
+        "Altinn.App.Core/8.11.3",
+        "Altinn.App.Core/8.12.17",
+        "Altinn.App.Api.Experimental/8.7.0-pr.1",
+        "Altinn.App.Core.Experimental/8.7.0-pr.1",
+    ];
+
+    private string PackagesFolder => Path.Join(_folder, "packages");
+
+    /// <summary>A restore that resolved <see cref="s_packages"/>, as a project's assets list them.</summary>
+    private ProjectAssets Assets()
+    {
+        string targets = string.Join(",", s_packages.Select(p => $"\"{p}\": {{ \"type\": \"package\" }}"));
+        string libraries = string.Join(
+            ",",
+            s_packages.Select(p => $"\"{p}\": {{ \"path\": \"{p.ToLowerInvariant()}\" }}")
+        );
+        string folder = System.Text.Json.JsonSerializer.Serialize(PackagesFolder + Path.DirectorySeparatorChar);
+        Write(
+            "obj/project.assets.json",
+            $$"""
+            { "targets": { "net8.0": { {{targets}} } }, "libraries": { {{libraries}} },
+              "packageFolders": { {{folder}}: {} } }
+            """
+        );
+        return ProjectAssets.Read(_folder)!;
+    }
+
+    /// <summary>
+    /// The assembly files a compilation references, from <c>Assembly=Package/Version</c> pairs. An empty package is a
+    /// file outside the packages, as with a project reference.
+    /// </summary>
+    private List<(string Assembly, string File)> LibraryFiles(string files) =>
+        [
+            .. files
+                .Split(',')
+                .Select(pair => pair.Split('='))
+                .Select(pair =>
+                    (
+                        pair[0],
+                        pair[1].Length == 0
+                            ? Path.Join(_folder, "src", "bin", $"{pair[0]}.dll")
+                            : Path.Join(PackagesFolder, pair[1].ToLowerInvariant(), "lib", "net8.0", $"{pair[0]}.dll")
+                    )
+                ),
+        ];
 
     private static List<string> Query(AnalysisDatabase database, string sql) =>
         database.Write(tables => tables.Query(sql, reader => reader.GetString(0)));
