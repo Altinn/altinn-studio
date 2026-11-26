@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
-import type { AppContextProps, WindowWithQueryClient } from './AppContext';
+import type { AppContextProps } from './AppContext';
 import { AppContextProvider } from './AppContext';
 import userEvent from '@testing-library/user-event';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
@@ -9,30 +9,20 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useAppContext } from './hooks';
-import type { QueryClient } from '@tanstack/react-query';
 import { layout1NameMock } from './testing/layoutMock';
 import { app, layoutSet, org } from '@designer/testing/testids';
-import { AppsQueryKey } from 'app-shared/types/AppsQueryKey';
+import { PreviewContext, type PreviewContextProps } from 'app-shared/contexts/PreviewContext';
 import { AppRouter } from './testing/mocks';
 
 const mockSelectedFormLayoutSetName = layoutSet;
 const mockSelectedFormLayoutName = layout1NameMock;
 
 const TestComponent = ({
-  queryClient,
   children,
 }: {
-  queryClient: QueryClient;
   children: (appContext: Partial<AppContextProps>) => React.ReactNode;
 }) => {
   const appContext = useAppContext();
-  useEffect(() => {
-    if (appContext.previewIframeRef) {
-      const contentWindow: WindowWithQueryClient =
-        appContext.previewIframeRef?.current?.contentWindow;
-      contentWindow.queryClient = queryClient;
-    }
-  }, [appContext.previewIframeRef, queryClient]);
   return (
     <>
       {children(appContext)}
@@ -52,9 +42,13 @@ const clickButton = async () => {
 };
 
 const renderAppContext = (children: (appContext: AppContextProps) => React.ReactNode) => {
+  const doReloadPreview = vi.fn();
+  const previewContextValue: PreviewContextProps = {
+    shouldReloadPreview: false,
+    doReloadPreview,
+    previewHasLoaded: vi.fn(),
+  };
   const queryClient = createQueryClientMock();
-  queryClient.invalidateQueries = vi.fn();
-  queryClient.resetQueries = vi.fn();
   queryClient.setQueryData(
     [QueryKey.LayoutSets, org, app],
     [
@@ -76,19 +70,20 @@ const renderAppContext = (children: (appContext: AppContextProps) => React.React
     ...render(
       <AppRouter params={{ org, app, layoutSet }}>
         <ServicesContextProvider {...queriesMock} client={queryClient}>
-          <AppContextProvider
-            shouldReloadPreview={false}
-            previewHasLoaded={vi.fn()}
-            onLayoutSetNameChange={vi.fn()}
-          >
-            <TestComponent queryClient={queryClient}>
-              {(appContext: AppContextProps) => children(appContext)}
-            </TestComponent>
-          </AppContextProvider>
+          <PreviewContext.Provider value={previewContextValue}>
+            <AppContextProvider
+              shouldReloadPreview={false}
+              previewHasLoaded={vi.fn()}
+              onLayoutSetNameChange={vi.fn()}
+            >
+              <TestComponent>{(appContext: AppContextProps) => children(appContext)}</TestComponent>
+            </AppContextProvider>
+          </PreviewContext.Provider>
         </ServicesContextProvider>
       </AppRouter>,
     ),
     queryClient,
+    doReloadPreview,
   };
 };
 
@@ -112,101 +107,62 @@ describe('AppContext', () => {
     );
   });
 
-  it('resets layouts query for Apps in preview', async () => {
-    const { queryClient } = renderAppContext(({ updateLayoutsForPreview }: AppContextProps) => (
-      <Button onClick={() => updateLayoutsForPreview(layoutSet, true)} />
+  describe('when the Studio bridge in the frame is ready', () => {
+    const previewOrigin = 'https://preview.test';
+    const frameWindow = (): Window =>
+      (screen.getByTestId('previewIframeRef') as HTMLIFrameElement).contentWindow;
+
+    it.each([
+      [
+        'layoutsChanged',
+        ({ updateLayoutsForPreview }: AppContextProps) => updateLayoutsForPreview(layoutSet),
+      ],
+      [
+        'layoutSettingsChanged',
+        ({ updateLayoutSettingsForPreview }: AppContextProps) =>
+          updateLayoutSettingsForPreview(layoutSet),
+      ],
+      ['textsChanged', ({ updateTextsForPreview }: AppContextProps) => updateTextsForPreview('nb')],
+    ])('tells it about %s, in place of reloading the frame', async (type, update) => {
+      const { doReloadPreview } = renderAppContext((appContext: AppContextProps) => (
+        <Button
+          onClick={() => {
+            appContext.previewBridgeOriginRef.current = previewOrigin;
+            update(appContext);
+          }}
+        />
+      ));
+      const postMessage = vi.spyOn(frameWindow(), 'postMessage');
+      await clickButton();
+      expect(postMessage).toHaveBeenCalledWith(
+        { type, source: 'altinn-studio', version: 1 },
+        previewOrigin,
+      );
+      expect(doReloadPreview).not.toHaveBeenCalled();
+    });
+
+    it('reloads the frame when the change replaces what the frontend has, or the layout sets changed', async () => {
+      const { doReloadPreview } = renderAppContext((appContext: AppContextProps) => (
+        <Button
+          onClick={() => {
+            appContext.previewBridgeOriginRef.current = previewOrigin;
+            appContext.updateLayoutsForPreview(layoutSet, true);
+            appContext.updateLayoutSetsForPreview();
+          }}
+        />
+      ));
+      const postMessage = vi.spyOn(frameWindow(), 'postMessage');
+      await clickButton();
+      expect(postMessage).not.toHaveBeenCalled();
+      await waitFor(() => expect(doReloadPreview).toHaveBeenCalledTimes(2));
+    });
+  });
+
+  it('reloads the frame when its page has no ready bridge', async () => {
+    const { doReloadPreview } = renderAppContext(({ updateLayoutsForPreview }: AppContextProps) => (
+      <Button onClick={() => updateLayoutsForPreview(layoutSet)} />
     ));
-
     await clickButton();
-
-    await waitFor(() => expect(queryClient.resetQueries).toHaveBeenCalledTimes(1));
-    await waitFor(() =>
-      expect(queryClient.resetQueries).toHaveBeenCalledWith({
-        queryKey: [AppsQueryKey.AppLayouts, mockSelectedFormLayoutSetName],
-      }),
-    );
-  });
-
-  it('invalidates layout sets query for Apps in preview', async () => {
-    const { queryClient } = renderAppContext(({ updateLayoutSetsForPreview }: AppContextProps) => (
-      <Button onClick={() => updateLayoutSetsForPreview()} />
-    ));
-
-    await clickButton();
-
-    await waitFor(() => expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(1));
-    await waitFor(() =>
-      expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
-        queryKey: [AppsQueryKey.AppLayoutSets],
-      }),
-    );
-  });
-
-  it('invalidates layout settings query for Apps in preview', async () => {
-    const { queryClient } = renderAppContext(
-      ({ updateLayoutSettingsForPreview }: AppContextProps) => (
-        <Button onClick={() => updateLayoutSettingsForPreview(layoutSet)} />
-      ),
-    );
-
-    await clickButton();
-
-    await waitFor(() => expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(1));
-    await waitFor(() =>
-      expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
-        queryKey: [AppsQueryKey.AppLayoutSettings, mockSelectedFormLayoutSetName],
-      }),
-    );
-  });
-
-  it('reset layout settings query for Apps in preview', async () => {
-    const { queryClient } = renderAppContext(
-      ({ updateLayoutSettingsForPreview }: AppContextProps) => (
-        <Button onClick={() => updateLayoutSettingsForPreview(layoutSet, true)} />
-      ),
-    );
-
-    await clickButton();
-
-    await waitFor(() => expect(queryClient.resetQueries).toHaveBeenCalledTimes(1));
-    await waitFor(() =>
-      expect(queryClient.resetQueries).toHaveBeenCalledWith({
-        queryKey: [AppsQueryKey.AppLayoutSettings, mockSelectedFormLayoutSetName],
-      }),
-    );
-  });
-
-  it('invalidates text query for Apps in preview', async () => {
-    const mockLanguage = 'nb';
-
-    const { queryClient } = renderAppContext(({ updateTextsForPreview }: AppContextProps) => (
-      <Button onClick={() => updateTextsForPreview(mockLanguage)} />
-    ));
-
-    await clickButton();
-
-    await waitFor(() => expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(1));
-    await waitFor(() =>
-      expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
-        queryKey: [AppsQueryKey.AppTextResources, mockLanguage],
-      }),
-    );
-  });
-
-  it('resets text query for Apps in preview', async () => {
-    const mockLanguage = 'nb';
-
-    const { queryClient } = renderAppContext(({ updateTextsForPreview }: AppContextProps) => (
-      <Button onClick={() => updateTextsForPreview(mockLanguage, true)} />
-    ));
-
-    await clickButton();
-
-    await waitFor(() => expect(queryClient.resetQueries).toHaveBeenCalledTimes(1));
-    await waitFor(() =>
-      expect(queryClient.resetQueries).toHaveBeenCalledWith({
-        queryKey: [AppsQueryKey.AppTextResources, mockLanguage],
-      }),
-    );
+    await waitFor(() => expect(doReloadPreview).toHaveBeenCalledTimes(1));
   });
 });

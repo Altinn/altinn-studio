@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Preview } from './Preview';
-import { screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { act, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import type { ExtendedRenderOptions } from '../../testing/mocks';
 import { renderWithProviders } from '../../testing/mocks';
 import { textMock } from '@designer/testing/mocks/i18nMock';
@@ -178,6 +178,23 @@ describe('Preview', () => {
     expect(appContextMock.previewIframeRef.current.src).toBe(
       `${mockSessionUrl}#/instance/${mockInstanceId}/${taskId}/${appContextMock.selectedFormLayoutName}`,
     );
+  });
+
+  it('sends changes to the bridge in the frame once its page is ready, and only from there', async () => {
+    render();
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('preview.loading_preview_controller')),
+    );
+    const ready = { source: 'altinn-studio-preview', version: 1, type: 'ready' };
+    const post = (origin: string, source: Window | null) =>
+      act(() => window.dispatchEvent(new MessageEvent('message', { data: ready, origin, source })));
+
+    post('https://other.test', appContextMock.previewIframeRef.current.contentWindow);
+    post(new URL(mockSessionUrl).origin, window);
+    expect(appContextMock.previewBridgeOriginRef.current).toBeNull();
+
+    post(new URL(mockSessionUrl).origin, appContextMock.previewIframeRef.current.contentWindow);
+    expect(appContextMock.previewBridgeOriginRef.current).toBe(new URL(mockSessionUrl).origin);
   });
 });
 

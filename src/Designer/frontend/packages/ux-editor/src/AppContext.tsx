@@ -11,10 +11,10 @@ import useUxEditorParams from './hooks/useUxEditorParams';
 import { usePreviewContext } from 'app-shared/contexts/PreviewContext';
 import {
   noPreviewComponentErrors,
-  previewChangeMessage,
+  postPreviewChange,
   type PreviewChange,
   type PreviewComponentErrors,
-} from './components/Preview/studioBridge';
+} from 'app-shared/utils/studioBridge';
 
 export type SelectedItem =
   | {
@@ -86,13 +86,11 @@ export const AppContextProvider = ({
   // Preview runs on a domain of its own, so the editors can't reach the app frontend's queries. The Studio bridge in the
   // frame has the frontend show changed layouts and texts in place, which keeps the developer's place in the form.
   // Other changes, and a frame without a ready bridge, reload the frame. Its session keeps the instance and its data.
-  const tellPreview = useCallback((change: PreviewChange): boolean => {
-    const frameWindow = previewIframeRef.current?.contentWindow;
-    const bridgeOrigin = previewBridgeOriginRef.current;
-    if (!frameWindow || !bridgeOrigin) return false;
-    frameWindow.postMessage(previewChangeMessage(change), bridgeOrigin);
-    return true;
-  }, []);
+  const tellPreview = useCallback(
+    (change: PreviewChange): boolean =>
+      postPreviewChange(previewIframeRef.current, previewBridgeOriginRef.current, change),
+    [],
+  );
 
   const updateLayoutsForPreview = useCallback(
     async (_layoutSetName: string, resetQueries: boolean = false): Promise<void> => {

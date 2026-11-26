@@ -56,39 +56,44 @@ mock user, the instances and the process are the same as for a v9 app.
 
 ## The Studio bridge
 
-A v9 app's page runs a script of preview's before the app frontend,
-[studio-bridge.js](src/Altinn.Studio.Preview/AppApi/studio-bridge.js). It tells Studio's page which components the
-frontend found errors in, and the UI editor shows the errors by the components. Studio's page tells it when the app's
-layouts or texts change, and it has the frontend show the change without reloading the page, so the developer keeps
-their place in the form. The script needs nothing new from the frontend, so it works with each published version, and
-it is never part of a published app.
+Each app's page runs a script of preview's, [studio-bridge.js](src/Altinn.Studio.Preview/AppApi/studio-bridge.js).
+Studio's page tells it when the app's layouts, page settings or texts change, and it has the frontend show the change
+without reloading the page, so the developer keeps their place in the form. On a v9 app's page it also tells Studio's
+page which components the frontend found errors in, and the UI editor shows the errors by the components. The script
+needs nothing new from the frontends, so it works with each published version, and it is never part of a published
+app.
 
-- It turns on the frontend's validation of the layout, which the frontend otherwise runs only on hosts it knows as
-  Studio's or a test environment's. The page also says that developers test the app here
-  (`platformFrontendSettings.development`), which turns on the validation, the errors in place of a component and
-  the developer tools in frontend versions that read it (#21860). Older versions leave out a component with errors.
-- It defines `window.logError` and `window.logErrorOnce` before the frontend, which then logs through them. The
-  frontend logs each error in a component's configuration with the component's ID.
-- The frontend reads the layout schema from Studio's app frontend distributions, which Designer lets any origin read.
-- For a changed layout it has the frontend fetch the form bootstrap again. For changed texts it first replaces the
-  texts in the page's `altinnAppGlobalData`, since the frontend takes the texts in the page's language from there.
-  When the frontend has no such queries, the script reloads the page.
+- It has the frontend fetch the changed layouts, page settings or texts again. The v9 frontend keeps layouts in its
+  form bootstrap, and takes the texts in the page's language from the page's `altinnAppGlobalData`, so for changed
+  texts the script first replaces those. When the frontend has none of the queries a change needs, as the v9 frontend
+  for page settings, which it has from the page, the script reloads the page.
+- On a v9 app's page it runs before the frontend. It turns on the frontend's validation of the layout, which the
+  frontend otherwise runs only on hosts it knows as Studio's or a test environment's. The page also says that
+  developers test the app here (`platformFrontendSettings.development`), which turns on the validation, the errors in
+  place of a component and the developer tools in frontend versions that read it (#21860). Older versions leave out a
+  component with errors.
+- It defines `window.logError` and `window.logErrorOnce` before the v9 frontend, which then logs through them. The
+  frontend logs each error in a component's configuration with the component's ID. A layout change starts the errors
+  over, since the frontend validates the new layouts and logs again what is still wrong.
+- The v9 frontend reads the layout schema from Studio's app frontend distributions, which Designer lets any origin
+  read.
 - It catches its own errors, so preview works without it. The app's own scripts run on the same page and can send the
   same messages, so Studio checks each message as untrusted input and only shows what it says.
 
 The messages in both directions have a `source`, a `version` and a `type`:
 
-| From     | `source`                | `type`            | Meaning                                                                                            |
-| -------- | ----------------------- | ----------------- | -------------------------------------------------------------------------------------------------- |
-| The page | `altinn-studio-preview` | `ready`           | The page has started: Studio forgets the errors of the page before, and sends changes from now on. |
-| The page | `altinn-studio-preview` | `componentErrors` | The errors the frontend has logged so far, by component ID.                                        |
-| Studio   | `altinn-studio`         | `layoutsChanged`  | The app's layouts changed.                                                                         |
-| Studio   | `altinn-studio`         | `textsChanged`    | The app's texts changed.                                                                           |
+| From     | `source`                | `type`                  | Meaning                                                                                            |
+| -------- | ----------------------- | ----------------------- | -------------------------------------------------------------------------------------------------- |
+| The page | `altinn-studio-preview` | `ready`                 | The page has started: Studio forgets the errors of the page before, and sends changes from now on. |
+| The page | `altinn-studio-preview` | `componentErrors`       | The errors the frontend has logged so far, by component ID. Only a v9 app's page sends them.       |
+| Studio   | `altinn-studio`         | `layoutsChanged`        | The app's layouts changed.                                                                         |
+| Studio   | `altinn-studio`         | `layoutSettingsChanged` | The settings of the app's pages changed, such as their order.                                      |
+| Studio   | `altinn-studio`         | `textsChanged`          | The app's texts changed.                                                                           |
 
 Each side takes messages only from the other's window and origin. The script limits the size of what it sends, and
-Studio's [studioBridge.ts](../../Designer/frontend/packages/ux-editor/src/components/Preview/studioBridge.ts) checks
-it. Studio reloads the frame for other changes, such as a component's new ID or the page order, and until the page in
-the frame is ready.
+Studio's [studioBridge.ts](../../Designer/frontend/packages/shared/src/utils/studioBridge.ts) checks it. Studio
+reloads the frame for other changes, such as a component's new ID or the layout sets, and until the page in the frame
+is ready.
 
 ## Security rules
 

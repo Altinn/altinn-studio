@@ -63,9 +63,7 @@ internal static class IndexPage
                 window.featureToggles = {};
                 window.altinnAppGlobalData = {{globalData}};
               </script>
-              <script data-studio-origin="{{WebUtility.HtmlEncode(studio)}}">
-            {{StudioBridge.Script}}
-              </script>
+              {{StudioBridge.Element(studioOrigin, componentErrors: true)}}
               <script src="{{assets}}/altinn-app-frontend.js"></script>
             </body>
             </html>

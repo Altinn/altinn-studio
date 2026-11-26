@@ -55,7 +55,7 @@ public sealed class V9AppTests : IDisposable
 
         string page = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         int bridge = page.IndexOf(
-            $"<script data-studio-origin=\"{PreviewApplicationFactory.StudioOrigin}\">",
+            $"<script data-studio-origin=\"{PreviewApplicationFactory.StudioOrigin}\" data-component-errors>",
             StringComparison.Ordinal
         );
         int frontend = page.IndexOf("altinn-app-frontend.js\"></script>", StringComparison.Ordinal);

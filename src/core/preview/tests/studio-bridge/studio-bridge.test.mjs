@@ -12,7 +12,13 @@ const bridge = readFileSync(
 const studioOrigin = 'https://studio.test';
 const source = 'altinn-studio-preview';
 
-function runBridge({ framed = true, origin = studioOrigin, globals = {}, postMessage } = {}) {
+function runBridge({
+  framed = true,
+  origin = studioOrigin,
+  componentErrors = true,
+  globals = {},
+  postMessage,
+} = {}) {
   const posted = [];
   const timers = [];
   const consoleErrors = [];
@@ -22,6 +28,7 @@ function runBridge({ framed = true, origin = studioOrigin, globals = {}, postMes
     document: {
       currentScript: {
         getAttribute: (name) => (name === 'data-studio-origin' ? origin : null),
+        hasAttribute: (name) => name === 'data-component-errors' && componentErrors,
       },
     },
     console: { error: (...args) => consoleErrors.push(args) },
@@ -57,15 +64,14 @@ function runBridge({ framed = true, origin = studioOrigin, globals = {}, postMes
   return { page, posted, flush, lastErrors, consoleErrors, receive, reloads };
 }
 
-// The app frontend's query client, with queries for the layouts and the texts.
-function frontendQueries() {
+// The app frontend's query client, with queries for the layouts and the texts, by default the v9 frontend's.
+function frontendQueries(keys = ['formBootstrap', 'textResources']) {
   const invalidated = [];
   return {
     invalidated,
     queryClient: {
       getQueryCache: () => ({
-        findAll: ({ queryKey }) =>
-          ['formBootstrap', 'textResources'].includes(queryKey[0]) ? [{ queryKey }] : [],
+        findAll: ({ queryKey }) => (keys.includes(queryKey[0]) ? [{ queryKey }] : []),
       }),
       invalidateQueries: async ({ queryKey }) => invalidated.push([...queryKey]),
     },
@@ -327,4 +333,45 @@ test('starts the errors over when the layouts change, and sends those still logg
   flush();
 
   assert.deepEqual(lastErrors(), { b: ['still wrong'] });
+});
+
+test('leaves the frontend’s validation and logging alone on a page that doesn’t report errors', () => {
+  const { page, posted } = runBridge({ componentErrors: false });
+
+  assert.equal(page.forceLayoutPropertiesValidation, undefined);
+  assert.equal(page.logError, undefined);
+  assert.equal(page.logErrorOnce, undefined);
+  assert.deepEqual(posted, [
+    { message: { type: 'ready', source, version: 1 }, targetOrigin: studioOrigin },
+  ]);
+});
+
+test('has the v8 frontend fetch its layouts, texts and page settings again', async () => {
+  const { queryClient, invalidated } = frontendQueries([
+    'formLayouts',
+    'fetchTextResources',
+    'layoutSettings',
+  ]);
+  const { receive, posted, reloads } = runBridge({
+    componentErrors: false,
+    globals: { queryClient },
+  });
+
+  await receive('layoutsChanged');
+  await receive('textsChanged');
+  await receive('layoutSettingsChanged');
+
+  assert.deepEqual(invalidated, [['formLayouts'], ['fetchTextResources'], ['layoutSettings']]);
+  assert.equal(reloads.length, 0);
+  assert.equal(posted.length, 1);
+});
+
+test('reloads a v9 page for changed page settings, which the frontend has from the page', async () => {
+  const { queryClient, invalidated } = frontendQueries();
+  const { receive, reloads } = runBridge({ globals: { queryClient } });
+
+  await receive('layoutSettingsChanged');
+
+  assert.deepEqual(invalidated, []);
+  assert.equal(reloads.length, 1);
 });

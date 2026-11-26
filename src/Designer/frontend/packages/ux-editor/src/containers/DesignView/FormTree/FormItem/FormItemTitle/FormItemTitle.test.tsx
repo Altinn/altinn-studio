@@ -1,4 +1,4 @@
-import type { PreviewComponentErrors } from '../../../../../components/Preview/studioBridge';
+import type { PreviewComponentErrors } from 'app-shared/utils/studioBridge';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import { FormItemTitle } from './FormItemTitle';

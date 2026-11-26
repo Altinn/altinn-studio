@@ -88,6 +88,25 @@ public sealed class V8AppTests : IDisposable
     }
 
     [Fact]
+    public async Task Page_RunsTheStudioBridge_WithoutItsErrorReports()
+    {
+        Uri appRoot = await StartSession();
+
+        using HttpResponseMessage response = await Get(appRoot);
+
+        string page = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        int bridge = page.IndexOf(
+            $"<script data-studio-origin=\"{PreviewApplicationFactory.StudioOrigin}\">",
+            StringComparison.Ordinal
+        );
+        Assert.True(bridge >= 0, "The page has no Studio bridge.");
+        Assert.True(
+            bridge < page.IndexOf("window.org = appId[1];", StringComparison.Ordinal),
+            "The Studio bridge must run before the page's own script."
+        );
+    }
+
+    [Fact]
     public async Task Page_GetsTheOrgAndAppThatRazorWouldWrite_AndKeepsOtherRazorAsText()
     {
         RepositoryRoot.AddFile(

@@ -18,8 +18,8 @@ import { usePreviewSessionInstanceQuery } from 'app-shared/hooks/queries/usePrev
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useStartPreviewOver } from 'app-shared/hooks/useStartPreviewOver';
 import { PreviewActions } from './PreviewActions/PreviewActions';
-import { noPreviewComponentErrors } from './studioBridge';
-import { useStudioBridge } from './useStudioBridge';
+import { noPreviewComponentErrors } from 'app-shared/utils/studioBridge';
+import { useStudioBridge } from 'app-shared/hooks/useStudioBridge';
 import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 // The bridge only takes messages from the frame's origin, so a URL that doesn't parse leaves it without one.

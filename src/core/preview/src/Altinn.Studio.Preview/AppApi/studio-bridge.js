@@ -1,16 +1,17 @@
-// The Studio bridge, which preview adds to each page before the app frontend. It tells Studio, the page that frames
-// preview, which components the app frontend found errors in, so the editors can show the errors by the components.
-// Studio tells it when the app's layouts or texts change, and it has the frontend show them without reloading the page,
-// which would lose the developer's place in the form.
+// The Studio bridge, which preview adds to each page before the app frontend. Studio, the page that frames preview,
+// tells it when the app's layouts or texts change, and it has the frontend show them without reloading the page, which
+// would lose the developer's place in the form. On a v9 app's page, whose script has data-component-errors, it also
+// tells Studio which components the app frontend found errors in, so the editor can show the errors by the components.
 //
 // It needs nothing new from the app frontend, so it works with each published version:
-// - The frontend validates the layout when window.forceLayoutPropertiesValidation is 'on'. It does so only on hosts it
-//   knows as Studio's or a test environment's otherwise, and preview's domain is neither.
-// - The frontend logs through window.logError and window.logErrorOnce, and keeps the functions a page defined before
+// - The v9 frontend validates the layout when window.forceLayoutPropertiesValidation is 'on'. It does so only on hosts
+//   it knows as Studio's or a test environment's otherwise, and preview's domain is neither.
+// - The v9 frontend logs through window.logError and window.logErrorOnce, and keeps the functions a page defined before
 //   it. Each error in a component's configuration is logged with the component's ID.
-// - The frontend sets window.queryClient. It keeps the layouts in the formBootstrap queries and the texts in the
-//   textResources queries, which take the texts in the page's language from window.altinnAppGlobalData. When the
-//   frontend has no such queries, the bridge reloads the page.
+// - The frontend sets window.queryClient. The v9 frontend keeps the layouts in the formBootstrap queries and the texts
+//   in the textResources queries, which take the texts in the page's language from window.altinnAppGlobalData. The v8
+//   frontend keeps them in the formLayouts and fetchTextResources queries, and the page settings in layoutSettings.
+//   When the frontend has none of the queries a change needs, the bridge reloads the page.
 //
 // It catches its own errors, so preview works as before when it fails, and Studio shows no errors. Studio treats each
 // message as untrusted, since the app's own scripts run on this page too and can send the same messages.
@@ -41,6 +42,7 @@
     if (!studioOrigin || window.parent === window) {
       return;
     }
+    var reportsErrors = script.hasAttribute('data-component-errors');
 
     var errors = Object.create(null);
     var componentCount = 0;
@@ -148,14 +150,16 @@
       };
     };
 
-    if (window.forceLayoutPropertiesValidation === undefined) {
-      window.forceLayoutPropertiesValidation = 'on';
-    }
-    if (typeof window.logError !== 'function') {
-      window.logError = logFunction(false);
-    }
-    if (typeof window.logErrorOnce !== 'function') {
-      window.logErrorOnce = logFunction(true);
+    if (reportsErrors) {
+      if (window.forceLayoutPropertiesValidation === undefined) {
+        window.forceLayoutPropertiesValidation = 'on';
+      }
+      if (typeof window.logError !== 'function') {
+        window.logError = logFunction(false);
+      }
+      if (typeof window.logErrorOnce !== 'function') {
+        window.logErrorOnce = logFunction(true);
+      }
     }
 
     var reload = function () {
@@ -166,13 +170,15 @@
       }
     };
 
-    var refetch = function (queryKey) {
+    // Fetches the first of the queries that the frontend has again, as the frontends name them differently.
+    var refetch = function (queryKeys) {
       var client = window.queryClient;
-      if (!client || client.getQueryCache().findAll({ queryKey: queryKey }).length === 0) {
-        reload();
-        return;
+      for (var i = 0; client && i < queryKeys.length; i++) {
+        if (client.getQueryCache().findAll({ queryKey: queryKeys[i] }).length > 0) {
+          return client.invalidateQueries({ queryKey: queryKeys[i] });
+        }
       }
-      return client.invalidateQueries({ queryKey: queryKey });
+      reload();
     };
 
     // A later change fetches the texts again, so only the latest answer counts.
@@ -181,7 +187,7 @@
     var refetchTexts = function () {
       var texts = window.altinnAppGlobalData && window.altinnAppGlobalData.textResources;
       if (!texts) {
-        return refetch(['textResources']);
+        return refetch([['textResources'], ['fetchTextResources']]);
       }
       var request = ++textsRequest;
       return fetch(
@@ -198,12 +204,15 @@
             return;
           }
           texts.resources = fresh.resources;
-          return refetch(['textResources']);
+          return refetch([['textResources']]);
         });
     };
 
     // The frontend validates the layouts it gets again and logs what is still wrong, so the errors start over.
     var forgetErrors = function () {
+      if (!reportsErrors) {
+        return;
+      }
       errors = Object.create(null);
       componentCount = 0;
       logged = Object.create(null);
@@ -214,7 +223,10 @@
     var changes = {
       layoutsChanged: function () {
         forgetErrors();
-        return refetch(['formBootstrap']);
+        return refetch([['formBootstrap'], ['formLayouts']]);
+      },
+      layoutSettingsChanged: function () {
+        return refetch([['layoutSettings']]);
       },
       textsChanged: refetchTexts,
     };

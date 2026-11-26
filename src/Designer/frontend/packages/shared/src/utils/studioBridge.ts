@@ -51,7 +51,8 @@ const parseComponentErrors = (errors: Record<string, unknown>): PreviewComponent
   );
 
 /** A change in the app that the Studio bridge has the app frontend show without reloading the page. */
-export type PreviewChange = { type: 'layoutsChanged' } | { type: 'textsChanged' };
+export type PreviewChange =
+  { type: 'layoutsChanged' } | { type: 'layoutSettingsChanged' } | { type: 'textsChanged' };
 
 export type PreviewChangeMessage = PreviewChange & { source: string; version: number };
 
@@ -60,6 +61,21 @@ export const previewChangeMessage = (change: PreviewChange): PreviewChangeMessag
   source: STUDIO_SOURCE,
   version: VERSION,
 });
+
+/**
+ * Tells the Studio bridge in the preview frame about a change, once the page in the frame has said it is ready.
+ * Returns whether it did, so the editor can reload the frame when it didn't.
+ */
+export const postPreviewChange = (
+  frame: HTMLIFrameElement | null,
+  bridgeOrigin: string | null,
+  change: PreviewChange,
+): boolean => {
+  const frameWindow = frame?.contentWindow;
+  if (!frameWindow || !bridgeOrigin) return false;
+  frameWindow.postMessage(previewChangeMessage(change), bridgeOrigin);
+  return true;
+};
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);

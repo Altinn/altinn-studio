@@ -20,4 +20,5 @@ export const appContextMock: AppContextProps = {
   onLayoutSetNameChange: vi.fn(),
   selectedItem: null,
   setSelectedItem: vi.fn(),
+  previewBridgeOriginRef: { current: null },
 };

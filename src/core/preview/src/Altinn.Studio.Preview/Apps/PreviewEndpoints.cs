@@ -78,7 +78,8 @@ internal static class PreviewEndpoints
             AppGeneration.V8 when string.IsNullOrEmpty(path) => V8IndexPage.Generate(
                 files,
                 session.Id,
-                session.Session.WorkingCopy
+                session.Session.WorkingCopy,
+                options.Value.StudioOrigin
             ),
             _ => null,
         };

@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { parseStudioBridgeMessage } from './studioBridge';
+import { describe, expect, it, vi } from 'vitest';
+import { parseStudioBridgeMessage, postPreviewChange } from 'app-shared/utils/studioBridge';
 
 const fromBridge = { source: 'altinn-studio-preview', version: 1 };
 
@@ -60,5 +60,30 @@ describe('parseStudioBridgeMessage', () => {
 
     const parsed = message?.type === 'componentErrors' ? message.errors : new Map();
     expect([...parsed.keys()]).toEqual(['__proto__', 'constructor']);
+  });
+});
+
+describe('postPreviewChange', () => {
+  const frameWith = (postMessage: Window['postMessage']): HTMLIFrameElement =>
+    ({ contentWindow: { postMessage } }) as unknown as HTMLIFrameElement;
+
+  it('tells a ready bridge about the change, on its origin only', () => {
+    const postMessage = vi.fn();
+
+    expect(
+      postPreviewChange(frameWith(postMessage), 'https://preview.test', { type: 'textsChanged' }),
+    ).toBe(true);
+    expect(postMessage).toHaveBeenCalledWith(
+      { type: 'textsChanged', source: 'altinn-studio', version: 1 },
+      'https://preview.test',
+    );
+  });
+
+  it('tells nothing when the page in the frame has not said it is ready', () => {
+    const postMessage = vi.fn();
+
+    expect(postPreviewChange(frameWith(postMessage), null, { type: 'layoutsChanged' })).toBe(false);
+    expect(postPreviewChange(null, 'https://preview.test', { type: 'layoutsChanged' })).toBe(false);
+    expect(postMessage).not.toHaveBeenCalled();
   });
 });

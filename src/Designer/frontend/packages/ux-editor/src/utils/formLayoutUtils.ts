@@ -17,7 +17,7 @@ import type { FormContainer } from '../types/FormContainer';
 import * as formItemUtils from './formItemUtils';
 import type { ContainerComponentType } from '../types/ContainerComponent';
 import type { FormLayoutPage } from '../types/FormLayoutPage';
-import type { PreviewComponentErrors } from '../components/Preview/studioBridge';
+import type { PreviewComponentErrors } from 'app-shared/utils/studioBridge';
 
 export const mapComponentToToolbarElement = <T extends ComponentType | ComponentPreset>(
   c: FormItemConfig<T>,

@@ -4,7 +4,7 @@ import {
   noPreviewComponentErrors,
   parseStudioBridgeMessage,
   type PreviewComponentErrors,
-} from './studioBridge';
+} from 'app-shared/utils/studioBridge';
 
 /**
  * Keeps the errors that the Studio bridge in the preview frame reports, and the origin of a bridge that has said it is
