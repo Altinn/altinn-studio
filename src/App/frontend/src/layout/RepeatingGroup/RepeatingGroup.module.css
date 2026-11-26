@@ -172,7 +172,7 @@
   padding-right: var(--modal-padding-x);
 }
 
-/* Stacked fields need the full viewport width; row actions follow them in their own bar. */
+/* Stacked fields need the full viewport width. The row actions follow them in their own bar. */
 .mobileTable,
 .mobileTable > tbody,
 .mobileTable > caption,

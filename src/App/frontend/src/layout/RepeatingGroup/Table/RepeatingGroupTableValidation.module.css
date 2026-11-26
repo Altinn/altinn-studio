@@ -46,7 +46,7 @@
   position: relative;
 }
 
-/* Horizontal static position comes from the field; vertical position comes from its cell. */
+/* The arrow takes its horizontal position from the field and its vertical position from the cell. */
 .arrow {
   position: absolute;
   inset-block-start: calc(100% - 0.05rem);
