@@ -1,0 +1,42 @@
+# The token check in the operator decides what each caller may do. This policy blocks all other sources at the ports.
+#
+# The kubelet probes need no rule. Azure Network Policy Manager filters only forwarded traffic, and the kubelet connects
+# from the node.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: operator
+  namespace: core-operator
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: core-operator
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: default
+          podSelector:
+            matchLabels:
+              app: altinn-altinity-agents
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: default
+          podSelector:
+            matchLabels:
+              run: altinn-designer
+      ports:
+        - protocol: TCP
+          port: 8080
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: operator-workflow-engine
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: operator-workflow-engine
+      ports:
+        - protocol: TCP
+          port: 8090

@@ -1,10 +1,10 @@
 # Operator runner
 
-The operator runner runs one command on the code of an app in a new microVM, for the core operator. Today the only
-command is the v8-to-v9 upgrade with studioctl. The upgrade restores and compiles the app, so MSBuild runs code that the
-app controls, such as `<Exec>` steps and NuGet build steps. Studio services hold model keys, session tokens and the
-Designer and Gitea keys, so this code must not run in them. Each command declares what its VM can reach and what the
-operator runner returns, so [a new command](#add-a-command) needs no change to the protocol.
+The operator runner runs one command on the code of an app in a new microVM, for the
+[core operator](../operator/README.md). Today the only command is the v8-to-v9 upgrade with studioctl. The upgrade
+restores and compiles the app, so MSBuild runs code that the app controls, such as `<Exec>` steps and NuGet build steps.
+Studio services hold model keys, session tokens and the Designer and Gitea keys, so this code must not run in them. A
+command declares what its VM can reach and what it returns, so [a new command](#add-a-command) needs no protocol change.
 
 ## How a run is isolated
 
@@ -71,8 +71,8 @@ it starts.
    `resourceNames` in [`role.yaml`](infra/kustomize/base/role.yaml), and give it its own binding in
    [`admission-policy.yaml`](infra/kustomize/base/admission-policy.yaml). The one binding there compares every Job of
    the operator with `operator-runner`, so each binding must match only the Jobs of its own `PodTemplate`.
-3. Add a kind with the command, its `PodTemplate` and its `runTimeout` to the configuration of the operator for each
-   environment.
+3. Add a kind with the command, its `PodTemplate` and its `runTimeout` to the
+   [configuration of the operator](../operator/README.md#develop) for each environment.
 
 ## Develop and deploy
 

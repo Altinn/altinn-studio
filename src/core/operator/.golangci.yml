@@ -1,0 +1,141 @@
+version: "2"
+run:
+  timeout: 5m
+  allow-parallel-runners: true
+
+linters:
+  default: all
+
+  disable:
+    - gomodguard # gomodguard_v2 replaces this deprecated linter.
+    - nonamedreturns
+    - arangolint
+    - ginkgolinter
+    - wsl
+    - wsl_v5
+    - lll
+    - paralleltest
+    - promlinter
+    - varnamelen
+    - nlreturn
+    - noinlineerr
+    - gomoddirectives
+    - depguard
+    - godox
+    - exhaustruct
+    - exhaustruct_v5
+    - funcorder
+    - gochecknoglobals
+    - ireturn
+    - mnd
+    - tagliatelle
+    - testpackage
+
+  settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+
+    govet:
+      enable-all: true
+
+    nakedret:
+      max-func-lines: 0
+
+    exhaustive:
+      default-signifies-exhaustive: false
+
+    goconst:
+      min-occurrences: 3
+      # goconst 1.11 also counts strings in composite literals. Keep the earlier scope, which did not report struct
+      # fields and table test cases.
+      exclude-types:
+        - Call
+        - CompositeLit
+
+    modernize:
+      disable:
+        # Go 1.27 lets a struct literal set promoted fields directly. A change that flattens each embedded ObjectMeta or
+        # TypeMeta literal is a separate style change, not part of a toolchain update.
+        - embedlit
+
+    gocyclo:
+      min-complexity: 16
+
+    gocognit:
+      min-complexity: 20
+
+    cyclop:
+      max-complexity: 20
+      package-average: 10.0
+
+    funlen:
+      lines: 80
+      statements: 50
+
+    nestif:
+      min-complexity: 4
+
+    exhaustruct:
+      exclude:
+        - 'net/http\.Client'
+
+    gocritic:
+      settings:
+        captLocal:
+          paramsOnly: false
+        underef:
+          # Also report (*x).method() calls if x is a pointer receiver.
+          skipRecvDeref: false
+
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+
+    revive:
+      rules:
+        - name: comment-spacings
+        - name: import-shadowing
+        - name: error-return
+        - name: error-naming
+        - name: if-return
+        - name: increment-decrement
+        - name: var-declaration
+        - name: range
+        - name: receiver-naming
+        - name: time-naming
+        - name: unexported-return
+        - name: indent-error-flow
+        - name: errorf
+        - name: blank-imports
+        - name: context-as-argument
+        - name: context-keys-type
+        - name: empty-block
+        - name: unnecessary-stmt
+        - name: unreachable-code
+
+  exclusions:
+    generated: lax
+    warn-unused: true
+    rules:
+      - path: '_test\.go'
+        linters:
+          - funlen
+          - gosec
+          - gocognit
+          - exhaustruct
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+    - golines
+  exclusions:
+    generated: lax
+  settings:
+    goimports:
+      local-prefixes:
+        - altinn.studio/
+
+    golines:
+      max-len: 120

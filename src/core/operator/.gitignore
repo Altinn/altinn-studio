@@ -1,0 +1,16 @@
+# Tools the Makefile downloads, and the build output.
+bin/*
+
+# Test binaries that `go test -c` builds.
+*.test
+
+# Output of the go coverage tool
+*.out
+
+go.work
+
+# Editor and IDE files.
+.idea
+*.swp
+*.swo
+*~

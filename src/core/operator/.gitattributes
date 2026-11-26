@@ -1,0 +1,8 @@
+# Git does not change the line endings of any file, so that the result is the same in all environments.
+
+# Editors must use .editorconfig to select the line endings.
+
+# Based on: https://github.com/golang/go/blob/beaf7f3282c2548267d3c894417cc4ecacc5d575/.gitattributes
+
+* -text
+go.sum merge=union
