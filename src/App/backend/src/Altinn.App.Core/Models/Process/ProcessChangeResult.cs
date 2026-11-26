@@ -47,17 +47,17 @@ public class ProcessChangeResult
     /// <summary>
     /// Structured workflow failure details when the async workflow execution failed.
     /// </summary>
-    public WorkflowFailure? WorkflowFailure { get; init; }
+    internal WorkflowFailure? WorkflowFailure { get; init; }
 
     /// <summary>
     /// Frontend-oriented status for the current task when a normal process-next call is blocked.
     /// </summary>
-    public ProcessNextState? ProcessNextState { get; init; }
+    internal ProcessNextState? ProcessNextState { get; init; }
 
     /// <summary>
     /// The persisted process state when a workflow failure happened after the process state was committed.
     /// </summary>
-    public ProcessState? ProcessStateOnFailure { get; init; }
+    internal ProcessState? ProcessStateOnFailure { get; init; }
 
     /// <summary>
     /// Initializes a new <see cref="ProcessChangeResult"/> instance.
@@ -124,7 +124,7 @@ public enum ProcessErrorType
 /// <summary>
 /// Minimal state information for clients when a task cannot continue with a normal process-next.
 /// </summary>
-public enum ProcessNextState
+internal enum ProcessNextState
 {
     /// <summary>
     /// A workflow for the current task is still running or waiting for automatic retry.
@@ -152,7 +152,7 @@ public enum ProcessNextState
 /// <summary>
 /// Structured information about a workflow failure while moving process to the next task.
 /// </summary>
-public sealed class WorkflowFailure
+internal sealed class WorkflowFailure
 {
     /// <summary>
     /// The failure classification.
@@ -252,7 +252,7 @@ public enum WorkflowFailureKind
 /// Why the workflow engine did not accept a submitted workflow.
 /// </summary>
 [JsonConverter(typeof(JsonCamelCaseEnumConverter))]
-public enum WorkflowSubmissionFailureKind
+internal enum WorkflowSubmissionFailureKind
 {
     /// <summary>
     /// The workflow engine explicitly rejected the submission.
@@ -268,7 +268,7 @@ public enum WorkflowSubmissionFailureKind
 /// <summary>
 /// The latest error captured for a workflow failure.
 /// </summary>
-public sealed class WorkflowFailureError
+internal sealed class WorkflowFailureError
 {
     /// <summary>
     /// When the error happened.

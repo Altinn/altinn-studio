@@ -225,13 +225,15 @@ public sealed partial class ProcessEngineTest
     }
 
     [Theory]
-    [InlineData(WorkflowActivityStatus.Processing, ProcessNextState.Retrying)]
-    [InlineData(WorkflowActivityStatus.Failed, ProcessNextState.ResumeRequired)]
+    [InlineData(WorkflowActivityStatus.Processing, nameof(ProcessNextState.Retrying))]
+    [InlineData(WorkflowActivityStatus.Failed, nameof(ProcessNextState.ResumeRequired))]
     public async Task Next_OnAnIdleServiceTaskWithAWorkflow_AnswersWithItsStateAndMovesNothing(
         WorkflowActivityStatus status,
-        ProcessNextState expected
+        string expectedName
     )
     {
+        // A public test method cannot take the internal enum, so the cases name its values.
+        ProcessNextState expected = Enum.Parse<ProcessNextState>(expectedName);
         // As after a workflow that starts the task again was enqueued and has not yet claimed the instance, or failed
         // to.
         Instance instance = CreateServiceTaskInstance();
