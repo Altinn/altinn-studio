@@ -30,12 +30,12 @@ describe('LandingPage', () => {
     vi.restoreAllMocks();
   });
 
-  it('should inform that preview is turned off for an app before v9, and start no session', async () => {
+  it('should inform that preview is turned off for an app before v8, and start no session', async () => {
     const startPreviewSession = vi.fn();
     renderLandingPage({
       getAppVersion: vi
         .fn()
-        .mockResolvedValue({ frontendVersion: '4.0.0', backendVersion: '8.0.0' }),
+        .mockResolvedValue({ frontendVersion: '3.0.0', backendVersion: '7.0.0' }),
       startPreviewSession,
     });
 
@@ -107,6 +107,20 @@ describe('LandingPage', () => {
       app,
       mockSessionUrl,
       expect.any(String),
+    );
+  });
+
+  it('should show a v8 app at the route its frontend keeps in the fragment', async () => {
+    renderLandingPage({
+      getAppVersion: vi
+        .fn()
+        .mockResolvedValue({ frontendVersion: '4.0.0', backendVersion: '8.0.0' }),
+    });
+
+    const iframe = await screen.findByTitle(textMock('preview.title'));
+    expect(iframe).toHaveAttribute(
+      'src',
+      expect.stringMatching(`^${mockSessionUrl}#/instance/${mockInstanceId}/`),
     );
   });
 

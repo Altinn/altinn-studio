@@ -24,6 +24,15 @@ internal static class MockUser
             ["onlyHierarchyElementWithNoAccess"] = false,
         };
 
+    public static JsonObject PartyTypesThatLetAnyPartyIn() =>
+        new()
+        {
+            ["bankruptcyEstate"] = false,
+            ["organisation"] = false,
+            ["person"] = false,
+            ["subUnit"] = false,
+        };
+
     /// <summary>The user, as the app frontend's <c>IProfile</c>.</summary>
     public static JsonObject Profile(string language) =>
         new()

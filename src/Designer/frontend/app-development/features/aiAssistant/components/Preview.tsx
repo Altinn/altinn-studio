@@ -1,12 +1,12 @@
 import type { ReactElement } from 'react';
 import { PreviewDisabledInfo } from 'app-shared/components/PreviewDisabledInfo/PreviewDisabledInfo';
-import { previewSessionPage } from 'app-shared/api/paths';
+import { previewSessionHashPage, previewSessionPage } from 'app-shared/api/paths';
 import { useAppVersionQuery } from 'app-shared/hooks/queries';
 import { usePreviewSessionQuery } from 'app-shared/hooks/queries/usePreviewSessionQuery';
 import { usePreviewSessionInstanceQuery } from 'app-shared/hooks/queries/usePreviewSessionInstanceQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useCurrentBranchQuery } from 'app-shared/hooks/queries/useCurrentBranchQuery';
-import { NEXT_V9_VERSION } from 'app-shared/constants';
+import { MAXIMUM_SUPPORTED_FRONTEND_VERSION, NEXT_V9_VERSION } from 'app-shared/constants';
 import { isBelowSupportedVersion } from 'app-shared/utils/compareFunctions';
 import { StudioAlert, StudioCenter, StudioSpinner } from '@designer/components';
 import { usePreviewLayoutMetadata } from '../hooks/usePreviewLayoutMetadata/usePreviewLayoutMetadata';
@@ -18,16 +18,20 @@ export const Preview = (): ReactElement => {
 
   if (versionPending) return <PreviewSpinner />;
 
-  // The preview service shows v9 apps. Older apps keep the notice that preview is turned off.
+  // The preview service shows v8 and v9 apps. Older apps keep the notice that preview is turned off.
   const isV9 = !!version && !isBelowSupportedVersion(version.frontendVersion, NEXT_V9_VERSION);
-  if (!isV9) {
+  const isV8 =
+    !!version &&
+    !isV9 &&
+    !isBelowSupportedVersion(version.frontendVersion, MAXIMUM_SUPPORTED_FRONTEND_VERSION);
+  if (!isV9 && !isV8) {
     return (
       <StudioCenter>
         <PreviewDisabledInfo />
       </StudioCenter>
     );
   }
-  return <PreviewFrame />;
+  return <PreviewFrame isV9={isV9} />;
 };
 
 const PreviewSpinner = (): ReactElement => (
@@ -36,8 +40,12 @@ const PreviewSpinner = (): ReactElement => (
   </StudioCenter>
 );
 
+type PreviewFrameProps = {
+  isV9: boolean;
+};
+
 // The preview service shows the developer's working copy on a domain of its own, in one session for the page.
-const PreviewFrame = (): ReactElement => {
+const PreviewFrame = ({ isV9 }: PreviewFrameProps): ReactElement => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: currentBranchInfo } = useCurrentBranchQuery(org, app);
 
@@ -45,8 +53,10 @@ const PreviewFrame = (): ReactElement => {
     org,
     app,
   );
-  // A v9 app's layout set is named after its task.
-  const { layoutSetName: taskId, layoutName } = layoutMetadata;
+  // A v9 app's layout set is named after its task, and a v8 app's names its task.
+  const { layoutName } = layoutMetadata;
+  const taskId = isV9 ? layoutMetadata.layoutSetName : layoutMetadata.taskId;
+  const pageUrl = isV9 ? previewSessionPage : previewSessionHashPage;
 
   const { data: session, isError: sessionError } = usePreviewSessionQuery(org, app);
   const { data: instance, isError: instanceError } = usePreviewSessionInstanceQuery(
@@ -75,7 +85,7 @@ const PreviewFrame = (): ReactElement => {
         key={currentBranchInfo?.commitSha}
         className={classes.previewIframe}
         title='App Preview'
-        src={previewSessionPage(session.url, instance.instanceId, taskId, layoutName)}
+        src={pageUrl(session.url, instance.instanceId, taskId, layoutName)}
       />
     </div>
   );

@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Net;
 using System.Text.Json.Nodes;
 using Altinn.Studio.Preview.Files;
@@ -27,21 +26,16 @@ internal static class IndexPage
     /// <summary>The language a page starts in when the request names none, as in a real app.</summary>
     private const string DefaultLanguage = "nb";
 
-    /// <summary>The page, or <c>null</c> when the app is not a v9 app, which is all preview shows.</summary>
-    public static string? Generate(
+    public static string Generate(
         AppFiles files,
+        string appLibVersion,
         SessionId sessionId,
         WorkingCopy workingCopy,
         Uri studioOrigin,
         string? requestedLanguage
     )
     {
-        if (files.AppLibVersion() is not { } version || !IsV9(version))
-        {
-            return null;
-        }
-
-        string assets = $"{studioOrigin.GetLeftPart(UriPartial.Authority)}/designer/app-dist/{version}";
+        string assets = $"{studioOrigin.GetLeftPart(UriPartial.Authority)}/designer/app-dist/{appLibVersion}";
         string org = Json(JsonValue.Create($"{sessionId}/{workingCopy.Org}"));
         string app = Json(JsonValue.Create(workingCopy.App));
         string globalData = Json(GlobalData(files, workingCopy.Org, requestedLanguage));
@@ -83,13 +77,7 @@ internal static class IndexPage
         JsonObject applicationMetadata = files.ApplicationMetadata() ?? [];
         applicationMetadata["onEntry"] ??= new JsonObject { ["show"] = "new-instance" };
         // Any party may use the app in preview, whatever the app allows.
-        applicationMetadata["partyTypesAllowed"] = new JsonObject
-        {
-            ["bankruptcyEstate"] = false,
-            ["organisation"] = false,
-            ["person"] = false,
-            ["subUnit"] = false,
-        };
+        applicationMetadata["partyTypesAllowed"] = MockUser.PartyTypesThatLetAnyPartyIn();
 
         var ui = new JsonObject
         {
@@ -152,11 +140,6 @@ internal static class IndexPage
             ? DefaultLanguage
             : languages[0];
     }
-
-    /// <summary>Whether the app references a v9 or later app library.</summary>
-    public static bool IsV9(string version) =>
-        int.TryParse(version.Split('.')[0], NumberStyles.None, CultureInfo.InvariantCulture, out int major)
-        && major >= 9;
 
     /// <summary>
     /// JSON for the page's script. The default encoder escapes <c>&lt;</c>, <c>&gt;</c>, <c>&amp;</c> and quotes, so

@@ -7,7 +7,7 @@ import { renderWithProviders } from '../../../test/mocks';
 import { Preview } from './Preview';
 import { app, org } from '@designer/testing/testids';
 import { textMock } from '@designer/testing/mocks/i18nMock';
-import { previewSessionPage } from 'app-shared/api/paths';
+import { previewSessionHashPage, previewSessionPage } from 'app-shared/api/paths';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 const layoutSetName = 'Task_1';
@@ -22,12 +22,12 @@ const defaultLayoutSettings: ILayoutSettings = {
 };
 
 describe('Preview', () => {
-  it('should inform that preview is turned off for an app before v9, and start no session', async () => {
+  it('should inform that preview is turned off for an app before v8, and start no session', async () => {
     const startPreviewSession = vi.fn();
     renderPreview({
       getAppVersion: vi
         .fn()
-        .mockResolvedValue({ frontendVersion: '4.0.0', backendVersion: '8.0.0' }),
+        .mockResolvedValue({ frontendVersion: '3.0.0', backendVersion: '7.0.0' }),
       startPreviewSession,
     });
 
@@ -80,6 +80,25 @@ describe('Preview', () => {
       previewSessionPage(sessionUrl, instanceId, layoutSetName, layoutName),
     );
     expect(createPreviewSessionInstance).toHaveBeenCalledWith(org, app, sessionUrl, layoutSetName);
+  });
+
+  it("should show the first page of a v8 app's first task, at the task its layout set names", async () => {
+    const v8TaskId = 'Task_2';
+    const createPreviewSessionInstance = vi.fn().mockResolvedValue({ instanceId });
+    renderPreview({
+      getAppVersion: vi
+        .fn()
+        .mockResolvedValue({ frontendVersion: '4.0.0', backendVersion: '8.0.0' }),
+      getLayoutSets: vi.fn().mockResolvedValue([{ id: 'form', taskId: v8TaskId }]),
+      getFormLayoutSettings: vi.fn().mockResolvedValue(defaultLayoutSettings),
+      createPreviewSessionInstance,
+    });
+
+    expect(await screen.findByTitle('App Preview')).toHaveAttribute(
+      'src',
+      previewSessionHashPage(sessionUrl, instanceId, v8TaskId, layoutName),
+    );
+    expect(createPreviewSessionInstance).toHaveBeenCalledWith(org, app, sessionUrl, v8TaskId);
   });
 });
 
