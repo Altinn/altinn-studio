@@ -65,8 +65,9 @@ To add a page:
    URL is the right one. Studio allows letters, digits, `-` and `_` in a new page name.
 2. Add the name to `pages.order`, or to the `order` of a group when the folder uses `pages.groups`.
 3. In a task with more than one page, give every page a `NavigationButtons` component. Studio adds one to each page.
-4. Give the last page of a data task a `Button`. It submits the task and moves the process on. A confirmation task
-   with a UI folder submits with a `Button` too. Without a folder it shows the frontend's built-in confirmation page.
+4. Give the last page of a data task a `Button`. It submits the task and moves the process on. Give it a `title`,
+   or it shows no text. A confirmation task with a UI folder submits with a `Button` too. Without a folder it shows the
+   frontend's built-in confirmation page.
    Signing and payment tasks use components of their own, which the `studio-signing` and `studio-payment` skills
    cover. A subform page closes with a `CustomButton` instead, as described below.
 

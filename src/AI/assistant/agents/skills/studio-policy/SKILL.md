@@ -20,7 +20,10 @@ anything, read [references/v8.md](references/v8.md) for a v8 app or [references/
   `<xacml:Match>` elements in one AllOf must match, which is how org, app and task combine.
 - `[ORG]`, `[APP]` and `[org]` are placeholders. Studio replaces them with the app's org and name when it deploys,
   and LocalTest does the same. Keep them.
-- Studio matches subjects and actions with `string-equal-ignore-case` and resources with `string-equal`.
+- Studio matches subjects and actions with `urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case`, and
+  resources with `urn:oasis:names:tc:xacml:1.0:function:string-equal`. Use these. A function that the decision point
+  does not have, such as `urn:oasis:names:tc:xacml:3.0:function:string-equal`, stops it with an error, and the
+  request is denied.
 
 ## Which subject to use
 
