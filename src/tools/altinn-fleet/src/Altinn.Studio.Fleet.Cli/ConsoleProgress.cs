@@ -18,6 +18,7 @@ internal sealed class ConsoleProgress(TextWriter output, bool interactive)
 
     private readonly Lock _gate = new();
     private string? _current;
+    private int _shown;
     private long _lastWrite;
     private bool _lineOpen;
 
@@ -40,6 +41,13 @@ internal sealed class ConsoleProgress(TextWriter output, bool interactive)
         lock (_gate)
         {
             bool stageChanged = _current != stage;
+
+            // A job counts itself done before it reports it, so a report can arrive after a later one.
+            if (!stageChanged && completed < _shown)
+            {
+                return;
+            }
+
             bool done = completed >= total;
             TimeSpan elapsed = Stopwatch.GetElapsedTime(_lastWrite);
             bool due = interactive ? done || elapsed >= s_terminalInterval : elapsed >= s_logInterval;
@@ -49,6 +57,7 @@ internal sealed class ConsoleProgress(TextWriter output, bool interactive)
             }
 
             _current = stage;
+            _shown = completed;
             _lastWrite = Stopwatch.GetTimestamp();
             string line = $"{label} {completed}/{total}";
             if (interactive)

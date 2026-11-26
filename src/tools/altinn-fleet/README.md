@@ -74,12 +74,13 @@ packages from the network, so its results are kept app by app. `fleet query --db
 environment's index attached, so a query can join it with `prod.apps`.
 
 - The store is not changed, so a read-only copy works. Each app is copied to a temporary folder and analyzed there,
-  and `--out` must be outside the store. A run takes no lock on the store, so a sync at the same time can move an
-  app while it is copied. The app then fails, or is recorded at the version it had, and the next run analyzes it
-  again.
-- Each analysis of an app runs in a process of its own, `fleet analysis job`, because it may keep state in the
-  process and can hang. `--timeout` ends one that takes too long. Nothing an analysis does runs in fleet's own
-  process, which only copies the apps and records the results, so a service could host the library.
+  and `--out` must be outside the store. A run takes no lock on the store, so a sync at the same time can change an
+  app while it is copied. The run checks the app's version after the copy, so the app then fails, and the next run
+  analyzes it again.
+- Each analysis of an app or an item runs in a process of its own, `fleet analysis job`, because it may keep state
+  in the process and can hang. `--timeout` ends one that takes too long. Fleet's own process copies the apps and
+  records the results. An analysis's `Record`, `PlanItems` and `RecordItem` run there, where `--timeout` does not
+  limit them, so they should only read result files and write tables.
 - An analysis may build the apps, which runs the service owners' MSBuild targets and source generators as the user
   that runs fleet, with that user's environment and files. Run it where you would build their apps yourself, such as
   in an agent.
@@ -155,8 +156,5 @@ are not handled:
 - The assets file is looked for in the folders above the project's intermediate output, within the app's folder. An
   app that restores its packages to a folder elsewhere, and declares them in a file that the project imports, is
   recorded without a library version or packages.
-- A base class constructor that a constructor calls without `: base(...)` is taken to be the one with the fewest
-  parameters among those that need no arguments. A base class with two of them, such as one with optional parameters
-  and one with `params`, may have the other one recorded.
 - A published version's public API is read from the assemblies for one target framework. A version whose builds for
   different frameworks have different public members has only that framework's.

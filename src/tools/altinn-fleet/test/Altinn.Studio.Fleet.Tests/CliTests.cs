@@ -222,6 +222,34 @@ public sealed class CliTests
     }
 
     [Fact]
+    public async Task AnalysisRun_RefusesAnOutPathThatFollowsTooManyLinks()
+    {
+        Assert.SkipWhen(OperatingSystem.IsWindows(), "Making a link on Windows needs a privilege");
+        using var context = new FleetTestContext();
+        string links = Path.Join(context.Outside, "links");
+        Directory.CreateDirectory(links);
+        // Each link leads through the one before twice, so link6 follows 127 links, though never more than 7 deep.
+        File.CreateSymbolicLink(Path.Join(links, "link0"), ".");
+        for (int i = 1; i <= 6; i++)
+        {
+            File.CreateSymbolicLink(Path.Join(links, $"link{i}"), $"link{i - 1}/link{i - 1}");
+        }
+
+        (int exit, _, string error) = await Run(
+            context,
+            "analysis",
+            "run",
+            "--out",
+            Path.Join(links, "link6", "analysis.sqlite"),
+            "--store",
+            context.Root
+        );
+
+        Assert.Equal(2, exit);
+        Assert.Contains("leads through more than 40 links", error, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task AnalysisRun_RunsAnAnalysisNamedTwiceOnce()
     {
         using var context = new FleetTestContext();

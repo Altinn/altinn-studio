@@ -38,9 +38,13 @@ public sealed class ChildProcessExecutor(IReadOnlyList<string> command, TimeSpan
 
         using Process process =
             Process.Start(start) ?? throw new InvalidOperationException($"{command[0]} did not start.");
+        // Disposing the process does not close the output it gave to read. A read that a process the child started
+        // still holds open keeps its pipe until it ends, and the pipe then closes.
+        using StreamReader standardOutput = process.StandardOutput;
+        using StreamReader standardError = process.StandardError;
         using var reading = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        Task<string> stdout = ReadTail(process.StandardOutput, reading.Token);
-        Task<string> stderr = ReadTail(process.StandardError, reading.Token);
+        Task<string> stdout = ReadTail(standardOutput, reading.Token);
+        Task<string> stderr = ReadTail(standardError, reading.Token);
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(timeout);
         try

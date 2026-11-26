@@ -166,7 +166,25 @@ public static class FleetStoreReader
 
     /// <summary>The apps an environment's index has, with the version each runs when the index knows it.</summary>
     /// <exception cref="FleetException">The environment has no index.</exception>
-    public static IReadOnlyList<StoredApp> ListApps(FleetStore store, RuntimeEnvironment environment)
+    public static IReadOnlyList<StoredApp> ListApps(FleetStore store, RuntimeEnvironment environment) =>
+        ReadApps(store, environment, only: null);
+
+    /// <summary>
+    /// What an environment's index has for one app, as <see cref="ListApps"/> gives it, or <c>null</c> when it does
+    /// not have the app.
+    /// </summary>
+    /// <exception cref="FleetException">The environment has no index.</exception>
+    public static StoredApp? FindApp(FleetStore store, RuntimeEnvironment environment, AppIdentifier app) =>
+        ReadApps(store, environment, app).SingleOrDefault();
+
+    /// <summary>
+    /// Whether a sync is moving apps into or out of an environment's folder. Until it ends, an app's folder may hold
+    /// another version than the index says.
+    /// </summary>
+    public static bool IsCommitting(FleetStore store, RuntimeEnvironment environment) =>
+        File.Exists(store.JournalPath(environment));
+
+    private static List<StoredApp> ReadApps(FleetStore store, RuntimeEnvironment environment, AppIdentifier? only)
     {
         string path = store.IndexPath(environment);
         try
@@ -179,7 +197,7 @@ public static class FleetStoreReader
             return
             [
                 .. index
-                    .ReadApps()
+                    .ReadApps(only)
                     .Values.Select(app => new StoredApp(app.App, app.Release?.Version))
                     .OrderBy(app => app.App.Org.Value, StringComparer.Ordinal)
                     .ThenBy(app => app.App.App.Value, StringComparer.Ordinal),

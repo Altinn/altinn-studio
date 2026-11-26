@@ -65,13 +65,13 @@ internal static class BinaryReferences
     }
 
     /// <summary>
-    /// A package's assemblies. The runtime ones come first, including those for one platform only, since a reference
-    /// assembly, under <c>ref/</c>, has no method bodies and so does not show what the package's code calls. One
-    /// copy of each assembly is read.
+    /// A package's assemblies. The runtime ones come first, including each platform's own, since a platform's
+    /// implementation can call what the others do not. A reference assembly, under <c>ref/</c>, has no method bodies
+    /// and so does not show what the package's code calls, so it is read only when the package has no runtime one.
     /// </summary>
     private static List<string> Assemblies(JsonElement library)
     {
-        var runtime = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var runtime = new List<string>();
         if (library.TryGetProperty("runtime", out JsonElement files))
         {
             AddDlls(runtime, files.EnumerateObject().Select(file => file.Name));
@@ -95,16 +95,11 @@ internal static class BinaryReferences
             AddDlls(runtime, compile.EnumerateObject().Select(file => file.Name));
         }
 
-        return [.. runtime.Values];
+        return runtime;
     }
 
-    private static void AddDlls(Dictionary<string, string> byName, IEnumerable<string> files)
-    {
-        foreach (string file in files.Where(f => f.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)))
-        {
-            byName.TryAdd(Path.GetFileName(file), file);
-        }
-    }
+    private static void AddDlls(List<string> assemblies, IEnumerable<string> files) =>
+        assemblies.AddRange(files.Where(f => f.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)));
 
     /// <summary>What an assembly references of the app library, or <c>null</c> when it references none of it.</summary>
     public static List<PackageReferenceUse>? Read(string assemblyPath)

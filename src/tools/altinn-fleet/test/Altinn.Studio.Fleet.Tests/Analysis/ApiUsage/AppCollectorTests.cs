@@ -98,6 +98,13 @@ public sealed class AppCollectorTests(LibraryFixture fixture) : IClassFixture<Li
             string rid = Path.Join(packages, "rid.package", "2.0.0", "runtimes", "linux-x64", "lib", "net8.0");
             Directory.CreateDirectory(rid);
             File.Copy(fixture.PackageAssembly, Path.Join(rid, "Rid.Package.dll"));
+            // A package with an implementation per platform, of which only one uses the app library.
+            string linux = Path.Join(packages, "two.rids", "1.0.0", "runtimes", "linux-x64", "lib", "net8.0");
+            string windows = Path.Join(packages, "two.rids", "1.0.0", "runtimes", "win-x64", "lib", "net8.0");
+            Directory.CreateDirectory(linux);
+            Directory.CreateDirectory(windows);
+            File.Copy(fixture.LibraryAssembly, Path.Join(linux, "Two.Rids.dll"));
+            File.Copy(fixture.PackageAssembly, Path.Join(windows, "Two.Rids.dll"));
             // A preview build of the app library, in a package of its own name, is the library, not a package on it.
             string preview = Path.Join(packages, "altinn.app.api.experimental", "1.0.0-pr.1", "lib", "net8.0");
             Directory.CreateDirectory(preview);
@@ -122,6 +129,13 @@ public sealed class AppCollectorTests(LibraryFixture fixture) : IClassFixture<Li
                         "type": "package",
                         "runtime": { "lib/net8.0/Altinn.App.Api.dll": {} }
                       },
+                      "Two.Rids/1.0.0": {
+                        "type": "package",
+                        "runtimeTargets": {
+                          "runtimes/linux-x64/lib/net8.0/Two.Rids.dll": { "assetType": "runtime", "rid": "linux-x64" },
+                          "runtimes/win-x64/lib/net8.0/Two.Rids.dll": { "assetType": "runtime", "rid": "win-x64" }
+                        }
+                      },
                       "Rid.Package/2.0.0": {
                         "type": "package",
                         "compile": { "ref/net8.0/Rid.Package.dll": {} },
@@ -136,6 +150,7 @@ public sealed class AppCollectorTests(LibraryFixture fixture) : IClassFixture<Li
                     "Altinn.App.Extra/1.0.0": { "path": "altinn.app.extra/1.0.0" },
                     "Altinn.App.Api.Experimental/1.0.0-pr.1": { "path": "altinn.app.api.experimental/1.0.0-pr.1" },
                     "Rid.Package/2.0.0": { "path": "rid.package/2.0.0" },
+                    "Two.Rids/1.0.0": { "path": "two.rids/1.0.0" },
                     "Altinn.App.Core/1.0.0": { "path": "altinn.app.core/1.0.0" }
                   },
                   "packageFolders": { {{System.Text.Json.JsonSerializer.Serialize(
@@ -149,7 +164,7 @@ public sealed class AppCollectorTests(LibraryFixture fixture) : IClassFixture<Li
             List<PackageUse> found = BinaryReferences.Scan(assets);
 
             Assert.Equal(
-                [("Altinn.App.Extra", "1.0.0"), ("Rid.Package", "2.0.0")],
+                [("Altinn.App.Extra", "1.0.0"), ("Rid.Package", "2.0.0"), ("Two.Rids", "1.0.0")],
                 found.Select(p => (p.Package, p.Version)).Order()
             );
             Assert.All(
@@ -498,6 +513,77 @@ public sealed class AppCollectorTests(LibraryFixture fixture) : IClassFixture<Li
         {
             Directory.Delete(root, recursive: true);
         }
+    }
+
+    [Fact]
+    public async Task Collect_DoesNotTakeTheLibrarysSourceInTheAppsFolderForTheAppsCode()
+    {
+        string root = Folder.CreateTemporary();
+        try
+        {
+            string framework = $"net{Environment.Version.Major}.0";
+            string Project(string references) =>
+                $"""
+                    <Project Sdk="Microsoft.NET.Sdk">
+                      <PropertyGroup>
+                        <TargetFramework>{framework}</TargetFramework>
+                      </PropertyGroup>
+                      <ItemGroup>{references}</ItemGroup>
+                    </Project>
+                    """;
+            WriteFile(root, "lib/Altinn.App.Core/Altinn.App.Core.csproj", Project(""));
+            WriteFile(
+                root,
+                "lib/Altinn.App.Core/Library.cs",
+                """
+                namespace Altinn.App.Core.Features;
+
+                public sealed class DataClient
+                {
+                    public int Get() => Inner();
+
+                    public int Inner() => 0;
+                }
+                """
+            );
+            WriteFile(
+                root,
+                "App/App.csproj",
+                Project("""<ProjectReference Include="../lib/Altinn.App.Core/Altinn.App.Core.csproj" />""")
+            );
+            WriteFile(
+                root,
+                "App/Uses.cs",
+                """
+                using Altinn.App.Core.Features;
+
+                namespace App;
+
+                public static class Uses
+                {
+                    public static int Get() => new DataClient().Get();
+                }
+                """
+            );
+
+            AppUsage usage = await AppCollector.Collect(root, TestContext.Current.CancellationToken);
+
+            Assert.Null(usage.Failure);
+            HashSet<string> symbols = [.. usage.Uses.Select(u => u.Symbol)];
+            Assert.Contains($"M:{Ns}.DataClient.Get", symbols);
+            Assert.DoesNotContain($"M:{Ns}.DataClient.Inner", symbols);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    private static void WriteFile(string root, string path, string content)
+    {
+        string full = Path.Join(root, path);
+        Directory.CreateDirectory(Path.GetDirectoryName(full)!);
+        File.WriteAllText(full, content);
     }
 
     private static void WriteProject(string root, string path, string package, string? project = null)

@@ -575,6 +575,99 @@ public sealed class AnalysisRunnerTests
         }
     }
 
+    [Fact]
+    public async Task Run_WhenASyncChangesAnAppBeforeItIsCopied_DoesNotRecordItUnderTheVersionItRead()
+    {
+        using var context = new FleetTestContext();
+        context.Altinn.Deploy("prod", "ttd", "a-first", "1.0.0");
+        context.Altinn.Deploy("prod", "ttd", "b-second", "1.0.0");
+        await context.SyncProd();
+        var analysis = new FakeAnalysis();
+        var executor = new BeforeFirstJob(
+            new InProcessExecutor([analysis]),
+            async () =>
+            {
+                context.Altinn.Deploy("prod", "ttd", "b-second", "2.0.0");
+                await context.SyncProd();
+            }
+        );
+
+        await RunWith(context, analysis, executor);
+
+        Assert.Equal(["a-first"], analysis.Folders.Keys);
+        Assert.Equal(
+            [
+                ["a-first", "1.0.0", "NULL"],
+                [
+                    "b-second",
+                    "1.0.0",
+                    "A sync changed the app from 1.0.0 to 2.0.0 while it was copied. "
+                        + "The app is analyzed again on the next run.",
+                ],
+            ],
+            Query(context, "SELECT app, version, failure FROM runs ORDER BY app")
+        );
+
+        await Run(context, analysis);
+
+        Assert.Equal(
+            [
+                ["a-first", "1.0.0", "NULL"],
+                ["b-second", "2.0.0", "NULL"],
+            ],
+            Query(context, "SELECT app, version, failure FROM runs ORDER BY app")
+        );
+    }
+
+    [Fact]
+    public async Task Run_WhileASyncMovesApps_DoesNotAnalyzeTheirCopies()
+    {
+        using var context = new FleetTestContext();
+        context.Altinn.Deploy("prod", "ttd", "app-one", "1.0.0");
+        await context.SyncProd();
+        File.WriteAllText(context.Store.JournalPath(FleetTestContext.Prod), "{}");
+        var analysis = new FakeAnalysis();
+
+        AnalysisRunResult result = await Run(context, analysis);
+
+        Assert.Empty(analysis.Folders);
+        Assert.Equal(("fake", 1, 1, 0, 1, 0), Counts(result));
+        Assert.Contains("A sync was changing the store's apps", Query(context, "SELECT failure FROM runs")[0][0]);
+    }
+
+    [Fact]
+    public async Task Run_OfANewVersion_WhenItsWorkFolderCannotBeMade_KeepsTheEarlierResults()
+    {
+        using var context = new FleetTestContext();
+        context.Altinn.Deploy("prod", "ttd", "app-one", "1.0.0");
+        await context.SyncProd();
+        await Run(context, new FakeAnalysis());
+        var newer = new FakeAnalysis { Version = 2 };
+        string notAFolder = Path.Join(context.Outside, "work");
+        File.WriteAllText(notAFolder, "");
+
+        using (AnalysisDatabase database = AnalysisDatabase.Open(DatabasePath(context)))
+        {
+            await Assert.ThrowsAsync<FleetException>(() =>
+                new AnalysisRunner(context.Store, database, [newer], new InProcessExecutor([newer])).Run(
+                    new AnalysisOptions { Environments = [FleetTestContext.Prod], WorkFolder = notAFolder },
+                    null,
+                    TestContext.Current.CancellationToken
+                )
+            );
+        }
+
+        Assert.Equal(
+            [
+                ["1", "1"],
+            ],
+            Query(
+                context,
+                "SELECT (SELECT count(*) FROM runs), (SELECT value FROM meta WHERE key = 'analysis.fake.version')"
+            )
+        );
+    }
+
     private static (string, int, int, int, int, int) Counts(AnalysisRunResult r) =>
         (r.Analysis, r.Apps, r.Analyzed, r.Unchanged, r.Failed, r.Removed);
 
@@ -602,6 +695,16 @@ public sealed class AnalysisRunnerTests
             TestContext.Current.CancellationToken
         );
         return Assert.Single(report.Results);
+    }
+
+    private static async Task RunWith(FleetTestContext context, FakeAnalysis analysis, IAnalysisExecutor executor)
+    {
+        using AnalysisDatabase database = AnalysisDatabase.Open(DatabasePath(context));
+        await new AnalysisRunner(context.Store, database, [analysis], executor).Run(
+            new AnalysisOptions { Environments = [FleetTestContext.Prod], Parallelism = 1 },
+            null,
+            TestContext.Current.CancellationToken
+        );
     }
 
     private static List<string[]> Query(FleetTestContext context, string sql)
@@ -651,6 +754,24 @@ public sealed class AnalysisRunnerTests
             {
                 return ex.Message;
             }
+        }
+    }
+
+    /// <summary>
+    /// Does something, such as a sync, before the first job, then runs each job as another executor does.
+    /// </summary>
+    private sealed class BeforeFirstJob(IAnalysisExecutor executor, Func<Task> first) : IAnalysisExecutor
+    {
+        private Func<Task>? _first = first;
+
+        public async Task<string?> Run(AnalysisJob job, string resultFile, CancellationToken cancellationToken)
+        {
+            if (Interlocked.Exchange(ref _first, null) is { } action)
+            {
+                await action();
+            }
+
+            return await executor.Run(job, resultFile, cancellationToken);
         }
     }
 

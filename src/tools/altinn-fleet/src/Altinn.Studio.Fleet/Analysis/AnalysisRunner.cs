@@ -104,15 +104,27 @@ public sealed class AnalysisRunner(
         }
 
         cancellationToken.ThrowIfCancellationRequested();
-        foreach (IAppAnalysis analysis in _analyses)
-        {
-            database.Prepare(analysis);
-        }
 
-        // A folder of the run's own, so that runs sharing a work folder do not delete each other's copies.
+        // A folder of the run's own, so that runs sharing a work folder do not delete each other's copies. It is made
+        // before a new version of an analysis replaces its tables too, so that a folder that cannot be made stops the
+        // run while the earlier results are still there.
         string workFolder = Path.Join(options.WorkFolder ?? Path.GetTempPath(), $"fleet-analysis-{Guid.NewGuid():N}");
         try
         {
+            Directory.CreateDirectory(workFolder);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            throw new FleetException($"Cannot make the run's work folder {workFolder}: {ex.Message}", ex);
+        }
+
+        try
+        {
+            foreach (IAppAnalysis analysis in _analyses)
+            {
+                database.Prepare(analysis);
+            }
+
             var results = new List<AnalysisRunResult>();
             foreach (RuntimeEnvironment environment in options.Environments)
             {
@@ -259,7 +271,9 @@ public sealed class AnalysisRunner(
             try
             {
                 CopyFolder(store.AppPath(environment, app.App), copy);
-                failure = await executor.Run(new AnalysisJob.App(analysis.Name, copy), resultFile, cancellationToken);
+                failure =
+                    ChangedWhileCopied(environment, app)
+                    ?? await executor.Run(new AnalysisJob.App(analysis.Name, copy), resultFile, cancellationToken);
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             {
@@ -279,6 +293,39 @@ public sealed class AnalysisRunner(
         {
             TryDelete(copy);
             TryDelete(resultFile);
+        }
+    }
+
+    /// <summary>
+    /// Tells whether the copy of an app may be of another version than the one the run read, and so the one its result
+    /// is recorded with. A run takes no lock on the store, and a sync moves an app's new folder in before its index
+    /// records the new version. So the copy is of the version read only when the index still has that version after the
+    /// copy, and no sync was then moving apps.
+    /// </summary>
+    /// <returns>Why the copy cannot be analyzed, or <c>null</c> when it is of the version read.</returns>
+    private string? ChangedWhileCopied(RuntimeEnvironment environment, StoredApp app)
+    {
+        const string Again = "The app is analyzed again on the next run.";
+        try
+        {
+            if (FleetStoreReader.IsCommitting(store, environment))
+            {
+                return $"A sync was changing the store's apps when the app was copied. {Again}";
+            }
+
+            StoredApp? now = FleetStoreReader.FindApp(store, environment, app.App);
+            if (now is not null && now.Version?.Value == app.Version?.Value)
+            {
+                return null;
+            }
+
+            string before = app.Version?.Value ?? "an unknown version";
+            string after = now is null ? "none" : now.Version?.Value ?? "an unknown version";
+            return $"A sync changed the app from {before} to {after} while it was copied. {Again}";
+        }
+        catch (FleetException ex)
+        {
+            return $"Could not read the app's version after it was copied: {ex.Message}";
         }
     }
 

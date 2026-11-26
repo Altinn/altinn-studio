@@ -86,6 +86,12 @@ internal static class AppCollector
 
             errors.AddRange(generated.Where(d => !Generators.Threw(d) && d.Severity == DiagnosticSeverity.Error));
 
+            // An app may build the app library from its own source. What that source uses of itself is not a use.
+            if (AltinnAppPackage.IsLibraryAssembly(compilation.AssemblyName))
+            {
+                continue;
+            }
+
             HashSet<string> documents = DocumentPaths(current);
             await uses.Walk(
                 compilation,

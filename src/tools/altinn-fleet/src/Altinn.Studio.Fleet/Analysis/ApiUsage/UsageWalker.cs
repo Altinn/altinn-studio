@@ -42,6 +42,16 @@ internal sealed class UsageWalker(SemanticModel model, Action<ISymbol, string, L
 
         ReportImplicit(node);
 
+        // A constructor without : base(...) or : this(...) calls the base class's constructor without naming it.
+        if (
+            node is ConstructorDeclarationSyntax { Initializer: null } constructor
+            && !constructor.Modifiers.Any(SyntaxKind.StaticKeyword)
+            && model.GetOperation(constructor) is IConstructorBodyOperation body
+        )
+        {
+            ReportBaseCall(body, constructor.Identifier.GetLocation());
+        }
+
         if (node is ExpressionSyntax expression && model.GetConversion(expression).MethodSymbol is { } conversion)
         {
             Report(conversion, UseKinds.Conversion, node.GetLocation());
@@ -167,9 +177,13 @@ internal sealed class UsageWalker(SemanticModel model, Action<ISymbol, string, L
         if (type.BaseType is { } baseType && LibrarySymbols.IsLibrary(baseType))
         {
             Report(baseType, UseKinds.Inherit, location);
-            if (CallsBaseWithoutArguments(type) && BaseConstructorWithoutArguments(baseType) is { } constructor)
+            if (
+                declaration is TypeDeclarationSyntax typeDeclaration
+                && HasBaseCallWithoutSyntax(type, typeDeclaration)
+                && ProbeBaseCall(typeDeclaration) is { } body
+            )
             {
-                Report(constructor, UseKinds.Construct, location);
+                ReportBaseCall(body, location);
             }
         }
 
@@ -211,43 +225,61 @@ internal sealed class UsageWalker(SemanticModel model, Action<ISymbol, string, L
         }
     }
 
+    private void ReportBaseCall(IConstructorBodyOperation body, Location location)
+    {
+        if (body.Initializer is IExpressionStatementOperation { Operation: IInvocationOperation call })
+        {
+            Report(call.TargetMethod, UseKinds.Construct, location);
+        }
+    }
+
     /// <summary>
-    /// Whether a class has a constructor that calls its base class's constructor without naming it: one the compiler
-    /// writes, a constructor without <c>: base(...)</c> or <c>: this(...)</c>, or a primary constructor whose base type
-    /// has no argument list.
+    /// Whether a class has a constructor that calls its base class's constructor without syntax for the call: one the
+    /// compiler writes, or a primary constructor whose base type has no argument list.
     /// </summary>
-    private static bool CallsBaseWithoutArguments(INamedTypeSymbol type) =>
+    private static bool HasBaseCallWithoutSyntax(INamedTypeSymbol type, TypeDeclarationSyntax declaration) =>
         type.TypeKind == TypeKind.Class
-        && type.InstanceConstructors.Any(constructor =>
-            // A record's copy constructor calls the base's copy constructor, not one without arguments.
-            constructor.IsImplicitlyDeclared
-                ? constructor.Parameters.Length == 0
-                : constructor.DeclaringSyntaxReferences.Any(reference =>
-                    reference.GetSyntax() switch
-                    {
-                        ConstructorDeclarationSyntax declared => declared.Initializer is null,
-                        TypeDeclarationSyntax primary => primary.BaseList?.Types.FirstOrDefault()
-                            is not PrimaryConstructorBaseTypeSyntax,
-                        _ => false,
-                    }
+        && (
+            // A record's copy constructor calls the base's copy constructor, which a record type names.
+            type.InstanceConstructors.Any(constructor =>
+                constructor.IsImplicitlyDeclared && constructor.Parameters.Length == 0
+            )
+            || type.DeclaringSyntaxReferences.Select(reference => reference.GetSyntax())
+                .OfType<TypeDeclarationSyntax>()
+                .Any(part =>
+                    part.ParameterList is not null
+                    && part.BaseList?.Types.FirstOrDefault() is not PrimaryConstructorBaseTypeSyntax
                 )
         );
 
     /// <summary>
-    /// The base class constructor that a call without arguments binds to: the one the class can see whose parameters
-    /// are all optional, preferring one without parameters.
+    /// Has the compiler bind the base class constructor call that a class's constructors make without syntax for it.
+    /// Such a call binds as <c>: base()</c> does in a constructor of the class, so this adds one to a copy of the
+    /// class's declaration and binds that.
     /// </summary>
-    private static IMethodSymbol? BaseConstructorWithoutArguments(INamedTypeSymbol baseType) =>
-        baseType
-            .InstanceConstructors.Where(c =>
-                c.DeclaredAccessibility
-                    is Accessibility.Public
-                        or Accessibility.Protected
-                        or Accessibility.ProtectedOrInternal
-                && c.Parameters.All(p => p.IsOptional || p.IsParams)
-            )
-            .OrderBy(c => c.Parameters.Length)
-            .FirstOrDefault();
+    private IConstructorBodyOperation? ProbeBaseCall(TypeDeclarationSyntax declaration)
+    {
+        var annotation = new SyntaxAnnotation();
+        // The parameter's type does not exist, so the probe cannot have the signature of a constructor the class has.
+        var probe = (ConstructorDeclarationSyntax)
+            SyntaxFactory
+                .ParseMemberDeclaration(
+                    $"{declaration.Identifier.Text}(global::FleetProbe.NoSuchType fleetProbe) : base() {{ }}"
+                )!
+                .WithAdditionalAnnotations(annotation);
+        TypeDeclarationSyntax probed = declaration.OpenBraceToken.IsKind(SyntaxKind.None)
+            ? declaration
+                .WithOpenBraceToken(SyntaxFactory.Token(SyntaxKind.OpenBraceToken))
+                .WithCloseBraceToken(SyntaxFactory.Token(SyntaxKind.CloseBraceToken))
+                .WithSemicolonToken(default)
+            : declaration;
+        SyntaxTree tree = declaration.SyntaxTree;
+        SyntaxNode root = tree.GetRoot().ReplaceNode(declaration, probed.AddMembers(probe));
+        SyntaxTree probeTree = tree.WithRootAndOptions(root, tree.Options);
+        Compilation compilation = model.Compilation.ReplaceSyntaxTree(tree, probeTree);
+        SyntaxNode probeNode = probeTree.GetRoot().GetAnnotatedNodes(annotation).Single();
+        return compilation.GetSemanticModel(probeTree).GetOperation(probeNode) as IConstructorBodyOperation;
+    }
 
     private void Report(ISymbol symbol, string kind, Location location)
     {

@@ -137,16 +137,20 @@ internal static class AnalysisCommands
         return resolved;
     }
 
-    /// <summary>How many links <see cref="ResolveLinks"/> follows within one another, as Linux does.</summary>
+    /// <summary>How many links <see cref="ResolveLinks"/> follows for one path, as Linux does.</summary>
     private const int MaxLinks = 40;
 
     /// <summary>
     /// The absolute path that a path leads to, with each link in it replaced by where it leads. A <c>..</c> after a
     /// link goes to the parent of where the link leads, as the file system does. The parts that do not exist are kept.
     /// </summary>
-    internal static string ResolveLinks(string path) => ResolveLinks(path, Environment.CurrentDirectory, 0);
+    internal static string ResolveLinks(string path)
+    {
+        int followed = 0;
+        return ResolveLinks(path, path, Environment.CurrentDirectory, ref followed);
+    }
 
-    private static string ResolveLinks(string path, string from, int depth)
+    private static string ResolveLinks(string original, string path, string from, ref int followed)
     {
         string absolute = Path.IsPathFullyQualified(path) ? path : Path.Join(from, path);
         string root = Path.GetPathRoot(absolute) ?? throw new UsageException($"{path} is not a path.");
@@ -172,12 +176,12 @@ internal static class AnalysisCommands
             string next = Path.Join(current, part);
             if (new FileInfo(next).LinkTarget is { } target)
             {
-                if (depth >= MaxLinks)
+                if (++followed > MaxLinks)
                 {
-                    throw new UsageException($"{path} leads through more than {MaxLinks} links.");
+                    throw new UsageException($"{original} leads through more than {MaxLinks} links.");
                 }
 
-                next = ResolveLinks(target, current, depth + 1);
+                next = ResolveLinks(original, target, current, ref followed);
             }
 
             current = next;
