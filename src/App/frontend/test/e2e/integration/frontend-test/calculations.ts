@@ -162,6 +162,6 @@ describe('Expression calculations stored in the data model', () => {
     cy.findByText(emptyAnnualWork).should('be.visible');
     // A null result must let saving finish so the user can continue to the next page.
     cy.findByRole('button', { name: 'Neste' }).click();
-    cy.findByRole('button', { name: /^\d+\. summary$/ }).should('have.attr', 'aria-current', 'page');
+    cy.navPage('Validering i grupper').should('have.attr', 'aria-current', 'page');
   });
 });
