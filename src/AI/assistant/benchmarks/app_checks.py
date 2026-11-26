@@ -445,9 +445,8 @@ def _policy(app: AppModel, rubric: Rubric, checks: Checks) -> None:
             others = (
                 s[1]
                 for r in app.rules
-                if r.permit and action in r.actions and _covers(r, task)
                 for s in r.subjects
-                if s[0] != SERVICE_OWNER and s != subject
+                if s[0] != SERVICE_OWNER and s != subject and _may(app, s, action, task)
             )
             checks.none(f"only {who} may {action} in {where}", others)
 

@@ -536,6 +536,14 @@ ALSO_WORKS: dict[str, Change] = {
         _replace(f"App/config/texts/resource.{lang}.json", '"value": "Annet"', '"value": "Annet – fyll inn"')(r)
         for lang in ("nb", "nn", "en")
     ],
+    # Deny overrides, so the signer is still the only one who may sign
+    "another role whose Permit to sign a Deny takes away": _replace(
+        POLICY,
+        "<xacml:ObligationExpressions",
+        _rule(7, ("urn:altinn:rolecode", "regna"), ["sign"], ["Task_Signering"])
+        + _rule(8, ("urn:altinn:rolecode", "regna"), ["sign"], ["Task_Signering"], "Deny")
+        + "<xacml:ObligationExpressions",
+    ),
     # The backend has the list functions in v8 too, and only the backend evaluates a gateway condition
     "a list function in a gateway": _replace(
         PROCESS, '["dataModel", "belop"], 500000]', '["sum", ["dataModel", "belop"]], 500000]'

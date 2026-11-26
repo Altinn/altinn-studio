@@ -143,6 +143,12 @@ class TestEvaluators:
         rubric = {**build_rubric_from_dir(_golden(tmp_path / "golden")), "expected_titles": titles}
         assert self._scores(_golden(tmp_path / "candidate"), rubric)["bench_field_coverage"] == 0.5
 
+    def test_each_of_those_titles_finds_its_field_by_its_number(self, tmp_path: Path):
+        inputs = [_component(n, "Input", f"app.field.{n}") for n in ("a1", "b2")]
+        texts = {"app.field.a1": "A1. Fullt navn", "app.field.b2": "B2. Fullt navn"}
+        candidate = _write_app(tmp_path, pages={"Side1": inputs}, resources=texts)
+        assert self._scores(candidate, {"expected_titles": ["A1. Navn", "B2. Navn"]})["bench_field_coverage"] == 1.0
+
 
 def test_the_spec_field_count_leaves_out_headings_and_paragraphs():
     """Some runs return the form's headings and intro text and some do not."""

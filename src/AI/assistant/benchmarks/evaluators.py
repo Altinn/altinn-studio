@@ -72,7 +72,8 @@ def _field_coverage(app: AppModel, rubric: Rubric) -> Score:
     same: dict[str, list[str]] = {}
     for title in expected_titles:
         same.setdefault(normalize_title(title), []).append(title)
-    missing = [title for titles in same.values() for title in titles[len(app.fields(titles[0])) :]]
+    found = {key: {id(c) for title in titles for _, c in app.fields(title)} for key, titles in same.items()}
+    missing = [title for key, titles in same.items() for title in titles[len(found[key]) :]]
     covered = len(expected_titles) - len(missing)
     preview = "; ".join(missing[:8]) + ("; …" if len(missing) > 8 else "")
     return Score(
