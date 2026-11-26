@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useRef } from 'react';
-import { StudioButton } from '@designer/components';
+import { StudioButton, StudioTooltip } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import { TrashIcon, XMarkOctagonFillIcon } from '@designer/icons';
 import classes from './FormItemTitle.module.css';
@@ -28,7 +28,7 @@ export const FormItemTitle = ({ children, formItem, duplicateComponents }: FormI
   const { layoutSet } = useUxEditorParams();
   const layout = useSelectedFormLayout();
   const { formItemId: selectedItemId, handleDiscard } = useFormItemContext();
-  const hasPreviewErrors = previewComponentErrors.has(formItem.id);
+  const previewErrors = previewComponentErrors.get(formItem.id);
   const selectedItemIdRef = useRef(selectedItemId);
 
   useEffect(() => {
@@ -55,16 +55,19 @@ export const FormItemTitle = ({ children, formItem, duplicateComponents }: FormI
     <div
       className={classNames(classes.root, {
         [classes.duplicateComponentIds]: duplicateComponents?.includes(formItem.id),
-        [classes.previewErrors]: hasPreviewErrors,
         [classes.deprecatedComponent]: isComponentDeprecated(formItem.type),
       })}
     >
       <div className={classes.label}>{children}</div>
-      {hasPreviewErrors && (
-        <XMarkOctagonFillIcon
-          className={classes.previewErrorIcon}
-          title={t('ux_editor.preview.component_has_errors')}
-        />
+      {previewErrors && (
+        <StudioTooltip content={previewErrors.join(' • ')}>
+          <StudioButton
+            className={classes.previewErrorsButton}
+            icon={<XMarkOctagonFillIcon />}
+            aria-label={t('ux_editor.preview.component_has_errors')}
+            variant='tertiary'
+          />
+        </StudioTooltip>
       )}
       <StudioButton
         className={classes.deleteButton}

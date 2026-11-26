@@ -32,11 +32,17 @@ describe('FormItemTitle', () => {
   it('marks a component that preview found errors in', () => {
     const component = componentMocks[ComponentType.Input];
 
-    render(component, 'Test label', null, {}, new Map([[component.id, ['Must be boolean']]]));
+    render(
+      component,
+      'Test label',
+      null,
+      {},
+      new Map([[component.id, ['Must be boolean', 'Must be a string']]]),
+    );
 
     expect(
-      screen.getByTitle(textMock('ux_editor.preview.component_has_errors')),
-    ).toBeInTheDocument();
+      screen.getByRole('button', { name: textMock('ux_editor.preview.component_has_errors') }),
+    ).toHaveAttribute('data-tooltip', 'Must be boolean • Must be a string');
   });
 
   it('does not mark a component that preview found no errors in', () => {
@@ -51,7 +57,7 @@ describe('FormItemTitle', () => {
     );
 
     expect(
-      screen.queryByTitle(textMock('ux_editor.preview.component_has_errors')),
+      screen.queryByRole('button', { name: textMock('ux_editor.preview.component_has_errors') }),
     ).not.toBeInTheDocument();
   });
 

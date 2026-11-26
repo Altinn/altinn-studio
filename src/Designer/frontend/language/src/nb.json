@@ -3199,7 +3199,6 @@
   "ux_editor.pages_error_empty": "Navnet kan ikke være tomt.",
   "ux_editor.pages_error_unique": "Det finnes allerede en side med dette navnet. Bruk et annet navn.",
   "ux_editor.preview": "Forhåndsvisning",
-  "ux_editor.preview.component_errors_hidden": "Forhåndsvisningen viser ikke komponenten før du har rettet feilene.",
   "ux_editor.preview.component_has_errors": "Forhåndsvisningen fant feil i komponenten",
   "ux_editor.preview.options": "Alternativer for forhåndsvisningen",
   "ux_editor.preview.page_has_errors": "Forhåndsvisningen fant feil i komponenter på siden",

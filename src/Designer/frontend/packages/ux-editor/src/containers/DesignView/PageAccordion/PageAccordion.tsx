@@ -6,7 +6,7 @@ import { FilePdfIcon, TrashIcon, XMarkOctagonFillIcon } from '@designer/icons';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../../hooks';
-import { StudioButton, StudioDetails } from '@designer/components';
+import { StudioButton, StudioDetails, StudioTooltip } from '@designer/components';
 import { useDeletePageMutation } from '../../../hooks/mutations/useDeletePageMutation';
 import { usePagesQuery } from 'app-shared/hooks/queries/usePagesQuery';
 import { useChangePageGroupOrder } from '../../../hooks/mutations/useChangePageGroupOrder';
@@ -92,16 +92,15 @@ export const PageAccordion = ({
         <StudioDetails.Summary
           data-testid={accordionHeaderId(pageId)}
           onClick={handleSummaryClick}
-          className={
-            isInvalid || hasDuplicatedIds || hasPreviewErrors ? classes.detailsWarning : undefined
-          }
+          className={isInvalid || hasDuplicatedIds ? classes.detailsWarning : undefined}
         >
           {pageName || pageId}
           {hasPreviewErrors && (
-            <XMarkOctagonFillIcon
-              className={classes.previewErrorIcon}
-              title={t('ux_editor.preview.page_has_errors')}
-            />
+            <StudioTooltip content={t('ux_editor.preview.page_has_errors')}>
+              <span role='img' className={classes.previewErrorIcon}>
+                <XMarkOctagonFillIcon aria-hidden />
+              </span>
+            </StudioTooltip>
           )}
         </StudioDetails.Summary>
         <StudioDetails.Content
