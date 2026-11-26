@@ -1,0 +1,22 @@
+# The engine's API has no authentication, so this policy lets only the core operator reach it.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: operator-workflow-engine-ingress
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: operator-workflow-engine
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: core-operator
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: core-operator
+      ports:
+        - protocol: TCP
+          port: 9090

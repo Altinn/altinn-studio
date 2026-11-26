@@ -142,7 +142,11 @@ const GROUPS = [
   {
     title: 'Squad Flyt',
     owner: '@altinn/team-altinn-studio-flyt',
-    roots: ['src/Runtime/workflow-engine', 'src/Runtime/workflow-engine-app'],
+    roots: [
+      'src/Runtime/workflow-engine',
+      'src/Runtime/workflow-engine-app',
+      'src/core/operator-workflow-engine',
+    ],
     extraPaths: [
       '.github/workflows/deploy-runtime-workflow-engine-app.yaml',
       '.github/workflows/runtime-workflow-engine-app-tests.yaml',

@@ -1,0 +1,36 @@
+# The workflow engine host of the core operator. See src/core/operator-workflow-engine/README.md.
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: operator-workflow-engine
+  namespace: default
+spec:
+  interval: 5m
+  # deploy-core-operator-workflow-engine pushes one artifact per build SHA and tags it with the environment name.
+  url: oci://altinntjenestercontainerregistry.azurecr.io/altinn-studio/configs/core-operator-workflow-engine-repo
+  ref:
+    tag: ${ENVIRONMENT}
+  provider: azure
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: operator-workflow-engine
+  namespace: default
+spec:
+  # The artifact creates and sets its own namespace, so this Kustomization sets no targetNamespace.
+  interval: 5m
+  sourceRef:
+    kind: OCIRepository
+    name: operator-workflow-engine
+    namespace: default
+  path: ./${ENVIRONMENT}
+  prune: true
+  wait: true
+  timeout: 5m
+  postBuild:
+    substitute:
+      ENVIRONMENT: ${ENVIRONMENT}
+      OPERATOR_WORKFLOW_ENGINE_ENTRA_CLIENT_ID: ${OPERATOR_WORKFLOW_ENGINE_ENTRA_CLIENT_ID}
+      OPERATOR_WORKFLOW_ENGINE_DB_HOST: ${OPERATOR_WORKFLOW_ENGINE_DB_HOST}
+      OPERATOR_WORKFLOW_ENGINE_DB_USERNAME: ${OPERATOR_WORKFLOW_ENGINE_DB_USERNAME}

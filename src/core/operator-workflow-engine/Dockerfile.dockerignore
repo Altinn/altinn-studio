@@ -1,0 +1,27 @@
+# Build context: src/
+**
+!common/dotnet/Altinn.Studio.Common/**
+!common/dotnet/Altinn.Studio.Common.Telemetry/**
+!Runtime/workflow-engine/**
+!core/operator-workflow-engine/**
+
+# bin* and obj* also match directories with a literal backslash, such as `bin\Debug` on macOS.
+**/bin*
+**/bin*/**
+**/obj*
+**/obj*/**
+
+**/README.md
+**/readme.*
+**/README.*
+**/docs/
+**/tests/
+**/infra/
+*.sln.DotSettings*
+*.slnx
+**/.DS_Store
+**/.csharpier*
+
+**/Directory.*.props
+!Runtime/workflow-engine/Directory.Packages.props
+!core/operator-workflow-engine/Directory.Packages.props

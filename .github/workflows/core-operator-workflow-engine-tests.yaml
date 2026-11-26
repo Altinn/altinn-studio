@@ -1,0 +1,96 @@
+name: Core Operator Workflow Engine - Build and test
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
+    paths:
+      - 'src/common/dotnet/**'
+      - 'src/Runtime/workflow-engine/src/**'
+      - 'src/Runtime/workflow-engine/tests/**'
+      - 'src/Runtime/workflow-engine/Directory.Build.props'
+      - 'src/Runtime/workflow-engine/Directory.Packages.props'
+      - 'src/core/operator-workflow-engine/**'
+      # The integration test runs the core operator against this host.
+      - 'src/core/operator/**'
+      - 'src/common/go/**'
+      - '.github/workflows/core-operator-workflow-engine-tests.yaml'
+      - '!**/*.md'
+      - '!**/docs/**'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
+    name: Build and test
+    runs-on: self-hosted-ubuntu
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: src/core/operator-workflow-engine/
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+        with:
+          global-json-file: src/core/operator-workflow-engine/global.json
+
+      - name: Build and test
+        run: make test
+        env:
+          CI: true
+          # CSharpier.MsBuild only checks Release builds, and formats Debug builds in place.
+          CSharpier_Check: true
+
+  # The operator's own workflow does not start when the engine library changes, so this workflow runs the test.
+  integration:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
+    name: Integration test with the core operator
+    runs-on: self-hosted-ubuntu
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: src/core/operator/
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+        with:
+          global-json-file: src/core/operator-workflow-engine/global.json
+
+      - name: Set up Go
+        uses: ./.github/actions/setup-go-cached
+        with:
+          module: src/core/operator
+
+      - name: Test
+        run: make test-integration
+
+  # Without this job, a broken Dockerfile, ignore file or base image first shows in the deploy workflow on main.
+  docker-build:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
+    name: Build image
+    runs-on: self-hosted-ubuntu
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: src
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Build image
+        run: docker build -f core/operator-workflow-engine/Dockerfile .
