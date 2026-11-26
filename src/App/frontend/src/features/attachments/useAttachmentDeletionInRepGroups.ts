@@ -10,7 +10,6 @@ import { FormStore } from 'src/features/form/FormContext';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { getComponentBehaviors } from 'src/layout';
-import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { getDerivedNodeDescendantIds } from 'src/utils/layout/derivedNodeTraversal';
 import { deriveRuntimeNodeRefs } from 'src/utils/layout/deriveRuntimeNodeRefs';
 import { getIndexedDataModelBindings } from 'src/utils/layout/rowContext';
@@ -24,11 +23,14 @@ import { getIndexedDataModelBindings } from 'src/utils/layout/rowContext';
  *
  * The 'onBeforeRowDeletion' function you get as a result here gives you a Promise that resolves to true if all
  * attachments were successfully removed, or false if any of them failed to be removed.
+ *
+ * The groupIndexedId must be the indexed ID of the repeating group itself. Do not resolve it from inside a row,
+ * as that would include the row index (i.e. 'group-0' instead of 'group') and no attachments would be found.
  */
-export function useAttachmentDeletionInRepGroups(baseComponentId: string) {
+export function useAttachmentDeletionInRepGroups(groupIndexedId: string) {
   const remove = useAsRef(AttachmentRemoval.useAttachmentsRemover());
   const awaiter = AttachmentUpload.useAttachmentsAwaiter();
-  const idRef = useAsRef(useIndexedId(baseComponentId));
+  const idRef = useAsRef(groupIndexedId);
   const formStore = FormStore.raw.useStore();
   const selectFromInstance = useSelectFromInstanceData();
   const taskId = useAsRef(useProcessTaskId());
