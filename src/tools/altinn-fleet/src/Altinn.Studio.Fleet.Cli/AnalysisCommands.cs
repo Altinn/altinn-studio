@@ -1,6 +1,6 @@
 using System.Reflection;
 using Altinn.Studio.Fleet.Analysis;
-using Altinn.Studio.Fleet.Cli.Analysis.ApiUsage;
+using Altinn.Studio.Fleet.Analysis.ApiUsage;
 using Altinn.Studio.Fleet.Store;
 
 namespace Altinn.Studio.Fleet.Cli;
@@ -49,7 +49,14 @@ internal static class AnalysisCommands
                 throw new UsageException("--source is for the api-usage analysis, which this run does not include.");
             }
 
-            analyses[apiUsage] = new ApiUsageAnalysis { Source = LibraryApiReader.FindSource(source) };
+            analyses[apiUsage] = new ApiUsageAnalysis
+            {
+                Source =
+                    LibrarySource.Find(source)
+                    ?? throw new UsageException(
+                        $"--source {source} has no Altinn.App.Api project. Give a checkout of altinn-studio or app-lib-dotnet."
+                    ),
+            };
         }
 
         string outPath = OutPath(args, store);

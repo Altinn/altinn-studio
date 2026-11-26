@@ -1,8 +1,8 @@
 using Altinn.Studio.Common.Domain;
 using Altinn.Studio.Fleet;
 using Altinn.Studio.Fleet.Analysis;
+using Altinn.Studio.Fleet.Analysis.ApiUsage;
 using Altinn.Studio.Fleet.Cli;
-using Altinn.Studio.Fleet.Cli.Analysis.ApiUsage;
 using Altinn.Studio.Fleet.Http;
 using Altinn.Studio.Fleet.Store;
 using Altinn.Studio.Fleet.Sync;

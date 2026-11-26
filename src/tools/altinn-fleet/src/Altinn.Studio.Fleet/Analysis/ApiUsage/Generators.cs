@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Altinn.Studio.Fleet.Cli.Analysis.ApiUsage;
+namespace Altinn.Studio.Fleet.Analysis.ApiUsage;
 
 /// <summary>Finds out whether a project's source generators failed.</summary>
 /// <remarks>

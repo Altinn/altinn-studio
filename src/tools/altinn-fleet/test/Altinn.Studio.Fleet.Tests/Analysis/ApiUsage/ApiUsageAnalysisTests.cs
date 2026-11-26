@@ -1,6 +1,5 @@
 using Altinn.Studio.Fleet.Analysis;
-using Altinn.Studio.Fleet.Cli;
-using Altinn.Studio.Fleet.Cli.Analysis.ApiUsage;
+using Altinn.Studio.Fleet.Analysis.ApiUsage;
 using Microsoft.Data.Sqlite;
 
 namespace Altinn.Studio.Fleet.Tests.Analysis.ApiUsage;
@@ -22,8 +21,9 @@ public sealed class ApiUsageAnalysisTests(LibraryFixture fixture) : IClassFixtur
             Write(Path.Join(layout, package, $"{package}.csproj"), "<Project />");
         }
 
-        LibrarySource source = LibraryApiReader.FindSource(_folder);
+        LibrarySource? source = LibrarySource.Find(_folder);
 
+        Assert.NotNull(source);
         Assert.Equal(
             ["Altinn.App.Api.csproj", "Altinn.App.Core.csproj"],
             source.Projects.Select(p => Path.GetFileName(p)).ToArray()
@@ -32,11 +32,11 @@ public sealed class ApiUsageAnalysisTests(LibraryFixture fixture) : IClassFixtur
     }
 
     [Fact]
-    public void FindSource_WithoutTheApiProject_IsAUsageError()
+    public void FindSource_WithoutTheApiProject_FindsNone()
     {
         Write("src/Altinn.App.Core/Altinn.App.Core.csproj", "<Project />");
 
-        Assert.Throws<UsageException>(() => LibraryApiReader.FindSource(_folder));
+        Assert.Null(LibrarySource.Find(_folder));
     }
 
     [Theory]

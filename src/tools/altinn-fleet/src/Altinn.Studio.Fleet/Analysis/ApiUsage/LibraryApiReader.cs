@@ -2,7 +2,7 @@ using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
 
-namespace Altinn.Studio.Fleet.Cli.Analysis.ApiUsage;
+namespace Altinn.Studio.Fleet.Analysis.ApiUsage;
 
 /// <summary>A type or member of the app library.</summary>
 /// <param name="Symbol">Its documentation comment ID.</param>
@@ -39,11 +39,7 @@ internal sealed record LibraryApiEntry(
 /// <summary>The app library's projects in a folder.</summary>
 /// <param name="Root">The folder given, which the source files are recorded relative to.</param>
 /// <param name="Projects">The projects of the app library's packages that the folder has.</param>
-internal sealed record LibrarySource(string Root, IReadOnlyList<string> Projects);
-
-/// <summary>Lists the types and members that the app library exposes outside its assemblies: its public API.</summary>
-/// <remarks>MSBuild must be registered with <see cref="MSBuildSetup.EnsureRegistered"/> before it reads.</remarks>
-internal static class LibraryApiReader
+public sealed record LibrarySource(string Root, IReadOnlyList<string> Projects)
 {
     // Where the app library's projects are in a checkout of altinn-studio, of app-lib-dotnet, or in the folder itself.
     private static readonly string[] s_projectFolders = ["src/App/backend/src", "src", ""];
@@ -52,29 +48,35 @@ internal static class LibraryApiReader
     /// Finds the app library's projects in a checkout of altinn-studio or app-lib-dotnet, or in the folder that holds
     /// them.
     /// </summary>
-    /// <exception cref="UsageException">The folder has no app library.</exception>
-    public static LibrarySource FindSource(string path)
+    /// <returns>The projects, or <c>null</c> when the folder has no <c>Altinn.App.Api</c> project.</returns>
+    public static LibrarySource? Find(string path)
     {
         string root = Path.GetFullPath(path);
         foreach (string folder in s_projectFolders)
         {
             List<string> projects =
             [
-                .. ((string[])[ApiPackage, CorePackage, FiksPackage])
-                    .Select(package => Path.Join(root, folder, package, $"{package}.csproj"))
+                .. LibraryApiReader
+                    .Packages.Select(package => Path.Join(root, folder, package, $"{package}.csproj"))
                     .Where(File.Exists),
             ];
-            if (projects.Count > 0 && projects[0].EndsWith($"{ApiPackage}.csproj", StringComparison.Ordinal))
+            if (
+                projects.Count > 0
+                && projects[0].EndsWith($"{LibraryApiReader.ApiPackage}.csproj", StringComparison.Ordinal)
+            )
             {
                 return new LibrarySource(root, projects);
             }
         }
 
-        throw new UsageException(
-            $"--source {path} has no {ApiPackage} project. Give a checkout of altinn-studio or app-lib-dotnet."
-        );
+        return null;
     }
+}
 
+/// <summary>Lists the types and members that the app library exposes outside its assemblies: its public API.</summary>
+/// <remarks>MSBuild must be registered with <see cref="MSBuildSetup.EnsureRegistered"/> before it reads.</remarks>
+internal static class LibraryApiReader
+{
     /// <summary>Reads the app library from its source, which it restores and compiles.</summary>
     public static Task<List<LibraryApiEntry>> ReadSource(LibrarySource source, CancellationToken cancellationToken) =>
         Read(source.Projects, fromReferences: false, source.Root, cancellationToken);
@@ -225,7 +227,7 @@ internal static class LibraryApiReader
         try
         {
             string projectFile = Path.Join(folder, "LibraryApi.csproj");
-            List<string> packages = [ApiPackage, CorePackage, FiksPackage];
+            List<string> packages = [.. Packages];
             while (true)
             {
                 await File.WriteAllTextAsync(projectFile, ReferencingProject(packages, version), cancellationToken);
@@ -253,7 +255,10 @@ internal static class LibraryApiReader
         }
     }
 
-    private const string ApiPackage = "Altinn.App.Api";
+    internal const string ApiPackage = "Altinn.App.Api";
+
+    /// <summary>The app library's packages that have a public API, <see cref="ApiPackage"/> first.</summary>
+    internal static readonly string[] Packages = [ApiPackage, CorePackage, FiksPackage];
 
     private const string CorePackage = "Altinn.App.Core";
 

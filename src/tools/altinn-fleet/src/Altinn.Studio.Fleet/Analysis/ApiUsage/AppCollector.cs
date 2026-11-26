@@ -3,7 +3,7 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
 
-namespace Altinn.Studio.Fleet.Cli.Analysis.ApiUsage;
+namespace Altinn.Studio.Fleet.Analysis.ApiUsage;
 
 /// <summary>
 /// Restores and compiles one app against the app library version it references, and records the app library symbols

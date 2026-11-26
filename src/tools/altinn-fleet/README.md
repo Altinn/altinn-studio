@@ -109,7 +109,7 @@ WHERE version = 'source' AND visible AND symbol NOT IN (SELECT symbol FROM api_u
 
 The checkout is restored and compiled on every run. When it does not compile, or a source generator fails, the API
 from the last run that read it is kept, and `api_usage_library_versions` says why the read failed.
-[ApiUsageAnalysis.cs](src/Altinn.Studio.Fleet.Cli/Analysis/ApiUsage/ApiUsageAnalysis.cs) has the analysis's tables.
+[ApiUsageAnalysis.cs](src/Altinn.Studio.Fleet/Analysis/ApiUsage/ApiUsageAnalysis.cs) has the analysis's tables.
 
 - It needs the .NET SDKs the apps' `global.json` files select, and network access to the NuGet feeds the apps use.
   An app whose restore or compilation fails is recorded as failed with the reason, and tried again on the next run.

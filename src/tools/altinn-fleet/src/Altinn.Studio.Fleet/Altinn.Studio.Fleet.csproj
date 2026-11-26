@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>Altinn.Studio.Fleet</RootNamespace>
-    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>
@@ -10,6 +9,14 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.Sqlite" />
+  </ItemGroup>
+
+  <!-- The api-usage analysis. MSBuild is compile-only, as Directory.Build.props says. -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Build.Locator" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" />
   </ItemGroup>
 
   <ItemGroup>

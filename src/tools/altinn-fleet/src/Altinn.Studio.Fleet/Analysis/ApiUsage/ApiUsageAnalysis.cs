@@ -2,11 +2,9 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
-using Altinn.Studio.Fleet;
-using Altinn.Studio.Fleet.Analysis;
 using Microsoft.Data.Sqlite;
 
-namespace Altinn.Studio.Fleet.Cli.Analysis.ApiUsage;
+namespace Altinn.Studio.Fleet.Analysis.ApiUsage;
 
 /// <summary>
 /// Which app library types and members each app uses: compiles the app with Roslyn against the app library version it
@@ -17,7 +15,7 @@ namespace Altinn.Studio.Fleet.Cli.Analysis.ApiUsage;
 /// MSBuild has to be registered before a method that uses its types is compiled, so <see cref="Analyze"/> and
 /// <see cref="Complete"/> register it and then call a method that is not inlined.
 /// </remarks>
-internal sealed class ApiUsageAnalysis : IAppAnalysis
+public sealed class ApiUsageAnalysis : IAppAnalysis
 {
     /// <summary>The version that the public API of <see cref="Source"/> is recorded under.</summary>
     public const string SourceVersion = "source";

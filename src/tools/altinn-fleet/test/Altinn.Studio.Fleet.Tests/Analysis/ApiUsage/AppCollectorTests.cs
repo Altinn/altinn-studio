@@ -1,5 +1,5 @@
 using System.Xml.Linq;
-using Altinn.Studio.Fleet.Cli.Analysis.ApiUsage;
+using Altinn.Studio.Fleet.Analysis.ApiUsage;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 

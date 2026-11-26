@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using Altinn.Studio.Fleet.Cli.Analysis.ApiUsage;
+using Altinn.Studio.Fleet.Analysis.ApiUsage;
 
 namespace Altinn.Studio.Fleet.Tests.Analysis.ApiUsage;
 

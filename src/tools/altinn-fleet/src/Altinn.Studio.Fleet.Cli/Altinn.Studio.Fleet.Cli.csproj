@@ -12,18 +12,4 @@
   <ItemGroup>
     <ProjectReference Include="../Altinn.Studio.Fleet/Altinn.Studio.Fleet.csproj" />
   </ItemGroup>
-
-  <!--
-    The api-usage analysis compiles apps with Roslyn's MSBuild workspace. MSBuildLocator loads MSBuild from the
-    installed SDK at run time, so the MSBuild packages are compile-time only (ExcludeAssets="runtime"); MSBuildLocator
-    fails the build otherwise.
-  -->
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.Build.Framework" ExcludeAssets="runtime" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.NET.StringTools" ExcludeAssets="runtime" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.Build.Locator" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" />
-  </ItemGroup>
 </Project>
