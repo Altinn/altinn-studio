@@ -30,10 +30,9 @@ index's schema.
 - Apps come from Gitea's archive of the commit, so the folders have no `.git` for the volume to copy.
 - agentctl asks before it copies a file named `.env`, so those are left out, with links and paths outside the app.
   On Windows, so are names Windows cannot store. The index's `skipped` table lists them.
-- Which service owners have which environments comes from the service owner registry on Altinn's CDN, and where an
-  environment serves their apps from its environment registry, `environments.json`, as `{org}.{appPrefix}.{hostname}`.
-  So the apps' host names are not in the code, and a service owner in an environment that registry does not list keeps
-  its apps.
+- Which service owners have which environments comes from the service owner registry on Altinn's CDN, and the host
+  that serves their apps from its environment registry. A service owner in an environment that registry does not list
+  keeps its apps.
 - A service owner whose cluster cannot be reached keeps its apps, rather than losing them, and so does an app listed
   with a version that cannot be read. A service owner that the registry no longer lists for the environment has left
   it, so its apps are removed.
@@ -58,9 +57,9 @@ In an Agent, the copies are in `/home/agent/code/.reference/altinn-apps/prod` an
 
 ## Analyses
 
-`fleet analysis run` runs analyses on each app of `--env` and records what they find in an SQLite file,
-`analysis.sqlite` by default. An analysis works on a copy of each app and may build it, to find out what the files
-alone do not say, such as which app library APIs the app uses.
+`fleet analysis run` analyzes a copy of each app in `--env` and records the results in an SQLite file,
+`analysis.sqlite` by default. `fleet query --db` reads that file with the environments' indexes attached, so a query
+can join the results with `prod.apps`.
 
 ```sh
 fleet analysis run --env prod
@@ -68,93 +67,43 @@ fleet query --db analysis.sqlite "SELECT analysis, count(*) AS apps, count(failu
                                   GROUP BY analysis"
 ```
 
-The file is separate from the environments' indexes. An index is derived from the files in the store and can be
-rebuilt from them at any time, and the store may be a read-only copy. An analysis can take minutes per app and needs
-packages from the network, so its results are kept app by app. `fleet query --db` reads the file with every
-environment's index attached, so a query can join it with `prod.apps`.
-
-- The store is not changed, so a read-only copy works. Each app is copied to a temporary folder and analyzed there,
-  and `--out` must be outside the store. A run takes no lock on the store, so a sync at the same time can change an
-  app while it is copied. The run checks the app's version after the copy, so the app then fails, and the next run
-  analyzes it again.
-- Each analysis of an app or an item runs in a process of its own, `fleet analysis job`, because it may keep state
-  in the process and can hang. `--timeout` ends one that takes too long. Fleet's own process copies the apps and
-  records the results. An analysis's `Record`, `PlanItems` and `RecordItem` run there, where `--timeout` does not
-  limit them, so they should only read result files and write tables.
+- The results have a file of their own because an index can be rebuilt from the store at any time, while an analysis
+  can take minutes per app.
+- Each app is copied before it is analyzed, so the store stays unchanged and a read-only copy works. A sync at the
+  same time can change an app while it is copied. The app then fails, and the next run analyzes it again.
+- Each analysis runs in a process of its own, `fleet analysis job`, since it can keep state in the process or hang.
+  `--timeout` ends one that takes too long. Fleet's own process only copies apps and records results, so that a
+  service can host the library.
 - An analysis may build the apps, which runs the service owners' MSBuild targets and source generators as the user
-  that runs fleet, with that user's environment and files. Run it where you would build their apps yourself, such as
-  in an agent.
-- Only one run at a time writes a file, and a second run stops at once rather than waiting. A file with tables that
-  fleet did not write is left alone.
-- An app already analyzed at its deployed version is skipped, so a run after `fleet sync` only analyzes what changed.
-  An app that failed is tried again, and so is one whose version the index does not know, as after `index rebuild`
-  without the old index. `--force` analyzes every app again.
-- `runs` has a row for each app each analysis looked at, with its deployed version and why the analysis failed when
-  it did. Each analysis has tables of its own, named after it, such as `api_usage_uses`.
-- Once the apps are recorded, an analysis can analyze items that are not apps, to compare the apps with, such as
-  the app library versions for `api-usage`. They run in processes of their own too, and a run with an item that
-  failed exits with an error, since what the apps are compared with is then incomplete.
-- An analysis implements [IAppAnalysis](src/Altinn.Studio.Fleet/Analysis/IAppAnalysis.cs), and `IItemAnalysis` for
-  items, and is listed in [Analyses.cs](src/Altinn.Studio.Fleet/Analysis/Analyses.cs). A new version of an analysis
-  replaces its tables, so every app is analyzed again. A run for only some service owners or environments stops
-  instead, since it would lose the others' results.
+  who runs fleet. Run it where you would build their apps yourself, such as in an agent.
+- A run skips the apps already analyzed at their deployed version. A new version of an analysis replaces its tables,
+  so a run of it for only some service owners or environments stops rather than lose the others' results.
+- An analysis implements [IAppAnalysis](src/Altinn.Studio.Fleet/Analysis/IAppAnalysis.cs) and is listed in
+  [Analyses.cs](src/Altinn.Studio.Fleet/Analysis/Analyses.cs).
 
-### api-usage: what apps use of the app library
+### api-usage
 
-The `api-usage` analysis compiles each app against the app library version it references, with Roslyn, and records
-which app library types and members the app uses and how: called, implemented, overridden, constructed or named. It
-is for deciding what the app library can stop making public, and for finding the apps a change to it affects.
+`api-usage` records which app library types and members each app uses, to decide what the app library can stop
+making public and to find the apps a change affects. It compiles each app against the app library version the app
+ships, and reads the public API of each of those versions from its NuGet packages, so that a query can tell what no
+app uses.
 
 ```sh
-fleet analysis run api-usage --env prod --source ../altinn-studio
+fleet analysis run api-usage --env prod
 fleet query --db analysis.sqlite "SELECT symbol, count(DISTINCT org || '/' || app) AS apps FROM api_usage_uses
-                                  GROUP BY symbol ORDER BY apps DESC"
+                                  WHERE source <> 'test' GROUP BY symbol ORDER BY apps DESC"
 ```
 
-To tell what apps do not use, the analysis also records the app library's public API: the types and members it makes
-public. It records the API of each app library version the apps use, read from that version's NuGet packages once, since
-a published version does not change. An app on a build of a pull request, such as `Altinn.App.Api.Experimental`
-`8.7.0-pr.1973.…`, gets that build's API from its `.Experimental` packages. With `--source`, it also records the API of
-the app library in a checkout of altinn-studio or app-lib-dotnet, such as the coming version on `main`, under the
-version `source`:
+- The compiler binds each use, so members that code calls without naming them count too, such as the `GetAwaiter`
+  of an `await`.
+- Uses in the app's own code, in generated code and in tests are told apart, since a use in a test is a weaker reason
+  to keep a member public.
+- Packages built on the app library are read from their compiled code, which names a member without its overload. A
+  package's use of a member counts for every overload of that name.
+- `--source` also reads the public API of an altinn-studio or app-lib-dotnet checkout, as the version `source`.
+- It needs the .NET SDKs the apps select and access to their NuGet feeds. An app that does not restore or compile
+  fails, and the next run tries it again.
+- Project shapes that no app in prod has come out incomplete, such as an app that targets several frameworks or
+  restores its packages outside its folder.
 
-```sql
--- Public in the checkout, used by no app's own code. What packages on the app library use is in
--- api_usage_package_uses, where a member is named without its parameters.
-SELECT symbol FROM api_usage_library_api
-WHERE version = 'source' AND visible AND symbol NOT IN (SELECT symbol FROM api_usage_uses);
-```
-
-The checkout is restored and compiled on every run. When it does not compile, or a source generator fails, the API
-from the last run that read it is kept, and `api_usage_library_versions` says why the read failed.
-[ApiUsageAnalysis.cs](src/Altinn.Studio.Fleet/Analysis/ApiUsage/ApiUsageAnalysis.cs) has the analysis's tables.
-
-- It needs the .NET SDKs the apps' `global.json` files select, and network access to the NuGet feeds the apps use. An
-  app whose restore or compilation fails is recorded as failed with the reason, and tried again on the next run. The
-  uses found are kept, but those in the code that does not compile are missing. A test project that does not compile is
-  noted in `load_failures` instead, and so is a source generator that fails on the app's code, since it fails in the
-  app's own build too, and the app runs without what it would write. An app's library version is that of the
-  `Altinn.App.Api` assembly, or else `Altinn.App.Core`, that its compilation uses, which is the one its build ships when
-  packages bring several versions. When its code also uses library assemblies of another version, such as
-  `Altinn.App.PlatformServices` 6.0.2 that a package depends on beside v8, that is noted in `load_failures` too, since
-  those uses are compared with its library version's API.
-- Uses in the app's own code, in code that source generators add to it and in its test projects are told apart,
-  since a test project that uses a type is a weaker reason to keep it public than the app itself.
-- Members that code calls without naming them count too, such as `GetEnumerator` in a `foreach`, `GetAwaiter` in an
-  `await`, `Deconstruct`, a collection initializer's `Add`, a conversion operator in a cast, and the base class
-  constructor that a constructor calls without `: base(...)`.
-- Third-party packages that the apps use and that are built on the app library are read from the IL of their
-  implementation assemblies, including packages named `Altinn.App.*`. The app library's own assemblies are not read,
-  whatever package carries them, and neither are packages named `Microsoft.*`, `System.*` or `runtime.*`. IL
-  references are not bound, so a member that a package uses stands for every overload of that name.
-
-These cases are known to come out incomplete. No app or library version in production has them, which is why they
-are not handled:
-
-- An app project that targets several frameworks is compiled for one of them, so uses in code that only another one
-  compiles, behind `#if`, are missing.
-- The assets file is looked for in the folders above the project's intermediate output, within the app's folder. An
-  app that restores its packages to a folder elsewhere, and declares them in a file that the project imports, is
-  recorded without a library version or packages.
-- A published version's public API is read from the assemblies for one target framework. A version whose builds for
-  different frameworks have different public members has only that framework's.
+[ApiUsageAnalysis.cs](src/Altinn.Studio.Fleet/Analysis/ApiUsage/ApiUsageAnalysis.cs) has the tables.
