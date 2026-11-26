@@ -10,6 +10,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Fixed
+
+- Deleting a row in a repeating group deletes the attachments uploaded in that row and its nested rows, instead of leaving them in the instance. ([#22139](https://github.com/Altinn/altinn-studio/pull/22139))
+
 ## [9.0.0-preview.15] - 2026-11-25
 
 ### Added
