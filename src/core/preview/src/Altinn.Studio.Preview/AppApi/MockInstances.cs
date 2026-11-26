@@ -128,9 +128,11 @@ internal static class MockInstances
     {
         ProcessState process = instance.Instance.Process;
         int flow = process.CurrentTask?.Flow ?? 1;
+        // A loop of service tasks never reaches a task for the user, like a loop of gateways.
+        HashSet<string> serviceTasks = [];
         while (step?.Task is { IsServiceTask: true } serviceTask && app.Process is not null)
         {
-            step = app.Process.Next(serviceTask.ElementId);
+            step = serviceTasks.Add(serviceTask.ElementId) ? app.Process.Next(serviceTask.ElementId) : null;
         }
 
         instance.Instance.LastChanged = now;
@@ -154,9 +156,12 @@ internal static class MockInstances
             Name = task.Name,
             AltinnTaskType = task.AltinnTaskType,
         };
+        // As in the app backend, a task the process returns to keeps the form data it has.
         foreach (
             DataType dataType in app.DataTypes.Where(dataType =>
-                dataType is { IsFormData: true, AutoCreate: true } && dataType.TaskId == task.ElementId
+                dataType is { IsFormData: true, AutoCreate: true }
+                && dataType.TaskId == task.ElementId
+                && !instance.Instance.Data.Exists(element => element.DataType == dataType.Id)
             )
         )
         {

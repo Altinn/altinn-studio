@@ -81,7 +81,7 @@ internal sealed class ProcessDefinition
     {
         HashSet<string> visited = [elementId];
         string current = elementId;
-        while (NextElement(current) is { } next && visited.Add(next))
+        while (NextElement(current) is { } next)
         {
             if (_tasks.TryGetValue(next, out ProcessTaskDefinition? task))
             {
@@ -91,6 +91,12 @@ internal sealed class ProcessDefinition
             if (_endEvents.Contains(next))
             {
                 return new ProcessStep(Task: null, EndEvent: next);
+            }
+
+            // A task the flows lead back to is where the process goes, but a loop of gateways leads nowhere.
+            if (!visited.Add(next))
+            {
+                return null;
             }
 
             current = next;

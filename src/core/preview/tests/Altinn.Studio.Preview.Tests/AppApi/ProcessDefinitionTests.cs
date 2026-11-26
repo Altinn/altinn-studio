@@ -29,6 +29,20 @@ public sealed class ProcessDefinitionTests
         </bpmn:definitions>
         """;
 
+    /// <summary>A data task whose gateway sends the process back to it.</summary>
+    internal const string ReturnsToTheTask = """
+        <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:altinn="http://altinn.no/process">
+          <bpmn:process id="Process_1">
+            <bpmn:startEvent id="Start" />
+            <bpmn:task id="Task_1" altinn:tasktype="data" />
+            <bpmn:exclusiveGateway id="Gateway" default="Back" />
+            <bpmn:sequenceFlow id="ToTask" sourceRef="Start" targetRef="Task_1" />
+            <bpmn:sequenceFlow id="ToGateway" sourceRef="Task_1" targetRef="Gateway" />
+            <bpmn:sequenceFlow id="Back" sourceRef="Gateway" targetRef="Task_1" />
+          </bpmn:process>
+        </bpmn:definitions>
+        """;
+
     [Fact]
     public void Tasks_HaveTheirTypes_InTheOrderTheDefinitionListsThem()
     {
@@ -96,6 +110,14 @@ public sealed class ProcessDefinitionTests
         Assert.Null(process.First());
     }
 
-    private static ProcessDefinition Parse(string bpmn) =>
+    [Fact]
+    public void Next_ReturnsATaskTheFlowsLeadBackTo()
+    {
+        ProcessDefinition process = Parse(ReturnsToTheTask);
+
+        Assert.Equal("Task_1", process.Next("Task_1")?.Task?.ElementId);
+    }
+
+    internal static ProcessDefinition Parse(string bpmn) =>
         ProcessDefinition.From(XDocument.Parse(bpmn.Trim())) ?? throw new InvalidOperationException("No process.");
 }
