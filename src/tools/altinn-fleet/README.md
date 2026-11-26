@@ -80,6 +80,11 @@ environment's index attached, so a query can join it with `prod.apps`.
 - Each analysis of an app runs in a process of its own, `fleet analysis job`, because it may keep state in the
   process and can hang. `--timeout` ends one that takes too long. Nothing an analysis does runs in fleet's own
   process, which only copies the apps and records the results, so a service could host the library.
+- An analysis may build the apps, which runs the service owners' MSBuild targets and source generators as the user
+  that runs fleet, with that user's environment and files. Run it where you would build their apps yourself, such as
+  in an agent.
+- Only one run at a time writes a file, and a second run stops at once rather than waiting. A file with tables that
+  fleet did not write is left alone.
 - An app already analyzed at its deployed version is skipped, so a run after `fleet sync` only analyzes what changed.
   An app that failed is tried again, and so is one whose version the index does not know, as after `index rebuild`
   without the old index. `--force` analyzes every app again.
@@ -90,7 +95,8 @@ environment's index attached, so a query can join it with `prod.apps`.
   failed exits with an error, since what the apps are compared with is then incomplete.
 - An analysis implements [IAppAnalysis](src/Altinn.Studio.Fleet/Analysis/IAppAnalysis.cs), and `IItemAnalysis` for
   items, and is listed in [Analyses.cs](src/Altinn.Studio.Fleet/Analysis/Analyses.cs). A new version of an analysis
-  replaces its tables, so every app is analyzed again.
+  replaces its tables, so every app is analyzed again. A run for only some service owners or environments stops
+  instead, since it would lose the others' results.
 
 ### api-usage: what apps use of the app library
 
@@ -112,7 +118,8 @@ the app library in a checkout of altinn-studio or app-lib-dotnet, such as the co
 version `source`:
 
 ```sql
--- Public in the checkout, used by no app
+-- Public in the checkout, used by no app's own code. What packages on the app library use is in
+-- api_usage_package_uses, where a member is named without its parameters.
 SELECT symbol FROM api_usage_library_api
 WHERE version = 'source' AND visible AND symbol NOT IN (SELECT symbol FROM api_usage_uses);
 ```

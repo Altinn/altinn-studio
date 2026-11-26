@@ -142,7 +142,13 @@ internal static class LibraryApiReader
                 string? failure =
                     loadFailures.FirstOrDefault()
                     ?? error?.ToString()
-                    ?? (fromReferences ? null : await Generators.FindFailure(current, compilation, cancellationToken));
+                    ?? (
+                        fromReferences
+                            ? null
+                            : (await Generators.Run(current, compilation, cancellationToken))
+                                .FirstOrDefault(Generators.Fails)
+                                ?.ToString()
+                    );
                 if (failure is not null)
                 {
                     throw new FleetException($"{current.FilePath} did not load or compile: {failure}");
@@ -178,10 +184,21 @@ internal static class LibraryApiReader
     }
 
     /// <summary>Reads one assembly's types and members, such as a compiled app library.</summary>
-    internal static List<LibraryApiEntry> ReadAssembly(IAssemblySymbol assembly, string? sourceRoot)
+    internal static List<LibraryApiEntry> ReadAssembly(IAssemblySymbol assembly, string? sourceRoot) =>
+        ReadAssemblies([assembly], sourceRoot);
+
+    /// <summary>
+    /// Reads assemblies' types and members into one list, as <see cref="Read"/> does with a project that it reads
+    /// for several target frameworks.
+    /// </summary>
+    internal static List<LibraryApiEntry> ReadAssemblies(IEnumerable<IAssemblySymbol> assemblies, string? sourceRoot)
     {
         var entries = new Dictionary<string, LibraryApiEntry>(StringComparer.Ordinal);
-        new Visitor(entries, sourceRoot).Visit(assembly.GlobalNamespace);
+        foreach (IAssemblySymbol assembly in assemblies)
+        {
+            new Visitor(entries, sourceRoot).Visit(assembly.GlobalNamespace);
+        }
+
         return [.. entries.Values.OrderBy(e => e.Symbol, StringComparer.Ordinal)];
     }
 
@@ -373,7 +390,12 @@ internal static class LibraryApiReader
 
         private void Add(ISymbol symbol, bool visible)
         {
-            if (symbol.GetDocumentationCommentId() is not { } id)
+            // A project read for several target frameworks can make a type public in one and not in another. It is
+            // public when any of them makes it so, whichever framework is read last.
+            if (
+                symbol.GetDocumentationCommentId() is not { } id
+                || (!visible && entries.TryGetValue(id, out LibraryApiEntry? existing) && existing.Visible)
+            )
             {
                 return;
             }

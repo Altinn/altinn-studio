@@ -22,8 +22,10 @@ public sealed class ApiUsageAnalysis : IItemAnalysis
 
     // 2 records the app library's package version rather than its assembly version, and the public API of each
     // version the apps use. 3 records the package the version comes from, so that builds of pull requests are read.
-    // 4 takes the version from the assembly the app's compilation uses, which is the one its build ships.
-    public int Version => 4;
+    // 4 takes the version from the assembly the app's compilation uses, which is the one its build ships. 5 records
+    // the members that the compiler calls for code that does not name them, a package's version in its uses' key, and
+    // what a package's implementations for several frameworks use.
+    public int Version => 5;
 
     public string ItemsName => "app library versions";
 
@@ -77,7 +79,7 @@ public sealed class ApiUsageAnalysis : IItemAnalysis
                 assembly TEXT NOT NULL,
                 symbol TEXT NOT NULL,
                 kind TEXT NOT NULL,
-                PRIMARY KEY (env, org, app, package, assembly, symbol, kind)
+                PRIMARY KEY (env, org, app, package, version, assembly, symbol, kind)
             ) WITHOUT ROWID;
             CREATE INDEX api_usage_package_uses_by_symbol ON api_usage_package_uses (symbol);
 

@@ -5,19 +5,29 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Altinn.Studio.Fleet.Analysis.ApiUsage;
 
-/// <summary>Finds out whether a project's source generators failed.</summary>
+/// <summary>Finds out what a project's source generators report, such as that one failed.</summary>
 /// <remarks>
-/// A generator that throws only costs the compilation what it would have generated. The workspace reports that
-/// nowhere, and the compilation has no error for it, so the generators run once more here, on the project's own
-/// documents, to see what they report.
+/// A generator that throws only costs the compilation what it would have generated, and an error a generator reports
+/// fails the build. The workspace reports neither, and the compilation has no diagnostic for them, so the generators
+/// run once more here, on the project's own documents, to see what they report.
 /// </remarks>
 internal static class Generators
 {
-    // A generator threw while it initialized, or while it generated.
-    private static readonly string[] s_generatorFailures = ["CS8784", "CS8785"];
+    // A generator threw while it initialized, or while it generated. The compiler reports it as a warning.
+    private static readonly string[] s_thrown = ["CS8784", "CS8785"];
 
-    /// <summary>How a project's generators failed, or <c>null</c> when they did not.</summary>
-    public static async Task<string?> FindFailure(
+    /// <summary>Whether a diagnostic says that a generator threw.</summary>
+    public static bool Threw(Diagnostic diagnostic) => s_thrown.Contains(diagnostic.Id);
+
+    /// <summary>
+    /// Whether a diagnostic fails the build: an error that a generator reports, or that a generator threw, which costs
+    /// the compilation what it would have generated.
+    /// </summary>
+    public static bool Fails(Diagnostic diagnostic) =>
+        Threw(diagnostic) || diagnostic.Severity == DiagnosticSeverity.Error;
+
+    /// <summary>What a project's generators report.</summary>
+    public static async Task<ImmutableArray<Diagnostic>> Run(
         Project project,
         Compilation compilation,
         CancellationToken cancellationToken
@@ -29,7 +39,7 @@ internal static class Generators
         ];
         if (generators.IsEmpty)
         {
-            return null;
+            return [];
         }
 
         HashSet<string> documents = [.. project.Documents.Select(d => d.FilePath).OfType<string>()];
@@ -56,7 +66,7 @@ internal static class Generators
             out ImmutableArray<Diagnostic> diagnostics,
             cancellationToken
         );
-        return diagnostics.FirstOrDefault(d => s_generatorFailures.Contains(d.Id))?.ToString();
+        return diagnostics;
     }
 
     private sealed class DocumentText(string path, SourceText text) : AdditionalText

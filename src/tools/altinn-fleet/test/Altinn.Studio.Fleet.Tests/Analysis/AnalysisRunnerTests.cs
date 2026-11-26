@@ -354,32 +354,108 @@ public sealed class AnalysisRunnerTests
     }
 
     [Fact]
-    public async Task OpenAndPrepare_FromTwoConnectionsAtOnce_BothSucceed()
+    public void Open_WhileAnotherRunHasTheFile_Fails()
     {
         using var context = new FleetTestContext();
         string path = DatabasePath(context);
 
-        await Task.WhenAll(
-            Enumerable
-                .Range(0, 4)
-                .Select(_ =>
-                    Task.Run(
-                        () =>
-                        {
-                            using AnalysisDatabase database = AnalysisDatabase.Open(path);
-                            database.Prepare(new FakeAnalysis());
-                        },
-                        TestContext.Current.CancellationToken
-                    )
-                )
+        using (AnalysisDatabase.Open(path))
+        {
+            FleetException ex = Assert.Throws<FleetException>(() => AnalysisDatabase.Open(path));
+            Assert.Contains("Another fleet analysis is writing", ex.Message, StringComparison.Ordinal);
+        }
+
+        using AnalysisDatabase again = AnalysisDatabase.Open(path);
+        again.Prepare(new FakeAnalysis());
+    }
+
+    [Fact]
+    public void Open_AnSqliteFileThatFleetDidNotWrite_LeavesItAsItWas()
+    {
+        using var context = new FleetTestContext();
+        string path = DatabasePath(context);
+        using (var connection = new SqliteConnection($"Data Source={path};Pooling=False"))
+        {
+            connection.Open();
+            using SqliteCommand command = connection.CreateCommand();
+            command.CommandText = "PRAGMA journal_mode = WAL; CREATE TABLE notes (text TEXT);";
+            command.ExecuteNonQuery();
+        }
+
+        FleetException ex = Assert.Throws<FleetException>(() => AnalysisDatabase.Open(path));
+
+        Assert.Contains("is not a file that fleet analysis wrote", ex.Message, StringComparison.Ordinal);
+        using var check = new SqliteConnection($"Data Source={path};Mode=ReadOnly;Pooling=False");
+        check.Open();
+        using SqliteCommand tables = check.CreateCommand();
+        tables.CommandText = "SELECT group_concat(name) FROM sqlite_master; PRAGMA journal_mode;";
+        using SqliteDataReader reader = tables.ExecuteReader();
+        Assert.True(reader.Read());
+        Assert.Equal("notes", reader.GetString(0));
+        Assert.True(reader.NextResult() && reader.Read());
+        Assert.Equal("wal", reader.GetString(0));
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Run_OfANewVersionForSomeServiceOwnersOrEnvironments_IsRefused(bool someServiceOwners)
+    {
+        using var context = new FleetTestContext();
+        context.Altinn.Deploy("prod", "ttd", "app-one", "1.0.0");
+        context.Altinn.Deploy("prod", "ssb", "app-two", "2.0.0");
+        await context.SyncProd();
+        await Run(context, new FakeAnalysis());
+        using AnalysisDatabase database = AnalysisDatabase.Open(DatabasePath(context));
+        var newer = new FakeAnalysis { Version = 2 };
+
+        FleetException ex = await Assert.ThrowsAsync<FleetException>(() =>
+            new AnalysisRunner(context.Store, database, [newer], new InProcessExecutor([newer])).Run(
+                new AnalysisOptions
+                {
+                    Environments = someServiceOwners
+                        ? [FleetTestContext.Prod]
+                        : [Common.Domain.RuntimeEnvironment.TT02],
+                    Orgs = someServiceOwners
+                        ? new HashSet<Common.Domain.ServiceOwnerCode> { Common.Domain.ServiceOwnerCode.Parse("ttd") }
+                        : null,
+                },
+                null,
+                TestContext.Current.CancellationToken
+            )
         );
 
+        Assert.Contains("Run it for every service owner, in prod", ex.Message, StringComparison.Ordinal);
+        // Nothing was replaced.
         Assert.Equal(
             [
-                ["fake_apps"],
+                ["2"],
             ],
-            Query(context, "SELECT name FROM sqlite_master WHERE name = 'fake_apps'")
+            Query(context, "SELECT count(*) FROM fake_apps")
         );
+    }
+
+    [Fact]
+    public async Task Run_InAGivenWorkFolder_UsesAFolderOfItsOwnThere()
+    {
+        using var context = new FleetTestContext();
+        context.Altinn.Deploy("prod", "ttd", "app-one", "1.0.0");
+        await context.SyncProd();
+        string work = Path.Join(context.Outside, "work");
+        Directory.CreateDirectory(Path.Join(work, "prod", "fake", "ttd", "app-one"));
+        File.WriteAllText(Path.Join(work, "prod", "fake", "ttd", "app-one", "theirs.txt"), "");
+        var analysis = new FakeAnalysis();
+        using AnalysisDatabase database = AnalysisDatabase.Open(DatabasePath(context));
+
+        await new AnalysisRunner(context.Store, database, [analysis], new InProcessExecutor([analysis])).Run(
+            new AnalysisOptions { Environments = [FleetTestContext.Prod], WorkFolder = work },
+            null,
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.StartsWith(work + Path.DirectorySeparatorChar, analysis.Folders["app-one"], StringComparison.Ordinal);
+        Assert.True(File.Exists(Path.Join(work, "prod", "fake", "ttd", "app-one", "theirs.txt")));
+        Assert.Equal(["prod"], Directory.GetDirectories(work).Select(Path.GetFileName));
     }
 
     [Fact]
@@ -399,6 +475,35 @@ public sealed class AnalysisRunnerTests
         FleetException ex = Assert.Throws<FleetException>(() => AnalysisDatabase.Open(path));
 
         Assert.Contains("another version of fleet", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ChildProcessExecutor_GivesTheChildCultureData()
+    {
+        Assert.SkipWhen(OperatingSystem.IsWindows(), "Runs sh");
+        string root = Folder.CreateTemporary();
+        try
+        {
+            // sh -c SCRIPT gets the job's arguments as $0, $1 and so on: app, the analysis, the folder, the result.
+            var executor = new ChildProcessExecutor(
+                ["sh", "-c", "printf %s \"$DOTNET_SYSTEM_GLOBALIZATION_INVARIANT\" > \"$3\""],
+                TimeSpan.FromSeconds(30)
+            );
+            string resultFile = Path.Join(root, "result");
+
+            string? failure = await executor.Run(
+                new AnalysisJob.App("fake", root),
+                resultFile,
+                TestContext.Current.CancellationToken
+            );
+
+            Assert.Null(failure);
+            Assert.Equal("false", File.ReadAllText(resultFile));
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
     }
 
     [Fact]

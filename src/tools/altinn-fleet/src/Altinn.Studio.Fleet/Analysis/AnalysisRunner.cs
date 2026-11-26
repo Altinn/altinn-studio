@@ -19,7 +19,10 @@ public sealed record AnalysisOptions
     /// <summary>Analyze every app, also those already analyzed at their deployed version.</summary>
     public bool Force { get; init; }
 
-    /// <summary>Where to copy the apps while they are analyzed. A temporary folder when <c>null</c>.</summary>
+    /// <summary>
+    /// Where to make the run's own folder, which the apps are copied to while they are analyzed and which the run
+    /// deletes at its end. The system's temporary folder when <c>null</c>.
+    /// </summary>
     public string? WorkFolder { get; init; }
 }
 
@@ -84,10 +87,16 @@ public sealed class AnalysisRunner(
     {
         foreach (IAppAnalysis analysis in _analyses)
         {
+            RefuseToLoseResults(analysis, options);
+        }
+
+        foreach (IAppAnalysis analysis in _analyses)
+        {
             database.Prepare(analysis);
         }
 
-        string workFolder = options.WorkFolder ?? Path.Join(Path.GetTempPath(), $"fleet-analysis-{Guid.NewGuid():N}");
+        // A folder of the run's own, so that runs sharing a work folder do not delete each other's copies.
+        string workFolder = Path.Join(options.WorkFolder ?? Path.GetTempPath(), $"fleet-analysis-{Guid.NewGuid():N}");
         try
         {
             var results = new List<AnalysisRunResult>();
@@ -106,10 +115,31 @@ public sealed class AnalysisRunner(
         }
         finally
         {
-            if (options.WorkFolder is null)
-            {
-                TryDelete(workFolder);
-            }
+            TryDelete(workFolder);
+        }
+    }
+
+    /// <summary>
+    /// Refuses a run for only some service owners or environments of an analysis whose version changed. The new version
+    /// replaces the analysis's tables, so the results for the others would be lost until a run for all of them.
+    /// </summary>
+    /// <exception cref="FleetException">The run would lose results.</exception>
+    private void RefuseToLoseResults(IAppAnalysis analysis, AnalysisOptions options)
+    {
+        if (!database.IsOutdated(analysis))
+        {
+            return;
+        }
+
+        HashSet<string> asked = [.. options.Environments.Select(e => e.Name)];
+        List<string> recorded = [.. database.Environments(analysis).Order(StringComparer.Ordinal)];
+        if (options.Orgs is not null || recorded.Any(name => !asked.Contains(name)))
+        {
+            throw new FleetException(
+                $"{database.Path} has results of an earlier version of the {analysis.Name} analysis, which its new "
+                    + "version replaces for every app. Run it for every service owner, in "
+                    + $"{string.Join(" and ", recorded.Union(asked).Order(StringComparer.Ordinal))}."
+            );
         }
     }
 

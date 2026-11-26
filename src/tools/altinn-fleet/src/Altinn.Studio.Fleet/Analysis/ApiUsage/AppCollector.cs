@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Altinn.Studio.Common.Domain.App;
 using Altinn.Studio.Fleet.Store;
 using Microsoft.CodeAnalysis;
@@ -73,14 +74,17 @@ internal static class AppCollector
             );
             // A generator that throws on the app's own code throws in the app's own build too, so the app runs
             // without what it would write. That is noted, not a failure: the analysis sees what the app has, and
-            // running it again finds the same.
-            if (await Generators.FindFailure(current, compilation, cancellationToken) is { } generatorFailure)
+            // running it again finds the same. An error a generator reports fails the build, as a compile error does.
+            ImmutableArray<Diagnostic> generated = await Generators.Run(current, compilation, cancellationToken);
+            if (generated.FirstOrDefault(Generators.Threw) is { } threw)
             {
                 loadFailures.Add(
                     $"{Relative(appDir, current.FilePath ?? projectFile)}: a source generator failed, so the code it "
-                        + $"would write is missing, as in the app's own build: {generatorFailure.Split('\n')[0].Trim()}"
+                        + $"would write is missing, as in the app's own build: {threw.ToString().Split('\n')[0].Trim()}"
                 );
             }
+
+            errors.AddRange(generated.Where(d => !Generators.Threw(d) && d.Severity == DiagnosticSeverity.Error));
 
             HashSet<string> documents = DocumentPaths(current);
             await uses.Walk(
@@ -134,7 +138,8 @@ internal static class AppCollector
         }
 
         bool referencesLibrary = references.Any(a => LibrarySymbols.IsLibraryAssembly(a.Name));
-        using ProjectAssets? assets = ProjectAssets.Read(Path.GetDirectoryName(projectFile) ?? appDir);
+        string? assetsFile = AssetsFile(appProject.CompilationOutputInfo.AssemblyPath, projectFile, appDir);
+        using ProjectAssets? assets = assetsFile is null ? null : ProjectAssets.ReadFile(assetsFile);
         List<SymbolUse> found = uses.ToList();
         AltinnAppPackage? libraryPackage = assets is null ? null : CompiledLibraryPackage(assets, libraryFiles);
         if (
@@ -151,6 +156,13 @@ internal static class AppCollector
         // answer, is one too, even when what it left compiles.
         string? failure =
             !referencesLibrary ? "The app does not compile against the app library."
+            // A restore that worked for a project with packages wrote their assets, so not finding them would record
+            // the app without its library version and packages, as though it had none.
+            : assets is null
+            && restoreError is null
+            && description.AppProject is ProjectDescription.WellFormed { PackageReferences.Count: > 0 }
+                ? "The restore's project.assets.json was not found, so the app's library version and packages are not "
+                    + "known."
             : errors.Count > 0
                 ? $"The app has {errors.Count} compile errors{(restoreError is null ? "" : " after a failed restore")}, "
                     + "so uses in the code that does not compile are missing."
@@ -169,6 +181,37 @@ internal static class AppCollector
             found,
             assets is null ? [] : BinaryReferences.Scan(assets)
         );
+    }
+
+    /// <summary>
+    /// The assets file that the restore wrote for a project, beside its intermediate output: in <c>obj</c>, or where
+    /// the project moves it with <c>BaseIntermediateOutputPath</c>. It is in a folder above the intermediate
+    /// assembly, which is nested by configuration, target framework and runtime, within the app's folder. <c>null</c>
+    /// when there is none.
+    /// </summary>
+    /// <param name="intermediateAssembly">The assembly the compilation writes, before it is copied out.</param>
+    /// <param name="projectFile">The project.</param>
+    /// <param name="appDir">The app's folder, which the search stays within.</param>
+    internal static string? AssetsFile(string? intermediateAssembly, string projectFile, string appDir)
+    {
+        string root = Path.GetFullPath(appDir);
+        for (
+            string? folder = intermediateAssembly is null
+                ? null
+                : Path.GetDirectoryName(Path.GetFullPath(intermediateAssembly));
+            folder is not null && (folder == root || IsUnder(folder, root));
+            folder = Path.GetDirectoryName(folder)
+        )
+        {
+            string candidate = Path.Join(folder, ProjectAssets.FileName);
+            if (File.Exists(candidate))
+            {
+                return candidate;
+            }
+        }
+
+        string conventional = Path.Join(Path.GetDirectoryName(projectFile) ?? root, "obj", ProjectAssets.FileName);
+        return File.Exists(conventional) ? conventional : null;
     }
 
     /// <summary>

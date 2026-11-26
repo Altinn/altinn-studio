@@ -57,57 +57,122 @@ public sealed class AnalysisDatabase : IDisposable
     private readonly SqliteConnection _connection;
     private readonly Lock _gate = new();
 
-    private AnalysisDatabase(SqliteConnection connection)
+    private readonly FileStream _lock;
+
+    private AnalysisDatabase(SqliteConnection connection, FileStream fileLock, string path)
     {
         _connection = connection;
+        _lock = fileLock;
+        Path = path;
     }
 
-    /// <summary>Opens the file to change it, and creates it when there is none.</summary>
-    /// <exception cref="FleetException">The file has another schema version.</exception>
+    /// <summary>The file's absolute path.</summary>
+    public string Path { get; }
+
+    /// <summary>
+    /// Opens the file to change it, and creates it when there is none. It is locked until this is disposed, so that a
+    /// second run cannot write older results over those of the first.
+    /// </summary>
+    /// <exception cref="FleetException">
+    /// Another run has the file, the file has another schema version, or it is an SQLite file that fleet did not write.
+    /// </exception>
     public static AnalysisDatabase Open(string path)
     {
-        if (Path.GetDirectoryName(Path.GetFullPath(path)) is { Length: > 0 } directory)
+        // The absolute path, so that SQLite does not take a name such as :memory: or file:... for something else.
+        string fullPath = System.IO.Path.GetFullPath(path);
+        if (System.IO.Path.GetDirectoryName(fullPath) is { Length: > 0 } directory)
         {
             Directory.CreateDirectory(directory);
         }
 
+        FileStream fileLock = Lock(fullPath);
         var connection = new SqliteConnection(
             new SqliteConnectionStringBuilder
             {
-                DataSource = path,
+                DataSource = fullPath,
                 Mode = SqliteOpenMode.ReadWriteCreate,
                 Pooling = false,
             }.ToString()
         );
-        connection.Open();
-        var database = new AnalysisDatabase(connection);
+        var database = new AnalysisDatabase(connection, fileLock, fullPath);
         try
         {
-            database.Execute(null, "PRAGMA journal_mode = DELETE;", []);
+            connection.Open();
             // The transaction takes the write lock before the version is read, so that two commands creating the same
             // file one after the other do not both create the tables.
-            using SqliteTransaction transaction = connection.BeginTransaction(deferred: false);
-            string? version = database.ReadMeta("schema_version", transaction);
-            if (version is null)
+            using (SqliteTransaction transaction = connection.BeginTransaction(deferred: false))
             {
-                database.Execute(transaction, Schema, []);
-                database.SetMeta("schema_version", Invariant(SchemaVersion), transaction);
-            }
-            else if (version != Invariant(SchemaVersion))
-            {
-                throw new FleetException(
-                    $"{path} was written by another version of fleet. Delete it, or give another --out."
-                );
+                string? version = database.ReadMeta("schema_version", transaction);
+                if (version is null)
+                {
+                    // A file with tables of its own is not one to add these to.
+                    if (database.Objects(null, transaction).Count > 0)
+                    {
+                        throw new FleetException($"{fullPath} is not a file that fleet analysis wrote.");
+                    }
+
+                    database.Execute(transaction, Schema, []);
+                    database.SetMeta("schema_version", Invariant(SchemaVersion), transaction);
+                }
+                else if (version != Invariant(SchemaVersion))
+                {
+                    throw new FleetException(
+                        $"{path} was written by another version of fleet. Delete it, or give another --out."
+                    );
+                }
+
+                transaction.Commit();
             }
 
-            transaction.Commit();
-
+            database.Execute(null, "PRAGMA journal_mode = DELETE;", []);
             return database;
         }
         catch
         {
             database.Dispose();
             throw;
+        }
+    }
+
+    /// <summary>
+    /// Whether another version of an analysis wrote the file's results for it, which the analysis replaces for every
+    /// app before it runs.
+    /// </summary>
+    public bool IsOutdated(IAppAnalysis analysis)
+    {
+        using Lock.Scope scope = _gate.EnterScope();
+        using SqliteTransaction transaction = _connection.BeginTransaction();
+        return ReadMeta($"analysis.{analysis.Name}.version", transaction) is { } version
+            && version != Invariant(analysis.Version);
+    }
+
+    /// <summary>The environments that the file has results of an analysis for.</summary>
+    public IReadOnlySet<string> Environments(IAppAnalysis analysis)
+    {
+        using Lock.Scope scope = _gate.EnterScope();
+        using SqliteCommand command = Command(null, "SELECT DISTINCT env FROM runs WHERE analysis = $analysis");
+        command.Parameters.AddWithValue("$analysis", analysis.Name);
+        using SqliteDataReader reader = command.ExecuteReader();
+        var environments = new HashSet<string>(StringComparer.Ordinal);
+        while (reader.Read())
+        {
+            environments.Add(reader.GetString(0));
+        }
+
+        return environments;
+    }
+
+    // A lock beside the file, which the operating system releases if the process dies, as the store's own lock.
+    private static FileStream Lock(string path)
+    {
+        string lockPath = $"{path}.lock";
+        try
+        {
+            return new FileStream(lockPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+        }
+        catch (IOException ex)
+        {
+            throw new FleetException($"Another fleet analysis is writing {path}. Wait for it to finish.", ex);
         }
     }
 
@@ -289,6 +354,7 @@ public sealed class AnalysisDatabase : IDisposable
         lock (_gate)
         {
             _connection.Dispose();
+            _lock.Dispose();
         }
     }
 

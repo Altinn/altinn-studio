@@ -99,6 +99,29 @@ public sealed class ApiUsageAnalysisTests : IDisposable
         );
     }
 
+    [Theory]
+    [InlineData("app/App/obj/Release/net8.0/App.dll", "app/App/obj", "app/App/obj")]
+    [InlineData("app/App/build-obj/Release/net8.0/linux-x64/App.dll", "app/App/build-obj", "app/App/build-obj")]
+    [InlineData(null, "app/App/obj", "app/App/obj")]
+    // The search stays within the app's folder.
+    [InlineData("app/App/obj/Release/net8.0/App.dll", "elsewhere", null)]
+    public void AssetsFile_IsInAFolderAboveTheIntermediateAssembly(
+        string? intermediateAssembly,
+        string assetsFolder,
+        string? expected
+    )
+    {
+        Write(Path.Join(assetsFolder, ProjectAssets.FileName), "{}");
+
+        string? found = AppCollector.AssetsFile(
+            intermediateAssembly is null ? null : Path.Join(_folder, intermediateAssembly),
+            Path.Join(_folder, "app", "App", "App.csproj"),
+            Path.Join(_folder, "app")
+        );
+
+        Assert.Equal(expected is null ? null : Path.Join(_folder, expected, ProjectAssets.FileName), found);
+    }
+
     [Fact]
     public void PlanItems_ReadsTheVersionsTheAppsUseThatAreNotRead_AndForgetsTheOthers()
     {

@@ -32,6 +32,10 @@ public sealed class ChildProcessExecutor(IReadOnlyList<string> command, TimeSpan
             start.ArgumentList.Add(arg);
         }
 
+        // The host may run without culture data, as fleet does, but an app is built with it, and a source generator
+        // such as the one for [GeneratedRegex] with a culture fails without it.
+        start.Environment["DOTNET_SYSTEM_GLOBALIZATION_INVARIANT"] = "false";
+
         using Process process =
             Process.Start(start) ?? throw new InvalidOperationException($"{command[0]} did not start.");
         using var reading = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);

@@ -9,10 +9,10 @@ namespace Altinn.Studio.Fleet.Analysis.ApiUsage;
 /// <remarks>
 /// A name binds to a type or member, so asking the semantic model about every name, creation, attribute and operator
 /// finds the uses. Some code calls members it does not name, such as <c>foreach</c>, <c>await</c>, deconstruction,
-/// positional patterns, collection initializers and query expressions, so those ask the semantic model what they bind
-/// to. A type
-/// declaration adds what it inherits, implements and overrides, since an app that implements an interface depends on
-/// all of its members, called or not.
+/// positional patterns, collection initializers, query expressions, casts to a conversion operator and a constructor's
+/// call of the base class's constructor, so those ask the semantic model what they bind to. A type declaration adds
+/// what it inherits, implements and overrides, since an app that implements an interface depends on all of its
+/// members, called or not.
 /// </remarks>
 internal sealed class UsageWalker(SemanticModel model, Action<ISymbol, string, Location> report) : CSharpSyntaxWalker
 {
@@ -45,6 +45,15 @@ internal sealed class UsageWalker(SemanticModel model, Action<ISymbol, string, L
         if (node is ExpressionSyntax expression && model.GetConversion(expression).MethodSymbol is { } conversion)
         {
             Report(conversion, UseKinds.Conversion, node.GetLocation());
+        }
+
+        // A cast's own conversion is the cast's operation, not a conversion of the expression.
+        if (
+            node is CastExpressionSyntax
+            && model.GetOperation(node) is IConversionOperation { OperatorMethod: { } explicitConversion }
+        )
+        {
+            Report(explicitConversion, UseKinds.Conversion, node.GetLocation());
         }
 
         base.DefaultVisit(node);
@@ -158,6 +167,10 @@ internal sealed class UsageWalker(SemanticModel model, Action<ISymbol, string, L
         if (type.BaseType is { } baseType && LibrarySymbols.IsLibrary(baseType))
         {
             Report(baseType, UseKinds.Inherit, location);
+            if (CallsBaseWithoutArguments(type) && BaseConstructorWithoutArguments(baseType) is { } constructor)
+            {
+                Report(constructor, UseKinds.Construct, location);
+            }
         }
 
         foreach (INamedTypeSymbol iface in type.AllInterfaces.Where(LibrarySymbols.IsLibrary))
@@ -165,21 +178,17 @@ internal sealed class UsageWalker(SemanticModel model, Action<ISymbol, string, L
             Report(iface, UseKinds.Implement, location);
             foreach (ISymbol member in iface.GetMembers())
             {
-                // Accessors are reported through their property or event.
-                if (
-                    member.IsStatic
-                    || member is INamedTypeSymbol
-                    || member is IMethodSymbol { AssociatedSymbol: not null }
-                )
+                // Accessors are reported through their property or event. A static abstract member is implemented like
+                // any other, and a static member with a body has no implementation to find.
+                if (member is INamedTypeSymbol || member is IMethodSymbol { AssociatedSymbol: not null })
                 {
                     continue;
                 }
 
+                // The app's code implements it when the implementation is in its source, in this type or in a base
+                // class of the app's own, rather than in a library base class.
                 ISymbol? implementation = type.FindImplementationForInterfaceMember(member);
-                if (
-                    implementation is not null
-                    && SymbolEqualityComparer.Default.Equals(implementation.ContainingType, type)
-                )
+                if (implementation is not null && implementation.Locations.Any(l => l.IsInSource))
                 {
                     Report(member, UseKinds.Implement, location);
                 }
@@ -201,6 +210,44 @@ internal sealed class UsageWalker(SemanticModel model, Action<ISymbol, string, L
             }
         }
     }
+
+    /// <summary>
+    /// Whether a class has a constructor that calls its base class's constructor without naming it: one the compiler
+    /// writes, a constructor without <c>: base(...)</c> or <c>: this(...)</c>, or a primary constructor whose base type
+    /// has no argument list.
+    /// </summary>
+    private static bool CallsBaseWithoutArguments(INamedTypeSymbol type) =>
+        type.TypeKind == TypeKind.Class
+        && type.InstanceConstructors.Any(constructor =>
+            // A record's copy constructor calls the base's copy constructor, not one without arguments.
+            constructor.IsImplicitlyDeclared
+                ? constructor.Parameters.Length == 0
+                : constructor.DeclaringSyntaxReferences.Any(reference =>
+                    reference.GetSyntax() switch
+                    {
+                        ConstructorDeclarationSyntax declared => declared.Initializer is null,
+                        TypeDeclarationSyntax primary => primary.BaseList?.Types.FirstOrDefault()
+                            is not PrimaryConstructorBaseTypeSyntax,
+                        _ => false,
+                    }
+                )
+        );
+
+    /// <summary>
+    /// The base class constructor that a call without arguments binds to: the one the class can see whose parameters
+    /// are all optional, preferring one without parameters.
+    /// </summary>
+    private static IMethodSymbol? BaseConstructorWithoutArguments(INamedTypeSymbol baseType) =>
+        baseType
+            .InstanceConstructors.Where(c =>
+                c.DeclaredAccessibility
+                    is Accessibility.Public
+                        or Accessibility.Protected
+                        or Accessibility.ProtectedOrInternal
+                && c.Parameters.All(p => p.IsOptional || p.IsParams)
+            )
+            .OrderBy(c => c.Parameters.Length)
+            .FirstOrDefault();
 
     private void Report(ISymbol symbol, string kind, Location location)
     {

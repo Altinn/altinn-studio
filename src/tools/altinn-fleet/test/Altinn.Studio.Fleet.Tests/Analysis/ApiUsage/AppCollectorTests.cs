@@ -58,6 +58,14 @@ public sealed class AppCollectorTests(LibraryFixture fixture) : IClassFixture<Li
                 $"call M:{Ns}.Pair.Deconstruct(System.Int32@,System.Int32@)",
                 $"call M:{Ns}.Bag.Add(System.Int32)",
                 $"call M:{Ns}.Later.GetAwaiter",
+                // A base constructor that a constructor calls without naming it, or that the compiler's own calls.
+                $"construct M:{Ns}.ValidatorBase.#ctor",
+                $"construct M:{Ns}.ProcessorBase.#ctor",
+                $"construct M:{Ns}.NamedBase.#ctor(System.String)",
+                $"conversion M:{Ns}.Money.op_Explicit({Ns}.Money)~System.Int32",
+                // A static abstract member, and one the app implements in a base class of its own.
+                $"implement M:{Ns}.IStandard.Validate(System.String)",
+                $"implement M:{Ns}.IStandard.Describe",
                 $"call M:{Ns}.Point.Deconstruct(System.Int32@,System.Int32@)",
                 $"call M:{Ns}.Seq.OrderBy(System.Func{{System.Int32,System.Int32}})",
                 $"call M:{Ns}.Seq.ThenBy(System.Func{{System.Int32,System.Int32}})",
@@ -295,6 +303,106 @@ public sealed class AppCollectorTests(LibraryFixture fixture) : IClassFixture<Li
             (bySymbol[$"M:{Ns}.DataClient.Unused"].File, bySymbol[$"M:{Ns}.DataClient.Unused"].Line)
         );
         Assert.DoesNotContain($"M:{Ns}.ValidatorBase.get_Name", bySymbol.Keys);
+    }
+
+    [Fact]
+    public void Scan_ReadsEachTargetFrameworksImplementationOnce()
+    {
+        string root = Folder.CreateTemporary();
+        try
+        {
+            string packages = Path.Join(root, "packages");
+            foreach (string framework in (string[])["net8.0", "net9.0"])
+            {
+                string lib = Path.Join(packages, "per.framework", "1.0.0", "lib", framework);
+                Directory.CreateDirectory(lib);
+                File.Copy(fixture.PackageAssembly, Path.Join(lib, "Per.Framework.dll"));
+            }
+
+            string shared = Path.Join(packages, "shared", "1.0.0", "lib", "netstandard2.0");
+            Directory.CreateDirectory(shared);
+            File.Copy(fixture.PackageAssembly, Path.Join(shared, "Shared.dll"));
+            string target(string framework) =>
+                $$"""
+                    "{{framework}}": {
+                      "Per.Framework/1.0.0": {
+                        "type": "package",
+                        "runtime": { "lib/{{framework}}/Per.Framework.dll": {} }
+                      },
+                      "Shared/1.0.0": { "type": "package", "runtime": { "lib/netstandard2.0/Shared.dll": {} } }
+                    }
+                    """;
+            Directory.CreateDirectory(Path.Join(root, "obj"));
+            File.WriteAllText(
+                Path.Join(root, "obj", "project.assets.json"),
+                $$"""
+                {
+                  "targets": { {{target("net8.0")}}, {{target("net9.0")}} },
+                  "libraries": {
+                    "Per.Framework/1.0.0": { "path": "per.framework/1.0.0" },
+                    "Shared/1.0.0": { "path": "shared/1.0.0" }
+                  },
+                  "packageFolders": { {{System.Text.Json.JsonSerializer.Serialize(
+                    packages + Path.DirectorySeparatorChar
+                )}}: {} }
+                }
+                """
+            );
+
+            using ProjectAssets assets = ProjectAssets.Read(root)!;
+            List<PackageUse> found = BinaryReferences.Scan(assets);
+
+            Assert.Equal(
+                ["Per.Framework", "Per.Framework", "Shared"],
+                found.Select(p => p.Package).Order(StringComparer.Ordinal)
+            );
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void ReadAssemblies_KeepsATypePublicWhenAnyTargetFrameworkMakesItSo(bool publicFirst)
+    {
+        IAssemblySymbol Compile(string visibility) =>
+            CSharpCompilation
+                .Create(
+                    "Altinn.App.Core",
+                    [CSharpSyntaxTree.ParseText($"namespace {Ns}; {visibility} sealed class PerFramework {{ }}")],
+                    [MetadataReference.CreateFromFile(typeof(object).Assembly.Location)]
+                )
+                .Assembly;
+
+        List<LibraryApiEntry> api = LibraryApiReader.ReadAssemblies(
+            publicFirst ? [Compile("public"), Compile("internal")] : [Compile("internal"), Compile("public")],
+            sourceRoot: null
+        );
+
+        Assert.True(Assert.Single(api, e => e.Symbol == $"T:{Ns}.PerFramework").Visible);
+    }
+
+    [Theory]
+    [InlineData("CS8785", DiagnosticSeverity.Warning, true, true)]
+    [InlineData("CS8784", DiagnosticSeverity.Warning, true, true)]
+    [InlineData("PROBE001", DiagnosticSeverity.Error, false, true)]
+    [InlineData("PROBE002", DiagnosticSeverity.Warning, false, false)]
+    public void Generators_TellAGeneratorThatThrewFromOneThatReportedAnError(
+        string id,
+        DiagnosticSeverity severity,
+        bool threw,
+        bool fails
+    )
+    {
+        Diagnostic diagnostic = Diagnostic.Create(
+            new DiagnosticDescriptor(id, "title", "message", "category", severity, isEnabledByDefault: true),
+            Location.None
+        );
+
+        Assert.Equal((threw, fails), (Generators.Threw(diagnostic), Generators.Fails(diagnostic)));
     }
 
     [Fact]

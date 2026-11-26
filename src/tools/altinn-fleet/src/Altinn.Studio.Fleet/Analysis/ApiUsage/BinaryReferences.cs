@@ -25,6 +25,8 @@ internal static class BinaryReferences
     public static List<PackageUse> Scan(ProjectAssets assets)
     {
         var result = new List<PackageUse>();
+        // A package lists its assemblies per target framework, which can be the same files or one per framework.
+        var read = new HashSet<string>(StringComparer.Ordinal);
         foreach (AssetsPackage package in assets.Packages)
         {
             if (
@@ -45,7 +47,7 @@ internal static class BinaryReferences
                 string? path = assets
                     .PackageFolders.Select(folder => Path.Join(folder, package.Path, file))
                     .FirstOrDefault(File.Exists);
-                if (path is not null && Read(path) is { } references)
+                if (path is not null && read.Add(Path.GetFullPath(path)) && Read(path) is { } references)
                 {
                     result.Add(
                         new PackageUse(

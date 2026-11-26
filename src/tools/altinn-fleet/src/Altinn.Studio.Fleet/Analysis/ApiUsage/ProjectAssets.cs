@@ -24,13 +24,12 @@ internal sealed class ProjectAssets : IDisposable
             : [];
         bool hasLibraries = root.TryGetProperty("libraries", out JsonElement libraries);
         var packages = new List<AssetsPackage>();
-        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (JsonProperty target in root.GetProperty("targets").EnumerateObject())
         {
             foreach (JsonProperty library in target.Value.EnumerateObject())
             {
                 int slash = library.Name.IndexOf('/', StringComparison.Ordinal);
-                if (slash <= 0 || library.Value.GetProperty("type").GetString() != "package" || !seen.Add(library.Name))
+                if (slash <= 0 || library.Value.GetProperty("type").GetString() != "package")
                 {
                     continue;
                 }
@@ -51,7 +50,9 @@ internal sealed class ProjectAssets : IDisposable
     /// <summary>The folders the packages are in.</summary>
     public IReadOnlyList<string> PackageFolders { get; }
 
-    /// <summary>Each package once, from the first target framework that has it.</summary>
+    /// <summary>
+    /// Each package in each target framework, since a package can have an implementation per framework.
+    /// </summary>
     public IReadOnlyList<AssetsPackage> Packages { get; }
 
     /// <summary>The package that a file, such as an assembly a compilation references, is in, or <c>null</c>.</summary>
@@ -73,12 +74,15 @@ internal sealed class ProjectAssets : IDisposable
         );
     }
 
-    /// <summary>Reads a restored project's assets, or returns <c>null</c> when it has none.</summary>
-    public static ProjectAssets? Read(string projectDir)
-    {
-        string path = System.IO.Path.Join(projectDir, "obj", "project.assets.json");
-        return File.Exists(path) ? new ProjectAssets(JsonDocument.Parse(File.ReadAllBytes(path))) : null;
-    }
+    /// <summary>Reads a restored project's assets from <c>obj</c>, or returns <c>null</c> without them.</summary>
+    public static ProjectAssets? Read(string projectDir) => ReadFile(System.IO.Path.Join(projectDir, "obj", FileName));
+
+    /// <summary>Reads an assets file, or returns <c>null</c> when there is none.</summary>
+    public static ProjectAssets? ReadFile(string path) =>
+        File.Exists(path) ? new ProjectAssets(JsonDocument.Parse(File.ReadAllBytes(path))) : null;
+
+    /// <summary>The name of the file that a restore writes a project's assets to.</summary>
+    public const string FileName = "project.assets.json";
 
     public void Dispose() => _document.Dispose();
 }

@@ -121,6 +121,30 @@ public sealed class LibraryFixture : IAsyncLifetime
             {
                 public System.Runtime.CompilerServices.TaskAwaiter GetAwaiter() => Task.CompletedTask.GetAwaiter();
             }
+
+            public abstract class ProcessorBase
+            {
+                protected ProcessorBase() { }
+
+                public abstract void Run();
+            }
+
+            public abstract class NamedBase
+            {
+                protected NamedBase(string name = "named") { }
+            }
+
+            public readonly struct Money
+            {
+                public static explicit operator int(Money money) => 0;
+            }
+
+            public interface IStandard
+            {
+                static abstract bool Validate(string code);
+
+                void Describe();
+            }
             """
         );
         Write(
@@ -201,6 +225,44 @@ public sealed class LibraryFixture : IAsyncLifetime
             }
             """
         );
+        Write(
+            "app/App/Compiler.cs",
+            """
+            using Altinn.App.Core.Features;
+
+            namespace App;
+
+            // What the compiler calls for code that does not name it.
+            public sealed class ImplicitBase : ProcessorBase
+            {
+                public override void Run() { }
+            }
+
+            public sealed class ExplicitBase : ProcessorBase
+            {
+                public ExplicitBase() { }
+
+                public override void Run() { }
+            }
+
+            public sealed class Named : NamedBase { }
+
+            public static class Casts
+            {
+                public static int Use(Money money) => (int)money;
+            }
+
+            public class DescribedBase
+            {
+                public void Describe() { }
+            }
+
+            public sealed class Standard : DescribedBase, IStandard
+            {
+                public static bool Validate(string code) => true;
+            }
+            """
+        );
         Write("broken-app/App/App.csproj", Project("", ["../../lib/Altinn.App.Core/Altinn.App.Core.csproj"]));
         Write(
             "broken-app/App/Broken.cs",
@@ -238,9 +300,11 @@ public sealed class LibraryFixture : IAsyncLifetime
 
         Dotnet.PrepareEnvironment(start.Environment);
         using Process process = Process.Start(start)!;
-        string output = await process.StandardOutput.ReadToEndAsync();
+        // Both streams are read at once, so that a full one cannot block the build.
+        Task<string> output = process.StandardOutput.ReadToEndAsync();
+        Task<string> error = process.StandardError.ReadToEndAsync();
         await process.WaitForExitAsync();
-        Assert.True(process.ExitCode == 0, output);
+        Assert.True(process.ExitCode == 0, $"{await output}\n{await error}");
     }
 
     public ValueTask DisposeAsync()
