@@ -283,3 +283,48 @@ test('reloads the page when it cannot fetch the texts', async () => {
   assert.deepEqual(invalidated, []);
   assert.equal(reloads.length, 1);
 });
+
+test('keeps the texts of the latest change when the answers come in another order', async () => {
+  const { queryClient } = frontendQueries();
+  const answers = [];
+  const textResources = { language: 'nb', resources: [] };
+  const { page, receive } = runBridge({
+    globals: {
+      queryClient,
+      org: 'session/ttd',
+      app: 'my-app',
+      altinnAppGlobalData: { textResources },
+      fetch: () => new Promise((resolve) => answers.push(resolve)),
+    },
+  });
+  const answer = (value) => ({
+    ok: true,
+    json: async () => ({ resources: [{ id: 'title', value }] }),
+  });
+
+  await receive('textsChanged');
+  await receive('textsChanged');
+  answers[1](answer('Latest'));
+  await new Promise((resolve) => setImmediate(resolve));
+  answers[0](answer('Earlier'));
+  await new Promise((resolve) => setImmediate(resolve));
+
+  assert.deepEqual(page.altinnAppGlobalData.textResources.resources, [
+    { id: 'title', value: 'Latest' },
+  ]);
+});
+
+test('starts the errors over when the layouts change, and sends those still logged', async () => {
+  const { queryClient } = frontendQueries();
+  const { page, posted, flush, lastErrors, receive } = runBridge({ globals: { queryClient } });
+  page.logErrorOnce("Validation error for 'a': fixed");
+  page.logErrorOnce("Validation error for 'b': still wrong");
+  flush();
+
+  await receive('layoutsChanged');
+  assert.deepEqual(posted.at(-1).message.errors, {});
+  page.logErrorOnce("Validation error for 'b': still wrong");
+  flush();
+
+  assert.deepEqual(lastErrors(), { b: ['still wrong'] });
+});

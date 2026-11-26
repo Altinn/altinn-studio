@@ -175,11 +175,15 @@
       return client.invalidateQueries({ queryKey: queryKey });
     };
 
+    // A later change fetches the texts again, so only the latest answer counts.
+    var textsRequest = 0;
+
     var refetchTexts = function () {
       var texts = window.altinnAppGlobalData && window.altinnAppGlobalData.textResources;
       if (!texts) {
         return refetch(['textResources']);
       }
+      var request = ++textsRequest;
       return fetch(
         '/' + window.org + '/' + window.app + '/api/v1/texts/' + encodeURIComponent(texts.language),
       )
@@ -190,13 +194,26 @@
           return response.json();
         })
         .then(function (fresh) {
+          if (request !== textsRequest) {
+            return;
+          }
           texts.resources = fresh.resources;
           return refetch(['textResources']);
         });
     };
 
+    // The frontend validates the layouts it gets again and logs what is still wrong, so the errors start over.
+    var forgetErrors = function () {
+      errors = Object.create(null);
+      componentCount = 0;
+      logged = Object.create(null);
+      loggedCount = 0;
+      send();
+    };
+
     var changes = {
       layoutsChanged: function () {
+        forgetErrors();
         return refetch(['formBootstrap']);
       },
       textsChanged: refetchTexts,
