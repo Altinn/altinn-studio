@@ -1,7 +1,7 @@
 {
   "axes": {
     "actor_prompt": "fe334c82eb87",
-    "code": "ccdd8ce clean",
+    "code": "d827421 clean",
     "dataset": "85 items b0923ba3df4f",
     "environment": "local",
     "evaluators": "not recorded",
@@ -11,8 +11,8 @@
     "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
     "tools": "68cbf7e4413d"
   },
-  "check_id": "20261125T182114Z-e2e-bench-on-the-v8-and-v9-app-templates-22112-on-ccdd8ce844-second-run-df46",
-  "label": "e2e bench on the v8 and v9 app templates, #22112 on ccdd8ce844, second run",
-  "recorded_at": "2026-11-25T18:56:10+00:00",
-  "why": "#22112 runs the e2e bench on new copies of the v8 and v9 app templates and scores each skill, so the datasets and the evaluators change. Full check with e2e on ccdd8ce844, with a clean tree, against the local Designer stack, with the preview check off as in production. The quick evals match the last baseline: gate_verdict 1.000 on Gates/scope and Gates/security, 1.000 on Planner/intake and Planner/spec, and on Loop/traces 1.000 for gen_stopped_cleanly, 0.000 for gen_content_pairings and 0.889 for gen_required_tools, where one replay calls edit_file without verify_changes, as in the baseline before the last one. The v9 build committed an app. Each of its failed checks was read against the app, and each is a mistake by the assistant: no custom receipt, no BPMN diagram, a signing task without minCount, runDefaultValidator or SigningDocumentList, prefill targets that start with Model., and no error rule for D6 against D7. The v8 build committed no app: the session hung after the intake and timed out after 30 minutes. In the two runs before this one, the v8 build committed an incomplete app once and repeated one edit until the loop stopped it once. So the v8 build and skill behaviors have no score, and the run is adopted with --force, which also covers the two render behaviors that the render check leaves unscored. The judge is gpt-6.1-sol."
+  "check_id": "20261126T071847Z-e2e-bench-on-the-v8-and-v9-app-templates-22112-on-8c179a20ee-with-the-timeout-from-22126-cb08",
+  "label": "e2e bench on the v8 and v9 app templates, #22112 on 8c179a20ee with the timeout from #22126",
+  "recorded_at": "2026-11-26T07:27:17+00:00",
+  "why": "#22112 runs the e2e bench on new copies of the v8 and v9 app templates and scores each skill, so the datasets and the evaluators change. Full check with e2e on 8c179a20ee with the LLMClient timeout from #22126, which only changes what happens when a model reply stalls, with a clean tree, against the local Designer stack, with the preview check off as in production. The quick evals match the last baseline: gate_verdict 1.000 on Gates/scope and Gates/security, 1.000 on Planner/intake and Planner/spec, and on Loop/traces 1.000 for gen_stopped_cleanly, 0.000 for gen_content_pairings and 0.889 for gen_required_tools. Both builds committed an app, in about three minutes each. The last baseline had no v8 scores, because a spec extraction call in the v8 session never got a reply. Each failed check was read against the committed apps, and each is a mistake by the assistant. v8: no gateway, signing task or custom receipt, which the assistant said itself, a FileUpload whose id is not the attachment data type, prefill targets that start with Model., and RequiredValidation not turned on. v9: no custom receipt, no BPMN diagram, a signing task without minCount, runDefaultValidator or SigningDocumentList, prefill targets that start with Model., the same FileUpload mistake, and \u00abAnnet \u2013 fyll inn\u00bb where D3 asks for \u00abAndre \u2013 fyll inn\u00bb, so that field is not found. The run is adopted with --force for the two render behaviors that the render check leaves unscored. The judge is gpt-6.1-sol."
 }
