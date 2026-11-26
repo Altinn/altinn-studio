@@ -8,8 +8,7 @@ namespace Altinn.Studio.Preview.AppApi;
 /// <summary>The app's process and data types, which decide what happens to an instance.</summary>
 internal sealed record AppDefinition(ProcessDefinition? Process, IReadOnlyList<DataType> DataTypes)
 {
-    public static AppDefinition Read(AppFiles files) =>
-        new(files.Process(), DataType.From(files.ApplicationMetadata()));
+    public static AppDefinition Read(AppFiles files) => new(files.Process(), DataType.Of(files));
 }
 
 /// <summary>
@@ -77,17 +76,7 @@ internal static class MockInstances
             return false;
         }
 
-        HashSet<string> taskDataTypes =
-        [
-            .. app.DataTypes.Where(dataType => dataType.TaskId == current.ElementId).Select(dataType => dataType.Id),
-        ];
-        foreach (
-            DataElement element in instance.Instance.Data.Where(element => taskDataTypes.Contains(element.DataType))
-        )
-        {
-            element.Locked = true;
-        }
-
+        LockTheDataOf(current.ElementId, instance, app, locked: true);
         Enter(instance, instanceGuid, app, app.Process.Next(current.ElementId), now);
         return true;
     }
@@ -173,16 +162,31 @@ internal static class MockInstances
             Name = task.Name,
             AltinnTaskType = task.AltinnTaskType,
         };
+        LockTheDataOf(task.ElementId, instance, app, locked: false);
         // As in the app backend, a task the process returns to keeps the form data it has.
         foreach (
             DataType dataType in app.DataTypes.Where(dataType =>
                 dataType is { IsFormData: true, AutoCreate: true }
-                && dataType.TaskId == task.ElementId
+                && dataType.BelongsTo(task.ElementId)
                 && !instance.Instance.Data.Exists(element => element.DataType == dataType.Id)
             )
         )
         {
             AddFormData(instance, instanceGuid, dataType, now);
+        }
+    }
+
+    private static void LockTheDataOf(string taskId, MockInstance instance, AppDefinition app, bool locked)
+    {
+        HashSet<string> taskDataTypes =
+        [
+            .. app.DataTypes.Where(dataType => dataType.BelongsTo(taskId)).Select(dataType => dataType.Id),
+        ];
+        foreach (
+            DataElement element in instance.Instance.Data.Where(element => taskDataTypes.Contains(element.DataType))
+        )
+        {
+            element.Locked = locked;
         }
     }
 

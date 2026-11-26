@@ -35,11 +35,11 @@ public sealed class MockInstancesTests
     }
 
     [Fact]
-    public void MoveNext_KeepsTheFormData_OfATaskTheProcessReturnsTo()
+    public void MoveNext_KeepsTheFormDataWritable_OfATaskTheProcessReturnsTo()
     {
         var app = new AppDefinition(
             ProcessDefinitionTests.Parse(ProcessDefinitionTests.ReturnsToTheTask),
-            [new DataType("model", "Task_1", "App.Models.Model", AutoCreate: true)]
+            [new DataType("model", ["Task_1"], "App.Models.Model", AutoCreate: true)]
         );
         var state = new MockState();
         Instance created = MockInstances.Create(state, app, "ttd", "my-app", 51001, s_now);
@@ -50,5 +50,6 @@ public sealed class MockInstancesTests
 
         Assert.Equal("Task_1", instance.Instance.Process.CurrentTask?.ElementId);
         Assert.Equal(formData.Id, Assert.Single(instance.Instance.Data).Id);
+        Assert.False(formData.Locked);
     }
 }

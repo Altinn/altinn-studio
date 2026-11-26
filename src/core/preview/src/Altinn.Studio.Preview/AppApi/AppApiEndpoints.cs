@@ -114,17 +114,24 @@ internal static partial class AppApiEndpoints
         }
 
         Dictionary<string, DataType> formDataTypes = DataType
-            .From(files.ApplicationMetadata())
+            .Of(files)
             .Where(dataType => dataType.IsFormData)
             .ToDictionary(dataType => dataType.Id, StringComparer.Ordinal);
+        string? currentTask = instance.Instance.Process.CurrentTask?.ElementId;
         var dataModels = new JsonObject();
-        foreach (DataElement element in instance.Instance.Data.Where(e => formDataTypes.ContainsKey(e.DataType)))
+        foreach (DataElement element in instance.Instance.Data)
         {
+            if (!formDataTypes.TryGetValue(element.DataType, out DataType? dataType))
+            {
+                continue;
+            }
+
             dataModels[element.DataType] = new JsonObject
             {
                 ["schema"] = files.Schema(element.DataType),
                 ["initialData"] = instance.FormData.GetValueOrDefault(Guid.Parse(element.Id))?.DeepClone(),
                 ["dataElementId"] = element.Id,
+                ["writable"] = dataType.IsWritable(element, currentTask),
                 ["expressionValidationConfig"] = null,
             };
         }

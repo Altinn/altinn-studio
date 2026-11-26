@@ -111,6 +111,7 @@ public sealed class V9AppTests : IDisposable
         Uri instanceUrl = new(appRoot, $"instances/{instanceId}/");
 
         JsonObject enriched = await Send(HttpMethod.Get, new Uri(instanceUrl, "enriched"));
+        Assert.False((bool?)enriched["data"]?[0]?["locked"]);
         Assert.Equal("Task_1", (string?)enriched["process"]?["currentTask"]?["elementId"]);
         Assert.True((bool?)enriched["process"]?["currentTask"]?["write"]);
         Assert.Equal(
@@ -124,6 +125,7 @@ public sealed class V9AppTests : IDisposable
         Assert.NotNull(form["layouts"]?["Side1"]);
         string dataElementId = Value(form["dataModels"]?["model"]?["dataElementId"]);
         Assert.Equal("object", (string?)form["dataModels"]?["model"]?["schema"]?["type"]);
+        Assert.True((bool?)form["dataModels"]?["model"]?["writable"]);
 
         JsonObject patched = await Send(
             HttpMethod.Patch,
@@ -241,7 +243,7 @@ public sealed class V9AppTests : IDisposable
               "id": "ttd/my-app",
               "org": "ttd",
               "dataTypes": [
-                { "id": "model", "taskId": "Task_1", "appLogic": { "autoCreate": true, "classRef": "Altinn.App.Models.Model" } },
+                { "id": "model", "taskIds": ["Task_1"], "appLogic": { "autoCreate": true, "classRef": "Altinn.App.Models.Model" } },
                 { "id": "ref-data-as-pdf", "allowedContentTypes": ["application/pdf"] }
               ]
             }
