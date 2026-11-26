@@ -2,7 +2,6 @@ import 'cypress-iframe';
 
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
-import { PaymentStatus } from 'src/features/payment/types';
 const appFrontend = new AppFrontend();
 
 describe('Payment', () => {
@@ -21,57 +20,59 @@ describe('Payment', () => {
     cy.findByRole('button', { name: /Til betaling/ }).should('be.visible');
   });
 
+  // The app's fake payment processor sends the browser straight back to the app, and reports every payment as paid
+  // when the payment page checks it.
   describe('Successful payment', () => {
     beforeEach(() => {
       cy.findByRole('button', { name: /Til betaling/ }).clickAndWaitForProcessNext();
-      cy.intercept({
-        method: 'GET',
-        url: '**/ttd/payment-test/instances/**/**/payment*',
-      }).as('paymentInfoRequest');
-
-      // TODO: This should be removed once we have a more realistic payment provider that pushes the process for us
-      cy.findByText('Du har betalt!').should('be.visible');
-      cy.url().should('match', /\/Task_2\/payment$/);
-      cy.findByRole('button', { name: /Neste/ }).clickAndWaitForProcessNext();
     });
 
-    it('should redirect to the payment page, then the successpage', () => {
-      cy.url().should('match', /\/ProcessEnd$/);
+    it('moves the process on by itself once the payment has gone through', () => {
+      cy.url({ timeout: 30_000 }).should('match', /\/ProcessEnd$/);
     });
     it('The PDF receipt should be visible', () => {
-      cy.url().should('match', /\/ProcessEnd$/);
+      cy.url({ timeout: 30_000 }).should('match', /\/ProcessEnd$/);
       cy.findByRole('link', { name: /Betalingskvittering.pdf/ }).should('be.visible');
+    });
+  });
+
+  describe('Back during a payment attempt', () => {
+    it('cancels the attempt and follows the process, which the fake processor moves on as paid', () => {
+      // Nothing asks the processor, so the attempt stays open on the payment page
+      cy.intercept('POST', '**/ttd/payment-test/instances/**/payment/check*', {
+        statusCode: 502,
+        body: { type: 'payment-processor-unavailable', status: 502 },
+      });
+      cy.intercept('POST', '**/ttd/payment-test/instances/**/payment/cancel*').as('cancelPayment');
+      cy.findByRole('button', { name: /Til betaling/ }).clickAndWaitForProcessNext();
+
+      cy.findByRole('button', { name: 'Fortsett til betaling' }).should('be.visible');
+      cy.findByRole('button', { name: 'Tilbake' }).click();
+
+      cy.wait('@cancelPayment').its('response.statusCode').should('eq', 200);
+      cy.url({ timeout: 30_000 }).should('match', /\/ProcessEnd$/);
     });
   });
 
   describe('Failed payment', () => {
     beforeEach(() => {
+      // As when the processor cannot create the payment: no attempt opens, and the task stays idle without a payment
+      cy.intercept('POST', '**/ttd/payment-test/instances/**/actions*', {
+        statusCode: 500,
+        body: { success: false, error: { code: 'PaymentNotStarted' } },
+      });
       cy.findByRole('button', { name: /Til betaling/ }).clickAndWaitForProcessNext();
     });
 
-    it('Should display an alert telling the user that the payment failed', () => {
-      cy.intercept(
-        {
-          method: 'GET',
-          url: '**/ttd/payment-test/instances/**/**/payment*',
-        },
-        (req) => {
-          req.continue((res) => {
-            if (res.body && res.body.status) {
-              res.body.status = PaymentStatus.Failed; // Example of modifying a specific field
-            }
-          });
-        },
-      ).as('paymentInfoRequest');
-      cy.wait('@paymentInfoRequest').then((_) => {
-        cy.get('div.ds-alert')
-          .should('exist')
-          .and('be.visible')
-          .within(() => {
-            // Check that the div contains the text 'Betalingen feilet' in one of its children
-            cy.contains('Betalingen feilet').should('exist');
-          });
-      });
+    it('tells the user that the payment failed, and offers to pay again or go back', () => {
+      cy.findByText('Betalingen feilet').should('be.visible');
+      cy.findByRole('button', { name: 'Betal' }).should('be.visible');
+      cy.findByRole('button', { name: 'Tilbake' }).should('be.visible');
+    });
+
+    it('goes back to the form', () => {
+      cy.findByRole('button', { name: 'Tilbake' }).clickAndWaitForProcessNext();
+      cy.url().should('match', /\/Task_1\//);
     });
   });
 });

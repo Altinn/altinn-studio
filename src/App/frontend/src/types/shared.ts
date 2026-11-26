@@ -232,6 +232,11 @@ interface IProcessWorkflowProcessing {
   /** BPMN element id the in-flight transition targets. Omitted when unresolved. */
   targetTask?: string;
   /**
+   * True when a user action, such as a payment attempt, holds the current task and waits for messages. The task's page
+   * then shows read-only instead of the loading view. Omitted when false.
+   */
+  awaitingMessages?: boolean;
+  /**
    * True when the transition is parked between automatic retry attempts (a previous attempt
    * failed and the engine will retry). Purely a presentation hint for explaining a long wait
    * honestly. Omitted when false.

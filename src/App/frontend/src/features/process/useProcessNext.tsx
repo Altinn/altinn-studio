@@ -160,7 +160,8 @@ export function useProcessResume() {
   });
 }
 
-function useRefreshProcess() {
+/** Fetches the instance again and goes to the process's current task. */
+export function useRefreshProcess() {
   const refetch = useInstanceDataQuery({ enabled: false }).refetch;
   const navigateToTask = useNavigateToTask();
 

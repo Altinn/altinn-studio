@@ -1,36 +1,35 @@
-import { useCallback } from 'react';
+import { toast } from 'react-toastify';
 
 import { Button } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Alert } from '@digdir/designsystemet-react';
+import { isHttpError } from '@studio/http-client';
 
-import { useInstanceDataQuery } from 'src/core/queries/instance';
-import { usePaymentInformation } from 'src/core/queries/payment';
+import { useCancelPaymentMutation, usePaymentInformation } from 'src/core/queries/payment';
 import { useIsAnyProcessing } from 'src/core/queries/processing';
-import { usePollingWithBackoff } from 'src/core/queries/usePollingWithBackoff';
-import { useOptimisticallyUpdateProcess, useProcessQuery } from 'src/features/instance/useProcessQuery';
+import { useIsAwaitingMessages } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { usePayment } from 'src/features/payment/PaymentProvider';
 import { PaymentStatus } from 'src/features/payment/types';
-import { useProcessNext } from 'src/features/process/useProcessNext';
+import { useProcessNext, useRefreshProcess } from 'src/features/process/useProcessNext';
 import { useIsSubformPage } from 'src/hooks/navigation';
-import { useNavigateToTask } from 'src/hooks/useNavigatePage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/Payment/PaymentComponent.module.css';
 import { PaymentDetailsTable } from 'src/layout/PaymentDetails/PaymentDetailsTable';
-import { TaskKeys } from 'src/routesBuilder';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export const PaymentComponent = ({ baseComponentId }: PropsFromGenericComponent<'Payment'>) => {
   const { langAsString } = useLanguage();
-  const { mutate: processConfirm, isPending: isConfirming } = useProcessNext({ action: 'confirm' });
   const { mutate: processReject, isPending: isRejecting } = useProcessNext({ action: 'reject' });
+  const { mutateAsync: cancelPayment, isPending: isCancelling } = useCancelPaymentMutation();
+  const refreshProcess = useRefreshProcess();
   const isAnyProcessing = useIsAnyProcessing();
   const paymentInfo = usePaymentInformation();
   const { performPayment, paymentError } = usePayment();
+  const isAwaitingMessages = useIsAwaitingMessages();
   const config = useComponentConfig(baseComponentId, 'Payment');
   const title = useEvalOptionalText(config.textResourceBindings?.title, Expressions.Payment.textResourceBindings.title);
   const description = useEvalOptionalText(
@@ -39,57 +38,35 @@ export const PaymentComponent = ({ baseComponentId }: PropsFromGenericComponent<
   );
   const help = useEvalOptionalText(config.textResourceBindings?.help, Expressions.Payment.textResourceBindings.help);
 
-  const { data: process, refetch: reFetchProcessData } = useProcessQuery();
-  const navigateToTask = useNavigateToTask();
-  const optimisticallyUpdateProcess = useOptimisticallyUpdateProcess();
-  const reFetchInstanceData = useInstanceDataQuery({ enabled: false }).refetch;
   if (useIsSubformPage()) {
     throw new Error('Cannot use PaymentComponent in a subform');
   }
-  const disabled = isAnyProcessing || isConfirming || isRejecting;
-  const navigateBasedOnProcess = useCallback(
-    async (shouldConfirmIfNoNavigate: boolean) => {
-      if (!(paymentInfo?.status === PaymentStatus.Paid || paymentInfo?.status === PaymentStatus.Skipped)) {
-        return;
-      }
-      const result = await reFetchProcessData();
-      if (!result.data) {
-        return;
-      }
-      let navigateTo: undefined | string;
-      if (result.data.ended) {
-        navigateTo = TaskKeys.ProcessEnd;
-      } else if (
-        result.data.currentTask?.elementId &&
-        result.data.currentTask.elementId !== process?.currentTask?.elementId
-      ) {
-        navigateTo = result.data.currentTask.elementId;
-      }
-      if (navigateTo) {
-        optimisticallyUpdateProcess(result.data);
-        await reFetchInstanceData();
-        navigateToTask(navigateTo);
-      } else if (shouldConfirmIfNoNavigate) {
-        processConfirm();
-      }
-    },
-    [
-      reFetchProcessData,
-      paymentInfo?.status,
-      process?.currentTask?.elementId,
-      optimisticallyUpdateProcess,
-      reFetchInstanceData,
-      navigateToTask,
-      processConfirm,
-    ],
-  );
-  const handleNextClick = async () => {
-    await navigateBasedOnProcess(true);
+
+  const status = paymentInfo?.status;
+  const isPaid = status === PaymentStatus.Paid || status === PaymentStatus.Skipped;
+  const isAuthorized = status === PaymentStatus.Authorized;
+  const checkoutUrl = paymentInfo?.paymentDetails?.redirectUrl;
+  const canContinueOrCancel = isAwaitingMessages && status === PaymentStatus.Created;
+  const canPayOrGoBack =
+    !isAwaitingMessages &&
+    (status === PaymentStatus.Created ||
+      status === PaymentStatus.Cancelled ||
+      status === PaymentStatus.Failed ||
+      (!!paymentError && !isPaid && !isAuthorized));
+  const disabled = isAnyProcessing || isRejecting || isCancelling;
+
+  // Every answer, a refusal too, can come after the attempt moved the process or let the instance go
+  const handleCancelClick = async () => {
+    const error = await cancelPayment().then(
+      () => undefined,
+      (error: unknown) => error,
+    );
+    await refreshProcess();
+    if (error && !isCancelOutcomeShownByPage(error)) {
+      toast(<Lang id='payment.cancel_failed' />, { type: 'error', autoClose: false });
+    }
   };
-  const goToCurrentTask = useCallback(async () => {
-    await navigateBasedOnProcess(false);
-  }, [navigateBasedOnProcess]);
-  usePollingWithBackoff(goToCurrentTask);
+
   return (
     <ComponentStructureWrapper baseComponentId={baseComponentId}>
       <div className={classes.paymentContainer}>
@@ -100,19 +77,24 @@ export const PaymentComponent = ({ baseComponentId }: PropsFromGenericComponent<
           help={help}
         />
         <div className={classes.alertContainer}>
-          {(paymentInfo?.status === PaymentStatus.Failed || paymentError) && (
+          {(status === PaymentStatus.Failed || paymentError) && (
             <Alert data-color='warning'>
               <Lang id='payment.alert.failed' />
             </Alert>
           )}
-          {paymentInfo?.status === PaymentStatus.Paid && (
+          {status === PaymentStatus.Paid && (
             <Alert data-color='info'>
               <Lang id='payment.alert.paid' />
             </Alert>
           )}
+          {isAuthorized && (
+            <Alert data-color='info'>
+              <Lang id='payment.alert.processing' />
+            </Alert>
+          )}
         </div>
         <div className={classes.buttonContainer}>
-          {(paymentInfo?.status === PaymentStatus.Created || paymentError) && (
+          {canPayOrGoBack && (
             <>
               <Button
                 variant='secondary'
@@ -131,19 +113,50 @@ export const PaymentComponent = ({ baseComponentId }: PropsFromGenericComponent<
               </Button>
             </>
           )}
-          {(paymentInfo?.status === PaymentStatus.Paid || paymentInfo?.status === PaymentStatus.Skipped) && (
-            <Button
-              variant='secondary'
-              disabled={disabled}
-              isLoading={isConfirming}
-              loadingLabel={langAsString('general.loading')}
-              onClick={handleNextClick}
-            >
-              <Lang id='general.next' />
-            </Button>
+          {canContinueOrCancel && (
+            <>
+              <Button
+                variant='secondary'
+                disabled={disabled}
+                isLoading={isCancelling}
+                loadingLabel={langAsString('general.loading')}
+                onClick={handleCancelClick}
+              >
+                <Lang id='general.back' />
+              </Button>
+              {checkoutUrl && (
+                <Button
+                  color='success'
+                  disabled={disabled}
+                  onClick={() => window.location.assign(checkoutUrl)}
+                >
+                  <Lang id='payment.continue' />
+                </Button>
+              )}
+            </>
           )}
         </div>
       </div>
     </ComponentStructureWrapper>
   );
 };
+
+/**
+ * The attempt has ended, has failed, is still handling the cancel, or holds a reserved payment, which the processing
+ * alert explains. The refreshed process and its poll show where that leaves the user, so trying Back again would not
+ * help.
+ */
+function isCancelOutcomeShownByPage(error: unknown): boolean {
+  if (!isHttpError<{ type?: string; processNextState?: string } | undefined>(error)) {
+    return false;
+  }
+  const status = error.response?.status;
+  const { type, processNextState } = error.response?.data ?? {};
+  return (
+    status === 400 ||
+    status === 504 ||
+    type === 'payment-attempt-not-open' ||
+    type === 'payment-authorized' ||
+    processNextState !== undefined
+  );
+}

@@ -4,6 +4,9 @@ export enum PaymentStatus {
   Uninitialized = 'Uninitialized',
   Paid = 'Paid',
   Failed = 'Failed',
+  Cancelled = 'Cancelled',
+  // Reserved at the payment processor, but not charged yet
+  Authorized = 'Authorized',
 }
 
 export interface PaymentResponsePayload {
@@ -11,6 +14,7 @@ export interface PaymentResponsePayload {
   status: PaymentStatus;
   orderDetails: OrderDetails;
   paymentDetails?: PaymentDetails;
+  mailboxId?: string | null;
 }
 
 export interface PaymentDetails {

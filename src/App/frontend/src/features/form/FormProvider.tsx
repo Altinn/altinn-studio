@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useRef } from 'react';
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { isHttpError } from '@studio/http-client';
@@ -39,7 +39,7 @@ import { FormDataWriteEffects } from 'src/features/formData/FormDataWrite';
 import { useFormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
 import { createFormDataWriteSlice } from 'src/features/formData/FormDataWriteStateMachine';
 import { useOptimisticallyUpdateCachedInstance } from 'src/features/instance/InstanceContext';
-import { useProcessQuery } from 'src/features/instance/useProcessQuery';
+import { useIsAwaitingMessages, useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
 import { RunOptionsEffects } from 'src/features/options/RunOptionsEffects';
 import { PaymentProvider } from 'src/features/payment/PaymentProvider';
@@ -68,11 +68,15 @@ export function FormProvider({ children, readOnly = false, ...props }: PropsWith
   const hasProcess = useHasProcess();
   const isPdfOfOtherTask = useIsPdfOfOtherTask();
   const isServiceTaskPage = useIsServiceTaskPage();
+  const isAwaitingMessages = useIsAwaitingMessages();
   const { error, bootstrap, enabled } = useBootstrapQuery(props);
   const previousBootstrap = useRef<FormBootstrapBase | null>(bootstrap);
 
-  // A service task's page is always read-only: the task owns the instance until the process moves on
-  const dataSliceProps = useFormDataSliceProps(bootstrap, isPdfOfOtherTask || isServiceTaskPage);
+  // A service task's page is always read-only: the task owns the instance until the process moves on. So is a page
+  // whose task a user action holds while it waits for messages, until it moves the process or lets the instance go.
+  const instanceLocked = isServiceTaskPage || isAwaitingMessages;
+  const isReadOnly = readOnly || isPdfOfOtherTask || instanceLocked;
+  const dataSliceProps = useFormDataSliceProps(bootstrap, isPdfOfOtherTask);
   const storeRef = useRef<FormStoreApi | undefined>(undefined);
 
   if (enabled && bootstrap && dataSliceProps && (!storeRef.current || previousBootstrap.current !== bootstrap)) {
@@ -81,13 +85,19 @@ export function FormProvider({ children, readOnly = false, ...props }: PropsWith
     // layouts can change without all of this being reset, however.
     storeRef.current = createFormStore({
       parent,
-      readOnly: readOnly || isPdfOfOtherTask || isServiceTaskPage,
-      instanceLocked: isServiceTaskPage,
+      readOnly: isReadOnly,
+      instanceLocked,
       data: dataSliceProps,
       bootstrap,
     });
     previousBootstrap.current = bootstrap;
   }
+
+  // A held task's page stays mounted when the hold starts or ends. Restarting the store would show the bootstrap's
+  // data instead of what the user has typed since.
+  useLayoutEffect(() => {
+    storeRef.current?.setState({ readOnly: isReadOnly, instanceLocked });
+  }, [isReadOnly, instanceLocked]);
 
   useLayoutOverrides(storeRef);
 

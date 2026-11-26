@@ -138,6 +138,13 @@ describe('ProcessWrapper workflow state machine', () => {
     expect(screen.queryByRole('button', { name: /send inn/i })).not.toBeInTheDocument();
   });
 
+  it('processing renders the current task when a user action holds it and waits for messages', async () => {
+    await renderProcessWrapper({ status: 'processing', targetTask: 'Task_1', awaitingMessages: true });
+
+    expect(screen.getByTestId('task-content')).toBeInTheDocument();
+    expect(screen.queryByTestId('loader')).not.toBeInTheDocument();
+  });
+
   it.each([
     ['runs', {}],
     ['defers', { waitingReason: 'Waiting for eFormidling to confirm delivery' }],
