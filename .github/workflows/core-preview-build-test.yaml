@@ -1,0 +1,102 @@
+name: Core Preview - Build and test
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
+    paths:
+      - 'src/core/preview/**'
+      - 'src/common/dotnet/**'
+      - '.github/workflows/core-preview-build-test.yaml'
+      - '!**/AGENTS.md'
+      - '!**/README.md'
+      - '!**/readme.md'
+      - '!**/CONTRIBUTING.md'
+      - '!**/CHANGELOG.md'
+      - '!**/docs/**'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
+    name: Build and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+
+    # The session lifetime tests run against a real Redis.
+    services:
+      redis:
+        image: docker.io/library/redis:8.10.3-alpine@sha256:21090af93f8324db2f0f0f4f38a7c60369d47d917e000c3423d89d2ae2883537
+        ports:
+          - 6379:6379
+
+    defaults:
+      run:
+        working-directory: src/core/preview
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+        with:
+          global-json-file: src/core/preview/global.json
+
+      - name: Restore tools
+        run: dotnet tool restore
+
+      - name: Formatting
+        run: dotnet csharpier check .
+
+      - name: Build
+        run: dotnet build
+
+      - name: Test
+        run: dotnet test --no-build
+        env:
+          PREVIEW_TEST_REDIS: localhost:6379
+
+      # The tests run the service in process. Start the image as it runs in the cluster, with the working copies
+      # mounted read-only, and check that each port serves only its own endpoints.
+      - name: Build the image
+        working-directory: src
+        run: docker build -t preview:ci -f core/preview/Dockerfile .
+
+      - name: Smoke test the image
+        env:
+          REDIS_CONTAINER: ${{ job.services.redis.id }}
+        run: |
+          # As in the cluster, Redis requires a password.
+          docker exec "$REDIS_CONTAINER" redis-cli CONFIG SET requirepass smoke-test
+          mkdir -p "$RUNNER_TEMP/repos/developer/ttd/my-app/App/wwwroot"
+          echo '<svg/>' > "$RUNNER_TEMP/repos/developer/ttd/my-app/App/wwwroot/logo.svg"
+          chmod -R a+rX "$RUNNER_TEMP/repos"
+          docker run -d --name preview --network host \
+            -v "$RUNNER_TEMP/repos:/AltinnCore/Repos:ro" \
+            -e Preview__PublicBaseUrl=http://127.0.0.1:8080 \
+            -e Preview__StudioOrigin=http://studio.localhost \
+            -e Preview__RedisConnectionString=127.0.0.1:6379,password=smoke-test \
+            preview:ci
+          for _ in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:8080/health/live >/dev/null 2>&1 && break
+            sleep 1
+          done
+          # Ready only while it reaches its Redis with the password.
+          curl -fsS http://127.0.0.1:8080/health/ready >/dev/null
+          start='{"developer":"developer","org":"ttd","app":"my-app"}'
+          test "$(curl -s -o /dev/null -w '%{http_code}' -H 'content-type: application/json' -d "$start" http://127.0.0.1:8080/sessions)" = 404
+          url=$(curl -fsS -H 'content-type: application/json' -d "$start" http://127.0.0.1:8081/sessions | jq -r .url)
+          test "$(curl -fsS "${url}logo.svg")" = '<svg/>'
+          test "$(curl -s -o /dev/null -w '%{http_code}' "${url/8080/8081}logo.svg")" = 404
+
+      - name: Image logs
+        if: ${{ always() }}
+        run: docker logs preview || true

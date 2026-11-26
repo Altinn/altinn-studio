@@ -46,8 +46,13 @@ spec:
             {{- fail "the chosen environment has no host" }}
             {{- end }}
             {{- $host := index $.Values.hosts $.Values.environment }}
+            {{- $previewHost := index (.Values.previewHosts | default dict) $.Values.environment }}
             - name: SERVER_NAME
               value: {{ $host | quote }}
+            {{- if $previewHost }}
+            - name: PREVIEW_SERVER_NAME
+              value: {{ $previewHost | quote }}
+            {{- end }}
             {{- range $key, $value := .Values.env }}
             - name: {{ $key }}
               value: {{ $value | quote }}
@@ -59,12 +64,14 @@ spec:
                   fieldPath: metadata.uid
             - name: OTEL_RESOURCE_ATTRIBUTES
               value: "k8s.pod.uid=$(POD_UID)"
-          {{- if .Values.volumeMounts }}
           volumeMounts:
           {{- range $mount := .Values.volumeMounts }}
             - name: {{ $mount.name }}
               mountPath: {{ $mount.mountPath }}
           {{- end }}
+          {{- if $previewHost }}
+            - name: altinn-loadbalancer-preview-ssl
+              mountPath: /etc/nginx/ssl/preview
           {{- end }}
         {{- if .Values.sidecar.enabled }}
         - name: {{ .Values.sidecar.name }}
@@ -98,8 +105,12 @@ spec:
           {{- end }}
           {{- end }}
         {{- end }}
-      {{- if .Values.volumes }}
       volumes:
+        {{- if $previewHost }}
+        - name: altinn-loadbalancer-preview-ssl
+          secret:
+            secretName: preview-ssl-key-secret
+        {{- end }}
         {{- range $volume := .Values.volumes }}
         - name: {{ $volume.name }}
           {{- if $volume.configMap }}
@@ -111,4 +122,3 @@ spec:
             secretName: {{ $volume.secret.secretName }}
           {{- end }}
         {{- end }}
-      {{- end }}
