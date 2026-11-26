@@ -65,7 +65,7 @@ public abstract record StageResult
 
 internal sealed record CompletedStageResult : StageResult
 {
-    public static readonly CompletedStageResult Instance = new();
+    internal static readonly CompletedStageResult Instance = new();
 }
 
 internal sealed record DeferredStageResult(TimeSpan Delay, string? Reason) : StageResult;
