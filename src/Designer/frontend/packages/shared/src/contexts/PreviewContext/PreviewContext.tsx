@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useCallback, useContext, useState } from 'react';
 
 export type PreviewContextProps = {
   shouldReloadPreview: boolean;
@@ -15,13 +15,14 @@ export type PreviewContextProviderProps = {
 export const PreviewContextProvider = ({ children }: Partial<PreviewContextProviderProps>) => {
   const [shouldReloadPreview, setShouldReloadPreview] = useState<boolean>(false);
 
-  const doReloadPreview = () => {
+  // The editors' save callbacks depend on these, so a reload must not give them new ones.
+  const doReloadPreview = useCallback(() => {
     setShouldReloadPreview(true);
-  };
+  }, []);
 
-  const previewHasLoaded = () => {
+  const previewHasLoaded = useCallback(() => {
     setShouldReloadPreview(false);
-  };
+  }, []);
 
   return (
     <PreviewContext.Provider
