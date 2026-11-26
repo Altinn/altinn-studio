@@ -268,11 +268,17 @@ describe('Group', () => {
     cy.waitUntilSaved();
     cy.findByRole('button', { name: /Neste/ }).click();
     cy.navPage('Validering i grupper').should('have.attr', 'aria-current', 'page');
-    const rowObjectMessage = 'Denne meldingen gjelder opplysningene om kjæledyret samlet.';
-    cy.get(appFrontend.errorReport).should('contain.text', rowObjectMessage);
-    cy.get(showcaseRow('table', 4)).next().should('contain.text', rowObjectMessage);
+    // The message names its pet, so every place it shows has to read it in the context of its row
+    const rowObjectMessage = (pet: string) => `Opplysningene om ${pet} må kontrolleres samlet.`;
+    cy.get(appFrontend.errorReport).should('contain.text', rowObjectMessage('Balder'));
+    cy.get(appFrontend.errorReport).should('contain.text', rowObjectMessage('Milo'));
+    cy.get(showcaseRow('table', 4)).next().should('contain.text', rowObjectMessage('Milo'));
     cy.get(showcaseRow('default', 4)).find(rowIndicator).click({ scrollBehavior: 'center' });
-    rowMessages().should('contain.text', rowObjectMessage).type('{esc}');
+    rowMessages().should('contain.text', rowObjectMessage('Milo')).type('{esc}');
+    // Without editable cells, the panel shows the row's own message only while the row is open
+    cy.get(showcaseRow('default', 4)).next().should('contain.text', rowObjectMessage('Milo'));
+    cy.get(showcaseRow('default', 4)).findByTestId('repeating-group-edit-button').click();
+    cy.get(showcaseRow('default', 4)).next().should('not.contain.text', rowObjectMessage('Milo'));
     cy.get(showcaseRow('mixed', 0)).findByTestId('repeating-group-edit-button').click();
     cy.get('#group-validation-mixed')
       .find(appFrontend.group.editContainer)
@@ -280,7 +286,7 @@ describe('Group', () => {
       .click();
     cy.get('#group-validation-mixed').find(appFrontend.group.editContainer).should('be.visible');
     cy.get(showcaseRow('mixed', 0)).next().next().find(appFrontend.group.editContainer).should('be.visible');
-    cy.get(showcaseRow('mixed', 0)).next().should('contain.text', rowObjectMessage);
+    cy.get(showcaseRow('mixed', 0)).next().should('contain.text', rowObjectMessage('Balder'));
 
     // A message for the whole array is not tied to a row, so it only shows in the error report
     cy.findByRole('checkbox', { name: 'På hele gruppen' }).check();
