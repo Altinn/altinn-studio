@@ -28,11 +28,8 @@ public sealed record AnalysisOutcome(string? Failure, string? ResultFile, double
 /// </remarks>
 public sealed class AnalysisDatabase : IDisposable
 {
-    /// <summary>
-    /// The version of the tables below. 2 records which tables each analysis created, and how api-usage records
-    /// incomplete compilations, so files from before are not read.
-    /// </summary>
-    public const int SchemaVersion = 2;
+    /// <summary>The version of the tables below. A file that another version wrote is not read.</summary>
+    public const int SchemaVersion = 1;
 
     private const string Schema = """
         CREATE TABLE meta (

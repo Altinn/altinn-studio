@@ -22,14 +22,7 @@ public sealed class ApiUsageAnalysis : IItemAnalysis
     public string Name => "api-usage";
 
     /// <inheritdoc/>
-    // 2 records the app library's package version rather than its assembly version, and the public API of each
-    // version the apps use. 3 records the package the version comes from, so that builds of pull requests are read.
-    // 4 takes the version from the assembly the app's compilation uses, which is the one its build ships. 5 records
-    // the members that the compiler calls for code that does not name them, a package's version in its uses' key, and
-    // what a package's implementations for several frameworks use.
-    // 6 binds the base class constructor that code calls without naming it as the compiler does, reads each
-    // platform's implementation of a package, and leaves out the app library's own source in an app's folder.
-    public int Version => 6;
+    public int Version => 1;
 
     /// <inheritdoc/>
     public string ItemsName => "app library versions";

@@ -373,7 +373,7 @@ public sealed class AnalysisRunnerTests
     [InlineData("")]
     // A version marker like fleet's does not make it fleet's.
     [InlineData(
-        "CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT); INSERT INTO meta VALUES ('schema_version', '2');"
+        "CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT); INSERT INTO meta VALUES ('schema_version', '1');"
     )]
     public void Open_AnSqliteFileThatFleetDidNotWrite_LeavesItAsItWas(string meta)
     {
@@ -508,7 +508,7 @@ public sealed class AnalysisRunnerTests
             connection.Open();
             using SqliteCommand command = connection.CreateCommand();
             command.CommandText =
-                "CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT); INSERT INTO meta VALUES ('schema_version', '1');"
+                "CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT); INSERT INTO meta VALUES ('schema_version', '2');"
                 + "CREATE TABLE runs (analysis TEXT);";
             command.ExecuteNonQuery();
         }
