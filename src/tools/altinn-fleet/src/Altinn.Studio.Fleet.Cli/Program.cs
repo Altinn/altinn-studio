@@ -1,5 +1,6 @@
 using Altinn.Studio.Common.Domain;
 using Altinn.Studio.Fleet;
+using Altinn.Studio.Fleet.ApiUsage;
 using Altinn.Studio.Fleet.Cli;
 using Altinn.Studio.Fleet.Http;
 using Altinn.Studio.Fleet.Store;
@@ -34,6 +35,11 @@ namespace Altinn.Studio.Fleet.Cli
               query "<sql>"    Run a read-only SQL query against the index of --env, where prod.apps or tt02.apps
                                name another environment's tables
               index rebuild    Build an environment's index again from the files on disk, without downloading
+              api-usage collect
+                               Compile each app of --env against the app library it references, and record in --out
+                               which app library types and members its code and its packages use
+              api-usage surface LABEL
+                               Record the types and members of an app library version in --out, under LABEL
 
             Options:
               --store PATH     The store's folder (default: ~/altinn-fleet)
@@ -48,6 +54,18 @@ namespace Altinn.Studio.Fleet.Cli
             query:
               --tsv            Write tab-separated values
               --json           Write a JSON array of objects
+              --db PATH        Query this SQLite file, such as api-usage's, with every environment's index attached
+                               as prod and tt02
+
+            api-usage:
+              --out PATH       The SQLite file to write (default: api-usage.sqlite)
+              --org ORGS       collect: only these service owners, separated by commas
+              --parallel N     collect: apps compiled at a time (default: 4)
+              --timeout S      collect: seconds one app may take (default: 900)
+              --force          collect: analyze every app again, also those analyzed at their deployed version
+              --source PROJECTS
+                               surface: the app library's projects, separated by commas
+              --version V      surface: a published app library version, read from its packages
 
             fleet asks studioctl for the Altinn Studio API keys, with `studioctl auth token`.
             """;
@@ -59,6 +77,7 @@ namespace Altinn.Studio.Fleet.Cli
             "tsv",
             "json",
             "help",
+            "force",
         };
 
         public static async Task<int> Run(
@@ -67,7 +86,8 @@ namespace Altinn.Studio.Fleet.Cli
             TextWriter error,
             CancellationToken cancellationToken,
             IStudioCredentials? credentials = null,
-            HttpMessageHandler? handler = null
+            HttpMessageHandler? handler = null,
+            IAppAnalyzer? analyzer = null
         )
         {
             try
@@ -100,6 +120,26 @@ namespace Altinn.Studio.Fleet.Cli
                         output,
                         error,
                         new FleetOptions(),
+                        cancellationToken
+                    ),
+                    ["api-usage", "collect"] => await ApiUsageCommands.Collect(
+                        parsed,
+                        store,
+                        output,
+                        error,
+                        analyzer,
+                        cancellationToken
+                    ),
+                    ["api-usage", "surface", string label] => await ApiUsageCommands.Surface(
+                        parsed,
+                        label,
+                        output,
+                        cancellationToken
+                    ),
+                    // Run by `api-usage collect` for each app, in a process of its own.
+                    ["api-usage", "collect-app", string appDir, string resultFile] => await ApiUsageCommands.CollectApp(
+                        appDir,
+                        resultFile,
                         cancellationToken
                     ),
                     _ => throw new UsageException($"Unknown command: {string.Join(' ', parsed.Positionals)}"),
@@ -224,7 +264,14 @@ namespace Altinn.Studio.Fleet.Cli
 
         private static int Query(Arguments args, FleetStore store, string sql, TextWriter output)
         {
-            List<RuntimeEnvironment> environments = Environments(args.Value("env") ?? "prod");
+            string? database = args.Value("db");
+            string? env = args.Value("env");
+            if (database is not null && env is not null)
+            {
+                throw new UsageException("Give --db or --env, not both. --db attaches every environment's index.");
+            }
+
+            List<RuntimeEnvironment> environments = Environments(env ?? "prod");
             if (environments.Count != 1)
             {
                 throw new UsageException("query reads one environment's index; give --env prod or --env tt02.");
@@ -239,7 +286,9 @@ namespace Altinn.Studio.Fleet.Cli
             };
             args.RejectUnused();
 
-            using SqliteConnection connection = FleetStoreReader.OpenForQueries(store, environments[0]);
+            using SqliteConnection connection = database is null
+                ? FleetStoreReader.OpenForQueries(store, environments[0])
+                : FleetStoreReader.OpenFileForQueries(store, database);
             using SqliteCommand command = connection.CreateCommand();
             command.CommandText = sql;
             using SqliteDataReader reader = command.ExecuteReader();
@@ -279,7 +328,7 @@ namespace Altinn.Studio.Fleet.Cli
             return 0;
         }
 
-        private static List<RuntimeEnvironment> Environments(string value) =>
+        internal static List<RuntimeEnvironment> Environments(string value) =>
             value switch
             {
                 "all" => [RuntimeEnvironment.Production, RuntimeEnvironment.TT02],
@@ -288,7 +337,7 @@ namespace Altinn.Studio.Fleet.Cli
                 _ => throw new UsageException($"--env must be prod, tt02 or all, not '{value}'."),
             };
 
-        private static HashSet<ServiceOwnerCode>? Orgs(string? value)
+        internal static HashSet<ServiceOwnerCode>? Orgs(string? value)
         {
             if (value is null)
             {

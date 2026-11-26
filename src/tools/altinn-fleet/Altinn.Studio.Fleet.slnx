@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/Altinn.Studio.Fleet/Altinn.Studio.Fleet.csproj" />
+    <Project Path="src/Altinn.Studio.Fleet.ApiUsage/Altinn.Studio.Fleet.ApiUsage.csproj" />
     <Project Path="src/Altinn.Studio.Fleet.Cli/Altinn.Studio.Fleet.Cli.csproj" />
   </Folder>
   <Folder Name="/test/">

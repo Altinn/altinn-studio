@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Compiles apps with Roslyn's MSBuild workspace. MSBuildLocator loads MSBuild from the installed SDK at run time, so
+    the MSBuild packages are compile-time only (ExcludeAssets="runtime"); MSBuildLocator fails the build otherwise.
+  -->
+  <PropertyGroup>
+    <RootNamespace>Altinn.Studio.Fleet.ApiUsage</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="fleet" />
+    <InternalsVisibleTo Include="Altinn.Studio.Fleet.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Build.Framework" ExcludeAssets="runtime" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NET.StringTools" ExcludeAssets="runtime" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Build.Locator" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" />
+    <PackageReference Include="Microsoft.Data.Sqlite" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Altinn.Studio.Fleet/Altinn.Studio.Fleet.csproj" />
+  </ItemGroup>
+</Project>

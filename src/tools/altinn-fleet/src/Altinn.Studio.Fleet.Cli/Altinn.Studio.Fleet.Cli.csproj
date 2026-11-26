@@ -3,7 +3,6 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Altinn.Studio.Fleet.Cli</RootNamespace>
     <AssemblyName>fleet</AssemblyName>
-    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,5 +11,12 @@
 
   <ItemGroup>
     <ProjectReference Include="../Altinn.Studio.Fleet/Altinn.Studio.Fleet.csproj" />
+    <ProjectReference Include="../Altinn.Studio.Fleet.ApiUsage/Altinn.Studio.Fleet.ApiUsage.csproj" />
+  </ItemGroup>
+
+  <!-- MSBuild loads from the installed SDK at run time (see Altinn.Studio.Fleet.ApiUsage), so it is compile-only here too. -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build.Framework" ExcludeAssets="runtime" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NET.StringTools" ExcludeAssets="runtime" PrivateAssets="all" />
   </ItemGroup>
 </Project>

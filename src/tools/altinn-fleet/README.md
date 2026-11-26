@@ -51,3 +51,35 @@ In an Agent, the copies are in `/home/agent/code/.reference/altinn-apps/prod` an
 `README.md` says when the content last changed. Run `make install`, then pass
 `--store /home/agent/code/.reference/altinn-apps` to `fleet query`. Where a copy is missing, `fleet sync` with the same
 `--store` fetches it.
+
+## What apps use of the app library
+
+`fleet api-usage collect` compiles each app of `--env` against the app library version it references, with Roslyn,
+and records in an SQLite file which app library types and members the app uses and how: called, implemented,
+overridden, constructed or named. It is for deciding what the app library can stop making public, and for finding
+the apps a change to it affects.
+
+```sh
+fleet api-usage collect --env prod --out api-usage.sqlite
+fleet api-usage surface v8 --version 8.12.17 --out api-usage.sqlite
+fleet api-usage surface main --out api-usage.sqlite \
+    --source src/App/backend/src/Altinn.App.Api/Altinn.App.Api.csproj,src/App/backend/src/Altinn.App.Clients.Fiks/Altinn.App.Clients.Fiks.csproj
+fleet query --db api-usage.sqlite "SELECT symbol, count(DISTINCT org || '/' || app) AS apps FROM uses
+                                   GROUP BY symbol ORDER BY apps DESC"
+```
+
+`api-usage surface` records the types and members a version of the app library exposes, under a label, to compare
+with what the apps use. [UsageDatabase.cs](src/Altinn.Studio.Fleet.ApiUsage/UsageDatabase.cs) has the file's schema,
+and `fleet query --db` reads it with every environment's index attached, so a query can join it with `prod.apps`.
+
+- It needs the .NET SDKs the apps' `global.json` files select, and network access to the NuGet feeds the apps use.
+  An app that cannot be restored or compiled is recorded with the reason, and the next run tries it again.
+- The store is not changed, so a read-only copy works. Each app is copied to a temporary folder and built there.
+- Each app is analyzed in a process of its own, `fleet api-usage collect-app`, because a build keeps state in the
+  process and can hang. `--timeout` ends one that takes too long.
+- An app already analyzed at its deployed version is skipped, so a run after `fleet sync` only builds what changed.
+  `--force` analyzes every app again.
+- Uses in the app's own code, in code that source generators add to it and in its test projects are told apart,
+  since a test project that uses a type is a weaker reason to keep it public than the app itself.
+- Third-party packages that the apps use and that are built on the app library are read from their IL. IL
+  references are not bound, so a member that a package uses stands for every overload of that name.

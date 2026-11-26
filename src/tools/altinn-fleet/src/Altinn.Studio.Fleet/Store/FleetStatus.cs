@@ -1,4 +1,5 @@
 using Altinn.Studio.Common.Domain;
+using Altinn.Studio.Common.Domain.App;
 using Microsoft.Data.Sqlite;
 
 namespace Altinn.Studio.Fleet.Store;
@@ -42,6 +43,11 @@ public abstract record EnvironmentStatus
         DateTimeOffset? LastContentChange
     ) : EnvironmentStatus(Environment, LastCheck);
 }
+
+/// <summary>An app in an environment's index.</summary>
+/// <param name="App">The app.</param>
+/// <param name="Version">The deployed version its files came from, or <c>null</c> when the index does not know it.</param>
+public sealed record StoredApp(AppIdentifier App, AppVersion? Version);
 
 /// <summary>Reads a store's environments for status and queries.</summary>
 public static class FleetStoreReader
@@ -94,13 +100,7 @@ public static class FleetStoreReader
         SqliteConnection connection = index.Connection;
         try
         {
-            foreach (RuntimeEnvironment attached in ListEnvironments(store))
-            {
-                using SqliteCommand attach = connection.CreateCommand();
-                attach.CommandText = $"ATTACH DATABASE $path AS \"{attached.Name}\"";
-                attach.Parameters.AddWithValue("$path", store.IndexPath(attached));
-                attach.ExecuteNonQuery();
-            }
+            Attach(store, connection);
         }
         catch
         {
@@ -109,6 +109,84 @@ public static class FleetStoreReader
         }
 
         return connection;
+    }
+
+    private static void Attach(FleetStore store, SqliteConnection connection)
+    {
+        foreach (RuntimeEnvironment attached in ListEnvironments(store))
+        {
+            using SqliteCommand attach = connection.CreateCommand();
+            attach.CommandText = $"ATTACH DATABASE $path AS \"{attached.Name}\"";
+            attach.Parameters.AddWithValue("$path", store.IndexPath(attached));
+            attach.ExecuteNonQuery();
+        }
+    }
+
+    /// <summary>
+    /// Opens another SQLite file for queries, such as the one <c>fleet api-usage</c> writes, with every environment the
+    /// store has attached under its name, so that a query can join its tables with <c>prod.apps</c>.
+    /// </summary>
+    /// <exception cref="FleetException">There is no such file.</exception>
+    public static SqliteConnection OpenFileForQueries(FleetStore store, string path)
+    {
+        if (!File.Exists(path))
+        {
+            throw new FleetException($"There is no file at {path}.");
+        }
+
+        var connection = new SqliteConnection(
+            new SqliteConnectionStringBuilder
+            {
+                DataSource = path,
+                Mode = SqliteOpenMode.ReadOnly,
+                Pooling = false,
+            }.ToString()
+        );
+        try
+        {
+            connection.Open();
+            using (SqliteCommand readOnly = connection.CreateCommand())
+            {
+                readOnly.CommandText = "PRAGMA query_only = 1;";
+                readOnly.ExecuteNonQuery();
+            }
+
+            Attach(store, connection);
+        }
+        catch
+        {
+            connection.Dispose();
+            throw;
+        }
+
+        return connection;
+    }
+
+    /// <summary>The apps an environment's index has, with the version each runs when the index knows it.</summary>
+    /// <exception cref="FleetException">The environment has no index.</exception>
+    public static IReadOnlyList<StoredApp> ListApps(FleetStore store, RuntimeEnvironment environment)
+    {
+        string path = store.IndexPath(environment);
+        try
+        {
+            using FleetIndex index =
+                FleetIndex.OpenReadOnly(path)
+                ?? throw new FleetException(
+                    $"There is no index at {path}. Run `fleet sync --env {environment.Name}` first."
+                );
+            return
+            [
+                .. index
+                    .ReadApps()
+                    .Values.Select(app => new StoredApp(app.App, app.Release?.Version))
+                    .OrderBy(app => app.App.Org.Value, StringComparer.Ordinal)
+                    .ThenBy(app => app.App.App.Value, StringComparer.Ordinal),
+            ];
+        }
+        catch (SqliteException ex)
+        {
+            throw new FleetException($"Cannot read {path}: {ex.Message}", ex);
+        }
     }
 
     /// <summary>The environments in the store that have an index.</summary>

@@ -30,4 +30,7 @@ public enum SyncStage
 
     /// <summary>Rebuilding the index from the files on disk.</summary>
     Indexing,
+
+    /// <summary>Compiling apps to find what they use of the app library, for <c>fleet api-usage</c>.</summary>
+    Analyzing,
 }

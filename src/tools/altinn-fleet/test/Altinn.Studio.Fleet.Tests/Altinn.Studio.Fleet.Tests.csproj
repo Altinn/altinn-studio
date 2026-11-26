@@ -27,4 +27,10 @@
       CopyToOutputDirectory="PreserveNewest"
     />
   </ItemGroup>
+
+  <!-- MSBuild loads from the installed SDK at run time (see Altinn.Studio.Fleet.ApiUsage), so it is compile-only here too. -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build.Framework" ExcludeAssets="runtime" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NET.StringTools" ExcludeAssets="runtime" PrivateAssets="all" />
+  </ItemGroup>
 </Project>
