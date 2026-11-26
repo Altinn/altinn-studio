@@ -114,11 +114,15 @@ internal static class AnalysisCommands
         return failed.Count > 0 ? 1 : 0;
     }
 
-    /// <summary>The file to write, from <c>--out</c>, which must not be in the store.</summary>
+    /// <summary>
+    /// The file to write, from <c>--out</c>, which must not be in the store. It is the path with its links resolved,
+    /// so that a link cannot lead into the store and two runs through different links lock the same file.
+    /// </summary>
     public static string OutPath(Arguments args, FleetStore store)
     {
         string outPath = args.Value("out") ?? DefaultOut;
-        string relative = Path.GetRelativePath(Path.GetFullPath(store.Root), Path.GetFullPath(outPath));
+        string resolved = ResolveLinks(outPath);
+        string relative = Path.GetRelativePath(ResolveLinks(store.Root), resolved);
         if (
             relative != ".."
             && !relative.StartsWith(".." + Path.DirectorySeparatorChar, StringComparison.Ordinal)
@@ -130,7 +134,56 @@ internal static class AnalysisCommands
             );
         }
 
-        return outPath;
+        return resolved;
+    }
+
+    /// <summary>How many links <see cref="ResolveLinks"/> follows within one another, as Linux does.</summary>
+    private const int MaxLinks = 40;
+
+    /// <summary>
+    /// The absolute path that a path leads to, with each link in it replaced by where it leads. A <c>..</c> after a
+    /// link goes to the parent of where the link leads, as the file system does. The parts that do not exist are kept.
+    /// </summary>
+    internal static string ResolveLinks(string path) => ResolveLinks(path, Environment.CurrentDirectory, 0);
+
+    private static string ResolveLinks(string path, string from, int depth)
+    {
+        string absolute = Path.IsPathFullyQualified(path) ? path : Path.Join(from, path);
+        string root = Path.GetPathRoot(absolute) ?? throw new UsageException($"{path} is not a path.");
+        string current = Path.GetFullPath(root);
+        string[] parts = absolute[root.Length..]
+            .Split(
+                [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar],
+                StringSplitOptions.RemoveEmptyEntries
+            );
+        foreach (string part in parts)
+        {
+            if (part == ".")
+            {
+                continue;
+            }
+
+            if (part == "..")
+            {
+                current = Path.GetDirectoryName(current) ?? current;
+                continue;
+            }
+
+            string next = Path.Join(current, part);
+            if (new FileInfo(next).LinkTarget is { } target)
+            {
+                if (depth >= MaxLinks)
+                {
+                    throw new UsageException($"{path} leads through more than {MaxLinks} links.");
+                }
+
+                next = ResolveLinks(target, current, depth + 1);
+            }
+
+            current = next;
+        }
+
+        return current;
     }
 
     private static IAppAnalysis Find(string name) =>

@@ -49,11 +49,18 @@ public sealed class ChildProcessExecutor(IReadOnlyList<string> command, TimeSpan
         }
         catch (OperationCanceledException)
         {
-            process.Kill(entireProcessTree: true);
-            await process.WaitForExitAsync(CancellationToken.None);
-            StopReading(reading, stdout, stderr);
+            string? notEnded;
+            try
+            {
+                notEnded = await End(process);
+            }
+            finally
+            {
+                StopReading(reading, stdout, stderr);
+            }
+
             cancellationToken.ThrowIfCancellationRequested();
-            return $"The analysis took longer than {timeout.TotalSeconds:F0} s.";
+            return $"The analysis took longer than {timeout.TotalSeconds:F0} s. {notEnded}".Trim();
         }
 
         // The output only explains a failure.
@@ -131,6 +138,37 @@ public sealed class ChildProcessExecutor(IReadOnlyList<string> command, TimeSpan
             // Whatever the analysis throws is a fact about the job. The host records what this writes.
             error.WriteLine(ex is FleetException ? ex.Message : ex.ToString());
             return ChildFailed;
+        }
+    }
+
+    /// <summary>How long a child that is told to end gets to do so.</summary>
+    private static readonly TimeSpan EndWait = TimeSpan.FromSeconds(30);
+
+    /// <summary>
+    /// Ends a child and the processes it started, and waits a while for it. Returns why it may not have ended, since a
+    /// process the run cannot end should fail its job rather than the run.
+    /// </summary>
+    private static async Task<string?> End(Process process)
+    {
+        string? notKilled = null;
+        try
+        {
+            process.Kill(entireProcessTree: true);
+        }
+        catch (Exception ex)
+            when (ex is AggregateException or System.ComponentModel.Win32Exception or NotSupportedException)
+        {
+            notKilled = $"Not every process it started could be ended: {ex.Message}";
+        }
+
+        try
+        {
+            await process.WaitForExitAsync(CancellationToken.None).WaitAsync(EndWait);
+            return notKilled;
+        }
+        catch (TimeoutException)
+        {
+            return $"It had not ended {EndWait.TotalSeconds:F0} s after it was told to. {notKilled}".Trim();
         }
     }
 

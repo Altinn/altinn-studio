@@ -198,6 +198,30 @@ public sealed class CliTests
     }
 
     [Fact]
+    public async Task AnalysisRun_RefusesToWriteIntoTheStoreThroughALink()
+    {
+        Assert.SkipWhen(OperatingSystem.IsWindows(), "Making a link on Windows needs a privilege");
+        using var context = new FleetTestContext();
+        string outside = Path.Join(context.Outside, "results");
+        Directory.CreateDirectory(outside);
+        Directory.CreateSymbolicLink(Path.Join(outside, "store"), context.Root);
+
+        (int exit, _, string error) = await Run(
+            context,
+            "analysis",
+            "run",
+            "--out",
+            Path.Join(outside, ".", "store", "analysis.sqlite"),
+            "--store",
+            context.Root
+        );
+
+        Assert.Equal(2, exit);
+        Assert.Contains("is in the store", error, StringComparison.Ordinal);
+        Assert.False(File.Exists(Path.Join(context.Root, "analysis.sqlite")));
+    }
+
+    [Fact]
     public async Task AnalysisRun_RunsAnAnalysisNamedTwiceOnce()
     {
         using var context = new FleetTestContext();

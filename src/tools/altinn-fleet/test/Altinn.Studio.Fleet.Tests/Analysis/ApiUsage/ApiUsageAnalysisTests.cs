@@ -119,7 +119,10 @@ public sealed class ApiUsageAnalysisTests : IDisposable
             Path.Join(_folder, "app")
         );
 
-        Assert.Equal(expected is null ? null : Path.Join(_folder, expected, ProjectAssets.FileName), found);
+        Assert.Equal(
+            expected is null ? null : Path.GetFullPath(Path.Join(_folder, expected, ProjectAssets.FileName)),
+            found
+        );
     }
 
     [Fact]
