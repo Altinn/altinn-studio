@@ -3,14 +3,10 @@ import type { KeyboardEvent, MouseEvent } from 'react';
 import { Link, ValidationMessage } from '@digdir/designsystemet-react';
 
 import { Lang, LangReference } from 'src/features/language/Lang';
+import { ValidationDataModelLocation } from 'src/features/validation/ValidationDataModelLocation';
 import { useNavigateToComponent } from 'src/hooks/useNavigatePage';
 import { validationSeverityPresentation } from 'src/layout/RepeatingGroup/Table/validationSeverity';
 import utilClasses from 'src/styles/utils.module.css';
-import {
-  DataModelLocationProviderFromNode,
-  NestedDataModelLocationProviders,
-} from 'src/utils/layout/DataModelLocation';
-import { getRowDataModelReference } from 'src/utils/layout/rowContext';
 import type { NodeRefValidation } from 'src/features/validation';
 
 export function RepeatingGroupValidationMessage({
@@ -34,14 +30,10 @@ export function RepeatingGroupValidationMessage({
     void navigate(validation.nodeId, validation.baseComponentId, { error: validation }).catch(() => undefined);
   }
 
-  const content = <LangReference reference={validation.message} />;
-  const rowContext = validation.repeatingGroupRow;
-  const message = rowContext ? (
-    <NestedDataModelLocationProviders reference={getRowDataModelReference(rowContext)}>
-      {content}
-    </NestedDataModelLocationProviders>
-  ) : (
-    <DataModelLocationProviderFromNode nodeId={validation.nodeId}>{content}</DataModelLocationProviderFromNode>
+  const message = (
+    <ValidationDataModelLocation validation={validation}>
+      <LangReference reference={validation.message} />
+    </ValidationDataModelLocation>
   );
 
   return (

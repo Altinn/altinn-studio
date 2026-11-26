@@ -14,8 +14,8 @@ import {
 } from 'src/features/instantiate/InstantiationValidation';
 import { Lang, LangReference } from 'src/features/language/Lang';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
+import { ValidationDataModelLocation } from 'src/features/validation/ValidationDataModelLocation';
 import { useNavigateToComponent } from 'src/hooks/useNavigatePage';
-import { DataModelLocationProviderFromNode } from 'src/utils/layout/DataModelLocation';
 import { HttpStatusCodes } from 'src/utils/network/networking';
 import { useGetUniqueKeyFromObject } from 'src/utils/useGetKeyFromObject';
 import type { InstantiationClosedReason } from 'src/features/instantiate/instantiationClosed';
@@ -178,9 +178,9 @@ function ErrorWithLink({ error }: { error: NodeRefValidation }) {
         onKeyDown={handleErrorClick}
         data-target-node={error.nodeId}
       >
-        <DataModelLocationProviderFromNode nodeId={error.nodeId}>
+        <ValidationDataModelLocation validation={error}>
           <LangReference reference={error.message} />
-        </DataModelLocationProviderFromNode>
+        </ValidationDataModelLocation>
       </button>
     </ErrorReportListItem>
   );
