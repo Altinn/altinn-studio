@@ -1,7 +1,7 @@
 {
   "axes": {
     "actor_prompt": "0f3e7fbcdbe6",
-    "code": "9a62946 clean",
+    "code": "b13cbfd clean",
     "dataset": "85 items b0923ba3df4f",
     "environment": "local",
     "evaluators": "not recorded",
@@ -9,10 +9,10 @@
     "models": "actor gpt-6.1-terra, decision gpt-6-luna, default gpt-6-luna, planner gpt-6.1-sol",
     "prompts": "not recorded",
     "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
-    "tools": "15831d5846d6"
+    "tools": "be6a2325e8a0"
   },
-  "check_id": "20261126T091353Z-skills-rewrite-21793-on-9a62946f9c-3445",
-  "label": "skills rewrite #21793 on 9a62946f9c",
-  "recorded_at": "2026-11-26T09:23:06+00:00",
-  "why": "#21793 adds three rules to the skills after the bench apps were run in localtest: the full names of the policy match functions, a title on the submit Button, and the next and back texts in v8. It also trusts the docs pages that Altinn/altinn-studio-docs#3246, #3268 and #3338 brought up to date. Only the skill text changes. Full check with e2e on 9a62946f9c with a clean tree, against the local Designer stack, with the preview check off as in production. Both builds committed an app, in about four minutes each, and every skill check passed on v8 and v9, as in the last baseline. actor.picks-allowed-tool is 0.889, as in the baseline from #22112: in the replay build-verifies-before-committing, the actor loads a skill where the item expects verify_changes. The last baseline passed that replay, so it changes between runs. actor.writes-usable-component-content stays at 0.000. The run is adopted with --force for the four render behaviors that the render check leaves unscored. The judge is gpt-6.1-sol."
+  "check_id": "20261126T092817Z-skills-rewrite-21793-on-b13cbfdb67-fd7c",
+  "label": "skills rewrite #21793 on b13cbfdb67",
+  "recorded_at": "2026-11-26T09:36:57+00:00",
+  "why": "Altinn/altinn-studio-docs#3383 moved the v9 Komponenter page, so studio-layouts links its new address. Only the skill text changes. Full check with e2e on b13cbfdb67 with a clean tree, against the local Designer stack, with the preview check off as in production. The scores match the last baseline: both builds committed an app, in about four minutes each, and every skill check passed on v8 and v9. actor.picks-allowed-tool stays at 0.889, from the replay build-verifies-before-committing, and actor.writes-usable-component-content stays at 0.000. The run is adopted with --force for the four render behaviors that the render check leaves unscored. The judge is gpt-6.1-sol."
 }
