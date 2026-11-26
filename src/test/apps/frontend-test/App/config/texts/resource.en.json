@@ -4,6 +4,11 @@
   "language": "en",
   "resources": [
     { "id": "validation-showcase", "value": "Repeating group validation" },
+    {
+      "id": "validation-showcase-row-message",
+      "value": "Check the details about {0} together.",
+      "variables": [{ "key": "Pets.Name", "dataSource": "dataModel.nested-group" }]
+    },
     { "id": "appName", "value": "frontend-test ENGLISH" },
     {
       "id": "37130.SkattemeldingEndringEtterFristPostdatadef37130.Label",

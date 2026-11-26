@@ -92,7 +92,8 @@ internal sealed class RepeatingGroupShowcaseValidator : IValidator
                 DataElementId = dataElementId,
                 Field = $"{nameof(NestedGroup.Pets)}[{rowIndex}]",
                 Severity = messages[0].Severity,
-                Description = "Denne meldingen gjelder opplysningene om kjæledyret samlet.",
+                // The text names the pet through a row-relative variable, so it only reads right in the row's context.
+                CustomTextKey = "validation-showcase-row-message",
             };
         }
 
