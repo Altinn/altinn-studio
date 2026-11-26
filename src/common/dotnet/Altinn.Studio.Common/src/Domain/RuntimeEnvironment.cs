@@ -47,6 +47,17 @@ public readonly record struct RuntimeEnvironment
     public bool IsProduction => _name == ProductionName;
 
     /// <summary>
+    /// The host name that serves a service owner's apps in this environment: <c>{org}.apps.altinn.no</c> in
+    /// production, <c>{org}.apps.tt02.altinn.no</c> in tt02, and <c>{org}.apps.{environment}.altinn.cloud</c> in the
+    /// other test environments, such as <c>ttd.apps.at22.altinn.cloud</c>.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">This or <paramref name="org"/> is the default value of its type.</exception>
+    public string AppsHost(ServiceOwnerCode org) =>
+        IsProduction ? $"{org.Value}.apps.altinn.no"
+        : this == TT02 ? $"{org.Value}.apps.tt02.altinn.no"
+        : $"{org.Value}.apps.{Name}.altinn.cloud";
+
+    /// <summary>
     /// Parses <c>prod</c> or <c>production</c>, or a test environment: lower-case letters followed by digits, such as
     /// <c>tt02</c> or <c>at22</c>.
     /// </summary>

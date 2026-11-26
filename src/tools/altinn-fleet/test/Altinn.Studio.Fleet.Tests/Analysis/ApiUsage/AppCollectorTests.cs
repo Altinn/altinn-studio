@@ -1,4 +1,5 @@
 using System.Xml.Linq;
+using Altinn.Studio.Common.Domain.App;
 using Altinn.Studio.Fleet.Analysis.ApiUsage;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -297,28 +298,40 @@ public sealed class AppCollectorTests(LibraryFixture fixture) : IClassFixture<Li
     }
 
     [Fact]
-    public void FindProjects_TellsTheAppFromItsTests()
+    public void TestProjects_AreThoseThatTestTheAppOrTheLibrary()
+    {
+        string root = Folder.CreateTemporary();
+        try
+        {
+            WriteProject(root, "App/App.csproj", "Altinn.App.Api");
+            WriteProject(root, "App.Tests/App.Tests.csproj", "Microsoft.NET.Test.Sdk", project: "../App/App.csproj");
+            WriteProject(root, "Other.Tests/Other.Tests.csproj", "Microsoft.NET.Test.Sdk");
+            WriteProject(root, "Tools/Tools.csproj", "Altinn.App.Core");
+
+            AppDescription description = AppCollector.Describe(root, TestContext.Current.CancellationToken);
+
+            Assert.Equal("App/App.csproj", description.AppProject?.Path.Value);
+            Assert.Equal(["App.Tests/App.Tests.csproj"], AppCollector.TestProjects(description).Select(p => p.Value));
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task Collect_WhenTheAppsProjectCannotBeTold_Fails()
     {
         string root = Folder.CreateTemporary();
         try
         {
             WriteProject(root, "src/Web/Web.csproj", "Altinn.App.Api");
-            WriteProject(
-                root,
-                "src/Web.Tests/Web.Tests.csproj",
-                "Microsoft.NET.Test.Sdk",
-                project: "../Web/Web.csproj"
-            );
-            WriteProject(root, "src/Other.Tests/Other.Tests.csproj", "Microsoft.NET.Test.Sdk");
-            WriteProject(root, "src/Web/obj/Copy.csproj", "Altinn.App.Api");
+            WriteProject(root, "src/Other/Other.csproj", "Altinn.App.Api");
 
-            string? app = AppCollector.FindAppProject(root);
+            AppUsage usage = await AppCollector.Collect(root, TestContext.Current.CancellationToken);
 
-            Assert.Equal(Path.Join(root, "src", "Web", "Web.csproj"), app);
-            Assert.Equal(
-                [Path.Join(root, "src", "Web.Tests", "Web.Tests.csproj")],
-                AppCollector.FindTestProjects(root, app!)
-            );
+            Assert.Equal("The repository does not show which of its projects is the app's.", usage.Failure);
+            Assert.Null(usage.Project);
         }
         finally
         {

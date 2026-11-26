@@ -16,15 +16,12 @@ public sealed class FleetOptions
         new("dev", Host("dev.altinn.studio")),
     ];
 
-    /// <summary>The host that serves a service owner's apps in an environment, or <c>null</c> when there is none.</summary>
-    public static HostName? AppsHost(ServiceOwnerCode org, RuntimeEnvironment environment)
-    {
-        string name =
-            environment.IsProduction ? $"{org.Value}.apps.altinn.no"
-            : environment == RuntimeEnvironment.TT02 ? $"{org.Value}.apps.tt02.altinn.no"
-            : $"{org.Value}.apps.{environment.Name}.altinn.cloud";
-        return HostName.TryParse(name, out HostName? host) ? host : null;
-    }
+    /// <summary>
+    /// The host that serves a service owner's apps in an environment, as <see cref="RuntimeEnvironment.AppsHost"/>
+    /// says, or <c>null</c> when that is not a host name.
+    /// </summary>
+    public static HostName? AppsHost(ServiceOwnerCode org, RuntimeEnvironment environment) =>
+        HostName.TryParse(environment.AppsHost(org), out HostName? host) ? host : null;
 
     private static HostName Host(string value) =>
         HostName.TryParse(value, out HostName? host) ? host : throw new ArgumentException(value, nameof(value));

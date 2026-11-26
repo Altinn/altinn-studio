@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Altinn.Studio.Common.Domain.App;
 
 namespace Altinn.Studio.Fleet.Analysis.ApiUsage;
 
@@ -54,16 +55,17 @@ internal sealed class ProjectAssets : IDisposable
     public IReadOnlyList<AssetsPackage> Packages { get; }
 
     /// <summary>
-    /// The version of the app library package the project uses: <c>Altinn.App.Core</c>, or <c>Altinn.App.Api</c> for
-    /// v6 and older, which have no Core. <c>null</c> when it uses neither, such as with a project reference to the app
-    /// library's source or a preview build in <c>Altinn.App.Core.Experimental</c>, whose versions the published
-    /// packages do not have.
+    /// The version of the app library the project uses, from the first of
+    /// <see cref="AltinnAppLibraries.VersionPackageNames"/> it resolved. <c>null</c> when it resolved none, such as
+    /// with a project reference to the app library's source.
     /// </summary>
     public string? LibraryVersion =>
-        (
-            Packages.FirstOrDefault(p => p.Name.Equals("Altinn.App.Core", StringComparison.OrdinalIgnoreCase))
-            ?? Packages.FirstOrDefault(p => p.Name.Equals("Altinn.App.Api", StringComparison.OrdinalIgnoreCase))
-        )?.Version;
+        AltinnAppLibraries
+            .VersionPackageNames.Select(name =>
+                Packages.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+            )
+            .FirstOrDefault(package => package is not null)
+            ?.Version;
 
     /// <summary>Reads a restored project's assets, or returns <c>null</c> when it has none.</summary>
     public static ProjectAssets? Read(string projectDir)

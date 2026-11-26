@@ -1,5 +1,5 @@
-using System.Xml;
-using System.Xml.Linq;
+using Altinn.Studio.Common.Domain.App;
+using Altinn.Studio.Fleet.Store;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
 
@@ -20,13 +20,14 @@ internal static class AppCollector
     public static async Task<AppUsage> Collect(string appDir, CancellationToken cancellationToken)
     {
         appDir = Path.GetFullPath(appDir);
-        string? projectFile = FindAppProject(appDir);
-        if (projectFile is null)
+        AppDescription description = Describe(appDir, cancellationToken);
+        if (description.AppProject is not { Path: { } appProjectPath })
         {
-            return AppUsage.Failed("No project references the app library.");
+            return AppUsage.Failed("The repository does not show which of its projects is the app's.");
         }
 
-        string project = Relative(appDir, projectFile);
+        string projectFile = FullPath(appDir, appProjectPath);
+        string project = appProjectPath.Value;
         string? restoreError = await Dotnet.Restore(projectFile, cancellationToken);
         using var workspace = MSBuildWorkspace.Create(Dotnet.BuildProperties());
         var loadFailures = new List<string>();
@@ -85,7 +86,7 @@ internal static class AppCollector
 
         // Test projects are a weaker signal: making a type internal breaks the app's tests, not the app.
         var testProjects = new List<string>();
-        foreach (string testProjectFile in FindTestProjects(appDir, projectFile))
+        foreach (string testProjectFile in TestProjects(description).Select(path => FullPath(appDir, path)))
         {
             string relative = Relative(appDir, testProjectFile);
             if (await Dotnet.Restore(testProjectFile, cancellationToken) is not null)
@@ -153,85 +154,42 @@ internal static class AppCollector
     }
 
     /// <summary>
-    /// The app's own project. Apps that Altinn Studio created keep it at <c>App/App.csproj</c>, whatever it
-    /// references: some reach the app library only through a package of their own, and some keep test packages in
-    /// it. Otherwise the only project in <c>App</c>, or the shallowest one that references the app library and is
-    /// not a test project.
+    /// What the app's files say about it, as the store's index reads it, such as which project is the app's: see
+    /// <see cref="AppDescription.AppProject"/>.
     /// </summary>
-    internal static string? FindAppProject(string appDir)
+    internal static AppDescription Describe(string appDir, CancellationToken cancellationToken)
     {
-        string conventional = Path.Join(appDir, "App", "App.csproj");
-        if (File.Exists(conventional))
-        {
-            return conventional;
-        }
-
-        string appFolder = Path.Join(appDir, "App");
-        if (Directory.Exists(appFolder) && Directory.GetFiles(appFolder, "*.csproj") is [string only])
-        {
-            return only;
-        }
-
-        return Projects(appDir)
-            .Where(p => References(p.Xml, "Altinn.App.") && !IsTestProject(p.Xml))
-            .Select(p => p.Path)
-            .OrderBy(p => p.Count(c => c == Path.DirectorySeparatorChar))
-            .ThenBy(p => p, StringComparer.Ordinal)
-            .FirstOrDefault();
+        var reader = new AppDescriptionReader();
+        using var folder = new AppFolder();
+        folder.Scan(appDir, reader, cancellationToken);
+        return reader.Build();
     }
 
-    /// <summary>The app's test projects: those that reference the app library or the app's project.</summary>
-    internal static IEnumerable<string> FindTestProjects(string appDir, string appProject) =>
-        Projects(appDir)
-            .Where(p => p.Path != appProject && IsTestProject(p.Xml))
+    /// <summary>
+    /// The app's test projects: those that use <c>Microsoft.NET.Test.Sdk</c> and reference an Altinn.App package or
+    /// the app's project.
+    /// </summary>
+    internal static IEnumerable<AppFilePath> TestProjects(AppDescription description)
+    {
+        if (description.AppProject is not { Path: { } app })
+        {
+            return [];
+        }
+
+        return description
+            .Projects.OfType<ProjectDescription.WellFormed>()
+            .Where(p => p.Path != app && References(p, "Microsoft.NET.Test.Sdk"))
             .Where(p =>
-                References(p.Xml, "Altinn.App.")
-                || ReferenceIncludes(p.Xml)
-                    .Any(include =>
-                        Path.GetFullPath(Path.Join(Path.GetDirectoryName(p.Path), include.Replace('\\', '/')))
-                        == appProject
-                    )
+                p.PackageReferences.Any(r => r.Name.StartsWith("Altinn.App.", StringComparison.OrdinalIgnoreCase))
+                || p.ProjectReferences.Any(r => r.Is(app.Value))
             )
-            .Select(p => p.Path)
-            .Order(StringComparer.Ordinal);
-
-    private static IEnumerable<(string Path, XDocument Xml)> Projects(string appDir)
-    {
-        foreach (string path in Directory.EnumerateFiles(appDir, "*.csproj", SearchOption.AllDirectories))
-        {
-            if (Relative(appDir, path).Split('/') is var segments && segments.Any(s => s is "bin" or "obj"))
-            {
-                continue;
-            }
-
-            XDocument? xml = null;
-            try
-            {
-                xml = XDocument.Load(path);
-            }
-            catch (XmlException)
-            {
-                // A project MSBuild cannot read either is not one to analyze.
-            }
-
-            if (xml is not null)
-            {
-                yield return (path, xml);
-            }
-        }
+            .Select(p => p.Path);
     }
 
-    private static IEnumerable<string> ReferenceIncludes(XDocument xml) =>
-        xml.Descendants()
-            .Where(e => e.Name.LocalName is "PackageReference" or "ProjectReference")
-            .Select(e => (string?)e.Attribute("Include") ?? "");
+    private static bool References(ProjectDescription.WellFormed project, string package) =>
+        project.PackageReferences.Any(r => r.Name.Equals(package, StringComparison.OrdinalIgnoreCase));
 
-    private static bool References(XDocument xml, string prefix) =>
-        ReferenceIncludes(xml).Any(include => include.Contains(prefix, StringComparison.OrdinalIgnoreCase));
-
-    private static bool IsTestProject(XDocument xml) =>
-        ReferenceIncludes(xml)
-            .Any(include => include.Equals("Microsoft.NET.Test.Sdk", StringComparison.OrdinalIgnoreCase));
+    private static string FullPath(string appDir, AppFilePath path) => Path.GetFullPath(Path.Join(appDir, path.Value));
 
     private static HashSet<string> DocumentPaths(Project project) =>
         project.Documents.Select(d => d.FilePath).OfType<string>().ToHashSet(StringComparer.Ordinal);

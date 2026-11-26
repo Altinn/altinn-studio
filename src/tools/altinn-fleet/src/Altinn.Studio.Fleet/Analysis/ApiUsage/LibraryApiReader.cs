@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using Altinn.Studio.Common.Domain.App;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
 
@@ -255,14 +256,11 @@ internal static class LibraryApiReader
         }
     }
 
-    internal const string ApiPackage = "Altinn.App.Api";
-
     /// <summary>The app library's packages that have a public API, <see cref="ApiPackage"/> first.</summary>
-    internal static readonly string[] Packages = [ApiPackage, CorePackage, FiksPackage];
+    internal static IReadOnlyList<string> Packages => AltinnAppLibraries.PublishedPackageNames;
 
-    private const string CorePackage = "Altinn.App.Core";
-
-    private const string FiksPackage = "Altinn.App.Clients.Fiks";
+    /// <summary>The package every version of the app library has.</summary>
+    internal static string ApiPackage => Packages[0];
 
     // NuGet's "Unable to find package X with version (= V)" (NU1102), or "Unable to find package X" (NU1101).
     private static readonly Regex s_missingPackage = new(
