@@ -20,3 +20,6 @@ through the [gitea-proxy](../gitea-proxy). It deploys apps to the runtime cluste
 Designer edits apps on version 8 and version 9 of the app backend. The code for v8 apps is frozen. We change it only
 when a service owner asks for something that brings value and that we can reasonably support, and we keep those
 changes few. `ux-editor-v3`, which serves apps older than v8, is not maintained.
+
+Studio's code for v9 apps targets the latest v9 prerelease, and 9.0.0 once it is released. It keeps no compatibility
+with earlier prereleases.
