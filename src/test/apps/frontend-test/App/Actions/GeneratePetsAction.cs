@@ -20,6 +20,8 @@ public class GeneratePetsAction : IUserAction
         if (context.ButtonId == "load-validation-examples")
         {
             data.Pets = RepeatingGroupShowcaseValidator.CreateExamplePets();
+            data.NumPets = data.Pets.Count;
+            data.ForceShowPets = true;
             data.Endringsmeldinggrp9786 ??= new();
             data.Endringsmeldinggrp9786.Avgivergrp9787 ??= new();
             data.Endringsmeldinggrp9786.Avgivergrp9787.OppgavegiverNavndatadef68 = new()
