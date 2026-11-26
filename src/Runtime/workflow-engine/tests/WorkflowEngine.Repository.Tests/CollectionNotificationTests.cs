@@ -59,8 +59,10 @@ public sealed class CollectionNotificationTests(PostgresFixture fixture) : IAsyn
         Assert.Equal(2, details[new("ns-a", "k1")].Heads.Count);
     }
 
-    [Fact]
-    public async Task GetCollectionDetails_WhenAHeadIsReplacedAndCompletesDuringTheRead_ShowsTheHeadsOfOneMoment()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task CollectionRead_WhenAHeadIsReplacedAndCompletesDuringTheRead_ShowsTheHeadsOfOneMoment(bool batched)
     {
         // Arrange: after the heads are read and before their statuses are, a continuation replaces the running head
         // and the head completes
@@ -78,11 +80,13 @@ public sealed class CollectionNotificationTests(PostgresFixture fixture) : IAsyn
         var collection = new CollectionId(Ns, "k1");
 
         // Act
-        var details = await repo.GetCollectionDetails([collection], TestContext.Current.CancellationToken);
+        var detail = batched
+            ? (await repo.GetCollectionDetails([collection], TestContext.Current.CancellationToken))[collection]
+            : await repo.GetCollection(collection.Key, collection.Namespace, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(interceptor.Changed.IsCompletedSuccessfully);
-        var head = Assert.Single(details[collection].Heads);
+        var head = Assert.Single(detail!.Heads);
         Assert.Equal(replaced.DatabaseId, head.DatabaseId);
         Assert.Equal(PersistentItemStatus.Processing, head.Status);
     }
@@ -327,23 +331,28 @@ public sealed class CollectionNotificationTests(PostgresFixture fixture) : IAsyn
     {
         // Arrange
         var workflow = await EnqueueWithStatus(fixture.CreateRepository(), "k1", status);
+        var before = JsonSerializer.Serialize(await fixture.GetWorkflow(workflow.DatabaseId));
         await using var refusing = await NotificationsRefused(times: int.MaxValue);
         var repo = refusing.CreateRepository(RetryStrategy.None());
 
         // Act
-        await Assert.ThrowsAsync<PostgresException>(() => Run(repo, write, workflow.DatabaseId));
+        var refusal = await Assert.ThrowsAsync<PostgresException>(() => Run(repo, write, workflow.DatabaseId));
 
         // Assert
-        Assert.Equal(status, (await fixture.GetWorkflow(workflow.DatabaseId))?.Status);
+        Assert.Equal(RefusedNotifications.Message, refusal.MessageText);
+        Assert.Equal(before, JsonSerializer.Serialize(await fixture.GetWorkflow(workflow.DatabaseId)));
     }
 
     [Fact]
     public async Task Fail_WhenAFetchClaimsTheWorkflowBeforeTheRetry_ReportsNothingFailed()
     {
-        // Arrange: the first attempt's notification is refused, which rolls its failure back
+        // Arrange: the first attempt's notification is refused, which rolls its failure back. The retry waits on
+        // the test's clock, so it cannot run before the claim below.
         var parked = await EnqueueWithStatus(fixture.CreateRepository(), "k1", PersistentItemStatus.Requeued);
         await using var refusing = await NotificationsRefused(times: 1);
-        var repo = refusing.CreateRepository(RetryStrategy.Constant(TimeSpan.FromSeconds(1), maxRetries: 1));
+        var time = new FakeTimeProvider(DateTimeOffset.UtcNow);
+        var retryDelay = TimeSpan.FromMinutes(1);
+        var repo = refusing.CreateRepository(RetryStrategy.Constant(retryDelay, maxRetries: 1), time);
 
         // Act
         var failing = repo.FailWorkflow(
@@ -360,6 +369,13 @@ public sealed class CollectionNotificationTests(PostgresFixture fixture) : IAsyn
                 $"UPDATE engine.workflows SET status = {(int)PersistentItemStatus.Processing} WHERE id = {parked.DatabaseId}",
                 TestContext.Current.CancellationToken
             );
+        }
+
+        // The repository may not have started the retry's delay yet, so time moves on until it has passed
+        for (int i = 0; !failing.IsCompleted && i < 500; i++)
+        {
+            time.Advance(retryDelay);
+            await Task.Delay(10, TestContext.Current.CancellationToken);
         }
 
         // Assert
@@ -394,7 +410,7 @@ public sealed class CollectionNotificationTests(PostgresFixture fixture) : IAsyn
     {
         await using var conn = new NpgsqlConnection(fixture.ConnectionString);
         await conn.OpenAsync(TestContext.Current.CancellationToken);
-        const string install = """
+        const string install = $"""
             DROP SEQUENCE IF EXISTS public.notify_calls;
             DROP TABLE IF EXISTS public.notify_refusals;
             CREATE SEQUENCE public.notify_calls;
@@ -404,7 +420,7 @@ public sealed class CollectionNotificationTests(PostgresFixture fixture) : IAsyn
             BEGIN
                 -- A sequence, unlike a row, counts the calls of transactions that roll back
                 IF nextval('public.notify_calls') <= (SELECT refusals FROM public.notify_refusals) THEN
-                    RAISE EXCEPTION 'notification refused by the test';
+                    RAISE EXCEPTION '{RefusedNotifications.Message}';
                 END IF;
                 PERFORM pg_catalog.pg_notify(channel, payload);
             END
@@ -423,14 +439,20 @@ public sealed class CollectionNotificationTests(PostgresFixture fixture) : IAsyn
 
     private sealed class RefusedNotifications(EngineSettings settings, string connectionString) : IAsyncDisposable
     {
+        public const string Message = "notification refused by the test";
+
         private readonly NpgsqlDataSource _dataSource = NpgsqlDataSource.Create(connectionString);
         private readonly ConcurrencyLimiter _limiter = new(10, 10, 1);
 
-        public EngineRepository CreateRepository(RetryStrategy databaseRetryStrategy) =>
+        public EngineRepository CreateRepository(
+            RetryStrategy databaseRetryStrategy,
+            TimeProvider? timeProvider = null
+        ) =>
             PostgresFixture.CreateRepository(
                 _dataSource,
                 _limiter,
-                Options.Create(settings with { DatabaseRetryStrategy = databaseRetryStrategy })
+                Options.Create(settings with { DatabaseRetryStrategy = databaseRetryStrategy }),
+                timeProvider
             );
 
         public async Task WaitForRefusals(int count)

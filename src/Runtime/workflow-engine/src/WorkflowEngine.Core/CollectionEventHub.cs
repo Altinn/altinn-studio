@@ -19,8 +19,10 @@ namespace WorkflowEngine.Core;
 /// </summary>
 /// <remarks>
 /// A collection is marked dirty when a subscriber joins, when a <c>collection_changed</c> notification names it, when
-/// the listener reconnects and at every sweep. Every read is delivered, changed or not: an event is a snapshot, so a
-/// repeat is harmless, and the sweep's reads are what keep an idle stream alive.
+/// the listener reconnects and at every sweep. The loop reads the ones a subscriber joined or a notification named
+/// ahead of the others, so that a first snapshot and a change never wait behind a sweep. Every read is delivered,
+/// changed or not: an event is a snapshot, so a repeat is harmless, and the sweep's reads are what keep an idle
+/// stream alive.
 /// </remarks>
 internal sealed class CollectionEventHub(
     IServiceScopeFactory scopeFactory,
@@ -30,17 +32,21 @@ internal sealed class CollectionEventHub(
 ) : BackgroundService
 {
     private static readonly TimeSpan _initialRetryDelay = TimeSpan.FromSeconds(1);
-    private static readonly TimeSpan _maxRetryDelay = TimeSpan.FromSeconds(30);
+
+    // The default sweep interval. While reads fail the streams are silent, and a client gives up a silent stream, so
+    // a longer delay would keep clients reconnecting after the database is back.
+    private static readonly TimeSpan _maxRetryDelay = TimeSpan.FromSeconds(5);
 
     private readonly CollectionEventSettings _settings = settings.Value.CollectionEvents;
     private readonly AsyncSignal _wake = new();
     private readonly Lock _lock = new();
     private readonly Dictionary<CollectionId, HashSet<CollectionEventSubscription>> _subscribers = [];
 
-    // Dirty collections are read oldest mark first, so a hot collection cannot keep others waiting. The queue may
-    // hold an id the set no longer does, which the read loop skips.
-    private readonly HashSet<CollectionId> _dirty = [];
-    private readonly Queue<CollectionId> _dirtyOrder = new();
+    // The dirty collections: the ones a subscriber joined or a notification named, and the ones only a sweep marked.
+    // Each queue is read oldest mark first, so a hot collection cannot keep others waiting, and holds subscribed
+    // collections only.
+    private readonly DirtyQueue _changed = new();
+    private readonly DirtyQueue _swept = new();
     private int _streamCount;
     private long _batchesTaken;
 
@@ -68,7 +74,7 @@ internal sealed class CollectionEventHub(
 
             // The subscriber's first snapshot comes from a batch taken after this mark, so it can never predate
             // the subscription
-            MarkDirtyLocked(collection);
+            MarkChangedLocked(collection);
         }
 
         Metrics.CollectionEventStreams.Add(1);
@@ -81,19 +87,20 @@ internal sealed class CollectionEventHub(
     {
         lock (_lock)
         {
-            if (!_subscribers.ContainsKey(collection) || !MarkDirtyLocked(collection))
+            if (!_subscribers.ContainsKey(collection) || !MarkChangedLocked(collection))
                 return;
         }
 
         _wake.Signal();
     }
 
+    /// <summary>Marks every subscribed collection for a read that gives way to the changed collections.</summary>
     public void MarkAllDirty()
     {
         lock (_lock)
         {
-            foreach (var collection in _subscribers.Keys)
-                MarkDirtyLocked(collection);
+            foreach (var collection in _subscribers.Keys.Where(c => !_changed.Contains(c)))
+                _swept.Add(collection);
         }
 
         _wake.Signal();
@@ -113,7 +120,8 @@ internal sealed class CollectionEventHub(
             if (subscribers.Count == 0)
             {
                 _subscribers.Remove(subscription.Collection);
-                _dirty.Remove(subscription.Collection);
+                _changed.Remove(subscription.Collection);
+                _swept.Remove(subscription.Collection);
             }
         }
 
@@ -154,7 +162,7 @@ internal sealed class CollectionEventHub(
                 lock (_lock)
                 {
                     foreach (var collection in batch.Where(_subscribers.ContainsKey))
-                        MarkDirtyLocked(collection);
+                        MarkChangedLocked(collection);
                 }
 
                 await Task.Delay(retryDelay, timeProvider, stoppingToken);
@@ -167,29 +175,31 @@ internal sealed class CollectionEventHub(
         }
     }
 
-    private bool MarkDirtyLocked(CollectionId collection)
+    private bool MarkChangedLocked(CollectionId collection)
     {
-        if (!_dirty.Add(collection))
+        if (!_changed.Add(collection))
             return false;
 
-        _dirtyOrder.Enqueue(collection);
+        _swept.Remove(collection);
         return true;
     }
 
     /// <summary>
-    /// Takes up to a batch of dirty collections, and numbers it. Their marks are cleared before they are read, so a
-    /// notification that arrives during the read marks them again and causes another read.
+    /// Takes up to a batch of dirty collections, the changed ones first, and numbers it. Their marks are cleared
+    /// before they are read, so a notification that arrives during the read marks them again and causes another read.
     /// </summary>
     private (List<CollectionId> Batch, long BatchNumber) TakeDirty()
     {
         lock (_lock)
         {
-            var batch = new List<CollectionId>(Math.Min(_dirty.Count, _settings.MaxBatchSize));
-            while (batch.Count < _settings.MaxBatchSize && _dirtyOrder.TryDequeue(out var collection))
-            {
-                if (_dirty.Remove(collection))
-                    batch.Add(collection);
-            }
+            var size = Math.Min(_changed.Count + _swept.Count, _settings.MaxBatchSize);
+
+            // Up to a quarter of the batch is the sweep's. Changes alone could otherwise fill every batch, and the
+            // idle streams would go silent.
+            var sweepShare = Math.Min(_swept.Count, Math.Max(1, _settings.MaxBatchSize / 4));
+            var batch = new List<CollectionId>(size);
+            _changed.TakeInto(batch, size - sweepShare);
+            _swept.TakeInto(batch, size - batch.Count);
 
             return (batch, ++_batchesTaken);
         }
@@ -257,6 +267,43 @@ internal sealed class CollectionEventHub(
                 var snapshot = snapshots.GetValueOrDefault(collection);
                 foreach (var subscriber in subscribers.Where(s => s.JoinedAfterBatch < batchNumber))
                     subscriber.Publish(snapshot);
+            }
+        }
+    }
+
+    /// <summary>Collections in the order they were added, each at most once. Any of them can leave.</summary>
+    private sealed class DirtyQueue
+    {
+        private readonly LinkedList<CollectionId> _order = new();
+        private readonly Dictionary<CollectionId, LinkedListNode<CollectionId>> _nodes = [];
+
+        public int Count => _nodes.Count;
+
+        public bool Contains(CollectionId collection) => _nodes.ContainsKey(collection);
+
+        public bool Add(CollectionId collection)
+        {
+            if (_nodes.ContainsKey(collection))
+                return false;
+
+            _nodes[collection] = _order.AddLast(collection);
+            return true;
+        }
+
+        public void Remove(CollectionId collection)
+        {
+            if (_nodes.Remove(collection, out var node))
+                _order.Remove(node);
+        }
+
+        /// <summary>Moves the <paramref name="count"/> oldest collections, or all there are, to the batch.</summary>
+        public void TakeInto(List<CollectionId> batch, int count)
+        {
+            for (; count > 0 && _order.First is { } oldest; count--)
+            {
+                batch.Add(oldest.Value);
+                _nodes.Remove(oldest.Value);
+                _order.RemoveFirst();
             }
         }
     }

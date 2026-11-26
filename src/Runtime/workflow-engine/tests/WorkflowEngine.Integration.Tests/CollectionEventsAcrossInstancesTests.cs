@@ -5,6 +5,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
 using Npgsql;
 using Testcontainers.PostgreSql;
+using WireMock;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WireMock.Server;
@@ -50,9 +51,6 @@ public sealed class CollectionEventsAcrossInstancesTests(CollectionEventsAcrossI
             WireMock
                 .Given(Request.Create().WithPath("/fails").UsingAnyMethod())
                 .RespondWith(Response.Create().WithStatusCode(500));
-            WireMock
-                .Given(Request.Create().WithPath("/slow").UsingAnyMethod())
-                .RespondWith(Response.Create().WithStatusCode(200).WithDelay(TimeSpan.FromSeconds(1)));
 
             Writer = new EngineWebApplicationFactory<Program>(ConnectionString);
             Subscriber = new EngineWebApplicationFactory<Program>(
@@ -130,15 +128,30 @@ public sealed class CollectionEventsAcrossInstancesTests(CollectionEventsAcrossI
     [Fact]
     public async Task WorkflowOutcome_ReachesTheSubscriber_WithoutTheSweep()
     {
-        // Arrange: a slow step, so that the stream's first snapshot shows the workflow in flight
+        // Arrange: the step's webhook is held, so that the stream's first snapshot shows the workflow in flight
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        replicas
+            .WireMock.Given(Request.Create().WithPath("/held").UsingAnyMethod())
+            .RespondWith(
+                Response
+                    .Create()
+                    .WithCallback(async _ =>
+                    {
+                        await release.Task;
+                        return new ResponseMessage { StatusCode = 200 };
+                    })
+            );
         using var writer = replicas.Writer.CreateClient();
         using var subscriber = replicas.Subscriber.CreateClient();
         await WaitForListeners(count: 2);
-        await Enqueue(writer, new WorkflowRequest { OperationId = "slow", Steps = [Webhook("/slow")] });
+        await Enqueue(writer, new WorkflowRequest { OperationId = "held", Steps = [Webhook("/held")] });
         await using var stream = await CollectionEventStream.Open(await OpenEvents(subscriber));
         await stream.Next();
 
-        // Act and assert: NextDataWhere throws when the stream stays silent or ends first
+        // Act
+        release.SetResult();
+
+        // Assert: NextDataWhere throws when the stream stays silent or ends first
         await stream.NextDataWhere(c => c.Heads[0].Status == PersistentItemStatus.Completed);
     }
 

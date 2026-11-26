@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net.ServerSentEvents;
 using System.Text.Json;
 using WorkflowEngine.Models;
@@ -37,17 +38,34 @@ internal sealed class CollectionEventStream : IAsyncDisposable
             ? JsonSerializer.Deserialize<WorkflowCollectionDetailResponse>(data, JsonSerializerOptions.Web)
             : null;
 
-    /// <summary>Reads until a snapshot satisfies <paramref name="predicate"/>, and returns its data.</summary>
+    /// <summary>
+    /// Reads until a snapshot satisfies <paramref name="predicate"/>, and returns its data. The whole wait has one
+    /// deadline, since the sweep's snapshots would renew a deadline per read for as long as the stream is open.
+    /// </summary>
     public async Task<string> NextDataWhere(Func<WorkflowCollectionDetailResponse, bool> predicate)
     {
+        var started = Stopwatch.GetTimestamp();
         while (true)
         {
-            var data = await NextData() ?? throw new InvalidOperationException("The stream ended first.");
+            var left = TimeSpan.FromSeconds(30) - Stopwatch.GetElapsedTime(started);
+            var data =
+                await NextData(left > TimeSpan.Zero ? left : TimeSpan.Zero)
+                ?? throw new InvalidOperationException("The stream ended first.");
             var snapshot =
                 JsonSerializer.Deserialize<WorkflowCollectionDetailResponse>(data, JsonSerializerOptions.Web)
                 ?? throw new InvalidOperationException($"Not a collection snapshot: {data}");
             if (predicate(snapshot))
                 return data;
+        }
+    }
+
+    /// <summary>Reads to the stream's end, and fails if it has not ended in time.</summary>
+    public async Task ReadToEnd(TimeSpan timeout)
+    {
+        using var deadline = new CancellationTokenSource(timeout);
+        while (await _events.MoveNextAsync().AsTask().WaitAsync(deadline.Token))
+        {
+            // A snapshot that was sent before the end
         }
     }
 

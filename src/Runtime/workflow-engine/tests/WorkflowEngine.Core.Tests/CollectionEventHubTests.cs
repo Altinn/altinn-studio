@@ -113,6 +113,93 @@ public sealed class CollectionEventHubTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task ChangedCollection_IsReadAheadOfTheSweptOnes_AndOnlyOnce()
+    {
+        // Arrange: the first read takes three of the four collections and leaves the last one dirty
+        var collections = Enumerable.Range(0, 4).Select(i => new CollectionId("ns", $"key-{i}")).ToList();
+        var subscriptions = collections.Select(c => _hub.TrySubscribe(c)!).ToList();
+        var (started, gates) = GateReads(1);
+        await StartHub();
+        await WaitFor(started[0]);
+
+        // Act: while that read is in flight a sweep marks all four, and a notification names the third
+        _hub.MarkAllDirty();
+        _hub.MarkDirty(collections[2]);
+        gates[0].SetResult();
+        await WaitForReads(3);
+
+        // Assert
+        Assert.Equal(
+            [
+                [collections[0], collections[1], collections[2]],
+                [collections[3], collections[2], collections[0]],
+                [collections[1]],
+            ],
+            _reads
+        );
+        subscriptions.ForEach(s => s.Dispose());
+    }
+
+    [Fact]
+    public async Task SweptCollections_KeepAPlaceInABatchThatChangedOnesCouldFill()
+    {
+        // Arrange: the first read takes three of the four collections and leaves the last one dirty
+        var collections = Enumerable.Range(0, 4).Select(i => new CollectionId("ns", $"key-{i}")).ToList();
+        var subscriptions = collections.Select(c => _hub.TrySubscribe(c)!).ToList();
+        var (started, gates) = GateReads(1);
+        await StartHub();
+        await WaitFor(started[0]);
+
+        // Act: while that read is in flight a sweep marks all four, and notifications name two of them
+        _hub.MarkAllDirty();
+        _hub.MarkDirty(collections[1]);
+        _hub.MarkDirty(collections[2]);
+        gates[0].SetResult();
+        await WaitForReads(3);
+
+        // Assert
+        Assert.Equal(
+            [
+                [collections[0], collections[1], collections[2]],
+                [collections[3], collections[1], collections[0]],
+                [collections[2]],
+            ],
+            _reads
+        );
+        subscriptions.ForEach(s => s.Dispose());
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task DirtyCollection_WhoseLastSubscriberLeaves_IsNotRead(bool markedBySweep)
+    {
+        // Arrange: both collections have had their first read, and the next read is in flight
+        CollectionId left = new("ns", "left");
+        var (started, gates) = GateReads(2);
+        using var staying = _hub.TrySubscribe(_collection)!;
+        var leaving = _hub.TrySubscribe(left)!;
+        await StartHub();
+        gates[0].SetResult();
+        await Next(leaving);
+        _hub.MarkDirty(_collection);
+        await WaitFor(started[1]);
+
+        // Act: both are marked, and one is left before the loop takes its next batch
+        if (markedBySweep)
+            _hub.MarkAllDirty();
+        else
+            _hub.MarkDirty(left);
+        _hub.MarkDirty(_collection);
+        leaving.Dispose();
+        gates[1].SetResult();
+        await WaitForReads(3);
+
+        // Assert
+        Assert.Equal([_collection], _reads.ElementAt(2));
+    }
+
+    [Fact]
     public async Task MarkDirty_WhileItsCollectionIsBeingRead_CausesAnotherRead()
     {
         // Arrange
@@ -156,10 +243,10 @@ public sealed class CollectionEventHubTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task FailedRead_KeepsTheCollectionDirty_AndRetriesAfterABackoff()
+    public async Task FailedRead_KeepsTheCollectionDirty_AndIsRetriedAfterABackoffThatDoublesUpToFiveSeconds()
     {
         // Arrange
-        var failed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var attempts = new ConcurrentQueue<DateTimeOffset>();
         _repository
             .Setup(r =>
                 r.GetCollectionDetails(It.IsAny<IReadOnlyCollection<CollectionId>>(), It.IsAny<CancellationToken>())
@@ -167,35 +254,31 @@ public sealed class CollectionEventHubTests : IAsyncDisposable
             .ReturnsAsync(
                 (IReadOnlyCollection<CollectionId> collections, CancellationToken _) =>
                 {
-                    _reads.Enqueue([.. collections]);
-                    if (Interlocked.Increment(ref _version) == 1)
-                    {
-                        failed.SetResult();
+                    attempts.Enqueue(_time.GetUtcNow());
+                    if (attempts.Count <= 4)
                         throw new InvalidOperationException("database unavailable");
-                    }
-                    return collections.ToDictionary(c => c, c => Snapshot(c, _version));
+                    return collections.ToDictionary(c => c, c => Snapshot(c, version: 1));
                 }
             );
         await StartHub();
         var subscription = _hub.TrySubscribe(_collection)!;
-        var retried = Next(subscription);
-        await failed.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+        var retried = Next(subscription, TimeSpan.FromSeconds(30));
 
-        // Act
-        await Task.Delay(200, TestContext.Current.CancellationToken);
-        var readsBeforeBackoff = _reads.Count;
-        var advanced = TimeSpan.Zero;
-        while (!retried.IsCompleted && advanced < _sweepInterval)
+        // Act: time moves on in steps, since the hub arms each delay only after the read before it has failed
+        for (int i = 0; !retried.IsCompleted && i < 200; i++)
         {
-            _time.Advance(TimeSpan.FromMilliseconds(100));
-            advanced += TimeSpan.FromMilliseconds(100);
+            _time.Advance(TimeSpan.FromMilliseconds(200));
             await Task.Delay(10, TestContext.Current.CancellationToken);
         }
 
-        // Assert
-        Assert.Equal(1, readsBeforeBackoff);
+        // Assert: a delay shows up to a few steps longer when the hub was slow to arm it
         Assert.Equal(_collection.Key, (await retried)?.Key);
-        Assert.True(advanced < _sweepInterval, "The snapshot came from the sweep, not from a retry.");
+        var times = attempts.ToArray();
+        Assert.Equal(
+            [1, 2, 4, 5],
+            times.Zip(times.Skip(1), (attempt, next) => (next - attempt).TotalSeconds),
+            (expected, actual) => actual >= expected && actual < expected + 1
+        );
         subscription.Dispose();
     }
 
@@ -354,14 +437,14 @@ public sealed class CollectionEventHubTests : IAsyncDisposable
                 r.GetCollectionDetails(It.IsAny<IReadOnlyCollection<CollectionId>>(), It.IsAny<CancellationToken>())
             )
             .Returns(
-                async (IReadOnlyCollection<CollectionId> collections, CancellationToken _) =>
+                async (IReadOnlyCollection<CollectionId> collections, CancellationToken cancellationToken) =>
                 {
                     _reads.Enqueue([.. collections]);
                     var version = Interlocked.Increment(ref _version);
                     if (version <= count)
                     {
                         started[version - 1].TrySetResult();
-                        await gates[version - 1].Task;
+                        await gates[version - 1].Task.WaitAsync(cancellationToken);
                     }
                     return (IReadOnlyDictionary<CollectionId, WorkflowCollectionDetailResponse>)
                         collections.ToDictionary(c => c, c => Snapshot(c, version));
@@ -372,6 +455,13 @@ public sealed class CollectionEventHubTests : IAsyncDisposable
 
     private static Task WaitFor(TaskCompletionSource started) =>
         started.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+
+    private async Task WaitForReads(int count)
+    {
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        while (_reads.Count < count)
+            await Task.Delay(10, deadline.Token);
+    }
 
     private Task StartHub() => _hub.StartAsync(TestContext.Current.CancellationToken);
 

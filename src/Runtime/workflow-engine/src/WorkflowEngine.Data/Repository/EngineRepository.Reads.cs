@@ -240,6 +240,12 @@ internal sealed partial class EngineRepository
             await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
             var normalizedNs = WorkflowNamespace.Normalize(ns);
 
+            // One database snapshot for the heads and their statuses, for the reason GetCollectionDetails gives
+            await using var transaction = await context.Database.BeginTransactionAsync(
+                IsolationLevel.RepeatableRead,
+                cancellationToken
+            );
+
             var entity = await context.WorkflowCollections.FirstOrDefaultAsync(
                 c => c.Key == key && c.Namespace == normalizedNs,
                 cancellationToken
@@ -249,6 +255,7 @@ internal sealed partial class EngineRepository
                 return null;
 
             var heads = await GetHeadStatuses(context, entity.Heads, cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
             return ToDetailResponse(entity, heads, timeProvider.GetUtcNow());
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -286,18 +293,18 @@ internal sealed partial class EngineRepository
                 cancellationToken
             );
 
-            // Each column is matched on its own, which the (key, namespace) primary key serves; the pairs the
-            // cross product adds are dropped after the read.
-            var keys = collections.Select(c => c.Key).Distinct().ToArray();
-            var namespaces = collections.Select(c => c.Namespace).Distinct().ToArray();
-            var requested = collections.ToHashSet();
-            var entities = (
-                await context
-                    .WorkflowCollections.Where(c => keys.Contains(c.Key) && namespaces.Contains(c.Namespace))
-                    .ToListAsync(cancellationToken)
-            )
-                .Where(e => requested.Contains(new CollectionId(e.Namespace, e.Key)))
-                .ToList();
+            var (keys, namespaces) = collections.Select(c => (c.Key, c.Namespace)).Distinct().ToArray().Unzip();
+            var entities = await context
+                .WorkflowCollections.FromSql(
+                    $"""
+                    SELECT wc.*
+                    FROM unnest({keys}, {namespaces})
+                        AS t(key, namespace)
+                    JOIN engine.workflow_collections wc USING (key, namespace)
+                    """
+                )
+                .AsNoTracking()
+                .ToListAsync(cancellationToken);
 
             var heads = await GetHeadStatuses(context, [.. entities.SelectMany(e => e.Heads)], cancellationToken);
             await transaction.CommitAsync(cancellationToken);

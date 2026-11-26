@@ -154,7 +154,8 @@ public sealed class EngineGracefulShutdownTests : IAsyncLifetime
 
         await factory.Services.GetRequiredService<IHost>().StopAsync(TestContext.Current.CancellationToken);
 
-        Assert.Null(await stream.NextData(TimeSpan.FromSeconds(10)));
+        // The workflow may have completed just before the stop, and that snapshot is sent ahead of the stream's end
+        await stream.ReadToEnd(TimeSpan.FromSeconds(10));
     }
 
     // -- Helpers --

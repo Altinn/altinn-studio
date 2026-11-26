@@ -669,16 +669,21 @@ Three rules make the stream correct across instances:
 The sweep marks every subscribed collection dirty every `CollectionEvents.SweepInterval`, 5 seconds by default. It
 covers lost notifications, the writes that send none, and instances of an older version that send none during a
 rolling deploy. Every read is delivered, also when nothing changed, so the sweep is also the stream's keepalive: a
-stream that stays silent for several intervals is broken, and the engine sends no heartbeat besides.
+stream that stays silent for several intervals is broken, and the engine sends no heartbeat besides. The loop reads
+the collections that a notification or a new subscription marked ahead of the ones only the sweep marked, so a change
+never waits behind a sweep's reads. Up to a quarter of each batch stays the sweep's, so that it goes on when changes
+alone would fill every batch.
 
 A subscription marks its collection dirty, and its first snapshot comes from a read the loop takes after that, never
 from one already in flight. So the first event never predates the subscription, and the loop sends it with its next
 batch: normally at once, but only after the backoff while reads are failing. The loop clears a collection's mark
-before it reads it, so a notification that arrives during the read causes another. It reads the heads and their
-statuses from one database snapshot, so a head that a continuation replaces and that then completes never shows as a
-completed head. Each stream holds at most one pending snapshot, and a newer one replaces it: a slow client misses the
-snapshots in between and never holds up the loop or another client. A failed read keeps its collections dirty and is
-retried after a backoff that doubles from 1 second to 30, while the streams stay open.
+before it reads it, so a notification that arrives during the read causes another. Like get collection, it reads the
+heads and their statuses from one database snapshot, so a head that a continuation replaces and that then completes
+never shows as a completed head. Each stream holds at most one pending snapshot, and a newer one replaces it: a slow
+client misses the snapshots in between and never holds up the loop or another client. A failed read keeps its
+collections dirty and is retried after a backoff that doubles from 1 second up to 5, while the streams stay open. The
+streams are silent while reads fail, and a client gives up a silent stream, so a longer backoff would keep clients
+reconnecting after the database is back.
 
 The stream ends:
 
@@ -692,8 +697,10 @@ The stream ends:
 
 The engine answers `400 Bad Request` for any other `until` value and `404 Not Found` when the namespace has no
 collection with that key, both before any event. An instance serves at most `CollectionEvents.MaxStreams` streams, and
-refuses another with `429`. A refusal costs no database work, so a client waits a moment and opens the stream again.
-The app backend never polls instead.
+refuses another with `429`. The limit counts the streams of all namespaces together, as the instance's workers and
+database slots serve all of them: the namespaces on an engine are the apps of one service owner
+([where it runs](../../workflow-engine-app/README.md#where-it-runs)). A refusal costs no database work, so a client
+waits a moment and opens the stream again. The app backend never polls instead.
 
 ## Telemetry & observability
 

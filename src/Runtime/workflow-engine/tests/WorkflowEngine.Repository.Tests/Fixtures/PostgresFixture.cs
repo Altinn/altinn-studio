@@ -130,7 +130,8 @@ public sealed class PostgresFixture : IAsyncLifetime
     internal static EngineRepository CreateRepository(
         NpgsqlDataSource dataSource,
         IConcurrencyLimiter limiter,
-        IOptions<EngineSettings> settings
+        IOptions<EngineSettings> settings,
+        TimeProvider? timeProvider = null
     )
     {
         var options = new DbContextOptionsBuilder<EngineDbContext>().UseNpgsql(dataSource).Options;
@@ -141,7 +142,7 @@ public sealed class PostgresFixture : IAsyncLifetime
             settings,
             limiter,
             new SqlBulkInserter(factory),
-            TimeProvider.System,
+            timeProvider ?? TimeProvider.System,
             NullLogger<EngineRepository>.Instance
         );
     }

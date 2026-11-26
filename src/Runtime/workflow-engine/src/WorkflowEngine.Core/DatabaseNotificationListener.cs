@@ -74,7 +74,7 @@ internal sealed class DatabaseNotificationListener(
                 if (CollectionChangedNotification.TryDecode(e.Payload, out var collection))
                     collectionEvents.MarkDirty(collection);
                 else
-                    logger.UnreadableCollectionNotification(e.Payload);
+                    logger.UnreadableCollectionNotification(e.Payload.Length);
                 break;
         }
     }
@@ -88,9 +88,12 @@ internal static partial class DatabaseNotificationListenerLogs
     [LoggerMessage(LogLevel.Warning, "PG LISTEN connection lost, reconnecting in 1s")]
     internal static partial void ListenConnectionLost(this ILogger<DatabaseNotificationListener> logger, Exception ex);
 
-    [LoggerMessage(LogLevel.Warning, "Ignored a collection_changed notification with an unreadable payload: {Payload}")]
+    [LoggerMessage(
+        LogLevel.Warning,
+        "Ignored a collection_changed notification with an unreadable payload of {Length} characters"
+    )]
     internal static partial void UnreadableCollectionNotification(
         this ILogger<DatabaseNotificationListener> logger,
-        string payload
+        int length
     );
 }
