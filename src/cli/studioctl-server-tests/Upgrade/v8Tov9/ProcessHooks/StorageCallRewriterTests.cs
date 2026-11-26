@@ -321,7 +321,7 @@ public sealed class StorageCallRewriterTests : IDisposable
                             InstanceIdentifier instanceIdentifier = new(instance);
                             var modelDataId = Guid.Parse(modelData.Id);
                             var model = new AllocatedCaseNumber { CaseNumber = "1" };
-                            await dataMutator.ReplaceFormData(new {{DataElementIdentifier}}(modelDataId), model);
+                            (await dataMutator.GetFormDataWrapper(new {{DataElementIdentifier}}(modelDataId))).ReplaceBackingData(model);
                             return {{HandlerResult}}.Success();
                         }
                     }
@@ -653,9 +653,44 @@ public sealed class StorageCallRewriterTests : IDisposable
 
                         private void Save({{IInstanceDataMutator}} dataMutator, object model, DataElement el)
                         {
-                            dataMutator.ReplaceFormData(el, model).GetAwaiter().GetResult();
+                            dataMutator.GetFormDataWrapper(el).GetAwaiter().GetResult().ReplaceBackingData(model);
                             var saved = dataMutator.GetDataElement(el);
                             Console.WriteLine(saved.Id);
+                        }
+                    }
+                    """
+            },
+            {
+                "a form write that a method that is not async returns as its task",
+                """
+                    public class ProcessTaskEnd(IDataClient dataClient) : IProcessTaskEnd
+                    {
+                        public async Task End(string taskId, Instance instance)
+                        {
+                            await Save(instance, new object(), instance.Data[0]);
+                        }
+
+                        private Task Save(Instance instance, object model, DataElement el) =>
+                            dataClient.UpdateFormData(instance, model, el);
+                    }
+                    """,
+                $$"""
+                    public class ProcessTaskEnd : {{IOnTaskEndingHandler}}
+                    {
+                        public bool ShouldRunForTask(string taskId) => true;
+
+                        public async Task<{{HandlerResult}}> Execute({{OnTaskEndingContext}} context)
+                        {
+                            {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
+                            Instance instance = dataMutator.Instance;
+                            await Save(dataMutator, new object(), instance.Data[0]);
+                            return {{HandlerResult}}.Success();
+                        }
+
+                        private Task Save({{IInstanceDataMutator}} dataMutator, object model, DataElement el)
+                        {
+                            dataMutator.GetFormDataWrapper(el).GetAwaiter().GetResult().ReplaceBackingData(model);
+                            return global::System.Threading.Tasks.Task.CompletedTask;
                         }
                     }
                     """
@@ -958,7 +993,7 @@ public sealed class StorageCallRewriterTests : IDisposable
                     }
                     """,
                 "await dataClient.UpdateFormData(instance, model, element);",
-                "DataClientWrapper.UpdateDataModel writes dataType right after Hook.End added it; in v9 an added element is saved as it is at the end of the step, and ReplaceFormData cannot target it. Give the add path its own code that changes the object it passes to AddFormDataElement."
+                "DataClientWrapper.UpdateDataModel writes dataType right after Hook.End added it; in v9 an added element is saved as it is at the end of the step, and its form cannot be replaced before it is saved. Give the add path its own code that changes the object it passes to AddFormDataElement."
             },
             {
                 "a read with an authentication method the code passes on",

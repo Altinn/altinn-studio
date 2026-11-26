@@ -63,7 +63,7 @@ public sealed class ServiceTaskBodiesTests : IDisposable
                         var dataElement = instance.Data.Find(x => x.DataType == "model")!;
                         var instanceIdentifier = new InstanceIdentifier(instance);
                         var guid = new Guid(dataElement.Id);
-                        await context.InstanceDataMutator.ReplaceFormData(dataElement, new Model { Error = "e" });
+                        (await context.InstanceDataMutator.GetFormDataWrapper(dataElement)).ReplaceBackingData(new Model { Error = "e" });
                         return Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.ServiceTaskResult.FailedContinueProcessNext();
                     }
                 }

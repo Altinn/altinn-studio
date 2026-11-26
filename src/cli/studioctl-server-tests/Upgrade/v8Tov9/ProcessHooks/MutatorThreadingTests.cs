@@ -133,16 +133,16 @@ public sealed class MutatorThreadingTests : IDisposable
                 $$"""
                     public interface IDataModelService
                     {
-                        Task UpdateDataModel<T>(T dataModel, string dataModelName, {{IInstanceDataMutator}} dataMutator) where T : class;
+                        Task UpdateDataModel<T>(T dataModel, string dataModelName, {{IInstanceDataMutator}} dataMutator);
                     }
 
                     public class DataModelService : IDataModelService
                     {
-                        public async Task UpdateDataModel<T>(T dataModel, string dataModelName, {{IInstanceDataMutator}} dataMutator) where T : class
+                        public async Task UpdateDataModel<T>(T dataModel, string dataModelName, {{IInstanceDataMutator}} dataMutator)
                         {
                             Instance instance = dataMutator.Instance;
                             var dataElement = instance.Data.First(data => data.DataType == dataModelName);
-                            await dataMutator.ReplaceFormData(dataElement, dataModel!);
+                            (await dataMutator.GetFormDataWrapper(dataElement)).ReplaceBackingData(dataModel!);
                         }
                     }
 
