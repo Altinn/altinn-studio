@@ -118,26 +118,42 @@ internal sealed class RepeatingGroupShowcaseValidator : IValidator
         }
     }
 
-    // Stable example identities keep each case intact when rows are edited, deleted or reordered.
-    private static (string Field, ValidationIssueSeverity Severity, string Description)[] GetFieldMessages(string? id) =>
-        id?.StartsWith(ExampleIdPrefix, StringComparison.Ordinal) == true ? GetExampleMessages(id[ExampleIdPrefix.Length..]) : [];
+    /// <summary>Creates the example pets that the "load-validation-examples" button puts in the list.</summary>
+    internal static List<Pet> CreateExamplePets() =>
+        [.. Examples.Select(example => new Pet
+        {
+            UniqueId = ExampleIdPrefix + example.Key,
+            Name = example.Name,
+            Species = example.Species,
+            Age = example.Age,
+        })];
 
-    private static (string Field, ValidationIssueSeverity Severity, string Description)[] GetExampleMessages(string example) => example switch
-    {
-        "balder" => [("name", ValidationIssueSeverity.Error, "Navnet stemmer ikke med opplysningene i registeret.")],
-        "maja" => [("species", ValidationIssueSeverity.Warning, "Dyreslaget er endret siden forrige innrapportering. Kontroller at katt er riktig.")],
-        "luna" => [("age", ValidationIssueSeverity.Informational, "Alderen er hentet fra registeret.")],
-        "felix" => [("age", ValidationIssueSeverity.Success, "Alderen er kontrollert.")],
-        "milo" => [
-            ("name", ValidationIssueSeverity.Error, "Oppgi navnet slik det står i registeret."),
-            ("age", ValidationIssueSeverity.Warning, "Alderen er høyere enn ved forrige innrapportering. Kontroller verdien.")
-        ],
-        "nala" => [
-            ("name", ValidationIssueSeverity.Error, "Navnet mangler i registeret."),
-            ("name", ValidationIssueSeverity.Error, "Kontroller at navnet er skrevet riktig.")
-        ],
-        _ => [],
-    };
+    // Stable example identities keep each case intact when rows are edited, deleted or reordered.
+    private static ExampleMessage[] GetFieldMessages(string? id) =>
+        Examples.FirstOrDefault(example => id == ExampleIdPrefix + example.Key)?.Messages ?? [];
+
+    private static readonly ExamplePet[] Examples =
+    [
+        new("balder", "Balder", "Dog", 4, [new("name", ValidationIssueSeverity.Error, "Navnet stemmer ikke med opplysningene i registeret.")]),
+        new("maja", "Maja", "Cat", 2, [new("species", ValidationIssueSeverity.Warning, "Dyreslaget er endret siden forrige innrapportering. Kontroller at katt er riktig.")]),
+        new("luna", "Luna", "Rabbit", 3, [new("age", ValidationIssueSeverity.Informational, "Alderen er hentet fra registeret.")]),
+        new("felix", "Felix", "Cat", 5, [new("age", ValidationIssueSeverity.Success, "Alderen er kontrollert.")]),
+        new("milo", "Milo", "Dog", 12,
+        [
+            new("name", ValidationIssueSeverity.Error, "Oppgi navnet slik det står i registeret."),
+            new("age", ValidationIssueSeverity.Warning, "Alderen er høyere enn ved forrige innrapportering. Kontroller verdien."),
+        ]),
+        new("saga", "Saga", "Dog", 7, []),
+        new("nala", "Nala", "Cat", 6,
+        [
+            new("name", ValidationIssueSeverity.Error, "Navnet mangler i registeret."),
+            new("name", ValidationIssueSeverity.Error, "Kontroller at navnet er skrevet riktig."),
+        ]),
+    ];
+
+    private sealed record ExamplePet(string Key, string Name, string Species, int Age, ExampleMessage[] Messages);
+
+    private sealed record ExampleMessage(string Field, ValidationIssueSeverity Severity, string Description);
 
     /// <inheritdoc />
     public Task<bool> HasRelevantChanges(
