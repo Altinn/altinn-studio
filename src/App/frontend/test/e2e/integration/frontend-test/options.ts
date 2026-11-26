@@ -441,7 +441,9 @@ describe('Options', () => {
     cy.get('[data-componentid="ingredientId-3"]').should('have.text', '1');
 
     const errMsg = 'Du kan ikke ha flere ingredienser av samme type';
-    cy.findAllByText(errMsg).should('have.length', 2);
+    cy.get('[data-testid="table-row-validation-messages"]')
+      .should('have.length', 2)
+      .each(($panel) => cy.wrap($panel).should('contain.text', errMsg));
     cy.get(appFrontend.errorReport).should('not.exist');
 
     // Select something else than grapes in the third and fourth row
