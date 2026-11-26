@@ -25,6 +25,18 @@ export function getRowDataModelReference({
   return { dataType: groupBinding.dataType, field: `${groupBinding.field}[${rowIndex}]` };
 }
 
+/**
+ * Reads back the row index from a path that `getRowDataModelReference` builds, such as `Pets[2]`.
+ * Only the object directly in this array belongs to the row, not its child fields or nested arrays.
+ */
+export function getRepeatingGroupRowIndex(field: string, group: IDataModelReference): number | undefined {
+  if (!field.startsWith(group.field)) {
+    return undefined;
+  }
+  const index = field.slice(group.field.length).match(/^\[(\d+)]$/)?.[1];
+  return index === undefined ? undefined : Number(index);
+}
+
 export function appendRowContext(
   rowContexts: RowContext[],
   groupBinding: IDataModelReference,

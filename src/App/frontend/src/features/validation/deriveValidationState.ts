@@ -15,7 +15,6 @@ import {
 import { deriveNodes, withCurrentDataModelPath } from 'src/features/validation/deriveNodes';
 import {
   deriveRepeatingGroupRowValidations,
-  getRepeatingGroupRowIndex,
   getRepeatingGroupRowValidations,
   type RepeatingGroupRowValidations,
 } from 'src/features/validation/repeatingGroupRowValidations';
@@ -29,7 +28,11 @@ import {
   type ValidationFilter,
 } from 'src/layout';
 import { getDerivedNodeDescendantIds } from 'src/utils/layout/derivedNodeTraversal';
-import { getCurrentDataModelPath, getIndexedDataModelBindings } from 'src/utils/layout/rowContext';
+import {
+  getCurrentDataModelPath,
+  getIndexedDataModelBindings,
+  getRepeatingGroupRowIndex,
+} from 'src/utils/layout/rowContext';
 import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { DerivedValidationNode, DeriveNodesInputs } from 'src/features/validation/deriveNodes';
@@ -434,6 +437,24 @@ export function getNodeRefValidations(
     ...getOwnNodeRefValidations(derived, nodeId, mask, severity, includeHidden),
     ...getRepeatingGroupRowValidations(derived, nodeId, { mask, severity, includeHidden }),
   ];
+}
+
+function getOwnNodeRefValidations(
+  derived: DerivedValidationState,
+  nodeId: string,
+  mask: NodeVisibility,
+  severity?: ValidationSeverity,
+  includeHidden = false,
+): NodeRefValidation[] {
+  const node = derived.nodeById.get(nodeId);
+  if (!node) {
+    return emptyArray;
+  }
+  return getValidationsForNode(derived, nodeId, mask, severity, includeHidden).map((validation) => ({
+    ...validation,
+    baseComponentId: node.baseId,
+    nodeId,
+  }));
 }
 
 /**

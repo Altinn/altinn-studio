@@ -1,6 +1,5 @@
 import { CompCategory } from '@app/layout-contract';
 import dot from 'dot-object';
-import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
@@ -39,15 +38,6 @@ export type RepeatingGroupRowValidations = {
   visibility: number;
   validations: FieldValidation[];
 };
-
-/** Only the object directly in this array belongs to the row, not its child fields or nested arrays. */
-export function getRepeatingGroupRowIndex(field: string, group: IDataModelReference): number | undefined {
-  if (!field.startsWith(group.field)) {
-    return undefined;
-  }
-  const index = field.slice(group.field.length).match(/^\[(\d+)]$/)?.[1];
-  return index === undefined ? undefined : Number(index);
-}
 
 export function deriveRepeatingGroupRowValidations(
   state: FormStoreState,
