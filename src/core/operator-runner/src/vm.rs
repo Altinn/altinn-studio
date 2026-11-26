@@ -1,0 +1,163 @@
+use std::io;
+
+use bytes::Bytes;
+use clap::Args;
+use sandbox::{
+    ByteQuantity, CpuQuantity, EnsureSandboxRequest, RetentionPolicy, RootFilesystem, SandboxHandle, SandboxName,
+    SandboxPath, SandboxResources, SandboxService, SandboxSpec,
+    execution::{ExecutionSpec, StartExecutionRequest},
+    image::ImageSource,
+    init::InitSystem,
+};
+use sandbox_hosting::{AnyError, delete_in_time, native_linux_platform, validate_immutable_image_reference};
+use tokio::{
+    io::AsyncReadExt as _,
+    time::{Instant, timeout_at},
+};
+
+use crate::{
+    output::{Captured, Collected, Ending, Limits, collect},
+    policy::AllowedHosts,
+};
+
+/// The folder of the run in the guest. In the guest image, the user that runs the command owns this folder.
+const JOB_FOLDER: &str = "/job";
+const VM_NAME: &str = "job";
+
+/// The guest image and the size of the VM. They have no defaults, because the `PodTemplate` sets them with the
+/// resources of the pod.
+#[derive(Args)]
+pub struct VmArguments {
+    /// The guest image, pinned by digest, with git and the tools of the commands that the kinds of this `PodTemplate`
+    /// run.
+    #[arg(long, env = "SANDBOX_IMAGE")]
+    image: String,
+
+    /// The number of virtual CPUs of the VM.
+    #[arg(long, env = "SANDBOX_CPUS")]
+    cpus: CpuQuantity,
+
+    /// The memory of the VM.
+    #[arg(long, env = "SANDBOX_MEMORY")]
+    memory: ByteQuantity,
+
+    /// The size of the private root file system of the VM.
+    #[arg(long, env = "SANDBOX_ROOT_FILESYSTEM")]
+    root_filesystem: ByteQuantity,
+}
+
+/// Starts the VM of the run from the guest image, and deletes the VM.
+pub struct Vms {
+    service: SandboxService,
+    arguments: VmArguments,
+    hosts: AllowedHosts,
+}
+
+/// A VM that runs. A drop does not delete the VM.
+pub struct Vm {
+    handle: SandboxHandle,
+}
+
+impl Vms {
+    /// `hosts` must be the hosts that the network policy of `service` reads.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the guest image is not pinned by digest.
+    pub fn new(service: SandboxService, arguments: VmArguments, hosts: AllowedHosts) -> Result<Self, io::Error> {
+        validate_immutable_image_reference(&arguments.image)?;
+        Ok(Self {
+            service,
+            arguments,
+            hosts,
+        })
+    }
+
+    /// # Errors
+    ///
+    /// Returns an error when the VM does not start.
+    pub async fn start(&self, allowed_hosts: &'static [&'static str]) -> Result<Vm, AnyError> {
+        self.hosts.set(allowed_hosts);
+        let request = EnsureSandboxRequest::new(SandboxName::new(VM_NAME)?, self.spec());
+        let handle = self.service.ensure(&request).await?;
+        Ok(Vm { handle })
+    }
+
+    /// Deletes the VM and all its files, if the VM exists. It also deletes a VM that did not start completely, and a VM
+    /// whose command did not complete.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the delete fails, or when it does not complete in one minute.
+    pub async fn delete(&self) -> Result<(), AnyError> {
+        delete_in_time(self.service.delete(&SandboxName::new(VM_NAME)?)).await
+    }
+
+    fn spec(&self) -> SandboxSpec {
+        SandboxSpec {
+            image: ImageSource::Reference {
+                reference: self.arguments.image.clone(),
+            },
+            platform: native_linux_platform(),
+            resources: SandboxResources::new(
+                self.arguments.cpus,
+                self.arguments.memory,
+                RootFilesystem::direct(self.arguments.root_filesystem),
+            ),
+            init_system: InitSystem::Backend,
+            retention_policy: RetentionPolicy::Delete,
+        }
+    }
+}
+
+impl Vm {
+    /// # Errors
+    ///
+    /// Returns an error when the write fails, or when it does not complete by `deadline`.
+    pub async fn write_file(&self, path: &str, contents: Bytes, deadline: Instant) -> Result<(), AnyError> {
+        let target = SandboxPath::new(path);
+        let write = self.handle.write_file(&target, Box::pin(io::Cursor::new(contents)));
+        Ok(timeout_at(deadline, write).await.map_err(|_| too_late(path))??)
+    }
+
+    /// # Errors
+    ///
+    /// Returns an error when the read fails, when it does not complete by `deadline`, or when the file is larger than
+    /// `limit` bytes.
+    pub async fn read_file(&self, path: &str, limit: u64, deadline: Instant) -> Result<Vec<u8>, AnyError> {
+        let mut contents = Vec::new();
+        let read = async {
+            let file = self.handle.read_file(&SandboxPath::new(path)).await?;
+            file.take(limit + 1).read_to_end(&mut contents).await?;
+            Ok::<_, AnyError>(())
+        };
+        timeout_at(deadline, read).await.map_err(|_| too_late(path))??;
+        if contents.len() as u64 > limit {
+            return Err(io::Error::other(format!("{path} is larger than {limit} bytes")).into());
+        }
+        Ok(contents)
+    }
+
+    /// Runs a shell script as the user of the guest image in [`JOB_FOLDER`], with the environment of the guest image.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the script does not start, or when its events stop before the script exits.
+    pub async fn run_script(&self, script: &str, deadline: Instant, limits: Limits) -> Result<Collected, AnyError> {
+        let spec = ExecutionSpec::command(SandboxPath::new("/bin/sh"), ["-c".to_string(), script.to_string()])
+            .with_working_directory(SandboxPath::new(JOB_FOLDER));
+        let start = self.handle.start_execution(StartExecutionRequest::new(spec));
+        let Ok(started) = timeout_at(deadline, start).await else {
+            return Ok(Collected {
+                ending: Ending::TimedOut,
+                stdout: Captured::default(),
+                stderr: Captured::default(),
+            });
+        };
+        collect(&mut started?.events, deadline, limits).await
+    }
+}
+
+fn too_late(path: &str) -> io::Error {
+    io::Error::new(io::ErrorKind::TimedOut, format!("the VM did not move {path} in time"))
+}

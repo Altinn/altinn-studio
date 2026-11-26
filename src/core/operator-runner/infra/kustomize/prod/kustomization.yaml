@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../base
+# Prod allows four runs at the same time. Measure how callers use the runs before you change this number.
+patches:
+  - target:
+      kind: ResourceQuota
+      name: core-operator-runners
+    patch: |-
+      - op: replace
+        path: /spec/hard
+        value:
+          requests.devices.altinn.studio/kvm: "4"
+          requests.cpu: "8"
+          requests.memory: 10Gi
+          count/jobs.batch: "20"

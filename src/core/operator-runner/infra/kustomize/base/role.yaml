@@ -1,0 +1,27 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: operator-runs
+  namespace: core-operator-runners
+rules:
+  # Read the pod spec of the run Jobs.
+  - apiGroups: [""]
+    resources: [podtemplates]
+    resourceNames: [operator-runner]
+    verbs: [get]
+  # Start, monitor and remove a run. The policy in admission-policy.yaml limits what these Jobs can contain.
+  - apiGroups: [batch]
+    resources: [jobs]
+    verbs: [create, get, list, watch, delete]
+  # Find the pod of a Job, its phase and its IP address.
+  - apiGroups: [""]
+    resources: [pods]
+    verbs: [get, list, watch]
+  # Admit as many runs as the quota has KVM slots.
+  - apiGroups: [""]
+    resources: [resourcequotas]
+    verbs: [get, list, watch]
+  # Log the warnings and errors of the operator runner before the operator deletes the Job and its log.
+  - apiGroups: [""]
+    resources: [pods/log]
+    verbs: [get]

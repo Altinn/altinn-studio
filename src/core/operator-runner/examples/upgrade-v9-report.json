@@ -1,0 +1,549 @@
+{
+  "message": "upgrade completed",
+  "output": "",
+  "error": "",
+  "steps": [
+    {
+      "name": "Semantic analysis",
+      "messages": [
+        {
+          "text": "Compiled the app against its current packages in 8.7s - detection uses exact symbol information.",
+          "status": "OK"
+        }
+      ]
+    },
+    {
+      "name": "Project file",
+      "messages": [
+        {
+          "text": "Altinn.App packages are at least 9.0.0-preview.10, target framework net11.0",
+          "status": "OK"
+        },
+        {
+          "text": "Target framework moved from net10.0 to net11.0",
+          "status": "OK"
+        }
+      ]
+    },
+    {
+      "name": "Dockerfile",
+      "messages": [
+        {
+          "text": "Updated to .NET image tag '11.0-alpine'",
+          "status": "OK"
+        }
+      ]
+    },
+    {
+      "name": "Dependent projects",
+      "messages": [
+        {
+          "text": "No other projects reference the app project",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "Swashbuckle package",
+      "messages": [
+        {
+          "text": "No Swashbuckle.AspNetCore package reference",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "Logging.Debug package",
+      "messages": [
+        {
+          "text": "No Microsoft.Extensions.Logging.Debug package reference",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "Implicit usings",
+      "messages": [
+        {
+          "text": "ImplicitUsings enabled in the project file",
+          "status": "OK"
+        },
+        {
+          "text": "Altinn.App.Core.Features added as a global using",
+          "status": "OK"
+        }
+      ]
+    },
+    {
+      "name": "Unused IPdfFormatter",
+      "messages": [
+        {
+          "text": "No IPdfFormatter implementations that can be removed safely",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "OpenAPI namespace",
+      "messages": [
+        {
+          "text": "Namespace migrated in /job/app/App/Program.cs: Microsoft.OpenApi.Models -> Microsoft.OpenApi",
+          "status": "OK"
+        }
+      ]
+    },
+    {
+      "name": "NuGet downgrades",
+      "messages": [
+        {
+          "text": "No package downgrades against the v9 dependency floors",
+          "status": "OK"
+        }
+      ]
+    },
+    {
+      "name": "IServiceTask namespace",
+      "messages": [
+        {
+          "text": "Old namespace 'Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks' not found in matching files",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "eFormidling metadata and receivers",
+      "messages": [
+        {
+          "text": "No IEFormidlingMetadata or IEFormidlingReceivers implementations to update",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "eFormidling client namespaces",
+      "messages": [
+        {
+          "text": "Old namespace 'Altinn.Common.EFormidlingClient' not found in matching files",
+          "status": "SKIP"
+        },
+        {
+          "text": "Old namespace 'Altinn.Common.EFormidlingClient.Configuration' not found in matching files",
+          "status": "SKIP"
+        },
+        {
+          "text": "Old namespace 'Altinn.Common.EFormidlingClient.Models' not found in matching files",
+          "status": "SKIP"
+        },
+        {
+          "text": "Old namespace 'Altinn.Common.EFormidlingClient.Models.SBD' not found in matching files",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "eFormidling registration",
+      "messages": [
+        {
+          "text": "No v8 eFormidling registration in use",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "CancellationToken parameters",
+      "messages": [
+        {
+          "text": "No IOrderDetailsCalculator or IPaymentProcessor implementations to update",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "Correspondence APIs",
+      "messages": [
+        {
+          "text": "No removed Correspondence APIs in use",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "PlatformHttpException APIs",
+      "messages": [
+        {
+          "text": "No changed PlatformHttpException APIs in use",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "IProcessExclusiveGateway signature",
+      "messages": [
+        {
+          "text": "No IProcessExclusiveGateway implementations to update",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "IProcessTask lifecycle stages",
+      "messages": [
+        {
+          "text": "No IProcessTask lifecycle members to update",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "Async suffix",
+      "messages": [
+        {
+          "text": "No renamed Async SDK methods in use",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "Misspelled APIs",
+      "messages": [
+        {
+          "text": "No renamed SDK API spellings in use",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "FileAnalysis namespace",
+      "messages": [
+        {
+          "text": "Old namespace 'Altinn.App.Core.Features.FileAnalyzis' not found in matching files",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "IText/TextClient",
+      "messages": [
+        {
+          "text": "No IText/TextClient usages to migrate",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "IAppMetadata properties",
+      "messages": [
+        {
+          "text": "No IAppMetadata method calls in use",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "IAppResources parameter names",
+      "messages": [
+        {
+          "text": "No IAppResources calls pass the model parameter by its old name",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "Redundant using directives",
+      "messages": [
+        {
+          "text": "Removed 5 redundant using directive(s) in /job/app/App/Program.cs",
+          "status": "OK"
+        }
+      ]
+    },
+    {
+      "name": "Removed v9 C# APIs",
+      "messages": [
+        {
+          "text": "No removed or changed v9 C# APIs in use",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "Maskinporten settings and scopes",
+      "messages": [
+        {
+          "text": "No obsolete MaskinportenSettings configuration and no Maskinporten scopes found",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "Removed AppSettings keys",
+      "messages": [
+        {
+          "text": "No removed AppSettings keys in the appsettings files",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "GeneralSettings host name",
+      "messages": [
+        {
+          "text": "Removed GeneralSettings:HostName from appsettings.json: the platform and studioctl set it.",
+          "status": "WARN"
+        }
+      ]
+    },
+    {
+      "name": "JsonObjectInDataResponse feature flag",
+      "messages": [
+        {
+          "text": "No JsonObjectInDataResponse feature flag in the appsettings files",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "EnforceDataTypeTaskId setting",
+      "messages": [
+        {
+          "text": "No AppSettings:EnforceDataTypeTaskId in the appsettings files",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "App file name casing",
+      "messages": [
+        {
+          "text": "App file and folder names match the names v9 reads",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "Launch settings",
+      "messages": [
+        {
+          "text": "Launch settings already up to date",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "Renamed text keys",
+      "messages": [
+        {
+          "text": "No overrides of the renamed text keys",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "Validation issue text keys",
+      "messages": [
+        {
+          "text": "No validation issue sets Description to a text key or next to CustomTextKey",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "Layout files",
+      "messages": [
+        {
+          "text": "No v9 layout changes found",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "Required field marker texts",
+      "messages": [
+        {
+          "text": "No overrides of the required field marker texts found",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "Required and optional field markers",
+      "messages": [
+        {
+          "text": "No redundant labelSettings.optionalIndicator settings found",
+          "status": "SKIP"
+        },
+        {
+          "text": "Following Designsystemet, required fields are now marked with a 'Må fylles ut' tag instead of '*', and fields that are not required are marked 'Valgfritt' by default. Set labelSettings.optionalIndicator to false on a component to hide the optional marker.",
+          "status": "INFO"
+        }
+      ]
+    },
+    {
+      "name": "Data processors",
+      "messages": [
+        {
+          "text": "No data processing rules found to convert",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "Legacy rule files",
+      "messages": [
+        {
+          "text": "No legacy rule files found to cleanup",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "Task-folder UI settings",
+      "messages": [
+        {
+          "text": "Migrated 1 UI folder(s)",
+          "status": "OK"
+        },
+        {
+          "text": "Folder operations: 1 renamed, 0 copied, 1 deleted source folder(s)",
+          "status": "OK"
+        }
+      ]
+    },
+    {
+      "name": "Subform PDF tasks",
+      "messages": [
+        {
+          "text": "No subform PDF tasks to migrate",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "Invalid input validation lists",
+      "messages": [
+        {
+          "text": "No Schema validation lists require Invalid",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "Index.cshtml",
+      "messages": [
+        {
+          "text": "Deleted Index.cshtml",
+          "status": "OK"
+        }
+      ]
+    },
+    {
+      "name": "Service task pages",
+      "messages": [
+        {
+          "text": "No service task lists a page",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "Data type taskIds",
+      "messages": [
+        {
+          "text": "Replaced taskId with taskIds on data type(s) 'model' in config/applicationmetadata.json; v9 reads only taskIds.",
+          "status": "OK"
+        }
+      ]
+    },
+    {
+      "name": "PDF service tasks",
+      "messages": [
+        {
+          "text": "No enablePdfCreation flags remain",
+          "status": "OK"
+        }
+      ]
+    },
+    {
+      "name": "Service-owner policy",
+      "messages": [
+        {
+          "text": "policy.xml already grants the service owner the required process-transition rights",
+          "status": "OK"
+        }
+      ]
+    },
+    {
+      "name": "eFormidling service tasks",
+      "messages": [
+        {
+          "text": "No legacy eFormidling configuration remains",
+          "status": "OK"
+        }
+      ]
+    },
+    {
+      "name": "User access to inserted service tasks",
+      "messages": [
+        {
+          "text": "No user rule needs extending to the inserted service tasks",
+          "status": "OK"
+        }
+      ]
+    },
+    {
+      "name": "Feedback tasks behind service tasks",
+      "messages": [
+        {
+          "text": "No feedback tasks behind service tasks found",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "Fiks Arkiv settings",
+      "messages": [
+        {
+          "text": "No Fiks Arkiv settings to migrate",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "allowedContributors spelling",
+      "messages": [
+        {
+          "text": "No allowedContributers to rename",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "Content types for generated files",
+      "messages": [
+        {
+          "text": "The data types for generated files accept their content types",
+          "status": "SKIP"
+        }
+      ]
+    },
+    {
+      "name": "Schema references",
+      "messages": [
+        {
+          "text": "Updated 5 schema reference(s) to https://altinn.studio/designer/app-dist/9.0.0-preview.10",
+          "status": "OK"
+        }
+      ]
+    },
+    {
+      "name": "Staging changes",
+      "messages": [
+        {
+          "text": "Staged the 12 updated file(s) - run 'git status' for overview and 'git diff --cached' to review them",
+          "status": "OK"
+        }
+      ]
+    }
+  ],
+  "exitCode": 0
+}

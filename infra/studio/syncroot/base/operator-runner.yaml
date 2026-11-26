@@ -1,0 +1,31 @@
+# This file deploys what the core operator needs to run operator runner Jobs. See src/core/operator-runner/README.md.
+# Only the environments with sandbox nodes include this file.
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: operator-runner
+  namespace: default
+spec:
+  interval: 5m
+  # The deploy-core-operator-runner workflow pushes one artifact per build SHA and tags it with the environment name.
+  url: oci://altinntjenestercontainerregistry.azurecr.io/altinn-studio/configs/core-operator-runner-repo
+  ref:
+    tag: ${ENVIRONMENT}
+  provider: azure
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: operator-runner
+  namespace: default
+spec:
+  # Do not set targetNamespace. The artifact has a cluster-scoped admission policy.
+  interval: 5m
+  sourceRef:
+    kind: OCIRepository
+    name: operator-runner
+    namespace: default
+  path: ./${ENVIRONMENT}
+  prune: true
+  wait: true
+  timeout: 5m
