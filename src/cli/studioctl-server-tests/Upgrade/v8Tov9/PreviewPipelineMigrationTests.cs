@@ -188,6 +188,13 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
                 {
                     public string ErrorMessage { get; init; } = "";
                 }
+
+                public sealed record ProcessStepRetryStrategy
+                {
+                    public int? MaxRetries { get; init; }
+
+                    public static ProcessStepRetryStrategy Exponential(TimeSpan baseInterval) => new();
+                }
         """;
 
     /// <summary>
@@ -362,6 +369,15 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
                 internal sealed record SuccessfulHandlerResult : HandlerResult;
 
                 internal sealed record FailedHandlerResult : HandlerResult;
+
+                public sealed record ProcessStepRetryStrategy
+                {
+                    internal ProcessStepRetryStrategy() { }
+
+                    public int? MaxRetries { get; internal init; }
+
+                    public static ProcessStepRetryStrategy Exponential(TimeSpan baseInterval) => new();
+                }
         """;
 
     /// <summary>
@@ -410,6 +426,8 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
                 public sealed record ProcessStepOptions
                 {
                     public TimeSpan? WaitBudget { get; init; }
+
+                    public ProcessStepRetryStrategy? RetryStrategy { get; init; }
                 }
 
             {{api}}
@@ -2963,6 +2981,48 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
+    public async Task RetryStrategiesBuiltOrCopiedByHand_AreReportedAtTheirLines_AndTheFactoriesAreLeft(bool semantic)
+    {
+        var options = Write(
+            "logic/RetryOptions.cs",
+            """
+            public static class RetryOptions
+            {
+                public static ProcessStepOptions Built() =>
+                    new() { RetryStrategy = new ProcessStepRetryStrategy { MaxRetries = 3 } };
+
+                public static ProcessStepOptions TargetTyped() => new() { RetryStrategy = new() { MaxRetries = 3 } };
+
+                public static ProcessStepRetryStrategy Copied(ProcessStepRetryStrategy strategy) =>
+                    strategy with { MaxRetries = 5 };
+
+                public static ProcessStepRetryStrategy FromFactory() =>
+                    ProcessStepRetryStrategy.Exponential(TimeSpan.FromSeconds(1));
+            }
+            """
+        );
+        var written = await ReadMigrated(options);
+
+        var result = Migrate(semantic);
+
+        var file = Path.Combine("logic", "RetryOptions.cs");
+        var built =
+            "ProcessStepRetryStrategy is created with its factories now, Exponential, Linear, Constant or None, which "
+            + "take the same values.";
+        var copied =
+            "ProcessStepRetryStrategy can no longer be copied with changed values. Create the one you need with "
+            + "Exponential, Linear, Constant or None.";
+        // Without the semantic model, the type of a target-typed new() is unknown.
+        string[] expected = semantic
+            ? [$"{file}:9: {built}", $"{file}:11: {built}", $"{file}:14: {copied}"]
+            : [$"{file}:9: {built}", $"{file}:14: {copied}"];
+        Assert.Equal(expected, result.Todos);
+        Assert.Equal(written, await ReadMigrated(options));
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task MailboxIdInAPropertyPattern_OnTheForwardException_IsRenamed(bool semantic)
     {
         var relay = Write(
@@ -3455,6 +3515,16 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         Assert.All(
             [PipelineApi.StageResult, PipelineApi.ServiceTaskResult, PipelineApi.ServiceTaskReplyResult],
             type => Assert.True(types.ContainsKey(process + type), type)
+        );
+        Assert.All(
+            PipelineApi.RetryStrategyFactories,
+            factory => Assert.True(HasMember(PipelineApi.RetryStrategy, factory), factory)
+        );
+        Assert.DoesNotContain(
+            Members(PipelineApi.RetryStrategy),
+            line =>
+                line.Contains($"{PipelineApi.RetryStrategy}()", StringComparison.Ordinal)
+                || line.Contains("init;", StringComparison.Ordinal)
         );
 
         foreach (var (removed, now) in PreviewPipelineMigration.PreviewApi.RemovedBuilderMethods)

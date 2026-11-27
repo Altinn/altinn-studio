@@ -826,12 +826,29 @@ internal sealed partial class PreviewPipelineMigration
             ? IsBuilderSymbol(type)
             : IsBuilder(container, null);
 
+    private static readonly string _retryStrategyFactories =
+        string.Join(", ", PipelineApi.RetryStrategyFactories.SkipLast(1))
+        + " or "
+        + PipelineApi.RetryStrategyFactories[^1];
+
+    private static readonly string _retryStrategyBuilt =
+        $"{PipelineApi.RetryStrategy} is created with its factories now, {_retryStrategyFactories}, which take the "
+        + "same values.";
+
+    private static readonly string _retryStrategyCopied =
+        $"{PipelineApi.RetryStrategy} can no longer be copied with changed values. Create the one you need with "
+        + $"{_retryStrategyFactories}.";
+
     /// <summary>
     /// Reports what still names the previews' API with its file and line: a removed type, a renamed or removed type
-    /// or a renamed member in code a directive disables, and a renamed member read or parameter named where the
-    /// upgrade cannot tell whether it is the App library's. A method reported as a whole is skipped, since its to-do
-    /// covers it.
+    /// or a renamed member in code a directive disables, a renamed member read or parameter named where the
+    /// upgrade cannot tell whether it is the App library's, and a <c>ProcessStepRetryStrategy</c> built or copied by
+    /// hand, which only its factories create now. A method reported as a whole is skipped, since its to-do covers it.
     /// </summary>
+    /// <remarks>
+    /// A strategy built with a target-typed <c>new()</c>, or copied from what a call returns, is found only with the
+    /// semantic model.
+    /// </remarks>
     private static void ReportLeftovers(ScannedCSharpFile file, TypeNames names, List<UpgradeMessage> messages)
     {
         var model = file.SemanticModel;
@@ -926,9 +943,42 @@ internal sealed partial class PreviewPipelineMigration
             }
         }
 
+        foreach (var node in nodes)
+        {
+            var todo = node switch
+            {
+                ObjectCreationExpressionSyntax created
+                    when TypeName(created.Type) is { } name
+                        && name.Identifier.ValueText == PipelineApi.RetryStrategy
+                        && names.IsAltinn(name, model) => _retryStrategyBuilt,
+                ImplicitObjectCreationExpressionSyntax created
+                    when IsOfAltinnType(created, PipelineApi.RetryStrategy, names, model) == true =>
+                    _retryStrategyBuilt,
+                WithExpressionSyntax copied
+                    when IsOfAltinnType(copied.Expression, PipelineApi.RetryStrategy, names, model) == true =>
+                    _retryStrategyCopied,
+                _ => null,
+            };
+            if (todo is not null)
+            {
+                found.Add((file.GetLine(node), todo));
+            }
+        }
+
         foreach (var (line, todo) in found)
         {
             messages.Todo($"{file.RelativePath}:{line}: {todo}");
         }
     }
+
+    /// <summary>
+    /// The name of the type as written, without its namespace.
+    /// </summary>
+    private static IdentifierNameSyntax? TypeName(TypeSyntax type) =>
+        type switch
+        {
+            IdentifierNameSyntax name => name,
+            QualifiedNameSyntax { Right: IdentifierNameSyntax name } => name,
+            _ => null,
+        };
 }
