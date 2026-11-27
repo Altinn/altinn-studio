@@ -974,6 +974,49 @@ public class WorkflowEngineCallbackControllerTests
         Assert.Empty(GetMutationRequests(setup.Services));
     }
 
+    [Fact]
+    public async Task ExecuteCommand_WhenSaveBuildsOnACapturedVersionSomethingElseReplaced_FailsAsStaleAndKeepsTheOtherChange()
+    {
+        var serviceTask = new LazyReadServiceTask(Guid.NewGuid(), contentToSave: "from the callback"u8.ToArray());
+        await using ControllerSetup setup = CreateLazyReadSetup(serviceTask, "captured"u8.ToArray());
+        setup.Services.Storage.AddDataRaw(
+            serviceTask.DataElementId,
+            "replaced"u8.ToArray(),
+            StorageClientInterceptor.CreateBlobVersionId(2)
+        );
+        setup.Services.Storage.SetStorageVersions(
+            InstanceOwnerPartyId,
+            setup.InstanceGuid,
+            instanceVersion: 2,
+            processStateVersion: 1
+        );
+
+        IActionResult result = await setup.Execute(
+            ExecuteServiceTask.Key,
+            stepId: Guid.NewGuid(),
+            LazyReadServiceTask.CommandPayload,
+            collectionKey: "service-task-chain"
+        );
+
+        Assert.Equal("captured"u8.ToArray(), serviceTask.ReadData);
+        var objectResult = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status422UnprocessableEntity, objectResult.StatusCode);
+        Assert.Equal("StoragePreconditionFailedException", Assert.IsType<ProblemDetails>(objectResult.Value).Title);
+        StorageClientInterceptor.RequestResponse mutationRequest = Assert.Single(GetMutationRequests(setup.Services));
+        Assert.Equal(
+            "1",
+            mutationRequest
+                .RequestHeaders.GetValues(StoragePreconditionHeaders.IfInstanceVersionMatchHeaderName)
+                .Single()
+        );
+        StorageInstanceMutationUpdateDataElement update = Assert.Single(
+            DeserializeMutationRequest(mutationRequest.RequestBody!).UpdateDataElements
+        );
+        Assert.Equal(StorageClientInterceptor.CreateBlobVersionId(1), update.ExpectedCurrentBlobVersion);
+        var (_, storedData) = setup.Services.Storage.GetInstanceAndData(InstanceOwnerPartyId, setup.InstanceGuid);
+        Assert.Equal("replaced"u8.ToArray(), storedData[serviceTask.DataElementId.ToString()]);
+    }
+
     private static ControllerSetup CreateLazyReadSetup(LazyReadServiceTask serviceTask, byte[] capturedContent) =>
         CreateSetup(
             services =>
@@ -1642,7 +1685,7 @@ public class WorkflowEngineCallbackControllerTests
         }
     }
 
-    private sealed class LazyReadServiceTask(Guid dataElementId) : IServiceTask
+    private sealed class LazyReadServiceTask(Guid dataElementId, byte[]? contentToSave = null) : IServiceTask
     {
         public const string ServiceTaskType = "LazyReadForCallbackTest";
 
@@ -1662,6 +1705,14 @@ public class WorkflowEngineCallbackControllerTests
             ReadData = (
                 await context.InstanceDataMutator.GetBinaryData(new DataElementIdentifier(dataElementId))
             ).ToArray();
+            if (contentToSave is not null)
+            {
+                context.InstanceDataMutator.UpdateBinaryDataElement(
+                    new DataElementIdentifier(dataElementId),
+                    ContentType,
+                    contentToSave
+                );
+            }
             return ServiceTaskResult.Success();
         }
     }
