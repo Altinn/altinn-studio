@@ -135,7 +135,9 @@ spec:
               # and what each filter processor dropped, by its name, such as filter/unrouted.
               # A few series per Collector.
               - '^otelcol_receiver_(accepted|refused)_(spans|metric_points|log_records)$'
-              - '^otelcol_processor_filter_(spans|datapoints|logs)_filtered$'
+              # The filter processor names them with a dot, as in
+              # otelcol_processor_filter_spans.filtered, which Prometheus shows as an underscore.
+              - '^otelcol_processor_filter_(spans|datapoints|logs)\.filtered$'
       tail_sampling:
         decision_wait: 40s
         num_traces: 50000
