@@ -117,7 +117,7 @@ describe('PreviewFormDataDialog', () => {
 
 type RenderArgs = {
   readPreviewFormData?: () => Promise<PreviewFormData>;
-  updatePreviewFormData?: () => Promise<unknown>;
+  updatePreviewFormData?: () => Promise<void>;
   onSaved?: () => void;
   open?: boolean;
 };
