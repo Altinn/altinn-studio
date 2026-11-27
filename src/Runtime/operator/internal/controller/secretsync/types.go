@@ -13,9 +13,16 @@ import (
 
 var errGrafanaCRHasNoExternalSpec = errors.New("grafana CR has no external spec")
 
-// SecretSyncMapping defines a source secret to copy to a destination namespace.
+// SecretSyncMapping defines a source secret to copy to a destination namespace. Several mappings can share a source.
+//
+// BuildOutput writes one key, DestKey, into the destination. BuildData writes the destination's whole data instead,
+// and takes precedence. Without either, the destination gets a copy of the source's data.
+//
+// The destination gets the source's labels and annotations, unless OwnMetadata is set. Either way the operator
+// labels it as its own.
 type SecretSyncMapping struct {
 	BuildOutput     func(ctx context.Context, k8sClient client.Client, data map[string][]byte) ([]byte, error)
+	BuildData       func(ctx context.Context, k8sClient client.Client, data map[string][]byte) (map[string][]byte, error)
 	ClearOutput     func() []byte
 	SourceName      string
 	SourceNamespace string
@@ -23,6 +30,7 @@ type SecretSyncMapping struct {
 	DestNamespace   string
 	DestKey         string
 	CanDeleteDest   bool
+	OwnMetadata     bool
 }
 
 // DefaultMappings returns the default secret sync mappings.
@@ -59,6 +67,29 @@ func DefaultMappings() []SecretSyncMapping {
 						"Url":   grafanaURL,
 					},
 				})
+			},
+		},
+		{
+			// v8 apps read it from their environment, through envFrom in src/App/azure-pipelines/deploy-app.yaml,
+			// so the deploy no longer looks it up in the service owner's subscription.
+			SourceNamespace: appInsightsSourceNamespace,
+			SourceName:      appInsightsSourceName,
+			DestNamespace:   "default",
+			DestName:        "apps-runtime-telemetry-env",
+			CanDeleteDest:   true,
+			// The source's metadata is the ExternalSecret's, such as its data hash, and would mark the copy as
+			// managed by External Secrets.
+			OwnMetadata: true,
+			// An invalid value fails the sync, so the destination keeps the last valid one.
+			BuildData: func(_ context.Context, _ client.Client, data map[string][]byte) (map[string][]byte, error) {
+				cs, err := parseConnectionString(data[appInsightsSourceKey])
+				if err != nil {
+					return nil, err
+				}
+				return map[string][]byte{
+					"ApplicationInsights__ConnectionString":   []byte(cs.value),
+					"ApplicationInsights__InstrumentationKey": []byte(cs.instrumentationKey),
+				}, nil
 			},
 		},
 	}

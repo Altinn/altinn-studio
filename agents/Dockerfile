@@ -156,6 +156,28 @@ RUN case "${TARGETARCH}" in \
     && HOME="${scratch}" typst --version | grep -qF "typst ${TYPST_VERSION} " \
     && rm -rf "${scratch}"
 
+# Hugo builds altinn-studio-docs. Its CI pins this version of the extended edition in the
+# hugo-verifications.yml and hugo.yml workflows, so the version moves together with them, and the
+# digests are pinned here per architecture.
+ARG HUGO_VERSION=0.162.0
+
+RUN case "${TARGETARCH}" in \
+        amd64) PORTABLE_ARCH=amd64; \
+            HUGO_SHA256=b118d52077bcb301c8d8031f116c04d9dd848e4a5cab572ca10905ea94791216 ;; \
+        arm64) PORTABLE_ARCH=arm64; \
+            HUGO_SHA256=183462187e0a16928f76831c3c05266e8174cb6ff010612621c199bc59b3a16e ;; \
+        *) echo "unsupported target architecture: ${TARGETARCH}" >&2; exit 1 ;; \
+    esac \
+    && curl -fsSL \
+        "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-${PORTABLE_ARCH}.tar.gz" \
+        -o /tmp/hugo.tar.gz \
+    && echo "${HUGO_SHA256}  /tmp/hugo.tar.gz" | sha256sum -c - \
+    && tar -xzf /tmp/hugo.tar.gz -C /tmp hugo \
+    && install -m 0755 /tmp/hugo /usr/local/bin/hugo \
+    && rm -f /tmp/hugo.tar.gz /tmp/hugo \
+    && hugo version | grep -qF "hugo v${HUGO_VERSION}-" \
+    && hugo version | grep -qF "+extended "
+
 # Installs the .NET tools listed in dotnet-tools.json, kept in the .NET tool manifest format so
 # Renovate updates it, to a shared path because the host resynchronizes the Agent's home directory.
 # .NET 11 keeps its named mutexes in XDG_RUNTIME_DIR and refuses one another user owns, and the base

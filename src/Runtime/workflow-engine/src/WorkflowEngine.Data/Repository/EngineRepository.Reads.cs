@@ -770,6 +770,84 @@ internal sealed partial class EngineRepository
         }
     }
 
+    /// <summary>
+    /// Each branch reads only the statuses it counts, from <c>ix_workflows_namespace_status_incomplete</c>,
+    /// <c>ix_workflows_namespace_status_failed</c> and the enqueued rows, so the statement grows with the incomplete
+    /// and failed workflows and never reads the completed and abandoned ones that fill the table.
+    /// </summary>
+    /// <remarks>
+    /// Every status is counted by one branch, the enqueued ones split by whether they start in the future, and the
+    /// branches share the statement's snapshot, so a workflow that changes status during the read is counted once.
+    /// </remarks>
+    internal const string IncompleteAndFailedWorkflowCountsSql = $"""
+        SELECT namespace, status, false AS scheduled, COUNT(*)::int
+        FROM engine.workflows
+        WHERE status IN ({PersistentItemStatusMap.IncompleteSqlList})
+          AND status <> {PersistentItemStatusMap.EnqueuedSqlLiteral}
+        GROUP BY namespace, status
+        UNION ALL
+        SELECT namespace, status, false AS scheduled, COUNT(*)::int
+        FROM engine.workflows
+        WHERE status IN ({PersistentItemStatusMap.FailedSqlList})
+        GROUP BY namespace, status
+        UNION ALL
+        SELECT namespace, {PersistentItemStatusMap.EnqueuedSqlLiteral} AS status,
+               COALESCE(start_at > @now, false) AS scheduled, COUNT(*)::int
+        FROM engine.workflows
+        WHERE status = {PersistentItemStatusMap.EnqueuedSqlLiteral}
+        GROUP BY namespace, scheduled
+        """;
+
+    /// <inheritdoc/>
+    public async Task<IReadOnlyList<NamespaceStatusCount>> CountIncompleteAndFailedWorkflowsByNamespace(
+        CancellationToken cancellationToken = default
+    )
+    {
+        using var activity = Metrics.Source.StartActivity(
+            "EngineRepository.CountIncompleteAndFailedWorkflowsByNamespace"
+        );
+        activity?.DontRecord();
+        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        try
+        {
+            logger.CountingWorkflows("incomplete and failed, per namespace");
+
+            await using var cmd = dataSource.CreateCommand(IncompleteAndFailedWorkflowCountsSql);
+            cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", timeProvider.GetUtcNow()));
+
+            var counts = new List<NamespaceStatusCount>();
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+            {
+#pragma warning disable CA1849, S6966 // Synchronous GetFieldValue is intentional - data is already buffered after ReadAsync
+                counts.Add(
+                    new NamespaceStatusCount(
+                        reader.GetString(0),
+                        (PersistentItemStatus)reader.GetInt32(1),
+                        reader.GetBoolean(2),
+                        reader.GetInt32(3)
+                    )
+                );
+#pragma warning restore CA1849, S6966
+            }
+
+            logger.SuccessfullyFetchedWorkflows(counts.Sum(x => x.Count));
+
+            return counts;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            logger.FailedToFetchWorkflows(ex.Message, ex);
+            throw;
+        }
+    }
+
     /// <inheritdoc/>
     public async Task<PersistentItemStatus?> GetWorkflowStatus(
         Guid workflowId,

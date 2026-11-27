@@ -15,3 +15,6 @@
 - App frontend's Cypress tests find Chromium only by path, so pass `--browser "$CHROME_PATH"`. Run `yarn cypress install`
   once per Cypress version, since Yarn skips its postinstall.
 - `hurl` is Ubuntu's 7.1, where CI uses 8.0.
+- Hugo builds altinn-studio-docs at the version its CI pins. Its CI then checks the built site's links with hyperlink,
+  which is not installed and publishes no Linux arm64 build. When you need that check, build it with
+  `cargo install --locked hyperlink@<version>`, at the version `hugo-verifications.yml` pins.

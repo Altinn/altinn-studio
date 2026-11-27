@@ -42,6 +42,9 @@ internal sealed class MeterCollector : IDisposable
     public List<long> Values(string instrumentName) =>
         _taken.Where(m => m.Name == instrumentName).Select(m => m.Value).ToList();
 
+    public List<(long Value, KeyValuePair<string, object?>[] Tags)> Measurements(string instrumentName) =>
+        _taken.Where(m => m.Name == instrumentName).Select(m => (m.Value, m.Tags)).ToList();
+
     public Dictionary<string, long> ByTag(string instrumentName, string tagKey) =>
         _taken
             .Where(m => m.Name == instrumentName)

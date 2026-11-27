@@ -14,6 +14,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - Deleting a row in a repeating group deletes the attachments uploaded in that row and its nested rows, instead of leaving them in the instance. ([#22139](https://github.com/Altinn/altinn-studio/pull/22139))
 - Deleting an attachment while the form is being saved no longer fails with an error message. ([#22139](https://github.com/Altinn/altinn-studio/pull/22139))
+- Apps running against LocalTest no longer log `Not able to generate access token` on every call to Register, Profile and other platform services. ([#22165](https://github.com/Altinn/altinn-studio/pull/22165))
+- PDFs of forms with large repeating groups are generated faster. A form with 936 rows of radio buttons and date pickers took 11 seconds to become a PDF, and now takes 5. ([#22148](https://github.com/Altinn/altinn-studio/pull/22148))
+- A process transition no longer stays in `processing` when the workflow engine runs a step again after that step deleted or replaced a file, as the payment task does with an unfinished payment. The retry reads the file as it was and completes. This also covers process hooks and service tasks. ([#21909](https://github.com/Altinn/altinn-studio/issues/21909))
+- A retried eFormidling shipment is no longer sent without an attachment that failed to upload. When the app resumes a message that an earlier attempt created, it passes over only the files that attempt uploaded. Any other upload error fails the task, and the workflow engine tries again unless the integrasjonspunkt rejected the upload. ([#21909](https://github.com/Altinn/altinn-studio/issues/21909))
 
 ## [9.0.0-preview.15] - 2026-11-25
 
@@ -117,6 +121,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - List tables with many text cells render faster, including read-only tables. ([#21814](https://github.com/Altinn/altinn-studio/pull/21814))
 - Forms with many Datepicker components render and respond faster while their calendars are closed. ([#21813](https://github.com/Altinn/altinn-studio/pull/21813))
 - A signee's SMS or email notification in `CommunicationConfig.Notification` without a `MobileNumber` or `EmailAddress` now goes to their registered contact details instead of failing with Correspondence error 3012 or sending the generic email. Persons configured with `Sms` now get an SMS, which the service owner pays for. Organizations with no notification addresses registered in Altinn get no SMS or email. ([#21391](https://github.com/Altinn/altinn-studio/pull/21391))
+- A 403 from Storage when a process step's changes are saved is now logged with an explanation: the app owner probably lacks a right in `config/authorization/policy.xml`, and the log names the rights to look for. The step still retries, so deploying a fixed policy lets the process continue. ([#21739](https://github.com/Altinn/altinn-studio/pull/21739))
 - In delegated signing, an organization that a person signed for no longer keeps read and sign rights on the instance after the task ends. Extra actions from `AdditionalActionsToDelegate`, such as `reject`, are revoked too. Rights left on tasks that already ended are not removed. ([#21399](https://github.com/Altinn/altinn-studio/pull/21399))
 
 ### Removed

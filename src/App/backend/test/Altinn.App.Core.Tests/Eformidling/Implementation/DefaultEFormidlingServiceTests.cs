@@ -502,12 +502,122 @@ public class DefaultEFormidlingServiceTests
         Assert.Contains("levetid_utlopt", exception.Message);
     }
 
+    // Built from the integrasjonspunkt's source, which reports this refusal as it reports a duplicate message.
+    private const string DuplicateFilenameBody =
+        "{\n"
+        + "  \"timestamp\" : \"2026-05-28T14:52:17.102334112+02:00\",\n"
+        + "  \"exception\" : \"no.difi.meldingsutveksling.exceptions.DuplicateFilenameException\",\n"
+        + "  \"message\" : \"Filename already exists in message: attachment.txt.\",\n"
+        + "  \"status\" : 400,\n"
+        + "  \"error\" : \"Bad Request\",\n"
+        + "  \"path\" : \"/api/messages/out/e9f0f271-a01e-4457-8a24-3c2079824717\"\n"
+        + "}";
+
+    [Fact]
+    public async Task SendEFormidlingShipment_resuming_passes_over_files_the_earlier_attempt_uploaded()
+    {
+        await using var fixture = CreateFixture(
+            data: [new DataElement { Id = Guid.NewGuid().ToString(), DataType = FileAttachmentsDataType }],
+            setupEFormidlingClient: static c =>
+            {
+                SetupDuplicateCreate(c, "opprettet");
+                c.Setup(ec =>
+                        ec.UploadAttachment(
+                            It.IsAny<Stream>(),
+                            It.IsAny<string>(),
+                            It.IsAny<string>(),
+                            It.IsAny<CancellationToken>()
+                        )
+                    )
+                    .ThrowsAsync(Rejected(DuplicateFilenameBody));
+            }
+        );
+        var (sp, _, instanceGuid, dataAccessor) = fixture;
+        var defaultEformidlingService = sp.GetRequiredService<IEFormidlingService>();
+
+        await defaultEformidlingService.SendEFormidlingShipment(dataAccessor.Object, TestConfiguration);
+
+        var eFormidlingClient = fixture.Mock<IEFormidlingClient>();
+        eFormidlingClient.Verify(
+            ec =>
+                ec.UploadAttachment(
+                    It.IsAny<Stream>(),
+                    instanceGuid.ToString(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Exactly(2)
+        );
+        eFormidlingClient.Verify(ec => ec.SendMessage(instanceGuid.ToString(), It.IsAny<CancellationToken>()));
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.InternalServerError, "Internal Server Error")]
+    [InlineData(
+        HttpStatusCode.BadRequest,
+        "{ \"exception\" : \"no.difi.meldingsutveksling.exceptions.SomethingElseException\", \"message\" : \"boom\" }"
+    )]
+    public async Task SendEFormidlingShipment_resuming_does_not_send_when_an_upload_fails_for_another_reason(
+        HttpStatusCode status,
+        string body
+    )
+    {
+        await using var fixture = CreateFixture(
+            data: [new DataElement { Id = Guid.NewGuid().ToString(), DataType = FileAttachmentsDataType }],
+            setupEFormidlingClient: c =>
+            {
+                SetupDuplicateCreate(c, "opprettet");
+                c.Setup(ec =>
+                        ec.UploadAttachment(
+                            It.IsAny<Stream>(),
+                            It.IsAny<string>(),
+                            FileAttachmentsDataType,
+                            It.IsAny<CancellationToken>()
+                        )
+                    )
+                    .ThrowsAsync(new PlatformHttpException(new PlatformHttpResponse(status) { Content = body }, body));
+            }
+        );
+        var (sp, _, _, dataAccessor) = fixture;
+        var defaultEformidlingService = sp.GetRequiredService<IEFormidlingService>();
+
+        PlatformHttpException exception = await Assert.ThrowsAsync<PlatformHttpException>(() =>
+            defaultEformidlingService.SendEFormidlingShipment(dataAccessor.Object, TestConfiguration)
+        );
+
+        Assert.Equal(status, exception.Response.StatusCode);
+        fixture
+            .Mock<IEFormidlingClient>()
+            .Verify(ec => ec.SendMessage(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Theory]
+    [InlineData(DuplicateFilenameBody, true)]
+    [InlineData("not json DuplicateFilenameException", true)]
+    [InlineData("{ \"message\" : \"DuplicateFilenameException\" }", true)]
+    [InlineData(DuplicateMessageBody, false)]
+    [InlineData(
+        "{ \"exception\" : \"java.io.IOException\", \"message\" : \"Could not store: DuplicateFilenameException\" }",
+        false
+    )]
+    [InlineData("{ \"exception\" : null, \"message\" : \"DuplicateFilenameException\" }", false)]
+    [InlineData("Connection refused", false)]
+    [InlineData("", false)]
+    public void IsDuplicateFilenameError_matches_only_duplicate_filename_errors(string body, bool expected)
+    {
+        Assert.Equal(expected, DefaultEFormidlingService.IsDuplicateFilenameError(Rejected(body)));
+    }
+
     [Theory]
     [InlineData(DuplicateMessageBody, true)]
     // Not JSON, but the truncated or plain-text body still names the exception.
     [InlineData("not json MessageAlreadyExistsException", true)]
     [InlineData(
         "{ \"exception\" : \"no.difi.meldingsutveksling.exceptions.SomethingElseException\", \"message\" : \"boom\" }",
+        false
+    )]
+    [InlineData(
+        "{ \"exception\" : \"java.io.IOException\", \"message\" : \"Wraps a MessageAlreadyExistsException\" }",
         false
     )]
     [InlineData("Connection refused", false)]

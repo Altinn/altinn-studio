@@ -1,3 +1,4 @@
+using System.Text.Json;
 using WorkflowEngine.Models;
 using WorkflowEngine.Telemetry;
 
@@ -45,5 +46,13 @@ internal static class TelemetryTagExtensions
         /// </summary>
         public (string key, object? value)[] GetHistogramTags() =>
             [(TelemetryAttributes.StepCommandType, step.Command.Type)];
+    }
+
+    extension(PersistentItemStatus status)
+    {
+        /// <summary>
+        /// The status as <see cref="TelemetryAttributes.WorkflowStatus"/> carries it: <c>dependency_failed</c>.
+        /// </summary>
+        public string ToTelemetryValue() => JsonNamingPolicy.SnakeCaseLower.ConvertName(status.ToString());
     }
 }

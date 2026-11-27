@@ -30,6 +30,9 @@ internal sealed class FleetTestContext : IDisposable
 
     public string Root { get; }
 
+    /// <summary>A folder outside the store, for files such as the analysis database.</summary>
+    public string Outside { get; } = Folder.CreateTemporary();
+
     public FleetStore Store { get; }
 
     public FakeAltinn Altinn { get; } = new();
@@ -92,5 +95,6 @@ internal sealed class FleetTestContext : IDisposable
     {
         _http.Dispose();
         Directory.Delete(Root, recursive: true);
+        Directory.Delete(Outside, recursive: true);
     }
 }

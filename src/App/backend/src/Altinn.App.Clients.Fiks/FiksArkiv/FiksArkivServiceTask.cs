@@ -66,7 +66,9 @@ internal sealed class FiksArkivServiceTask : IServiceTask
 
     private async Task<ServiceTaskOpeningStageResult> SendToArchive(StageContext context, ServiceTaskMailbox mailbox)
     {
-        // Two identities: klientMeldingId is the idempotency key (StepId, stable across retries);
+        // Two identities. klientMeldingId is the step id, the same on every attempt, which is how the Fiks
+        // protocol lets the archive recognize a repeated send. It is no guarantee: Fiks IO delivers every
+        // send, and whether a repeat is archived twice is up to the archive system.
         // klientKorrelasjonsId is echoed on every reply, so it must be the mailbox. Swapping them fails
         // silently — the send succeeds and no answer is routable.
         Guid sendersReference = context.StepId;

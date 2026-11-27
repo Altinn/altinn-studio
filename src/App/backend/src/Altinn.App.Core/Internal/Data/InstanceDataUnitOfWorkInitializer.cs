@@ -55,12 +55,50 @@ internal class InstanceDataUnitOfWorkInitializer
     /// Initializes an <see cref="InstanceDataUnitOfWork"/> with all the services it needs.
     /// This is marked as internal so that this class can only be used internally. Even if it is public for usage (as a DI service) in public classes.
     /// </summary>
-    internal async Task<InstanceDataUnitOfWork> Init(
+    internal Task<InstanceDataUnitOfWork> Init(
         Instance instance,
         StorageVersionMetadata versions,
         string? taskId,
         string? language,
         StorageAuthenticationMethod? authenticationMethodForAllDataTypes = null
+    ) =>
+        Init(
+            instance,
+            versions,
+            taskId,
+            language,
+            authenticationMethodForAllDataTypes,
+            readsCapturedBlobVersions: false
+        );
+
+    /// <summary>
+    /// Initializes the <see cref="InstanceDataUnitOfWork"/> of a workflow callback from the instance that its callback
+    /// state carries. It reads and writes as the service owner, and reads a binary element by the blob version the
+    /// instance lists for it. A step that runs again after its save was committed then reads what its first attempt
+    /// read, also when that attempt deleted or replaced the element.
+    /// </summary>
+    internal Task<InstanceDataUnitOfWork> InitForWorkflowCallback(
+        Instance instance,
+        StorageVersionMetadata versions,
+        string? taskId,
+        string? language
+    ) =>
+        Init(
+            instance,
+            versions,
+            taskId,
+            language,
+            StorageAuthenticationMethod.ServiceOwner(),
+            readsCapturedBlobVersions: true
+        );
+
+    private async Task<InstanceDataUnitOfWork> Init(
+        Instance instance,
+        StorageVersionMetadata versions,
+        string? taskId,
+        string? language,
+        StorageAuthenticationMethod? authenticationMethodForAllDataTypes,
+        bool readsCapturedBlobVersions
     )
     {
         var applicationMetadata = _applicationMetadata.ApplicationMetadata;
@@ -77,7 +115,8 @@ internal class InstanceDataUnitOfWorkInitializer
             _frontEndSettings,
             taskId,
             language,
-            _telemetry
+            _telemetry,
+            readsCapturedBlobVersions
         );
 
         if (authenticationMethodForAllDataTypes is not null)

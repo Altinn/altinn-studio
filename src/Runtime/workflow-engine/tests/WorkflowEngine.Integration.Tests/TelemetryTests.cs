@@ -533,10 +533,9 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         var stepSubmits = submitStatuses.Where(s => s.ParentSpanId == processStep.SpanId).ToList();
         var workflowSubmits = submitStatuses.Where(s => s.ParentSpanId == processWorkflow.SpanId).ToList();
         Assert.Equal("step_completed", Assert.Single(stepSubmits).GetTagItem("altinn.workflow_engine.update.reason"));
-        Assert.Equal(
-            "workflow_completed",
-            Assert.Single(workflowSubmits).GetTagItem("altinn.workflow_engine.update.reason")
-        );
+        var workflowSubmit = Assert.Single(workflowSubmits);
+        Assert.Equal("workflow_completed", workflowSubmit.GetTagItem("altinn.workflow_engine.update.reason"));
+        Assert.Equal("completed", workflowSubmit.GetTagItem("altinn.workflow_engine.workflow.status"));
         Assert.Equal("step_started", submitAndForgets[0].GetTagItem("altinn.workflow_engine.update.reason"));
 
         // ───────────────────────────────────────────────────────────

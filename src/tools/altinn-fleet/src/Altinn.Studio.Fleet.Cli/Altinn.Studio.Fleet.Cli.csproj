@@ -3,7 +3,6 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Altinn.Studio.Fleet.Cli</RootNamespace>
     <AssemblyName>fleet</AssemblyName>
-    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>

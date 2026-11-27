@@ -203,6 +203,16 @@ internal sealed class DataClientMock : IDataClient, IDataClientWithStorageMetada
         return bytes;
     }
 
+    // The file store keeps only the current content of a data element.
+    Task<byte[]?> IDataClientWithStorageMetadata.GetBlobVersionBytes(
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        Guid dataId,
+        string blobVersionId,
+        StorageAuthenticationMethod? authenticationMethod,
+        CancellationToken cancellationToken
+    ) => Task.FromResult<byte[]?>(null);
+
     public async Task<List<AttachmentList>> GetBinaryDataList(
         int instanceOwnerPartyId,
         Guid instanceGuid,

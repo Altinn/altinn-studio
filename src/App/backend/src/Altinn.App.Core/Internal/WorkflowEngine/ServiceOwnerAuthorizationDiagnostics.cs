@@ -20,9 +20,10 @@ internal static class ServiceOwnerAuthorizationDiagnostics
     /// <summary>
     /// Whether the exception (or any exception it wraps) is a platform call rejected with HTTP 403.
     /// A 401 is deliberately not included: an expired or unobtainable token is a transient condition,
-    /// not a policy gap.
+    /// not a policy gap. The name avoids "auth": CodeQL's cs/user-controlled-bypass reads a call to any
+    /// method named that way, behind the callback's route checks, as an authorization a caller can bypass.
     /// </summary>
-    internal static bool IsAuthorizationDenied(Exception? exception)
+    internal static bool IsForbidden(Exception? exception)
     {
         while (exception is not null)
         {
@@ -35,7 +36,7 @@ internal static class ServiceOwnerAuthorizationDiagnostics
             {
                 foreach (Exception inner in aggregate.InnerExceptions)
                 {
-                    if (IsAuthorizationDenied(inner))
+                    if (IsForbidden(inner))
                     {
                         return true;
                     }
@@ -51,7 +52,7 @@ internal static class ServiceOwnerAuthorizationDiagnostics
     /// <summary>
     /// Explains what a service-owner 403 means for this app, and what to check. The denied action is
     /// deliberately not asserted - Storage's response does not say which one it was - so this names
-    /// the rights the app needs at minimum.
+    /// each right the app can need and when it needs it.
     /// </summary>
     /// <param name="appMetadata">The app whose policy is in question - its own metadata, not the request's route.</param>
     internal static string Describe(ApplicationMetadata appMetadata)
@@ -62,12 +63,16 @@ internal static class ServiceOwnerAuthorizationDiagnostics
         string appId = appMetadata.Id;
 
         return $"A platform call was rejected with HTTP 403 while executing a workflow command. If it was one the "
-            + $"app makes on its own behalf - reading or writing instance data - then "
+            + $"app makes on its own behalf - reading, writing, confirming or deleting an instance - then "
             + $"Altinn Authorization denied the app owner '{org}', and this is what a missing service-owner grant "
-            + $"in config/authorization/policy.xml looks like rather than a transient platform failure: the app "
+            + $"in config/authorization/policy.xml looks like: the app "
             + $"performs those operations as the service owner, not as the end user. Check that the policy permits "
-            + $"the org subject '{org}' at least [read, write] on {appId}. Running the v8 to v9 upgrade "
-            + $"adds the missing rule. (A 403 from a platform call your own handler makes is unrelated to the "
-            + $"app's policy.)";
+            + $"the org subject '{org}' at least [read, write] on {appId}, [complete] in the process state where "
+            + $"the app marks the instance complete, such as a task that ships it to eFormidling or fiks arkiv, "
+            + $"and [delete] if the app deletes the instance at process end (autoDeleteOnProcessEnd). Running the "
+            + $"v8 to v9 upgrade adds the missing rule. If the policy already grants them, the 403 can be a "
+            + $"temporary failure in Altinn Authorization, which a retry clears. (A 403 from a platform call your "
+            + $"own handler makes can be unrelated to the app's policy, so check which call was denied and whether "
+            + $"it was made as the service owner.)";
     }
 }

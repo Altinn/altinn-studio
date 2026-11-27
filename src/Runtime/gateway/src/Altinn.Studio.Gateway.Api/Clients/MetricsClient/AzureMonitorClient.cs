@@ -27,6 +27,9 @@ internal sealed class AzureMonitorClient(
     internal static readonly TimeSpan MaxReportPeriod = TimeSpan.FromDays(31) + TimeSpan.FromHours(1);
     private const int MaxActivityWindowDays = 30;
 
+    // Request names as each exporter writes them: the classic Application Insights SDK names the action, the
+    // OpenTelemetry .NET exporter writes the route as it is, and the Collector's azure_monitor exporter, which v9 apps
+    // export through in the runtime clusters, starts the route with a slash.
     private static readonly IDictionary<string, string[]> _operationNames = new Dictionary<string, string[]>
     {
         {
@@ -34,6 +37,7 @@ internal sealed class AzureMonitorClient(
             [
                 "PUT Process/NextElement [app/instanceGuid/instanceOwnerPartyId/org]",
                 "PUT {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/next",
+                "PUT /{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/next",
             ]
         },
         {
@@ -43,6 +47,8 @@ internal sealed class AzureMonitorClient(
                 "POST Instances/PostSimplified [app/org]",
                 "POST {org}/{app}/instances",
                 "POST {org}/{app}/instances/create",
+                "POST /{org}/{app}/instances",
+                "POST /{org}/{app}/instances/create",
             ]
         },
     };
