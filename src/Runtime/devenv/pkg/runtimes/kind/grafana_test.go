@@ -168,6 +168,27 @@ spec:
 	}
 }
 
+func TestLoadGrafanaContent_RejectsDashboardFileThatCannotNameAConfigMap(t *testing.T) {
+	for _, file := range []string{"workflow engine.json", "Gateway.json"} {
+		t.Run(file, func(t *testing.T) {
+			repository := t.TempDir()
+			dir := filepath.Join(repository, "products", dashboardsProduct, "dashboards")
+			if err := os.MkdirAll(dir, 0o750); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(filepath.Join(dir, file), []byte(`{}`), 0o600); err != nil {
+				t.Fatal(err)
+			}
+
+			_, err := loadGrafanaContent(repository)
+
+			if !errors.Is(err, errDashboardFileName) || !strings.Contains(err.Error(), file) {
+				t.Errorf("loadGrafanaContent() error = %v, want %v naming %s", err, errDashboardFileName, file)
+			}
+		})
+	}
+}
+
 func TestReadGrafanaResourceFile_MultipleDocuments(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "resources.yaml")
 	resources := []byte(`---

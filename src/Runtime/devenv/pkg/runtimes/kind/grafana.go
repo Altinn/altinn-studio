@@ -18,6 +18,7 @@ import (
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/validation"
 	utilyaml "k8s.io/apimachinery/pkg/util/yaml"
 	"sigs.k8s.io/yaml"
 
@@ -54,7 +55,10 @@ const (
 	authorizationValue     = "${authorization}"
 )
 
-var errDashboardsDatasourceURL = errors.New("datasource URL is not on the observability-proxy")
+var (
+	errDashboardsDatasourceURL = errors.New("datasource URL is not on the observability-proxy")
+	errDashboardFileName       = errors.New("dashboard file name cannot name a ConfigMap")
+)
 
 // resolveDashboardsRepository returns the dashboards checkout to read: the one given, or a
 // clone in the fixture's cache, updated to the repository's main branch when it can be
@@ -122,7 +126,7 @@ func loadGrafanaContent(repository string) (manifests.GrafanaContent, error) {
 			"type":                  "file",
 			"allowUiUpdates":        true,
 			"updateIntervalSeconds": dashboardsReloadSeconds,
-			"options":               map[string]any{"path": "/var/lib/grafana/dashboards"},
+			"options":               map[string]any{"path": manifests.GrafanaDashboardsPath},
 		}},
 	})
 	if err != nil {
@@ -303,6 +307,12 @@ func readDashboards(dir string) (map[string]string, error) {
 	for _, entry := range entries {
 		if entry.IsDir() || filepath.Ext(entry.Name()) != ".json" {
 			continue
+		}
+		configMap := manifests.DashboardConfigMapName(entry.Name())
+		if problems := validation.IsDNS1123Subdomain(configMap); len(problems) > 0 {
+			return nil, fmt.Errorf(
+				"%w: %s gives %q: %s", errDashboardFileName, entry.Name(), configMap, strings.Join(problems, "; "),
+			)
 		}
 		// #nosec G304 -- Paths come from the dashboards checkout.
 		data, err := os.ReadFile(filepath.Join(dir, entry.Name()))
