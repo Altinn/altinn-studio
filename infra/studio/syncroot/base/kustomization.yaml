@@ -5,6 +5,7 @@ resources:
   - altinn-designer.yaml
   - altinn-repositories.yaml
   - altinn-loadbalancer.yaml
+  - altinn-preview.yaml
   - ssl-cert-external-secret.yaml
   - kubernetes-wrapper.yaml
   - gitea-runners.yaml

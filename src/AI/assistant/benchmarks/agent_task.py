@@ -5,24 +5,21 @@ from __future__ import annotations
 import base64
 import mimetypes
 import os
-import subprocess
 import sys
 import tempfile
 import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
 
 import httpx
 
-from shared.utils.path_utils import repo_owner_and_app_name
-
-from . import evaluators, preview_check
+from . import app_checks, preview_check
 from .app_model import load_app
-from .evaluators import Score, evaluate
+from .bench_app import BenchApp, BenchAppError, bench_org, clone_branch, create_bench_app
+from .evaluators import Score
 from .experiment import SCORES_KEY
-from .rubric import RUBRIC_VERSION
+from .rubric import RUBRIC_VERSION, Rubric
 
 POLL_INTERVAL_SECONDS = 10
 WORKFLOW_TIMEOUT_SECONDS = 30 * 60
@@ -32,13 +29,15 @@ RENDER_FIX_FLAG = "BENCH_RENDER_FIX"
 RENDER_FIX_ROUNDS_ENV = "BENCH_RENDER_FIX_ROUNDS"
 DEFAULT_RENDER_FIX_ROUNDS = 1
 
-STRUCTURAL_SCORE_NAMES = evaluators.SCORE_NAMES
+STRUCTURAL_SCORE_NAMES = app_checks.SCORE_NAMES
 
 COMPLETED_SCORE_NAME = "bench_completed"
+BUILT_SCORE_NAME = "bench_built"
 
 # Emitted here, not in preview_check, because only the task knows a fix round ran.
 SCORE_NAMES = (
     COMPLETED_SCORE_NAME,
+    BUILT_SCORE_NAME,
     preview_check.RENDER_FIX_ROUNDS_SCORE_NAME,
     preview_check.PAGES_RENDER_AFTER_FIX_SCORE_NAME,
 )
@@ -51,26 +50,11 @@ def _env(name: str, default: str | None = None) -> str:
     return value
 
 
-def bench_repo_url() -> str:
-    """The app repo the benchmark runs against. No default on purpose: it must be
-    a repo the current developer owns and is happy to have branches pushed to."""
-    url = os.environ.get("BENCH_REPO_URL")
-    if not url:
-        sys.exit(
-            "Missing required environment variable: BENCH_REPO_URL\n"
-            "Set it to a disposable Altinn app repo the benchmark may push "
-            "session branches to, as the AGENT container resolves it — for "
-            "the local stack: http://gitea-proxy:81/<org>/<app>.git"
-        )
-    return url
-
-
-def repo_owner(repo_url: str) -> str:
-    try:
-        owner, _ = repo_owner_and_app_name(repo_url)
-    except ValueError:
-        sys.exit(f"BENCH_REPO_URL must look like …/<org>/<app>.git — got {repo_url!r}")
-    return owner
+def new_bench_app(template: str) -> BenchApp:
+    """One new app per eval run, made from the template, which every item of the run builds on."""
+    app = create_bench_app(template, org=bench_org(), api_key=_env("AGENT_DESIGNER_API_KEY"))
+    print(f"bench app: {app.repo}")
+    return app
 
 
 def session_branch(session_id: str) -> str:
@@ -127,19 +111,19 @@ def load_attachments(item: Any, assets_dir: Path) -> list[dict]:
 
 def start_agent(
     base_url: str,
+    app: BenchApp,
     session_id: str,
     goal: str,
     attachments: list[dict],
     branch: str | None = None,
     experiment: dict | None = None,
 ) -> None:
-    repo_url = bench_repo_url()
     payload: dict[str, Any] = {
         "session_id": session_id,
         "goal": goal,
-        "repo_url": repo_url,
+        "repo_url": app.agent_url,
         # Benchmark runs record the model usage on the owner of the benchmark repository.
-        "cost_org": repo_owner(repo_url),
+        "cost_org": app.org,
         "allow_app_changes": True,
         "attachments": attachments,
     }
@@ -165,27 +149,15 @@ def await_workflow(base_url: str, session_id: str) -> dict:
     return {"status": "timeout"}
 
 
-def clone_result_branch(session_id: str, workdir: Path) -> Path | None:
-    clone_base = os.environ.get("BENCH_GITEA_CLONE_BASE", "http://localhost/repos").rstrip("/")
-    repo_path = urlparse(bench_repo_url()).path
-    destination = workdir / session_id[:8]
-    command = [
-        "git",
-        "-c",
-        f"http.extraHeader=X-Api-Key: {_env('AGENT_DESIGNER_API_KEY')}",
-        "clone",
-        "--depth",
-        "1",
-        "--branch",
-        session_branch(session_id),
-        f"{clone_base}{repo_path}",
-        str(destination),
-    ]
-    result = subprocess.run(command, capture_output=True, text=True)
-    if result.returncode != 0:
-        print(f"  clone failed: {result.stderr.strip().splitlines()[-1:]}", file=sys.stderr)
+def clone_result_branch(app: BenchApp, session_id: str, workdir: Path) -> Path | None:
+    branch, destination = session_branch(session_id), workdir / session_id[:8]
+    try:
+        return clone_branch(app.repo, branch, destination, _env("AGENT_DESIGNER_API_KEY"))
+    except BenchAppError as error:
+        # Only a missing branch is a build that committed nothing. A Git or Gitea failure fails the item instead.
+        if "not found in upstream" not in str(error):
+            raise
         return None
-    return destination
 
 
 def is_render_fix_enabled() -> bool:
@@ -248,6 +220,7 @@ class AgentTask:
     agent_base: str
     assets_dir: Path
     run_name: str
+    app: BenchApp
     role_models: dict[str, str] = field(default_factory=dict)
     description: str | None = None
 
@@ -260,13 +233,15 @@ class AgentTask:
         if rubric.get("rubric_version") != RUBRIC_VERSION:
             raise ValueError(
                 f"item {item_id} expectedOutput is not a v{RUBRIC_VERSION} rubric; "
-                "run `rubric --from-app … --update-item …` first"
+                "write it as datasets/README.md says, with `rubric --from-app …` for the structural part"
             )
+        parsed = Rubric.model_validate(rubric)
 
         session_id = str(uuid.uuid4())
         print(f"item {item_id}: session {session_id}")
         start_agent(
             self.agent_base,
+            self.app,
             session_id,
             goal,
             load_attachments(item, self.assets_dir),
@@ -285,11 +260,10 @@ class AgentTask:
             )
         ]
         with tempfile.TemporaryDirectory(prefix="assistant-bench-") as tmp:
-            clone = clone_result_branch(session_id, Path(tmp))
-            if clone is None:
-                scores.extend(self._unbuilt_scores())
-            else:
-                scores.extend(self._score_app(clone, rubric, session_id, Path(tmp)))
+            clone = clone_result_branch(self.app, session_id, Path(tmp))
+            scores.append(_built_score(clone is not None, status))
+            if clone is not None:
+                scores.extend(self._score_app(clone, parsed, session_id, Path(tmp)))
 
         for score in scores:
             print(f"  {score.name} = {score.value}  ({score.comment[:80]})")
@@ -313,28 +287,12 @@ class AgentTask:
             "description": self.description,
         }
 
-    def _unbuilt_scores(self) -> list[Score]:
-        """No branch means no app; zeros keep the item in every denominator."""
-        comment = "no committed session branch to evaluate"
-        names = list(STRUCTURAL_SCORE_NAMES)
-        if preview_check.is_enabled():
-            names += [n for n in preview_check.SCORE_NAMES if n not in names]
-        return [
-            Score(
-                name=name,
-                value=0.0,
-                data_type="BOOLEAN" if name in _BOOLEAN_SCORES else "NUMERIC",
-                comment=comment,
-            )
-            for name in names
-        ]
-
-    def _score_app(self, clone: Path, rubric: dict, session_id: str, workdir: Path) -> list[Score]:
-        app = load_app(clone)
-        scores = list(evaluate(app, rubric))
+    def _score_app(self, clone: Path, rubric: Rubric, session_id: str, workdir: Path) -> list[Score]:
+        app = load_app(clone, self.app.template)
+        scores = app_checks.evaluate(app, rubric)
         if not preview_check.is_enabled():
             return scores
-        results = preview_check.collect(session_branch(session_id), app.page_order)
+        results = preview_check.collect(self.app.repo, session_branch(session_id), app.page_order)
         if results is None:
             return scores
         scores.extend(preview_check.build_scores(results))
@@ -359,16 +317,16 @@ class AgentTask:
         for round_number in range(1, max_rounds + 1):
             rounds = round_number
             print(f"  render fix round {round_number}: {len(failures)} failing page(s)")
-            start_agent(self.agent_base, session_id, _render_fix_goal(failures), [], branch=branch)
+            start_agent(self.agent_base, self.app, session_id, _render_fix_goal(failures), [], branch=branch)
             status = await_workflow(self.agent_base, session_id)
             print(f"  fix workflow finished: {status.get('status')}")
 
             round_dir = workdir / f"fix-round-{round_number}"
             round_dir.mkdir(exist_ok=True)
-            clone = clone_result_branch(session_id, round_dir)
+            clone = clone_result_branch(self.app, session_id, round_dir)
             if clone is None:
                 break
-            results = preview_check.collect(branch, load_app(clone).page_order)
+            results = preview_check.collect(self.app.repo, branch, load_app(clone).page_order)
             if results is None:
                 break
             failures = [result for result in results if not result.rendered]
@@ -377,12 +335,15 @@ class AgentTask:
         return results, rounds
 
 
-_BOOLEAN_SCORES = {
-    "bench_pages",
-    "bench_order_integrity",
-    "bench_navigation",
-    preview_check.RENDERS_SCORE_NAME,
-}
+def _built_score(built: bool, status: dict) -> Score:
+    """1 when the build committed an app. A build that stops to ask fails this score and gets no others."""
+    said = ((status.get("last_message") or {}).get("content") or "").strip().replace("\n", " ")
+    return Score(
+        name=BUILT_SCORE_NAME,
+        value=1.0 if built else 0.0,
+        data_type="BOOLEAN",
+        comment="committed a session branch" if built else f"no session branch. The assistant said: {said[:400]}",
+    )
 
 
 def experiment_id(run_name: str, dataset_id: str) -> str:

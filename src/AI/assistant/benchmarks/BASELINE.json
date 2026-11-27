@@ -1,18 +1,18 @@
 {
   "axes": {
-    "actor_prompt": "fe334c82eb87",
-    "code": "575b1c3 clean",
-    "dataset": "87 items 259bb6306c05",
+    "actor_prompt": "0f3e7fbcdbe6",
+    "code": "b13cbfd clean",
+    "dataset": "85 items b0923ba3df4f",
     "environment": "local",
     "evaluators": "not recorded",
     "judge": "gpt-6.1-sol",
     "models": "actor gpt-6.1-terra, decision gpt-6-luna, default gpt-6-luna, planner gpt-6.1-sol",
     "prompts": "not recorded",
     "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
-    "tools": "68cbf7e4413d"
+    "tools": "be6a2325e8a0"
   },
-  "check_id": "20261124T140352Z-docs-index-from-docs-altinn-studio-22090-on-575b1c3509-c4e6",
-  "label": "docs index from docs.altinn.studio, #22090 on 575b1c3509",
-  "recorded_at": "2026-11-24T14:09:36+00:00",
-  "why": "#22090 removes the docs skill's copy of llms.txt, has the model search the index that docs.altinn.studio publishes with a new web_fetch filter argument, and lists each docs page once as a source. This moves the actor_prompt and tools digests. Full check with e2e on 575b1c3509, with a clean tree. The assistant ran the same commit against the local Designer stack and the app ttd/assistant-bench, with PREVIEW_CHECK_ENABLED off as in production. Every scored behavior matches the last baseline, apart from gen_required_tools on Loop/traces, which goes from 0.889 to 1.000: gate_verdict 1.000 on Gates/scope and Gates/security, 1.000 on Planner/intake and Planner/spec, on Loop/traces 1.000 for gen_required_tools and gen_stopped_cleanly and 0.000 for gen_content_pairings, and 1.000 on bench_completed, bench_field_coverage, bench_order_integrity and bench_texts_bound. All four builds finished with success. No item asks a docs question, so the scores show that form building is unchanged, not how the assistant searches the docs. The render check was off, so build.pages-render and build.entry-page-renders have no score and the run is adopted with --force, as the last baseline was. The judge is gpt-6.1-sol."
+  "check_id": "20261126T092817Z-skills-rewrite-21793-on-b13cbfdb67-fd7c",
+  "label": "skills rewrite #21793 on b13cbfdb67",
+  "recorded_at": "2026-11-26T09:36:57+00:00",
+  "why": "Altinn/altinn-studio-docs#3383 moved the v9 Komponenter page, so studio-layouts links its new address. Only the skill text changes. Full check with e2e on b13cbfdb67 with a clean tree, against the local Designer stack, with the preview check off as in production. The scores match the last baseline: both builds committed an app, in about four minutes each, and every skill check passed on v8 and v9. actor.picks-allowed-tool stays at 0.889, from the replay build-verifies-before-committing, and actor.writes-usable-component-content stays at 0.000. The run is adopted with --force for the four render behaviors that the render check leaves unscored. The judge is gpt-6.1-sol."
 }

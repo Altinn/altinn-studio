@@ -237,7 +237,8 @@ namespace Altinn.Platform.Storage.Services
             await DeleteLegacyDataElementBlob(instance, dataElement, storageAccountNumber);
         }
 
-        private async Task DeleteLegacyDataElementBlob(
+        /// <inheritdoc/>
+        public async Task DeleteLegacyDataElementBlob(
             Instance instance,
             DataElement dataElement,
             int? storageAccountNumber)

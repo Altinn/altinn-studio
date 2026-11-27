@@ -150,7 +150,6 @@ class AgentState(BaseModel):
     attachments: list[AgentAttachment] = Field(default_factory=list)
     conversation_history: list[ConversationMessage] = Field(default_factory=list)  # Previous Q&A pairs
     form_spec: FormSpec | None = None  # Structured spec extracted from attachments by spec agent
-    general_plan: dict[str, Any] | None = None  # Goal-centric high level plan (LLM only)
     assistant_response: dict[str, Any] | None = None  # Response from assistant node (chat mode)
     step_plan: list[str] = []  # Legacy field, kept for compatibility
     changed_files: list[str] = []

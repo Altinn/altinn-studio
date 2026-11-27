@@ -1,3 +1,4 @@
+import { withComponentGrid } from '@app/form-component/layout-components/common/storybook';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
@@ -40,6 +41,7 @@ const exampleAttachments: DisplayAttachment[] = [
 const meta = {
   title: 'LayoutComponents/AttachmentList',
   component: AttachmentList,
+  decorators: [withComponentGrid],
   excludeStories: ['ATTACHMENT_LIST_PROP_CATEGORIES'],
   parameters: {
     layout: 'padded',

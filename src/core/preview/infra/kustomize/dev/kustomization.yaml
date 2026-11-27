@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../base
+# Where browsers reach preview, and the Studio origin that may show it in a frame.
+configMapGenerator:
+  - name: altinn-preview-environment
+    literals:
+      - publicBaseUrl=https://preview-dev.altinnusercontent.studio
+      - studioOrigin=https://dev.altinn.studio

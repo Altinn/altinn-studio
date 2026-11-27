@@ -168,18 +168,6 @@ def test_a_dataset_edited_but_not_synced_is_reported(capsys):
     assert "dataset_sync" in warned
 
 
-def test_an_eval_with_no_items_in_the_repo_cannot_be_stale(capsys):
-    """The e2e items live only in Langfuse, so there is nothing to disagree with."""
-    from benchmarks import check as checker
-    from benchmarks import registry
-
-    entry = registry.by_name("Benchmarks/forms")
-
-    assert checker.local_item_count(entry) is None
-    checker._warn_if_stale(entry, 4)
-    assert capsys.readouterr().out == ""
-
-
 def test_the_agents_own_models_win_over_the_local_configuration():
     """On an end to end eval the agent does the work in its own container, so the
     harness's local settings are not what produced the result."""
@@ -843,11 +831,11 @@ def test_movement_inside_the_noise_floor_is_not_a_regression():
 
 def test_a_zero_on_both_runs_reads_as_failing_not_as_no_change():
     """The defect class in #225: two models score identically because it never worked."""
-    scores = {**HOLDING, "build.pages-render": 0.0}
+    scores = {**HOLDING, "build.pages-render-v9": 0.0}
     base = _run("20260909T100000Z-baseline", "baseline", scores)
     cand = _run("20260909T110000Z-cand", "candidate", scores)
     comparison = diff.compare(base, cand)
-    change = next(c for c in comparison.changes if c.behavior == "build.pages-render")
+    change = next(c for c in comparison.changes if c.behavior == "build.pages-render-v9")
     assert change.verdict == "failing"
     assert change.delta == 0
     assert any("reports no change" in line for line in change.evidence())
@@ -860,7 +848,7 @@ def test_output_can_change_while_the_score_holds():
         "baseline",
         HOLDING,
         outputs={
-            "build.pages-render": json.dumps(
+            "build.pages-render-v9": json.dumps(
                 {"component": "FileUpload", "displayMode": "list", "label": "Last opp vedlegg"}
             )
         },
@@ -870,7 +858,7 @@ def test_output_can_change_while_the_score_holds():
         "candidate",
         HOLDING,
         outputs={
-            "build.pages-render": json.dumps(
+            "build.pages-render-v9": json.dumps(
                 {
                     "component": "FileUploadWithTag",
                     "displayMode": "simple",
@@ -881,7 +869,7 @@ def test_output_can_change_while_the_score_holds():
         },
     )
     comparison = diff.compare(base, cand)
-    change = next(c for c in comparison.changes if c.behavior == "build.pages-render")
+    change = next(c for c in comparison.changes if c.behavior == "build.pages-render-v9")
     assert change.verdict == "output-changed"
     assert change.delta == 0
     assert change.silent_items
@@ -1047,8 +1035,8 @@ def test_every_prompt_in_the_report_carries_computed_evidence(tmp_path):
 
 
 def test_open_work_is_ordered_worst_first(tmp_path):
-    scores = {**HOLDING, "build.pages-render": 0.0, "spec.covers-every-label": 0.5}
-    base = _run("20260909T100000Z-baseline", "baseline", {**HOLDING, "build.pages-render": 0.0})
+    scores = {**HOLDING, "build.pages-render-v9": 0.0, "spec.covers-every-label": 0.5}
+    base = _run("20260909T100000Z-baseline", "baseline", {**HOLDING, "build.pages-render-v9": 0.0})
     cand = _run("20260909T110000Z-cand", "candidate", scores)
     for run in (base, cand):
         runstore.save(run, directory=tmp_path)
@@ -1188,13 +1176,13 @@ def test_a_behavior_that_never_moves_is_still_reported_as_weak(tmp_path):
 
 def test_a_first_run_scoring_zero_is_failing_not_holding(tmp_path):
     """With no baseline there is no delta, and a permanent failure must still show."""
-    run = _run("20260909T100000Z-first", "first run", {**HOLDING, "build.pages-render": 0.0})
+    run = _run("20260909T100000Z-first", "first run", {**HOLDING, "build.pages-render-v9": 0.0})
     runstore.save(run, directory=tmp_path)
     built = report.build(directory=tmp_path)
-    view = next(v for v in built.behaviors if v.behavior.id == "build.pages-render")
+    view = next(v for v in built.behaviors if v.behavior.id == "build.pages-render-v9")
     assert view.verdict == "failing"
     assert built.counts()["failing"] == 1
-    assert built.open_work()[0].behavior.id == "build.pages-render"
+    assert built.open_work()[0].behavior.id == "build.pages-render-v9"
 
 
 def test_a_behavior_that_ran_and_scored_nothing_is_never_holding(tmp_path):

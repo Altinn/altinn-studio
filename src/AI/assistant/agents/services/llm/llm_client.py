@@ -30,6 +30,9 @@ config = get_config()
 
 
 ATTACHMENT_PAYLOAD_FIELDS = frozenset({"data", "file_data", "url"})
+# LangChain passes no timeout to the OpenAI client by default, so a reply that stalls would hold the session
+# for good. Spec extraction, the slowest call here, takes about a minute. The client retries a timeout twice.
+OPENAI_TIMEOUT_SECONDS = 120.0
 
 
 def _defang_attachment_value(value: Any) -> Any:
@@ -132,6 +135,7 @@ class LLMClient:
                 "api_key": config.AZURE_API_KEY,
                 "api_version": config.AZURE_API_VERSION,
                 "deployment_name": model,
+                "timeout": OPENAI_TIMEOUT_SECONDS,
             }
             # Reasoning models take the budget as `max_completion_tokens`.
             if self.is_reasoning_model:
@@ -154,6 +158,7 @@ class LLMClient:
             chat_kwargs: dict[str, Any] = {
                 "api_key": config.OPENAI_API_KEY,
                 "model": model,
+                "timeout": OPENAI_TIMEOUT_SECONDS,
             }
             if self.is_reasoning_model:
                 chat_kwargs["model_kwargs"] = {

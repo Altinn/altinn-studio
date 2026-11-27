@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
+from .app_templates import template_ids
+
 DATASETS_DIR = Path(__file__).parent / "datasets"
 
 # prompt: one message. decision: the request gate. generation: a replayed trace. planner: a file. e2e: tools run.
@@ -23,12 +25,16 @@ class Eval:
     prompt: str | None = None
     user_template: str | None = None
     note: str | None = None
+    # The app template in src/App/template that an e2e eval builds on.
+    app_template: str | None = None
 
     def __post_init__(self) -> None:
         assert self.kind in KINDS, f"{self.name}: unknown kind {self.kind}"
         assert self.status in STATUSES, f"{self.name}: unknown status {self.status}"
-        if self.status == "live" and self.kind != "e2e":
+        if self.status == "live":
             assert self.file, f"{self.name}: a live eval needs its items in the repo"
+        if self.kind == "e2e":
+            assert self.app_template, f"{self.name}: name the app template it builds on"
         if self.kind == "planner":
             assert self.user_template, f"{self.name}: name the user template"
         if self.status != "live":
@@ -65,7 +71,8 @@ class Eval:
         parts.append(f"Items: {item_count if item_count is not None else 'see below'}, edited in {where}.")
 
         if self.status == "live":
-            parts.append("Run: python -m benchmarks.runner check (see benchmarks/EVALS.md).")
+            flag = " --include-e2e" if self.kind == "e2e" else ""
+            parts.append(f"Run: python -m benchmarks.runner check{flag} (see benchmarks/EVALS.md).")
         else:
             parts.append(f"Not runnable: {self.status}.")
         if self.note:
@@ -132,16 +139,18 @@ EVALS = (
             "labels held."
         ),
     ),
-    Eval(
-        name="Benchmarks/forms",
-        kind="e2e",
-        summary=(
-            "Full agent runs against a structural rubric. The only eval that executes "
-            "tools, pushes a session branch and renders pages, so it is the only one that "
-            "shows a generated app actually builds. One item sends a PDF attachment. "
-            "Items and rubrics live in Langfuse because a rubric is built from a golden "
-            "app clone rather than written by hand."
-        ),
+    *(
+        Eval(
+            name=f"Benchmarks/app-{template}",
+            kind="e2e",
+            file="app_build.jsonl",
+            app_template=template,
+            summary=(
+                f"The assistant builds an app on a new copy of the {template} app template. The only eval that "
+                "runs tools and pushes a branch. The scores read the committed app: one score for each skill."
+            ),
+        )
+        for template in template_ids()
     ),
     Eval(
         name="Redteam/indirect-injection",

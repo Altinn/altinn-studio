@@ -31,6 +31,13 @@ If you used these Agents with a `.env` file before, run `agentctl update` in thi
 values as below and deletes it. Then apply your Agents again, which changes them in place. They get a newer image
 only when created again.
 
+## Deployed apps
+
+Agents can mount a read-only copy of the apps deployed to production and tt02 at
+`/home/agent/code/.reference/altinn-apps`. To get it, run `fleet sync --env all` with
+[altinn-fleet](../src/tools/altinn-fleet/README.md), then apply the [volumes](_volumes) with `V` in `agentctl tui`
+before you create the Agent. The copy is as old as the Agent, and an Agent without it starts as usual.
+
 ## External harnesses
 
 You can also work in an Agent's Sandbox from a harness outside `agentctl`, through any app that runs its sessions

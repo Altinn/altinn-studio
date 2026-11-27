@@ -109,6 +109,7 @@ export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentI
                 row={row}
                 baseComponentId={baseComponentId}
                 pdfModeActive={pdfModeActive}
+                isSmall={isSmall}
                 columnSettings={columnSettings}
                 columns={columns}
                 hiddenColumns={hiddenColumns}
@@ -207,10 +208,19 @@ type DataRowProps = {
   hiddenColumns: string[];
   baseComponentId: string;
   pdfModeActive: boolean;
+  isSmall: boolean;
   columnSettings: ITableColumnFormatting;
 };
 
-function DataRow({ row, baseComponentId, pdfModeActive, columnSettings, columns, hiddenColumns }: DataRowProps) {
+function DataRow({
+  row,
+  baseComponentId,
+  pdfModeActive,
+  isSmall,
+  columnSettings,
+  columns,
+  hiddenColumns,
+}: DataRowProps) {
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const children = RepGroupHooks.useChildIds(baseComponentId);
   const ids = useTableComponentIds(baseComponentId);
@@ -250,6 +260,7 @@ function DataRow({ row, baseComponentId, pdfModeActive, columnSettings, columns,
             key={id}
             baseComponentId={id}
             columnSettings={columnSettings}
+            isSmall={isSmall}
             errors={errorsByColumnId[id] ?? (id === columns[0] ? unmappedRowErrors : [])}
           />
         ),
@@ -273,12 +284,29 @@ function DataRow({ row, baseComponentId, pdfModeActive, columnSettings, columns,
 type DataCellProps = {
   baseComponentId: string;
   columnSettings: ITableColumnFormatting;
+  isSmall: boolean;
   errors: ReturnType<typeof useDeepValidationsForNode>;
 };
 
-function DataCell(props: DataCellProps) {
+function DataCell({ isSmall, ...props }: DataCellProps) {
   const hidden = useIsHidden(props.baseComponentId);
-  return hidden ? <HiddenDataCell /> : <VisibleDataCell {...props} />;
+  if (hidden) {
+    return <HiddenDataCell />;
+  }
+  // The header title is only shown in the stacked (small screen) layout. Resolving it in every cell of a large
+  // table is costly, so only do it when it is needed.
+  return isSmall ? <VisibleDataCellWithHeaderTitle {...props} /> : <VisibleDataCell {...props} />;
+}
+
+function VisibleDataCellWithHeaderTitle(props: VisibleDataCellProps) {
+  const { langAsString } = useLanguage();
+  const headerTitle = langAsString(useTableTitle(props.baseComponentId));
+  return (
+    <VisibleDataCell
+      {...props}
+      headerTitle={headerTitle}
+    />
+  );
 }
 
 function HiddenDataCell() {
@@ -286,9 +314,9 @@ function HiddenDataCell() {
   return <BaseTable.Cell />;
 }
 
-function VisibleDataCell({ baseComponentId, columnSettings, errors }: DataCellProps) {
-  const { langAsString } = useLanguage();
-  const headerTitle = langAsString(useTableTitle(baseComponentId));
+type VisibleDataCellProps = Omit<DataCellProps, 'isSmall'> & { headerTitle?: string };
+
+function VisibleDataCell({ baseComponentId, columnSettings, errors, headerTitle }: VisibleDataCellProps) {
   const style = useColumnStylesRepeatingGroups(baseComponentId, columnSettings);
   const displayData = useDisplayData(baseComponentId);
   const config = useComponentConfig(baseComponentId);

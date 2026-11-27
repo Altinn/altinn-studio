@@ -5,6 +5,8 @@ products, and each has its own toolchain. The developer CLI, [studioctl](../cli/
 
 - [`altinn-fetch-apps`](altinn-fetch-apps/README.md) clones every Altinn 3 app that runs in tt02 or production, at its
   deployed version, so you can search across them.
+- [`altinn-fleet`](altinn-fleet/README.md) keeps a copy of the apps that run in tt02 and production, with an index to
+  query, which is what the agents' app volumes are made from.
 - [`altinn-fleet-stats`](altinn-fleet-stats/README.md) is a dashboard with statistics about the apps in tt02 and
   production, for the UX team.
 - [`deployer`](deployer/README.md) is a local dashboard for following and approving deployments across environments.

@@ -12,3 +12,9 @@ Text, Data and Innhold as Designer groups them. The props that the runtime injec
 1. In the stories file, export a `*_PROP_CATEGORIES` map that gives each prop the category `text`, `data`, `content`
    or `runtime`. List the map in `excludeStories`, since Storybook treats every named export as a story.
 2. Add a `.mdx` file beside the stories that renders `LayoutComponentDocs` with the map.
+
+## Storybook page row
+
+In the app, most layout components are wrapped in a grid item that sets their width from their `grid` setting. For
+those, add `withComponentGrid` to the meta's `decorators`, so the stories show them the way the app does. Examples of
+components that are not wrapped are Group and Summary2.

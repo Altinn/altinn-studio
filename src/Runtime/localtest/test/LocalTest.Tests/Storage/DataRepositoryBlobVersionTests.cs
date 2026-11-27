@@ -1,4 +1,5 @@
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Platform.Storage.Models;
 using Altinn.Platform.Storage.Repository;
 using LocalTest.Services.Storage.Implementation;
 using Newtonsoft.Json;
@@ -206,6 +207,36 @@ public sealed class DataRepositoryBlobVersionTests
                 // Cancellation is asserted above or observed here during cleanup.
             }
         }
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ReadBlobVersion_CarriesTheDataTypeOfALiveOrDeletedElement(bool deleted)
+    {
+        await using var storage = new LocalStorageFixture();
+        Instance instance = await storage.CreateInstance();
+        Guid instanceGuid = Guid.Parse(instance.Id.Split('/')[1]);
+        (Guid dataElementId, string blobVersionId) = await CreateVersionedDataElement(
+            storage,
+            instance,
+            instanceGuid,
+            isRead: true
+        );
+        if (deleted)
+        {
+            await storage.DataRepository.Delete(
+                await storage.DataRepository.Read(instanceGuid, dataElementId)
+            );
+        }
+
+        DataElementBlobVersion blobVersion = await storage.DataRepository.ReadBlobVersion(
+            instanceGuid,
+            dataElementId,
+            blobVersionId
+        );
+
+        Assert.Equal("attachment", blobVersion.DataType);
     }
 
     [Fact]
