@@ -25,7 +25,7 @@ public abstract record HandlerResult
     public static HandlerResult FailedRetryable(string errorMessage)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
-        return new FailedHandlerResult { ErrorMessage = errorMessage, Kind = FailureKind.Retryable };
+        return new FailedHandlerResult(errorMessage, FailureKind.Retryable);
     }
 
     /// <summary>
@@ -37,47 +37,39 @@ public abstract record HandlerResult
     public static HandlerResult FailedPermanent(string errorMessage)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
-        return new FailedHandlerResult { ErrorMessage = errorMessage, Kind = FailureKind.Permanent };
+        return new FailedHandlerResult(errorMessage, FailureKind.Permanent);
     }
 }
 
 /// <summary>
-/// Represents a successful handler execution.
+/// Represents a successful handler execution. Created via <see cref="HandlerResult.Success"/>.
 /// </summary>
-internal sealed record SuccessfulHandlerResult : HandlerResult
+public sealed record SuccessfulHandlerResult : HandlerResult
 {
     internal static readonly SuccessfulHandlerResult Instance = new();
+
+    private SuccessfulHandlerResult() { }
 }
 
 /// <summary>
-/// Represents a failed handler execution. Construct via <see cref="HandlerResult.FailedRetryable"/>
+/// Represents a failed handler execution. Created via <see cref="HandlerResult.FailedRetryable"/>
 /// or <see cref="HandlerResult.FailedPermanent"/>.
 /// </summary>
-internal sealed record FailedHandlerResult : HandlerResult
+public sealed record FailedHandlerResult : HandlerResult
 {
+    internal FailedHandlerResult(string errorMessage, FailureKind kind)
+    {
+        ErrorMessage = errorMessage;
+        Kind = kind;
+    }
+
     /// <summary>
     /// Human-readable error message describing the failure.
     /// </summary>
-    public required string ErrorMessage { get; init; }
+    public string ErrorMessage { get; }
 
     /// <summary>
-    /// Whether the failure is retryable or permanent.
+    /// Whether the step runs again.
     /// </summary>
-    internal FailureKind Kind { get; init; }
-}
-
-/// <summary>
-/// Classifies how a failed handler or service task result should be handled by the workflow engine.
-/// </summary>
-internal enum FailureKind
-{
-    /// <summary>
-    /// The failure is transient. The workflow engine will retry the step with backoff.
-    /// </summary>
-    Retryable,
-
-    /// <summary>
-    /// The failure is permanent. The workflow engine will stop retrying and mark the step as failed.
-    /// </summary>
-    Permanent,
+    public FailureKind Kind { get; }
 }
