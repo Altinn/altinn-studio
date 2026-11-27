@@ -1076,6 +1076,43 @@ func TestReconciler_DefaultMapping_CollectorsConnectionStringSourceDeleted(t *te
 	g.Expect(err).To(HaveOccurred())
 }
 
+func TestReconciler_AfterSyncGetsTheDestination(t *testing.T) {
+	g := NewWithT(t)
+
+	var calls []*corev1.Secret
+	afterErr := errTransformFailed
+	mapping := SecretSyncMapping{
+		SourceName:      "source-secret",
+		SourceNamespace: "source-ns",
+		DestName:        "dest-secret",
+		DestNamespace:   "dest-ns",
+		CanDeleteDest:   true,
+		AfterSync: func(_ context.Context, _ client.Client, dest *corev1.Secret) error {
+			calls = append(calls, dest)
+			return afterErr
+		},
+	}
+	source := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{Name: mapping.SourceName, Namespace: mapping.SourceNamespace},
+		Data:       map[string][]byte{"key": []byte("value")},
+	}
+	h := newTestHarness(t, []SecretSyncMapping{mapping}, source)
+	request := reconcile.Request{NamespacedName: client.ObjectKey{Name: source.Name, Namespace: source.Namespace}}
+
+	// Its error fails the reconcile, so the controller retries it.
+	_, err := h.reconciler.Reconcile(h.ctx(), request)
+	g.Expect(err).To(MatchError(errTransformFailed))
+	g.Expect(calls).To(HaveLen(1))
+	g.Expect(calls[0].Data).To(Equal(source.Data))
+
+	// Once the source and with it the destination are gone, it gets nil.
+	afterErr = nil
+	g.Expect(h.k8sClient.Delete(h.ctx(), source)).To(Succeed())
+	h.reconcile(t, source.Name, source.Namespace)
+	g.Expect(calls).To(HaveLen(2))
+	g.Expect(calls[1]).To(BeNil())
+}
+
 func gatewayCollector(podAnnotations map[string]any) *unstructured.Unstructured {
 	spec := map[string]any{"mode": "deployment"}
 	if podAnnotations != nil {
@@ -1102,8 +1139,6 @@ func (h *testHarness) gatewayPodAnnotations(t *testing.T) (map[string]string, st
 	}
 	return annotations, collector.GetResourceVersion()
 }
-
-const gatewayRolloutAnnotation = "secretsync.altinn.studio/apps-azure-monitor-secret"
 
 func TestReconciler_DefaultMapping_CollectorsConnectionStringRollsTheGateway(t *testing.T) {
 	g := NewWithT(t)
@@ -1142,7 +1177,7 @@ func TestReconciler_DefaultMapping_CollectorsConnectionStringRollsTheGateway(t *
 	annotations, _ = h.gatewayPodAnnotations(t)
 	g.Expect(annotations).To(Equal(map[string]string{
 		"linkerd.io/inject":      "enabled",
-		gatewayRolloutAnnotation: rolloutAbsent,
+		gatewayRolloutAnnotation: gatewayRolloutAbsent,
 	}))
 }
 
