@@ -64,15 +64,12 @@ internal sealed class TelemetryEnrichingMiddleware
                 }
 
                 var routeValues = context.Request.RouteValues;
-                if (
-                    routeValues.TryGetValue("instanceGuid", out var instanceGuidObj)
-                    && instanceGuidObj is Guid instanceGuid
-                )
+                if (TryGetGuid(routeValues, "instanceGuid", out var instanceGuid))
                 {
                     activity.SetInstanceId(instanceGuid);
                 }
 
-                if (routeValues.TryGetValue("dataGuid", out var dataGuidObj) && dataGuidObj is Guid dataGuid)
+                if (TryGetGuid(routeValues, "dataGuid", out var dataGuid))
                 {
                     activity.SetDataElementId(dataGuid);
                 }
@@ -105,6 +102,22 @@ internal sealed class TelemetryEnrichingMiddleware
         }
 
         await _next(context);
+    }
+
+    // Route values are strings until model binding converts them, which happens after this middleware.
+    private static bool TryGetGuid(RouteValueDictionary routeValues, string key, out Guid value)
+    {
+        switch (routeValues.TryGetValue(key, out var raw) ? raw : null)
+        {
+            case Guid guid:
+                value = guid;
+                return true;
+            case string text:
+                return Guid.TryParse(text, out value);
+            default:
+                value = default;
+                return false;
+        }
     }
 }
 

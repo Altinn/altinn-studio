@@ -30,6 +30,9 @@
       IdFormat: W3C,
       Tags: [
         {
+          altinn.instance.guid: Guid_1
+        },
+        {
           altinn.instance.owner.party.id: 500600
         },
         {

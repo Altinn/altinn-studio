@@ -16,6 +16,12 @@
       IdFormat: W3C,
       Tags: [
         {
+          altinn.data.guid: Guid_2
+        },
+        {
+          altinn.instance.guid: Guid_1
+        },
+        {
           altinn.instance.owner.party.id: 500600
         },
         {
@@ -70,7 +76,7 @@
           server.port: 80
         },
         {
-          TestId: Guid_2
+          TestId: Guid_3
         },
         {
           url.path: /tdd/contributer-restriction/instances/500600/0fc98a23-fe31-4ef5-8fb9-dd3f479354ce/data/fc121812-0336-45fb-a75c-490df3ad5109
@@ -121,7 +127,7 @@
               network.protocol.version: 1.1
             },
             {
-              TestId: Guid_2
+              TestId: Guid_3
             },
             {
               url.scheme: http
