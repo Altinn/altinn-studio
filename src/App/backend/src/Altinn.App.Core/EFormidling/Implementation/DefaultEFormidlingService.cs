@@ -116,6 +116,9 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
         // A resume sends again even if the earlier attempt's send was accepted. The integrasjonspunkt
         // only queues a send and reports the message as created until its worker has sent it, so a
         // resume in that window cannot tell. Not sending would risk a message that never leaves.
+        // From v4.2.5 the integrasjonspunkt drops a queued copy of a message it has already sent. An
+        // older one finds the message's files gone and ends the copy as FEIL although the message
+        // was delivered, which EFormidlingStatusReader reads as failed until LEVERT arrives.
         bool resumingExistingMessage = false;
 
         // Safe to abandon mid-shipment, for the same reason: a created-but-unsent message is exactly
