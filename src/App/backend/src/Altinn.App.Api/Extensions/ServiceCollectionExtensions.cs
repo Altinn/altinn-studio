@@ -146,8 +146,9 @@ public static class ServiceCollectionExtensions
     /// <para>Sets up OpenTelemetry, the only way an app exports telemetry: traces, metrics and logs over OTLP.</para>
     /// <para>The deployment configures the exporter with the standard <c>OTEL_*</c> variables, which the libraries
     /// never set: the endpoint, the protocol, <c>OTEL_METRIC_EXPORT_INTERVAL</c> and <c>OTEL_RESOURCE_ATTRIBUTES</c>.
-    /// The runtime sets them for a deployed app, and studioctl for a local run. The SDK passes every trace on, and
-    /// logs from the levels the app's logging configuration lets through; the collectors sample and filter.</para>
+    /// The runtime sets them for a deployed app, and studioctl for a local run. The SDK keeps every trace, whatever
+    /// the configuration says, and exports logs from the levels the app's logging configuration lets through; the
+    /// collectors sample and filter.</para>
     /// </summary>
     private static void AddOpenTelemetry(IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
     {
@@ -176,7 +177,11 @@ public static class ServiceCollectionExtensions
             .ConfigureResource(resource => AppTelemetryResource.Configure(resource, org, appId, appVersion))
             .WithTracing(builder =>
             {
+                // Every trace is kept here, whatever OTEL_TRACES_SAMPLER or the app's settings say: the collectors
+                // sample, with their own levels per app. An app setting a sampler after AddAltinnAppServices still
+                // wins, since the last one set does.
                 builder = builder
+                    .SetSampler(new AlwaysOnSampler())
                     .AddSource(appId)
                     .AddHttpClientInstrumentation(opts =>
                     {

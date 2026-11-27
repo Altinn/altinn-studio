@@ -94,13 +94,19 @@ public class TelemetryConfigurationTests
                 && kvp.Key != AppServices.OtlpEndpointVariable
         );
 
-        // The SDK's default when the deployment sets nothing: every trace is passed on, and sampling is left to
-        // the collectors.
+        // The SDK's default interval when the deployment sets none.
         var reader = Assert.Single(PeriodicReaders(app.Services.GetRequiredService<MeterProvider>()));
         Assert.Equal(60_000, ReadIntField(reader, "ExportIntervalMilliseconds"));
-        var sampler = GetSampler(app.Services.GetRequiredService<TracerProvider>());
-        var parentBased = Assert.IsType<ParentBasedSampler>(sampler);
-        Assert.Contains("AlwaysOnSampler", parentBased.Description, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Every_Trace_Is_Kept_Whatever_OTEL_TRACES_SAMPLER_Says()
+    {
+        await using var app = AppBuilder.Build(
+            configData: Exporting(new("OTEL_TRACES_SAMPLER", "traceidratio"), new("OTEL_TRACES_SAMPLER_ARG", "0.1"))
+        );
+
+        Assert.IsType<AlwaysOnSampler>(GetSampler(app.Services.GetRequiredService<TracerProvider>()));
     }
 
     [Fact]
@@ -173,21 +179,17 @@ public class TelemetryConfigurationTests
     }
 
     [Fact]
-    public async Task OpenTelemetry_Sampler_Override_Is_Possible()
+    public async Task A_Sampler_Set_In_RegisterCustomAppServices_Does_Not_Drop_Traces()
     {
-        var samplerToUse = new ParentBasedSampler(new AlwaysOnSampler());
         await using var app = AppBuilder.Build(registerCustomAppServices: services =>
         {
             services.ConfigureOpenTelemetryTracerProvider(builder =>
             {
-                builder.SetSampler(samplerToUse);
+                builder.SetSampler(new TraceIdRatioBasedSampler(0.1));
             });
         });
 
-        var traceProvider = app.Services.GetRequiredService<TracerProvider>();
-
-        var sampler = GetSampler(traceProvider);
-        Assert.Same(samplerToUse, sampler);
+        Assert.IsType<AlwaysOnSampler>(GetSampler(app.Services.GetRequiredService<TracerProvider>()));
     }
 
     private static Dictionary<string, string> Attributes(Resource resource) =>
