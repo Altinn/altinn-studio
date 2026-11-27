@@ -112,7 +112,7 @@ public class PdfController : ControllerBase
 
             List<ProcessTask> subformPdfTasks = _processReader
                 .GetProcessTasks()
-                .Where(processTask => GeneratesPdfFor(processTask, dataElement))
+                .Where(processTask => IsSubformPdfTaskFor(processTask, dataElement))
                 .ToList();
             if (subformPdfTasks.Count == 0)
             {
@@ -206,7 +206,7 @@ public class PdfController : ControllerBase
                 ExtensionElements.TaskExtension.TaskType: AltinnTaskTypes.Pdf or AltinnTaskTypes.SubformPdf,
             };
 
-    private bool GeneratesPdfFor(ProcessTask task, DataElement dataElement) =>
+    private bool IsSubformPdfTaskFor(ProcessTask task, DataElement dataElement) =>
         task.ExtensionElements?.TaskExtension
             is { TaskType: AltinnTaskTypes.SubformPdf, SubformPdfConfiguration: AltinnSubformPdfConfiguration config }
         && SubformPdfServiceTask.GeneratesPdfFor(_appResources, config.Validate(), dataElement);
