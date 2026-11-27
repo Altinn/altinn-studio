@@ -255,6 +255,12 @@ public sealed partial class Telemetry : IDisposable
         public const string FiksMessageCorrelationId = "altinn.fiks.message.correlation_id";
 
         /// <summary>
+        /// Marks telemetry that the collectors keep whatever their sampling, with the value <c>always</c>. Set it on
+        /// a span with <see cref="TelemetryActivityExtensions.KeepTrace"/>.
+        /// </summary>
+        public const string Sampling = "altinn.sampling";
+
+        /// <summary>
         /// Label for notification senders reference.
         /// </summary>
         public const string NotificationSendersReference = "altinn.notification.senders_reference";

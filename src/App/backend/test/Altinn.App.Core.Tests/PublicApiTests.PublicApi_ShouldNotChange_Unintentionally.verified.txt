@@ -1647,6 +1647,7 @@ namespace Altinn.App.Core.Features
             public const string OrganizationName = "altinn.organization.name";
             public const string OrganizationNumber = "altinn.organization.number";
             public const string OrganizationSystemUserId = "enduser.id";
+            public const string Sampling = "altinn.sampling";
             public const string UserAuthenticationInAltinnPortal = "altinn.user.authentication.in_altinn_portal";
             public const string UserAuthenticationLevel = "altinn.user.authentication.level";
             public const string UserAuthenticationMethod = "altinn.user.authentication.method";
@@ -1671,6 +1672,7 @@ namespace Altinn.App.Core.Features
     }
     public static class TelemetryActivityExtensions
     {
+        public static System.Diagnostics.Activity KeepTrace(this System.Diagnostics.Activity activity) { }
         public static System.Diagnostics.Activity SetAuthenticationLevel(this System.Diagnostics.Activity activity, int? authenticationLevel) { }
         public static System.Diagnostics.Activity SetAuthenticationMethod(this System.Diagnostics.Activity activity, string? authenticationMethod) { }
         public static System.Diagnostics.Activity SetDataElementId(this System.Diagnostics.Activity activity, Altinn.Platform.Storage.Interface.Models.DataElement? dataElement) { }
