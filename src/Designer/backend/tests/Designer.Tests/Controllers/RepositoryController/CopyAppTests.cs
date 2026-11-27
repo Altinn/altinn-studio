@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Controllers.ApiTests;
@@ -95,7 +96,7 @@ public class CopyAppTests(WebApplicationFactory<Program> factory)
             )
             .ReturnsAsync(new Repository { RepositoryCreatedStatus = HttpStatusCode.GatewayTimeout });
 
-        _repositoryMock.Setup(r => r.DeleteRepository(It.IsAny<string>(), It.IsAny<string>()));
+        _repositoryMock.Setup(r => r.DeleteRepository(It.IsAny<AltinnRepoEditingContext>()));
 
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, uri);
 
@@ -125,7 +126,7 @@ public class CopyAppTests(WebApplicationFactory<Program> factory)
             )
             .Throws(new IOException());
 
-        _repositoryMock.Setup(r => r.DeleteRepository(It.IsAny<string>(), It.IsAny<string>()));
+        _repositoryMock.Setup(r => r.DeleteRepository(It.IsAny<AltinnRepoEditingContext>()));
 
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, uri);
 
