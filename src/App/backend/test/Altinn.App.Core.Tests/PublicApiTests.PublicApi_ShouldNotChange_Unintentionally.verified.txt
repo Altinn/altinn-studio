@@ -2243,12 +2243,11 @@ namespace Altinn.App.Core.Features.Process
     }
     public sealed class ProcessStepRetryStrategy : System.IEquatable<Altinn.App.Core.Features.Process.ProcessStepRetryStrategy>
     {
-        public ProcessStepRetryStrategy() { }
-        public Altinn.App.Core.Features.Process.ProcessStepBackoffType BackoffType { get; init; }
-        public System.TimeSpan BaseInterval { get; init; }
-        public System.TimeSpan? MaxDelay { get; init; }
-        public System.TimeSpan? MaxDuration { get; init; }
-        public int? MaxRetries { get; init; }
+        public Altinn.App.Core.Features.Process.ProcessStepBackoffType BackoffType { get; }
+        public System.TimeSpan BaseInterval { get; }
+        public System.TimeSpan? MaxDelay { get; }
+        public System.TimeSpan? MaxDuration { get; }
+        public int? MaxRetries { get; }
         public static Altinn.App.Core.Features.Process.ProcessStepRetryStrategy Constant(System.TimeSpan interval, int? maxRetries = default, System.TimeSpan? maxDuration = default) { }
         public static Altinn.App.Core.Features.Process.ProcessStepRetryStrategy Exponential(System.TimeSpan baseInterval, int? maxRetries = default, System.TimeSpan? maxDelay = default, System.TimeSpan? maxDuration = default) { }
         public static Altinn.App.Core.Features.Process.ProcessStepRetryStrategy Linear(System.TimeSpan baseInterval, int? maxRetries = default, System.TimeSpan? maxDelay = default, System.TimeSpan? maxDuration = default) { }
@@ -2321,7 +2320,7 @@ namespace Altinn.App.Core.Features.Process
         public StageContext() { }
         public Altinn.App.Core.Features.Process.StageAttempt Attempt { get; init; }
         public System.Threading.CancellationToken CancellationToken { get; init; }
-        public System.DateTimeOffset ExecutionReferenceTime { get; }
+        public System.DateTimeOffset ExecutionReferenceTime { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
         public required System.Guid StepId { get; init; }
         public Altinn.App.Core.Features.Process.StageWait Wait { get; init; }
