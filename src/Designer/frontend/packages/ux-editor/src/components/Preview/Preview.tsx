@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import classes from './Preview.module.css';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTranslation } from 'react-i18next';
@@ -18,6 +18,8 @@ import { usePreviewSessionInstanceQuery } from 'app-shared/hooks/queries/usePrev
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useStartPreviewOver } from 'app-shared/hooks/useStartPreviewOver';
 import { PreviewActions } from './PreviewActions/PreviewActions';
+import { PreviewFormDataDialog } from 'app-shared/components/PreviewFormDataDialog';
+import { usePreviewContext } from 'app-shared/contexts/PreviewContext';
 import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 export type PreviewProps = {
@@ -30,6 +32,7 @@ export const Preview = ({ collapsed, onCollapseToggle }: PreviewProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutName } = useAppContext();
   const startPreviewOver = useStartPreviewOver(org, app);
+  const [editsFormData, setEditsFormData] = useState(false);
   const noPageSelected =
     selectedFormLayoutName === 'default' || selectedFormLayoutName === undefined;
   const showsPreview = !noPageSelected;
@@ -47,9 +50,43 @@ export const Preview = ({ collapsed, onCollapseToggle }: PreviewProps) => {
         className={classes.toolbar}
         onCollapseToggle={onCollapseToggle}
         onStartOver={showsPreview ? startPreviewOver : undefined}
+        onEditFormData={showsPreview ? () => setEditsFormData(true) : undefined}
       />
+      {showsPreview && (
+        <PreviewFormData open={editsFormData} onClose={() => setEditsFormData(false)} />
+      )}
       <PreviewContent noPageSelected={noPageSelected} />
     </div>
+  );
+};
+
+type PreviewFormDataProps = {
+  open: boolean;
+  onClose: () => void;
+};
+
+// The form data of the instance the frame shows, once there is one. The frame loads again to show the saved data.
+const PreviewFormData = ({ open, onClose }: PreviewFormDataProps) => {
+  const { org, app } = useStudioEnvironmentParams();
+  const { layoutSet } = useUxEditorParams();
+  const { doReloadPreview } = usePreviewContext();
+  const { data: session } = usePreviewSessionQuery(org, app);
+  const { data: instance } = usePreviewSessionInstanceQuery(org, app, session?.url, layoutSet);
+  if (!session || !instance) return null;
+
+  return (
+    <PreviewFormDataDialog
+      org={org}
+      app={app}
+      sessionUrl={session.url}
+      instanceId={instance.instanceId}
+      open={open}
+      onClose={onClose}
+      onSaved={() => {
+        onClose();
+        doReloadPreview();
+      }}
+    />
   );
 };
 

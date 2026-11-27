@@ -5,6 +5,7 @@ import {
   CheckmarkIcon,
   ExternalLinkIcon,
   MenuElipsisVerticalIcon,
+  PencilIcon,
   SidebarRightIcon,
 } from '@designer/icons';
 import classes from './PreviewActions.module.css';
@@ -22,6 +23,8 @@ export type PreviewActionsProps = {
   onCollapseToggle: () => void;
   /** Starts preview over. Without it, the actions have no menu, as when preview is collapsed or shows no page. */
   onStartOver?: () => void;
+  /** Opens the form data of the instance in preview, which the menu has when it is given. */
+  onEditFormData?: () => void;
 };
 
 export const PreviewActions = ({
@@ -29,6 +32,7 @@ export const PreviewActions = ({
   className,
   onCollapseToggle,
   onStartOver,
+  onEditFormData,
 }: PreviewActionsProps) => {
   const { t } = useTranslation();
   const { party: selectedParty, setParty } = usePreviewParty();
@@ -75,6 +79,17 @@ export const PreviewActions = ({
                   {t('ux_editor.preview.start_over')}
                 </StudioDropdown.Button>
               </StudioDropdown.Item>
+              {onEditFormData && (
+                <StudioDropdown.Item>
+                  <StudioDropdown.Button
+                    role='menuitem'
+                    icon={<PencilIcon aria-hidden />}
+                    onClick={onEditFormData}
+                  >
+                    {t('ux_editor.preview.edit_form_data')}
+                  </StudioDropdown.Button>
+                </StudioDropdown.Item>
+              )}
             </StudioDropdown.List>
             <StudioDropdown.Heading>{t('preview.test_as')}</StudioDropdown.Heading>
             <StudioDropdown.List>

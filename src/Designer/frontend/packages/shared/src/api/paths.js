@@ -125,6 +125,7 @@ export const previewHash = (taskId, selectedLayout, instanceId) => `#/instance/$
 export const previewPage = (org, app, selectedLayoutSet, taskId, selectedLayout, instanceId = PREVIEW_MOCK_INSTANCE_GUID) => `/app-specific-preview/${org}/${app}?${s({ selectedLayoutSet })}${taskId && instanceId ? previewHash(taskId, selectedLayout, instanceId) : ''}`;
 export const previewSessionsPath = (org, app) => `${apiBasePath}/${org}/${app}/preview-sessions`; // Post
 export const previewSessionInstancesPath = (org, app) => `${previewSessionsPath(org, app)}/instances`; // Post
+export const previewFormDataPath = (org, app) => `${previewSessionsPath(org, app)}/form-data`; // Post, Put
 // A page of an instance in a preview session. The session's URL is the app's root on the preview service's domain.
 // Without a page, the app frontend shows the task's first.
 export const previewSessionPage = (sessionUrl, instanceId, taskId, selectedLayout) => `${sessionUrl}instance/${instanceId}/${taskId}${selectedLayout ? `/${selectedLayout}` : ''}`;

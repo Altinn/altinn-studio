@@ -180,6 +180,74 @@ public sealed class V9AppTests : IDisposable
     }
 
     [Fact]
+    public async Task FormData_CanBeReadAndReplaced_ByStudio()
+    {
+        Uri appRoot = await StartSession();
+        string instanceId = await CreateEditorInstanceAt(appRoot, "Task_1");
+        HttpClient studio = _factory.CreateInternalClient();
+
+        using HttpResponseMessage read = await studio.PostAsJsonAsync(
+            "/sessions/form-data",
+            FormDataRequest("developer", appRoot, instanceId),
+            TestContext.Current.CancellationToken
+        );
+        var body = await read.Content.ReadFromJsonAsync<JsonObject>(TestContext.Current.CancellationToken);
+        JsonNode? element = Assert.Single(body?["dataElements"]?.AsArray() ?? []);
+        using HttpResponseMessage written = await studio.PutAsJsonAsync(
+            "/sessions/form-data",
+            FormDataRequest("developer", appRoot, instanceId, Value(element?["id"]), new { name = "Kari" }),
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.Equal("model", (string?)element?["dataType"]);
+        Assert.Equal(HttpStatusCode.NoContent, written.StatusCode);
+        JsonObject form = await Send(HttpMethod.Get, new Uri(appRoot, $"instances/{instanceId}/bootstrap-form/Task_1"));
+        Assert.Equal("Kari", (string?)form["dataModels"]?["model"]?["initialData"]?["name"]);
+    }
+
+    [Fact]
+    public async Task FormData_IsNotFound_InAnotherDevelopersSession()
+    {
+        _factory.Root.AddWorkingCopy("other-developer", "ttd", "my-app");
+        Uri appRoot = await StartSession();
+        string instanceId = await CreateEditorInstanceAt(appRoot, "Task_1");
+
+        using HttpResponseMessage response = await _factory
+            .CreateInternalClient()
+            .PostAsJsonAsync(
+                "/sessions/form-data",
+                FormDataRequest("other-developer", appRoot, instanceId),
+                TestContext.Current.CancellationToken
+            );
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task FormData_IsReplacedOnlyWithAnObject()
+    {
+        Uri appRoot = await StartSession();
+        string instanceId = await CreateEditorInstanceAt(appRoot, "Task_1");
+        JsonObject instance = await Send(HttpMethod.Get, new Uri(appRoot, $"instances/{instanceId}"));
+
+        using HttpResponseMessage response = await _factory
+            .CreateInternalClient()
+            .PutAsJsonAsync(
+                "/sessions/form-data",
+                FormDataRequest(
+                    "developer",
+                    appRoot,
+                    instanceId,
+                    Value(instance["data"]?[0]?["id"]),
+                    JsonNode.Parse("""["Kari"]""")
+                ),
+                TestContext.Current.CancellationToken
+            );
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
     public async Task Patch_ChangesNothing_WhenOnePatchFails()
     {
         Uri appRoot = await StartSession();
@@ -348,6 +416,31 @@ public sealed class V9AppTests : IDisposable
             },
             TestContext.Current.CancellationToken
         );
+
+    private async Task<string> CreateEditorInstanceAt(Uri appRoot, string taskId)
+    {
+        using HttpResponseMessage response = await CreateEditorInstance("developer", appRoot, taskId);
+        var body = await response.Content.ReadFromJsonAsync<JsonObject>(TestContext.Current.CancellationToken);
+        return Value(body?["instanceId"]);
+    }
+
+    private static object FormDataRequest(
+        string developer,
+        Uri sessionUrl,
+        string instanceId,
+        string? dataElementId = null,
+        object? data = null
+    ) =>
+        new
+        {
+            developer,
+            org = "ttd",
+            app = "my-app",
+            sessionUrl,
+            instanceId,
+            dataElementId,
+            data,
+        };
 
     private Task<HttpResponseMessage> Get(Uri url) =>
         _factory.CreatePublicClient().GetAsync(url, TestContext.Current.CancellationToken);

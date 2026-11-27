@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.TypedHttpClients.PreviewService;
@@ -91,5 +92,69 @@ public class PreviewSessionsController(IPreviewServiceClient previewServiceClien
             cancellationToken
         );
         return instanceId is null ? NotFound() : Ok(new PreviewInstanceResponse(instanceId));
+    }
+
+    /// <summary>
+    /// The form data of an instance in one of the developer's preview sessions, so the developer can change data that
+    /// the app's code would fill in. The request has the session's URL, which holds its secret ID, so it is a POST.
+    /// </summary>
+    /// <param name="org">The app's service owner.</param>
+    /// <param name="app">The app.</param>
+    /// <param name="request">The session and the instance.</param>
+    /// <param name="cancellationToken">A token to cancel the request.</param>
+    /// <returns>The instance's form data, by data element.</returns>
+    [HttpPost("form-data")]
+    [UseSystemTextJson]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<PreviewFormDataResponse>> ReadFormData(
+        string org,
+        string app,
+        [FromBody] PreviewFormDataRequest request,
+        CancellationToken cancellationToken
+    )
+    {
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        var dataElements = await previewServiceClient.ReadFormData(
+            developer,
+            org,
+            app,
+            request.SessionUrl,
+            request.InstanceId,
+            cancellationToken
+        );
+        return dataElements is null ? NotFound() : Ok(new PreviewFormDataResponse(dataElements));
+    }
+
+    /// <summary>
+    /// Replaces the data of a form data element of an instance in one of the developer's preview sessions.
+    /// </summary>
+    /// <param name="org">The app's service owner.</param>
+    /// <param name="app">The app.</param>
+    /// <param name="request">The session, the instance, the data element and its new data.</param>
+    /// <param name="cancellationToken">A token to cancel the request.</param>
+    [HttpPut("form-data")]
+    [UseSystemTextJson]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> WriteFormData(
+        string org,
+        string app,
+        [FromBody] WritePreviewFormDataRequest request,
+        CancellationToken cancellationToken
+    )
+    {
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        bool written = await previewServiceClient.WriteFormData(
+            developer,
+            org,
+            app,
+            request.SessionUrl,
+            request.InstanceId,
+            request.DataElementId,
+            request.Data,
+            cancellationToken
+        );
+        return written ? NoContent() : NotFound();
     }
 }

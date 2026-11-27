@@ -9,6 +9,9 @@ as the user in Designer and Gitea, so the service runs on a domain of its own.
 - Designer starts a session on the service's internal port, for the developer who is logged in to Studio. The
   service answers with a URL on the public port: `/{sessionId}/{org}/{app}/`. Designer's page shows that URL in a
   frame.
+- On the internal port, Designer can also create an instance at a task in the developer's session, and read and
+  replace the form data of an instance there. The developer edits the form data in Studio, as for fields the app's
+  code fills in.
 - The session ID in the URL is the only thing that identifies the session. Preview sets no cookies, because the
   preview domain's cookies would be third-party cookies in Studio's page, and Safari blocks those.
 - A session reads one developer's working copy of one app. The service reads the working copies from the share that

@@ -107,6 +107,68 @@ public class PreviewServiceClientTests : IDisposable
         Assert.Null(instanceId);
     }
 
+    [Fact]
+    public async Task ReadFormData_AsksForTheInstancesDataInTheDevelopersSession()
+    {
+        _server
+            .Given(Request.Create().WithPath("/sessions/form-data").UsingPost())
+            .RespondWith(
+                Response
+                    .Create()
+                    .WithStatusCode(200)
+                    .WithBodyAsJson(
+                        new
+                        {
+                            dataElements = new[]
+                            {
+                                new
+                                {
+                                    id = "element",
+                                    dataType = "model",
+                                    data = new { name = "Kari" },
+                                },
+                            },
+                        }
+                    )
+            );
+
+        var dataElements = await Client()
+            .ReadFormData("developer", "ttd", "my-app", new Uri(SessionUrl), "51001/guid", CancellationToken.None);
+
+        var element = Assert.Single(dataElements);
+        Assert.Equal("model", element.DataType);
+        Assert.Equal("Kari", (string)element.Data?["name"]);
+        string body = Assert.Single(_server.LogEntries).RequestMessage.Body;
+        using JsonDocument request = JsonDocument.Parse(body);
+        Assert.Equal(SessionUrl, request.RootElement.GetProperty("sessionUrl").GetString());
+        Assert.Equal("51001/guid", request.RootElement.GetProperty("instanceId").GetString());
+    }
+
+    [Fact]
+    public async Task WriteFormData_SendsTheDataAndReturnsFalseWithoutTheSession()
+    {
+        _server
+            .Given(Request.Create().WithPath("/sessions/form-data").UsingPut())
+            .RespondWith(Response.Create().WithStatusCode(404));
+
+        bool written = await Client()
+            .WriteFormData(
+                "developer",
+                "ttd",
+                "my-app",
+                new Uri(SessionUrl),
+                "51001/guid",
+                Guid.Empty,
+                new System.Text.Json.Nodes.JsonObject { ["name"] = "Kari" },
+                CancellationToken.None
+            );
+
+        Assert.False(written);
+        string body = Assert.Single(_server.LogEntries).RequestMessage.Body;
+        using JsonDocument request = JsonDocument.Parse(body);
+        Assert.Equal("Kari", request.RootElement.GetProperty("data").GetProperty("name").GetString());
+    }
+
     public void Dispose()
     {
         _server.Stop();

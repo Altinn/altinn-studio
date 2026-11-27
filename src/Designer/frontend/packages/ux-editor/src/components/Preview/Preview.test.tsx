@@ -53,6 +53,29 @@ describe('Preview', () => {
     expect(startPreviewSession).toHaveBeenCalledTimes(1);
   });
 
+  it('shows the form data of the instance in preview from its menu', async () => {
+    const user = userEvent.setup();
+    const readPreviewFormData = vi.fn().mockResolvedValue({
+      dataElements: [{ id: 'element', dataType: 'model', data: { name: 'Kari' } }],
+    });
+    render({ queries: { readPreviewFormData } });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('preview.loading_preview_controller')),
+    );
+
+    await user.click(screen.getByRole('button', { name: textMock('ux_editor.preview.options') }));
+    await user.click(
+      screen.getByRole('menuitem', { name: textMock('ux_editor.preview.edit_form_data') }),
+    );
+
+    expect(
+      await screen.findByRole('textbox', {
+        name: textMock('ux_editor.preview.form_data.data', { dataType: 'model' }),
+      }),
+    ).toBeInTheDocument();
+    expect(readPreviewFormData).toHaveBeenCalledWith(org, app, mockSessionUrl, mockInstanceId);
+  });
+
   it('Renders an iframe with the ref from AppContext', async () => {
     render();
     await waitForElementToBeRemoved(() =>

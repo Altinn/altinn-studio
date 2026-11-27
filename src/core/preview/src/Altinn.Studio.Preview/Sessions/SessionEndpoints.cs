@@ -18,7 +18,7 @@ internal static partial class SessionEndpoints
     {
         endpoints.MapPost("/sessions", Start).RequireInternalPort();
         endpoints.MapPost("/sessions/instances", CreateInstance).RequireInternalPort();
-        return endpoints;
+        return endpoints.MapFormData();
     }
 
     private static async Task<IResult> Start(
@@ -79,52 +79,96 @@ internal static partial class SessionEndpoints
         CancellationToken cancellationToken
     )
     {
-        if (
-            !WorkingCopy.TryCreate(request.Developer, request.Org, request.App, out WorkingCopy? workingCopy)
-            || request.TaskId is null
-            || !TaskId().IsMatch(request.TaskId)
-            || request.SessionUrl is null
-            || PreviewUrls.SessionIdOf(request.SessionUrl, options.Value.PublicBaseUrl) is not { } sessionId
-        )
+        if (request.TaskId is null || !TaskId().IsMatch(request.TaskId))
         {
-            return Results.Problem(
-                title: "The developer, org, app, task or session URL is not valid.",
-                statusCode: StatusCodes.Status400BadRequest
-            );
+            return InvalidRequest();
         }
 
-        using AppFolder? folder = AppFolder.Open(options.Value.RepositoryRoot, workingCopy);
+        return await InDevelopersSession(
+            request.Developer,
+            request.Org,
+            request.App,
+            request.SessionUrl,
+            sessionStore,
+            options.Value,
+            async (sessionId, session, files) =>
+            {
+                AppDefinition app = AppDefinition.Read(files);
+                StateChange<Instance>? created = await sessionStore.Update(
+                    sessionId,
+                    state =>
+                        MockInstances.Create(
+                            state,
+                            app,
+                            session.WorkingCopy.Org,
+                            session.WorkingCopy.App,
+                            session.PartyId,
+                            timeProvider.GetUtcNow(),
+                            request.TaskId
+                        ),
+                    cancellationToken
+                );
+                return created is null
+                    ? SessionEnded()
+                    : Results.Json(
+                        new CreateInstanceResponse(created.Result.Id),
+                        statusCode: StatusCodes.Status201Created
+                    );
+            },
+            cancellationToken
+        );
+    }
+
+    /// <summary>
+    /// Runs <paramref name="action"/> in the session that Designer started for the developer and app, which the caller
+    /// holds the URL of, with the files of the developer's working copy. Otherwise answers with why it can't.
+    /// </summary>
+    private static async Task<IResult> InDevelopersSession(
+        string? developer,
+        string? org,
+        string? app,
+        Uri? sessionUrl,
+        ISessionStore sessionStore,
+        PreviewOptions options,
+        Func<SessionId, PreviewSession, AppFiles, Task<IResult>> action,
+        CancellationToken cancellationToken
+    )
+    {
         if (
-            folder is null
-            || await sessionStore.FindAndRenew(sessionId, cancellationToken) is not { } session
+            !WorkingCopy.TryCreate(developer, org, app, out WorkingCopy? workingCopy)
+            || sessionUrl is null
+            || PreviewUrls.SessionIdOf(sessionUrl, options.PublicBaseUrl) is not { } sessionId
+        )
+        {
+            return InvalidRequest();
+        }
+
+        if (
+            await sessionStore.FindAndRenew(sessionId, cancellationToken) is not { } session
             || session.WorkingCopy != workingCopy
         )
         {
-            return Results.Problem(
-                title: "The developer has no such session of the app.",
-                statusCode: StatusCodes.Status404NotFound
-            );
+            return NoSuchSession();
         }
 
-        AppDefinition app = AppDefinition.Read(new AppFiles(folder));
-        StateChange<Instance>? created = await sessionStore.Update(
-            sessionId,
-            state =>
-                MockInstances.Create(
-                    state,
-                    app,
-                    workingCopy.Org,
-                    workingCopy.App,
-                    session.PartyId,
-                    timeProvider.GetUtcNow(),
-                    request.TaskId
-                ),
-            cancellationToken
-        );
-        return created is null
-            ? Results.Problem(title: "The session has ended.", statusCode: StatusCodes.Status404NotFound)
-            : Results.Json(new CreateInstanceResponse(created.Result.Id), statusCode: StatusCodes.Status201Created);
+        using AppFolder? folder = AppFolder.Open(options.RepositoryRoot, workingCopy);
+        return folder is null ? NoSuchSession() : await action(sessionId, session, new AppFiles(folder));
     }
+
+    private static IResult InvalidRequest() =>
+        Results.Problem(
+            title: "The developer, org, app, task or session URL is not valid.",
+            statusCode: StatusCodes.Status400BadRequest
+        );
+
+    private static IResult NoSuchSession() =>
+        Results.Problem(
+            title: "The developer has no such session of the app.",
+            statusCode: StatusCodes.Status404NotFound
+        );
+
+    private static IResult SessionEnded() =>
+        Results.Problem(title: "The session has ended.", statusCode: StatusCodes.Status404NotFound);
 
     /// <summary>A task's ID in the process definition, which is also its UI folder's name.</summary>
     [GeneratedRegex("^[A-Za-z0-9_][A-Za-z0-9_.-]{0,99}$", RegexOptions.CultureInvariant)]
