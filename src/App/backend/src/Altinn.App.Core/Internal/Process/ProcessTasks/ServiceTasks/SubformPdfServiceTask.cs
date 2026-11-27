@@ -84,10 +84,10 @@ internal sealed class SubformPdfServiceTask(
         );
 
     /// <summary>
-    /// Whether the task renders the data element as one of the subform's entries. PDF previews use it too, so a
-    /// preview shows the entries the task stores PDFs for.
+    /// Whether the task generates a PDF of the data element, as one of the subform's entries. PDF previews use it
+    /// too, so a preview shows only entries the task makes PDFs of.
     /// </summary>
-    internal static bool RendersEntry(
+    internal static bool GeneratesPdfFor(
         IAppResources appResources,
         ValidAltinnSubformPdfConfiguration config,
         DataElement dataElement
@@ -141,7 +141,7 @@ internal sealed class SubformPdfServiceTask(
         string subformUiFolder = config.SubformUiFolder;
 
         List<DataElement> subformDataElements = instance
-            .Data.Where(element => RendersEntry(appResources, config, element))
+            .Data.Where(element => GeneratesPdfFor(appResources, config, element))
             .ToList();
 
         // Generate PDFs sequentially

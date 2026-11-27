@@ -112,7 +112,7 @@ public class PdfController : ControllerBase
 
             List<ProcessTask> subformPdfTasks = _processReader
                 .GetProcessTasks()
-                .Where(processTask => RendersEntry(processTask, dataElement))
+                .Where(processTask => GeneratesPdfFor(processTask, dataElement))
                 .ToList();
             if (subformPdfTasks.Count == 0)
             {
@@ -183,7 +183,7 @@ public class PdfController : ControllerBase
 
         string? subformId = dataElementId?.ToString();
         DataElement? subform = instance.Data.Find(element => element.Id == subformId);
-        if (subform is null || !SubformPdfServiceTask.RendersEntry(_appResources, subformConfig, subform))
+        if (subform is null || !SubformPdfServiceTask.GeneratesPdfFor(_appResources, subformConfig, subform))
         {
             return BadRequest($"dataElementId must be the id of a data element of type {subformDataType}");
         }
@@ -206,8 +206,8 @@ public class PdfController : ControllerBase
                 ExtensionElements.TaskExtension.TaskType: AltinnTaskTypes.Pdf or AltinnTaskTypes.SubformPdf,
             };
 
-    private bool RendersEntry(ProcessTask task, DataElement dataElement) =>
+    private bool GeneratesPdfFor(ProcessTask task, DataElement dataElement) =>
         task.ExtensionElements?.TaskExtension
             is { TaskType: AltinnTaskTypes.SubformPdf, SubformPdfConfiguration: AltinnSubformPdfConfiguration config }
-        && SubformPdfServiceTask.RendersEntry(_appResources, config.Validate(), dataElement);
+        && SubformPdfServiceTask.GeneratesPdfFor(_appResources, config.Validate(), dataElement);
 }
