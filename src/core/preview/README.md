@@ -28,6 +28,8 @@ Preview serves a v9 app as the app backend serves it, with a mock of the backend
   so every request from the frontend carries the session ID, and published versions of the frontend work unchanged.
 - The user is a mock person who may do everything. The instances the app creates, and their form data, are the
   session's state, which Redis keeps in the same key as the session, so they end together.
+- A new form data element gets the prefill in `models/{dataType}.prefill.json` from the mock person's register data and
+  profile, as in an app. The person acts for themself, so prefill from the organization register gives nothing.
 - Preview follows the process without evaluating its gateways, and moves past service tasks, as the process engine
   runs them without the user.
 - The mock follows the latest v9 prerelease. Its tests run an app from the [v9 template](../../App/template/v9)
