@@ -300,9 +300,7 @@ app does not guard against it. Names would not help either, since a redeploy can
   cleaned the version up, the read fails: a 409 for replaced content, and a 500 that the engine retries for a deleted
   element. A workflow resumed more than seven days after the lost attempt meets this. One resumed more than 48 hours
   after it reads the version, but Storage no longer replays the committed save and refuses the new one as stale, which
-  the callback answers with a 422. The callback state also carries the bytes of signee-state elements the unit of work
-  already holds (`WorkflowCallbackState.BinaryData`), which signing's delegate and notify stages rewrite, so those
-  stages read their input from the state.
+  the callback answers with a 422.
 - An ended process reports `idle` without asking the engine, and `process/resume` refuses it with a 409. A failure
   after the commit of the final transition therefore shows only in the failure alert, and an operator resumes the
   workflow with the engine's [resume API](../../../Runtime/workflow-engine/docs/technical-guide.md#resume).

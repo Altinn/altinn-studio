@@ -1017,6 +1017,43 @@ public class WorkflowEngineCallbackControllerTests
         Assert.Equal("replaced"u8.ToArray(), storedData[serviceTask.DataElementId.ToString()]);
     }
 
+    [Fact]
+    public async Task ExecuteCommand_StepThatReplacedAFileRunAgainAfterItsSaveWasCommitted_Completes()
+    {
+        var serviceTask = new LazyReadServiceTask(Guid.NewGuid(), contentToSave: "rewritten"u8.ToArray());
+        await using ControllerSetup setup = CreateLazyReadSetup(serviceTask, "captured"u8.ToArray());
+        Guid stepId = Guid.NewGuid();
+
+        IActionResult lostAnswer = await setup.Execute(
+            ExecuteServiceTask.Key,
+            stepId,
+            LazyReadServiceTask.CommandPayload,
+            collectionKey: "service-task-chain"
+        );
+        IActionResult retry = await setup.Execute(
+            ExecuteServiceTask.Key,
+            stepId,
+            LazyReadServiceTask.CommandPayload,
+            collectionKey: "service-task-chain"
+        );
+
+        WorkflowCallbackState savedState = setup.DeserializeState(
+            Assert.IsType<AppCallbackResponse>(Assert.IsType<OkObjectResult>(lostAnswer).Value).State!
+        );
+        WorkflowCallbackState retriedState = setup.DeserializeState(
+            Assert.IsType<AppCallbackResponse>(Assert.IsType<OkObjectResult>(retry).Value).State!
+        );
+        Assert.Equal("captured"u8.ToArray(), serviceTask.ReadData);
+        Assert.Equal(savedState.InstanceVersion, retriedState.InstanceVersion);
+        Assert.Equal(
+            Assert.Single(savedState.Instance.Data).BlobVersionId,
+            Assert.Single(retriedState.Instance.Data).BlobVersionId
+        );
+        var (_, storedData) = setup.Services.Storage.GetInstanceAndData(InstanceOwnerPartyId, setup.InstanceGuid);
+        Assert.Equal("rewritten"u8.ToArray(), storedData[serviceTask.DataElementId.ToString()]);
+        Assert.Equal(2, GetMutationRequests(setup.Services).Count);
+    }
+
     private static ControllerSetup CreateLazyReadSetup(LazyReadServiceTask serviceTask, byte[] capturedContent) =>
         CreateSetup(
             services =>

@@ -54,8 +54,7 @@ public class WorkflowCallbackStateTests
             new ModelSerializationService(null!),
             null!,
             null!,
-            stateSigner,
-            EmptyProcessReader()
+            stateSigner
         );
 
         string state = await service.CaptureState(unitOfWork);
@@ -99,8 +98,7 @@ public class WorkflowCallbackStateTests
             new ModelSerializationService(null!),
             appMetadata.Object,
             Mock.Of<IAppModel>(),
-            stateSigner,
-            EmptyProcessReader()
+            stateSigner
         );
         string captured = await service.CaptureState(CreateUnitOfWork(instance, versions));
         (InstanceDataUnitOfWork restored, _) = await service.RestoreState(
@@ -151,8 +149,7 @@ public class WorkflowCallbackStateTests
             new ModelSerializationService(null!),
             null!,
             null!,
-            new WorkflowStateSigner(secretProviderMock.Object),
-            EmptyProcessReader()
+            new WorkflowStateSigner(secretProviderMock.Object)
         );
 
         InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -208,8 +205,7 @@ public class WorkflowCallbackStateTests
             new ModelSerializationService(null!),
             appMetadataMock.Object,
             Mock.Of<IAppModel>(),
-            stateSigner,
-            EmptyProcessReader()
+            stateSigner
         );
 
         (InstanceDataUnitOfWork unitOfWork, _) = await service.RestoreState(
@@ -285,7 +281,7 @@ public class WorkflowCallbackStateTests
                 throw new ArgumentOutOfRangeException(nameof(malformedValue), malformedValue, null);
         }
         string state = stateSigner.Sign(payload.ToJsonString(), SigningDomain.CallbackState);
-        var service = new WorkflowCallbackStateService(null!, null!, null!, null!, stateSigner, EmptyProcessReader());
+        var service = new WorkflowCallbackStateService(null!, null!, null!, null!, stateSigner);
 
         WorkflowCallbackStateException exception = await Assert.ThrowsAsync<WorkflowCallbackStateException>(() =>
             service.RestoreState(new InstanceIdentifier(1337, instanceGuid), state, "nb")
@@ -399,8 +395,7 @@ public class WorkflowCallbackStateTests
             modelSerializationService,
             appMetadataMock.Object,
             appModelMock.Object,
-            stateSigner,
-            EmptyProcessReader()
+            stateSigner
         );
 
         (InstanceDataUnitOfWork unitOfWork, _) = await service.RestoreState(
@@ -594,8 +589,7 @@ public class WorkflowCallbackStateTests
             new ModelSerializationService(Mock.Of<IAppModel>()),
             appMetadataMock.Object,
             Mock.Of<IAppModel>(),
-            stateSigner,
-            EmptyProcessReader()
+            stateSigner
         );
 
         (InstanceDataUnitOfWork unitOfWork, _) = await service.RestoreState(
@@ -917,7 +911,4 @@ public class WorkflowCallbackStateTests
             Options.Create(new FrontEndSettings())
         );
     }
-
-    private static IProcessReader EmptyProcessReader() =>
-        Mock.Of<IProcessReader>(r => r.GetProcessTasks() == new List<ProcessTask>());
 }

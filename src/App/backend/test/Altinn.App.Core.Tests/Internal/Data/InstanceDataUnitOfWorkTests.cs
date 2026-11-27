@@ -1396,8 +1396,12 @@ public sealed class InstanceDataUnitOfWorkTests
         );
         Assert.Equal("Task_1", update.GeneratedFromTask);
         Assert.Equal([referencedElement], update.Refs);
-        Assert.True(setup.DataMutator.TryGetCachedBinaryData(setup.DataElement, out ReadOnlyMemory<byte> cached));
-        Assert.True(cached.Span.SequenceEqual(updatedBytes));
+        ReadOnlyMemory<byte> readAfterSave = await setup.DataMutator.GetBinaryData(setup.DataElement);
+        Assert.True(readAfterSave.Span.SequenceEqual(updatedBytes));
+        Assert.Single(
+            setup.Services.Storage.RequestsResponses,
+            request => request.RequestMethod == HttpMethod.Get && request.RequestHeaders.IfMatch.Count > 0
+        );
     }
 
     [Theory]

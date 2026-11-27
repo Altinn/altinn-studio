@@ -531,12 +531,6 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     }
 
     /// <summary>
-    /// The element's bytes if they are already cached, matching its current blob version, without reading Storage.
-    /// </summary>
-    internal bool TryGetCachedBinaryData(DataElementIdentifier id, out ReadOnlyMemory<byte> data) =>
-        _binaryCache.TryGetCachedValue(id, out data);
-
-    /// <summary>
     /// Makes a read of a binary element that Storage has since deleted or replaced return the blob version this unit
     /// of work lists for it. A workflow step that runs again after its save was committed then reads what its first
     /// attempt read, and its save reaches Storage's replay.
