@@ -133,11 +133,11 @@ spec:
           # Traefik's spans of requests to our services go where ours go, so those traces start
           # at Traefik in our Application Insights too, and are sampled with the service's own
           # spans. Traefik records a request as a server span with the path and a proxy span
-          # with the backend's URL. kubernetes-wrapper's route strips its prefix, so its proxy
-          # span shows only the wrapper's own API paths. A route of ours behind Traefik that
-          # isn't listed here reaches only Victoria.
+          # with the backend's URL. Our routes are under /runtime/, which no app's /{org}/{app}
+          # can be, apart from kubernetes-wrapper's, whose route strips its prefix, so its
+          # proxy span shows only the wrapper's own API paths.
           - context: span
-            condition: resource.attributes["altinn.telemetry.route"] == "ingress" and (IsMatch(span.attributes["url.path"], "^/(runtime/gateway/api/v1|kuberneteswrapper)(/|$$)") or IsMatch(span.attributes["url.full"], "^[a-z]+://[^/]+/(runtime/gateway/api/v1|api/v1/(deployments|daemonsets))(/|$$)"))
+            condition: resource.attributes["altinn.telemetry.route"] == "ingress" and (IsMatch(span.attributes["url.path"], "^/(runtime|kuberneteswrapper)(/|$$)") or IsMatch(span.attributes["url.full"], "^[a-z]+://[^/]+/(runtime|api/v1/(deployments|daemonsets))(/|$$)"))
             pipelines: [traces/studio, traces/victoria]
           - condition: resource.attributes["altinn.telemetry.route"] == "studio"
             pipelines: [traces/studio, traces/victoria]
