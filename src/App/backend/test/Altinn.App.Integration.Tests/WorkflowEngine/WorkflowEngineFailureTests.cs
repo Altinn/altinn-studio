@@ -187,7 +187,7 @@ public class WorkflowEngineFailureTests(ITestOutputHelper output, AppFixtureClas
         JsonElement failureRoot = failureDocument.RootElement;
         Assert.Equal("stepFailed", failureRoot.GetProperty("workflowFailure").GetProperty("kind").GetString());
         Assert.Equal(
-            // The failing task is a simple IServiceTask, whose whole pipeline is the conclusion at item 0.
+            // The failing task is a simple IServiceTask, whose whole pipeline is one stage at item 0.
             "ExecuteServiceTask: 0",
             failureRoot.GetProperty("workflowFailure").GetProperty("stepOperationId").GetString()
         );

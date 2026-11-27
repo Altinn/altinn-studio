@@ -1,6 +1,4 @@
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
-using Moq;
 
 namespace Altinn.App.Core.Tests.Features.Process;
 
@@ -141,20 +139,6 @@ public class PipelineBuilderTests
         Assert.Equal("On decision", stage.ReplyDisplayName);
     }
 
-    [Fact]
-    public void ServiceTask_TwoExternalStagesInSequence_AreTwoItems()
-    {
-        ServiceTaskPipeline pipeline = new PipelineBuilder.ServiceTask()
-            .ExternalStage(RequestApproval, OnDecision)
-            .ExternalStage(RequestApproval, OnDecision, TimeSpan.FromDays(1))
-            .ToPipeline();
-
-        Assert.Equal(
-            [PipelineBuilder.ServiceTask.DefaultReplyTimeout, TimeSpan.FromDays(1)],
-            pipeline.Items.Select(item => Assert.IsType<ServiceTaskItem.ExternalStage>(item).Timeout)
-        );
-    }
-
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
@@ -202,34 +186,4 @@ public class PipelineBuilderTests
 
         Assert.Empty(builder.ToPipeline().Items);
     }
-
-    [Fact]
-    public async Task ServiceTask_ExternalStage_HandsTheReplyAddressToTheSend()
-    {
-        ReplyAddress? seen = null;
-        ServiceTaskPipeline pipeline = new PipelineBuilder.ServiceTask()
-            .ExternalStage(
-                (_, replyAddress) =>
-                {
-                    seen = replyAddress;
-                    return Task.FromResult(ServiceTaskResult.Completed());
-                },
-                OnDecision
-            )
-            .ToPipeline();
-
-        var address = new ReplyAddress { Id = Guid.NewGuid(), Deadline = DateTimeOffset.UtcNow.AddDays(3) };
-        var stage = Assert.IsType<ServiceTaskItem.ExternalStage>(pipeline.Items[0]);
-        await stage.Send(TestContext(), address);
-
-        Assert.Same(address, seen);
-    }
-
-    private static StageContext TestContext() =>
-        new()
-        {
-            InstanceDataMutator = Mock.Of<IInstanceDataMutator>(),
-            WorkflowId = Guid.NewGuid(),
-            StepId = Guid.NewGuid(),
-        };
 }

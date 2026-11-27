@@ -1564,7 +1564,7 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
-    public async Task Create_MailboxPipeline_EndsMainWithTheSendStageAndEmitsNoConclusion()
+    public async Task Create_MailboxPipeline_EndsMainWithTheSendStage()
     {
         var factory = CreateFactory(serviceTasks: new ArchivingTask());
         var stateChange = CreateInitialTaskStart(altinnTaskType: "archiving");
@@ -2374,7 +2374,7 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
-    public async Task StepOptions_ServiceTask_ConclusionTimeout_OverridesCommandDefault()
+    public async Task StepOptions_ServiceTask_OwnTimeout_OverridesCommandDefault()
     {
         // Arrange - tier 3: a greedy service task asks for two hours
         var factory = CreateFactory(
@@ -2401,7 +2401,7 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
-    public async Task StepOptions_ServiceTask_ConclusionBothFields_HonorsBoth()
+    public async Task StepOptions_ServiceTask_OwnTimeoutAndRetry_HonorsBoth()
     {
         // Arrange - tier 3 sets BOTH timeout and retry; both must land on the wire, resolved per-field
         var factory = CreateFactory(
@@ -2434,7 +2434,7 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
-    public async Task StepOptions_ServiceTask_ConclusionRetryOnly_FallsBackToCommandTimeout()
+    public async Task StepOptions_ServiceTask_OwnRetryOnly_FallsBackToCommandTimeout()
     {
         // Arrange - tier 3 sets only the retry strategy; timeout must fall back to the tier-2 default
         var factory = CreateFactory(

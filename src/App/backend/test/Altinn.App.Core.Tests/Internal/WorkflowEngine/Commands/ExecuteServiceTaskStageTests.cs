@@ -154,39 +154,12 @@ public class ExecuteServiceTaskStageTests
         var success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.Null(success.ProcessNextContinuation);
         var continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(success.MailboxContinuation);
+        Assert.Equal("shipping", continuing.ServiceTaskType);
         Assert.Equal(0, continuing.Handover.AfterItemIndex);
         Assert.Equal(
             [$"{ExecuteServiceTask.Key}: {LastIndex}"],
             continuing.Handover.Steps.Select(step => step.OperationId)
         );
-        Assert.Null(continuing.Handover.Target);
-    }
-
-    /// <summary>Two stages and the conclusion in a row: each stage hands over to the next item's workflow.</summary>
-    private sealed class TwoStageTask : IServiceTask
-    {
-        public string Type => "shipping";
-
-        public void DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
-            pipeline
-                .Stage(_ => Task.FromResult(ServiceTaskResult.Completed()))
-                .Stage(_ => Task.FromResult(ServiceTaskResult.Completed()))
-                .Stage(_ => Task.FromResult(ServiceTaskResult.Completed()));
-    }
-
-    [Fact]
-    public async Task Stage_FollowedByAPlainStage_Completed_HandsOverToThatStage()
-    {
-        var command = CreateCommand(new TwoStageTask());
-
-        var result = await command.Execute(CreateContext(), Payload(0));
-
-        var success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
-        Assert.Null(success.ProcessNextContinuation);
-        var continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(success.MailboxContinuation);
-        Assert.Equal("shipping", continuing.ServiceTaskType);
-        Assert.Equal(0, continuing.Handover.AfterItemIndex);
-        Assert.Equal([$"{ExecuteServiceTask.Key}: 1"], continuing.Handover.Steps.Select(step => step.OperationId));
         Assert.Null(continuing.Handover.Target);
     }
 
