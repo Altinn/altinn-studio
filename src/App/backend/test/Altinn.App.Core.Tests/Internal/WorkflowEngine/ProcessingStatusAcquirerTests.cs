@@ -402,8 +402,7 @@ public class ProcessingStatusAcquirerTests
                 new ModelSerializationService(null!),
                 appMetadata.Object,
                 Mock.Of<IAppModel>(),
-                _signer,
-                Mock.Of<IProcessReader>(r => r.GetProcessTasks() == new List<ProcessTask>())
+                _signer
             );
             WorkflowEngineService
                 .Setup(service =>

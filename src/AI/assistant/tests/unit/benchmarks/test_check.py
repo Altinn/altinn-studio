@@ -8,6 +8,7 @@ from types import SimpleNamespace
 import pytest
 
 from benchmarks import check, registry
+from benchmarks.bench_app import BenchApp
 
 
 def _run_eval_stub(calls: list[str]):
@@ -27,7 +28,7 @@ class TestAnE2eRunRequiresAgentModels:
             check.run(
                 label="test",
                 include_slow=True,
-                only=("Benchmarks/forms",),
+                only=("Benchmarks/app-v9",),
                 run_eval=_run_eval_stub(calls),
             )
 
@@ -40,11 +41,11 @@ class TestAnE2eRunRequiresAgentModels:
         run = check.run(
             label="test",
             include_slow=True,
-            only=("Benchmarks/forms",),
+            only=("Benchmarks/app-v9",),
             run_eval=_run_eval_stub(calls),
         )
 
-        assert calls == ["Benchmarks/forms"]
+        assert calls == ["Benchmarks/app-v9"]
         assert run.provenance.models["actor"] == "gpt-9-agent"
 
     def test_a_non_e2e_run_never_asks_the_agent(self, monkeypatch):
@@ -67,23 +68,25 @@ class TestTaskForAlsoRefusesWithoutAgentModels:
             raise AssertionError("the snapshot the run resolved should be reused")
 
         monkeypatch.setattr(check, "agent_role_models", fail)
+        monkeypatch.setattr(check, "new_bench_app", lambda template: BenchApp("ttd", "bench", template))
         args = argparse.Namespace(run_name=None, assets_dir=None)
 
-        task, _, _, model = check.task_for(args, registry.by_name("Benchmarks/forms"), {"actor": "gpt-9-snapshot"})
+        task, _, _, model = check.task_for(args, registry.by_name("Benchmarks/app-v9"), {"actor": "gpt-9-snapshot"})
 
         assert task.role_models["actor"] == "gpt-9-snapshot"
         assert model == "gpt-9-snapshot"
+        assert task.app.template == "v9"
 
     def test_the_run_and_the_task_are_handed_the_same_snapshot(self, monkeypatch):
         reported = ["gpt-9-first", "gpt-9-rebuilt"]
         monkeypatch.setattr(check, "agent_role_models", lambda _base: {"actor": reported.pop(0)})
-        planned = (registry.by_name("Benchmarks/forms"),)
+        planned = (registry.by_name("Benchmarks/app-v9"),)
 
         snapshot = check.agent_models_for(planned)
         run = check.run(
             label="test",
             include_slow=True,
-            only=("Benchmarks/forms",),
+            only=("Benchmarks/app-v9",),
             agent_models=snapshot,
             run_eval=_run_eval_stub([]),
         )
@@ -97,4 +100,4 @@ class TestTaskForAlsoRefusesWithoutAgentModels:
         args = argparse.Namespace(run_name=None, assets_dir=None)
 
         with pytest.raises(SystemExit):
-            check.task_for(args, registry.by_name("Benchmarks/forms"))
+            check.task_for(args, registry.by_name("Benchmarks/app-v9"))

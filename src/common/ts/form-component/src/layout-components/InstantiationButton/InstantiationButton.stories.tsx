@@ -1,3 +1,4 @@
+import { withComponentGrid } from '@app/form-component/layout-components/common/storybook';
 import { fn } from 'storybook/test';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
@@ -17,6 +18,7 @@ export const INSTANTIATION_BUTTON_PROP_CATEGORIES = {
 const meta = {
   title: 'LayoutComponents/InstantiationButton',
   component: InstantiationButton,
+  decorators: [withComponentGrid],
   excludeStories: ['INSTANTIATION_BUTTON_PROP_CATEGORIES'],
   parameters: {
     layout: 'padded',

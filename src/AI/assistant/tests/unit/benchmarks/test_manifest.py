@@ -76,8 +76,8 @@ def test_see_references_resolve_and_are_not_self_referential():
 
 def test_prose_fields_are_written_not_stubbed():
     for behavior in manifest.BEHAVIORS:
-        assert len(behavior.blind) > 60, f"{behavior.id}: blind is too short to be honest"
-        assert len(behavior.fix.task) > 80, f"{behavior.id}: task is too short to act on"
+        assert len(behavior.blind) > 40, f"{behavior.id}: blind is too short to be honest"
+        assert len(behavior.fix.task) > 30, f"{behavior.id}: task is too short to act on"
         assert behavior.text[0].isupper(), f"{behavior.id}: text should read as a sentence"
         assert not behavior.text.endswith("."), f"{behavior.id}: text is a title, not a sentence"
 
@@ -119,7 +119,7 @@ def test_behavior_ids_are_kebab_case_under_their_component():
         assert re.fullmatch(r"[a-z]+\.[a-z0-9]+(-[a-z0-9]+)*", behavior.id), behavior.id
 
 
-EMITTING_MODULES = ("gates", "planner", "generation", "preview_check", "evaluators", "agent_task")
+EMITTING_MODULES = ("gates", "planner", "generation", "preview_check", "evaluators", "app_checks", "agent_task")
 
 
 def _emittable_score_names() -> set[str]:

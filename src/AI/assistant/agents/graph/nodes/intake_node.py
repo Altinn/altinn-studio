@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from agents.graph.state import AgentState
 from agents.services.events import AgentEvent, sink
 from agents.workflows.intake.pipeline import run_intake_pipeline
@@ -31,7 +29,7 @@ def _intake_failure_hint(exc: BaseException) -> str:
 
 
 async def handle(state: AgentState) -> AgentState:
-    """Generate an initial plan and repository context."""
+    """Generate an initial plan."""
 
     import time
 
@@ -53,24 +51,14 @@ async def handle(state: AgentState) -> AgentState:
     )
 
     try:
-        result: dict[str, Any] = run_intake_pipeline(
+        plan = run_intake_pipeline(
             state.repo_path,
             state.user_goal,
             attachments=state.attachments,
             conversation_history=state.conversation_history,
         )
 
-        state.step_plan = [result["plan"]]
-
-        context = result.get("context")
-        if context is not None:
-            state.general_plan = {
-                "layout_pages": context.layout_pages,
-                "model_files": context.model_files,
-                "resource_files": context.resource_files,
-                "available_locales": context.available_locales,
-                "source_of_truth": context.source_of_truth,
-            }
+        state.step_plan = [plan]
 
         sink.send(
             AgentEvent(

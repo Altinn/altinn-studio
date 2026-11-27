@@ -300,8 +300,55 @@ public sealed record AltinnAppPackage
     public static IReadOnlyList<string> PackageNames { get; } =
     ["Altinn.App.Api", "Altinn.App.Api.Experimental", "Altinn.App.Core", "Altinn.App.Core.Experimental"];
 
+    /// <summary>
+    /// The packages that a version of the Altinn.App libraries is published as, <c>Altinn.App.Api</c> first, which
+    /// every version has. A version has those that existed then: <c>Altinn.App.Common</c> and
+    /// <c>Altinn.App.PlatformServices</c> until v7, <c>Altinn.App.Core</c> from v7 and <c>Altinn.App.Clients.Fiks</c>
+    /// in v8. Each carries the assembly of its name, also in a build of a pull request.
+    /// </summary>
+    public static IReadOnlyList<string> LibraryPackageNames { get; } =
+    [
+        "Altinn.App.Api",
+        "Altinn.App.Core",
+        "Altinn.App.Clients.Fiks",
+        "Altinn.App.Common",
+        "Altinn.App.PlatformServices",
+    ];
+
+    /// <summary>
+    /// What a build of a pull request adds to the name of each package it publishes, as in
+    /// <c>Altinn.App.Api.Experimental</c>. Its versions name the pull request, such as <c>8.7.0-pr.1973.name.hash</c>.
+    /// </summary>
+    public const string ExperimentalSuffix = ".Experimental";
+
     /// <summary>The package, such as <c>Altinn.App.Api</c> or <c>Altinn.App.Core.Experimental</c>.</summary>
     public string Name { get; }
+
+    /// <summary>Whether the package is from a build of a pull request. See <see cref="ExperimentalSuffix"/>.</summary>
+    public bool IsExperimental => Name.EndsWith(ExperimentalSuffix, StringComparison.Ordinal);
+
+    /// <summary>
+    /// The packages of the version this package belongs to: <see cref="LibraryPackageNames"/>, with
+    /// <see cref="ExperimentalSuffix"/> when <see cref="IsExperimental"/>.
+    /// </summary>
+    public IReadOnlyList<string> VersionPackageNames
+    {
+        get
+        {
+            if (!IsExperimental)
+            {
+                return LibraryPackageNames;
+            }
+
+            var names = new List<string>(LibraryPackageNames.Count);
+            foreach (string name in LibraryPackageNames)
+            {
+                names.Add(name + ExperimentalSuffix);
+            }
+
+            return names;
+        }
+    }
 
     /// <summary>The version, as <see cref="PackageReference.Version"/> gives it.</summary>
     public string Version { get; }
@@ -338,6 +385,23 @@ public sealed record AltinnAppPackage
         }
 
         return package is not null;
+    }
+
+    /// <summary>
+    /// Whether an assembly is one of the Altinn.App libraries', of any version: its name is one of
+    /// <see cref="LibraryPackageNames"/>. Assembly names are compared exactly.
+    /// </summary>
+    public static bool IsLibraryAssembly(string? name)
+    {
+        foreach (string package in LibraryPackageNames)
+        {
+            if (string.Equals(package, name, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>

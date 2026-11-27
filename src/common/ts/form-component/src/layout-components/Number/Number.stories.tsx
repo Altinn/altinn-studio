@@ -1,3 +1,4 @@
+import { withComponentGrid } from '@app/form-component/layout-components/common/storybook';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
@@ -21,6 +22,7 @@ export const NUMBER_PROP_CATEGORIES = {
 const meta = {
   title: 'LayoutComponents/Number',
   component: Number,
+  decorators: [withComponentGrid],
   excludeStories: ['NUMBER_PROP_CATEGORIES'],
   parameters: {
     layout: 'padded',

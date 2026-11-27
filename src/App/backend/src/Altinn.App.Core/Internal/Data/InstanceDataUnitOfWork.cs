@@ -69,6 +69,10 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     // Cache for the binary content of the file as currently in storage before changes in this unit of work.
     private readonly DataElementCache<ReadOnlyMemory<byte>> _binaryCache = new();
 
+    // True for the unit of work of a workflow callback. A binary element is then read by the blob version this unit of
+    // work lists for it, which Storage serves to the service owner also after it has deleted or replaced the element.
+    private readonly bool _readsCapturedBlobVersions;
+
     // Data elements to delete (eg RemoveDataElement(dataElementId)), but not yet deleted from instance or storage
     private readonly ConcurrentBag<DataElementChange> _changesForDeletion = [];
 
@@ -110,7 +114,8 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         IOptions<FrontEndSettings> frontEndSettings,
         string? taskId,
         string? language,
-        Telemetry? telemetry = null
+        Telemetry? telemetry = null,
+        bool readsCapturedBlobVersions = false
     )
     {
         if (instance.Id is not null)
@@ -136,6 +141,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         _appResources = appResources;
         _instanceClient = instanceClient;
         _telemetry = telemetry;
+        _readsCapturedBlobVersions = readsCapturedBlobVersions;
     }
 
     public Instance Instance => _instance;
@@ -527,12 +533,6 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     {
         _binaryCache.Set(id, data);
     }
-
-    /// <summary>
-    /// The element's bytes if they are already cached, matching its current blob version, without reading Storage.
-    /// </summary>
-    internal bool TryGetCachedBinaryData(DataElementIdentifier id, out ReadOnlyMemory<byte> data) =>
-        _binaryCache.TryGetCachedValue(id, out data);
 
     internal void UpdateProcessState(ProcessStateChange processStateChange)
     {
@@ -1616,18 +1616,35 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     private async Task<byte[]> GetDataBytes(DataElementIdentifier dataElementIdentifier)
     {
         string? expectedBlobVersionId = GetDataElementBlobVersionId(dataElementIdentifier);
+        StorageAuthenticationMethod authenticationMethod = GetAuthenticationMethod(dataElementIdentifier);
+        if (
+            _readsCapturedBlobVersions
+            && expectedBlobVersionId is not null
+            && await _dataClient.GetBlobVersionBytes(
+                _instanceOwnerPartyId,
+                _instanceGuid,
+                dataElementIdentifier.Guid,
+                expectedBlobVersionId,
+                authenticationMethod
+            )
+                is { } capturedBytes
+        )
+        {
+            return capturedBytes;
+        }
+
         try
         {
             return await _dataClient.GetDataBytesWithExpectedBlobVersionId(
                 _instanceOwnerPartyId,
                 _instanceGuid,
                 dataElementIdentifier.Guid,
-                authenticationMethod: GetAuthenticationMethod(dataElementIdentifier),
+                authenticationMethod: authenticationMethod,
                 expectedBlobVersionId: expectedBlobVersionId
             );
         }
         catch (PlatformHttpException exception)
-            when (!string.IsNullOrEmpty(expectedBlobVersionId)
+            when (expectedBlobVersionId is not null
                 && exception.Response.StatusCode == System.Net.HttpStatusCode.PreconditionFailed
             )
         {

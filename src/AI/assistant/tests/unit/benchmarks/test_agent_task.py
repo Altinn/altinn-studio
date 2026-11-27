@@ -8,6 +8,7 @@ import pytest
 
 from benchmarks import agent_task
 from benchmarks.agent_task import STRUCTURAL_SCORE_NAMES, AgentTask, item_field
+from benchmarks.bench_app import BenchApp
 from benchmarks.evaluators import Score
 from benchmarks.experiment import SCORES_KEY
 from benchmarks.rubric import RUBRIC_VERSION
@@ -32,15 +33,18 @@ def task(monkeypatch, tmp_path):
     """A task whose agent always succeeds and whose branch always clones."""
     monkeypatch.setattr(agent_task, "start_agent", lambda *a, **k: None)
     monkeypatch.setattr(agent_task, "await_workflow", lambda *a, **k: {"status": "done", "success": True})
-    monkeypatch.setattr(agent_task, "clone_result_branch", lambda s, w: tmp_path / "clone")
-    monkeypatch.setattr(agent_task, "load_app", lambda path: object())
+    monkeypatch.setattr(agent_task, "clone_result_branch", lambda app, s, w: tmp_path / "clone")
+    monkeypatch.setattr(agent_task, "load_app", lambda path, template=None: object())
     monkeypatch.setattr(
-        agent_task,
-        "evaluate",
-        lambda app, rubric: [Score("bench_pages", 1.0, "BOOLEAN", "2/2")],
+        agent_task.app_checks, "evaluate", lambda app, rubric: [Score("bench_pages", 1.0, "BOOLEAN", "2/2")]
     )
     monkeypatch.setattr(agent_task.preview_check, "is_enabled", lambda: False)
-    return AgentTask(agent_base="http://agent", assets_dir=tmp_path, run_name="run-a")
+    return AgentTask(
+        agent_base="http://agent",
+        assets_dir=tmp_path,
+        run_name="run-a",
+        app=BenchApp("ttd", "bench", "v9"),
+    )
 
 
 class TestTheOutputCarriesTheScores:
@@ -81,24 +85,27 @@ class TestAnUnusableItemFails:
 
 
 class TestAnAppThatWasNeverBuilt:
-    def test_every_structural_score_is_zero_rather_than_absent(self, task, monkeypatch):
-        """A missing score and a zero score look the same in a mean, so an item
-        that produced no app has to score zero explicitly."""
-        monkeypatch.setattr(agent_task, "clone_result_branch", lambda s, w: None)
+    """A build that stops to ask is one failure, so the app scores are left out rather than set to zero."""
+
+    def test_it_scores_built_zero_with_what_the_assistant_said(self, task, monkeypatch):
+        monkeypatch.setattr(agent_task, "clone_result_branch", lambda app, s, w: None)
+        monkeypatch.setattr(
+            agent_task,
+            "await_workflow",
+            lambda *a, **k: {"status": "done", "success": True, "last_message": {"content": "Hva skal E2 være?"}},
+        )
 
         output = task(item=_item())
 
-        scored = {s.name: s.value for s in output[SCORES_KEY]}
-        for name in STRUCTURAL_SCORE_NAMES:
-            assert scored[name] == 0.0, name
+        scored = {s.name: s for s in output[SCORES_KEY]}
+        assert scored["bench_built"].value == 0.0
+        assert "Hva skal E2 være?" in scored["bench_built"].comment
+        assert not set(scored) & set(STRUCTURAL_SCORE_NAMES)
 
-    def test_the_reason_is_on_every_score(self, task, monkeypatch):
-        monkeypatch.setattr(agent_task, "clone_result_branch", lambda s, w: None)
-
+    def test_a_built_app_scores_built_one(self, task):
         output = task(item=_item())
 
-        structural = [s for s in output[SCORES_KEY] if s.name in STRUCTURAL_SCORE_NAMES]
-        assert all("no committed session branch" in s.comment for s in structural)
+        assert next(s for s in output[SCORES_KEY] if s.name == "bench_built").value == 1.0
 
 
 class TestTheAgentTraceJoinsTheRun:
@@ -116,7 +123,7 @@ class TestTheAgentTraceJoinsTheRun:
         assert task.experiment_context(_item()) == task.experiment_context(_item())
 
     def test_a_different_run_gets_a_different_id(self, task):
-        other = AgentTask(agent_base="http://agent", assets_dir=Path("."), run_name="run-b")
+        other = AgentTask(agent_base="http://agent", assets_dir=Path("."), run_name="run-b", app=task.app)
 
         assert task.experiment_context(_item())["experimentId"] != other.experiment_context(_item())["experimentId"]
 

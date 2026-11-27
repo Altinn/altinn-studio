@@ -47,6 +47,9 @@ def load_datasets() -> Iterator[Dataset]:
         if not path or not path.exists():
             raise FileNotFoundError(f"{entry.name} declares {entry.file} and it is not on disk")
         items = _read_items(path)
+        if entry.app_template:
+            # Langfuse keys an item by id across datasets, so each template's dataset gets its own ids.
+            items = [{**item, "id": f"{item['id']}-{entry.app_template}"} for item in items]
         yield Dataset(
             name=entry.name,
             prompt=entry.prompt,
@@ -85,14 +88,14 @@ def validate(dataset: Dataset) -> list[str]:
 
 
 def missing_assets(dataset: Dataset) -> list[str]:
-    """Attachments a planner item names that are not in assets/."""
-    if dataset.kind != "planner":
+    """Attachments a planner or e2e item names that are not in assets/."""
+    if dataset.kind not in ("planner", "e2e"):
         return []
     from .planner import ASSETS_DIR
 
     problems = []
     for item in dataset.items:
-        for name in item["input"].get("attachments") or []:
+        for name in item["input"].get("attachments") or item["metadata"].get("attachments") or []:
             if not (ASSETS_DIR / name).is_file():
                 problems.append(f"{dataset.path.name}: {item['id']} names {name!r}, which is not in {ASSETS_DIR.name}/")
     return problems

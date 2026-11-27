@@ -461,7 +461,8 @@ describe('RepeatingGroupTableSummary', () => {
     );
     await render({ layout: createLayout({ tableHeaders: ['input1', 'input2', 'input3'] }) });
     const errorMessage = screen.getByText('Error.for.input2');
-    expect(errorMessage.closest('td')).toHaveAttribute('data-header-title', 'Input 2');
+    const cell = errorMessage.closest('td')!;
+    expect(Array.from(cell.parentElement!.children).indexOf(cell)).toBe(1); // Input 2
   });
 
   test('should render unmapped row error in first visible column cell', async () => {
@@ -479,7 +480,8 @@ describe('RepeatingGroupTableSummary', () => {
     );
     await render({ layout: createLayout({ tableHeaders: ['input1', 'input2', 'input3'] }) });
     const errorMessage = screen.getByText('Error.unmapped');
-    expect(errorMessage.closest('td')).toHaveAttribute('data-header-title', 'Input 1');
+    const cell = errorMessage.closest('td')!;
+    expect(Array.from(cell.parentElement!.children).indexOf(cell)).toBe(0); // Input 1
   });
 
   type IRenderProps = {

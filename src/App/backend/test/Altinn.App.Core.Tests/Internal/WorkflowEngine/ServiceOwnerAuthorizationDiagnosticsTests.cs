@@ -14,7 +14,7 @@ public class ServiceOwnerAuthorizationDiagnosticsTests
     [Fact]
     public void Recognises_A_Forbidden_Platform_Call()
     {
-        Assert.True(ServiceOwnerAuthorizationDiagnostics.IsAuthorizationDenied(Platform(HttpStatusCode.Forbidden)));
+        Assert.True(ServiceOwnerAuthorizationDiagnostics.IsForbidden(Platform(HttpStatusCode.Forbidden)));
     }
 
     [Fact]
@@ -22,7 +22,7 @@ public class ServiceOwnerAuthorizationDiagnosticsTests
     {
         var wrapped = new InvalidOperationException("saving failed", Platform(HttpStatusCode.Forbidden));
 
-        Assert.True(ServiceOwnerAuthorizationDiagnostics.IsAuthorizationDenied(wrapped));
+        Assert.True(ServiceOwnerAuthorizationDiagnostics.IsForbidden(wrapped));
     }
 
     [Fact]
@@ -33,7 +33,7 @@ public class ServiceOwnerAuthorizationDiagnosticsTests
             Platform(HttpStatusCode.Forbidden)
         );
 
-        Assert.True(ServiceOwnerAuthorizationDiagnostics.IsAuthorizationDenied(aggregate));
+        Assert.True(ServiceOwnerAuthorizationDiagnostics.IsForbidden(aggregate));
     }
 
     [Fact]
@@ -41,7 +41,7 @@ public class ServiceOwnerAuthorizationDiagnosticsTests
     {
         // A 401 means the token was missing, expired or could not be obtained - transient, and not
         // something a policy change fixes.
-        Assert.False(ServiceOwnerAuthorizationDiagnostics.IsAuthorizationDenied(Platform(HttpStatusCode.Unauthorized)));
+        Assert.False(ServiceOwnerAuthorizationDiagnostics.IsForbidden(Platform(HttpStatusCode.Unauthorized)));
     }
 
     [Theory]
@@ -50,14 +50,14 @@ public class ServiceOwnerAuthorizationDiagnosticsTests
     [InlineData(HttpStatusCode.BadRequest)]
     public void Does_Not_Recognise_Other_Platform_Failures(HttpStatusCode statusCode)
     {
-        Assert.False(ServiceOwnerAuthorizationDiagnostics.IsAuthorizationDenied(Platform(statusCode)));
+        Assert.False(ServiceOwnerAuthorizationDiagnostics.IsForbidden(Platform(statusCode)));
     }
 
     [Fact]
     public void Does_Not_Recognise_A_Plain_Exception()
     {
-        Assert.False(ServiceOwnerAuthorizationDiagnostics.IsAuthorizationDenied(new TimeoutException()));
-        Assert.False(ServiceOwnerAuthorizationDiagnostics.IsAuthorizationDenied(null));
+        Assert.False(ServiceOwnerAuthorizationDiagnostics.IsForbidden(new TimeoutException()));
+        Assert.False(ServiceOwnerAuthorizationDiagnostics.IsForbidden(null));
     }
 
     [Fact]
@@ -69,6 +69,8 @@ public class ServiceOwnerAuthorizationDiagnosticsTests
         Assert.Contains("ttd/myapp", description, StringComparison.Ordinal);
         Assert.Contains("config/authorization/policy.xml", description, StringComparison.Ordinal);
         Assert.Contains("read, write", description, StringComparison.Ordinal);
+        Assert.Contains("[complete] in the process state", description, StringComparison.Ordinal);
+        Assert.Contains("[delete] if the app deletes", description, StringComparison.Ordinal);
         Assert.Contains("v8 to v9 upgrade", description, StringComparison.Ordinal);
     }
 
@@ -81,7 +83,17 @@ public class ServiceOwnerAuthorizationDiagnosticsTests
         string description = ServiceOwnerAuthorizationDiagnostics.Describe(new ApplicationMetadata("ttd/myapp"));
 
         Assert.Contains("If it was one the app makes on its own behalf", description, StringComparison.Ordinal);
-        Assert.Contains("your own handler makes is unrelated", description, StringComparison.Ordinal);
+        Assert.Contains("your own handler makes can be unrelated", description, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Says_That_A_Temporary_Authorization_Failure_Gives_The_Same_403()
+    {
+        // Storage answers 403 both for a missing grant and when Altinn Authorization fails to decide, so a
+        // reader who finds the policy in order must not be left looking for a gap that is not there.
+        string description = ServiceOwnerAuthorizationDiagnostics.Describe(new ApplicationMetadata("ttd/myapp"));
+
+        Assert.Contains("temporary failure in Altinn Authorization", description, StringComparison.Ordinal);
     }
 
     [Fact]

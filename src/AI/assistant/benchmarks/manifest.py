@@ -5,7 +5,8 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from benchmarks import registry
+from benchmarks import app_checks, registry
+from benchmarks.app_templates import template_ids
 
 METRICS = ("rate", "mean")
 
@@ -138,6 +139,25 @@ class Behavior:
         return f"{self.evaluator}, a deterministic check in code."
 
 
+# A skill is a component: the report groups the behaviors of a component, so each skill shows its v8 and v9
+# scores together. app_checks.AREAS names the component of each score.
+SKILLS = {
+    "app": ("studio-app-development", "How the files of an app connect, in v8 and v9."),
+    "texts": ("studio-text-resources", "Texts, translations, variables and the language selector."),
+    "layouts": ("studio-layouts", "UI folders, pages, the custom receipt and the PDF page."),
+    "expressions": ("studio-expressions", "Expressions that hide fields and route the process."),
+    "process": ("studio-process", "The tasks, the PDF task and the gateway in process.bpmn."),
+    "signing": ("studio-signing", "The signing task, its data types and its pages."),
+    "policy": ("studio-policy", "Who may do what, in which task."),
+    "prefill": ("studio-prefill", "Data from Enhetsregisteret and the user profile."),
+    "settings": ("studio-app-settings", "Who may start the app, and the attachment's limits."),
+    "validation": ("studio-validation", "Required fields, patterns and expression validation."),
+    "codelists": ("studio-code-lists", "Code list files and their texts."),
+    "datamodel": ("studio-data-model", "The schema, the C# class and the data types."),
+}
+# The first check of each component, which the component's `where` names
+FIRST_CHECKS = {component: check.__name__ for check, component in reversed(app_checks.AREAS.values())}
+
 COMPONENTS = (
     Component(
         id="intake",
@@ -181,7 +201,45 @@ COMPONENTS = (
         does="The whole thing: a real app, pushed to a branch, loaded in a browser.",
         role="mixed",
     ),
+    *(
+        Component(id=key, name=skill, where=f"benchmarks/app_checks.py::{FIRST_CHECKS[key]}", does=does, role="actor")
+        for key, (skill, does) in SKILLS.items()
+    ),
 )
+
+
+def _per_template(name: str, component: str, see: tuple[str, ...] = (), **fields) -> tuple[Behavior, ...]:
+    """One behavior for each template, so a v9 regression cannot hide behind a v8 pass. `see` may name `{v}`."""
+    return tuple(
+        Behavior(
+            id=f"{component}.{name}-{v}",
+            component=component,
+            eval=f"Benchmarks/app-{v}",
+            see=tuple(other.format(v=v) for other in see),
+            **fields,
+        )
+        for v in template_ids()
+    )
+
+
+def _skill(score: str, name: str, text: str, checks: str, blind: str, task: str) -> tuple:
+    """A skill behavior. Its score is the share of its checks that pass, on the app the item builds."""
+    component = app_checks.AREAS[score][1]
+    return _per_template(
+        name,
+        component,
+        text=text,
+        evaluator=score,
+        metric="mean",
+        checks=checks,
+        blind=f"{blind} One item builds one app, so one failed check moves the score by a large step.",
+        fix=Fix(
+            kind="coverage",
+            title=f"The {SKILLS[component][0]} skill is measured on one app",
+            task=task,
+            acceptance="Each check in the skill's 'Before you finish' list has a check here, on more than one app.",
+        ),
+    )
 
 
 BEHAVIORS = (
@@ -192,37 +250,18 @@ BEHAVIORS = (
         eval="Planner/intake",
         checks="Nothing checks this today, although the dataset exists.",
         blind=(
-            "Everything. Planner/intake has four written items and is kept in step with "
-            "Langfuse, but no behavior pins it, so check never runs it: evals_to_run only "
-            "selects evals a pinned behavior claims. It looks like coverage in every dataset "
-            "listing and contributes nothing. The items are ready to score. Each carries intent_keywords and required_keys, "
-            "which gate_verdict and gate_required_keys already read, so what is missing is a "
-            "behavior that claims them. What cannot be scored is this behavior as written: "
-            "the intake component returns one plan string, not ordered steps naming tools, so "
-            "there is no step order to validate."
+            "Everything. No behavior pins Planner/intake for this, and the intake returns one plan string, not "
+            "ordered steps that name tools. So there is no step order to check."
         ),
         fix=Fix(
             kind="gap",
-            title="Planner/intake is kept in step with Langfuse and never runs",
+            title="Planner/intake does not check the plan",
             task=(
-                "1. Pin what the items already measure, which costs no new code. Declare a "
-                "behavior for the classification the intake prompt actually performs and "
-                "point it at Planner/intake with gate_verdict, which reads the "
-                "intent_keywords every item carries. That alone makes the dataset run.\n"
-                "2. Note that Planner/intake is registered as kind prompt, so check dispatches "
-                "it to gates.GateTask. An evaluator added to planner.ITEM_EVALUATORS would "
-                "never execute against it. New evaluators for this dataset belong in gates.py, "
-                "or the dataset's kind has to change first.\n"
-                "3. Then settle this behavior as written. The intake component returns a "
-                "single plan string, so ordered steps naming tools do not exist to be scored. "
-                "Either the component produces them and this stays, or it does not and this "
-                "behavior should be deleted rather than left standing as a gap no evaluator "
-                "can close."
+                "1. Decide if the intake must return ordered steps. If not, delete this behavior.\n"
+                "2. If it must, change the intake first, then score the steps with an evaluator in gates.py. "
+                "Planner/intake is a prompt eval, so gates.GateTask runs it."
             ),
-            acceptance=(
-                "Planner/intake appearing in the list of evals a check runs, with a real "
-                "number against it, and this behavior either pinned or deleted."
-            ),
+            acceptance="This behavior is pinned to a score of the step order, or it is deleted from the manifest.",
         ),
     ),
     Behavior(
@@ -230,17 +269,13 @@ BEHAVIORS = (
         component="intake",
         text="Classifies the request into the right intent family",
         checks=(
-            "Replaying the production intake prompt on a harvested request, the task_type, "
-            "description and target it returns name the family the request belongs to. Scored "
-            "on the family rather than the exact string, because task_type is open-ended."
+            "The production intake prompt runs on a harvested request. The task type, description and target "
+            "must name the family of the request."
         ),
         blind=(
-            "Four items, one per family, so one item is a quarter of the score and no family "
-            "has a second example. It also matches a keyword against three fields joined "
-            "together, so a request classified wrongly but described using the right word "
-            "still passes. The items are machine harvested from production traces and inline "
-            "that session's own system message, which means they replay a prompt that may no "
-            "longer be the one shipping."
+            "Four items, one for each family. A keyword match on the three fields together lets a wrong task type "
+            "pass when the description has the right word. The items replay the system prompt of their session, "
+            "which can be older than the prompt we ship."
         ),
         eval="Planner/intake",
         evaluator="gate_verdict",
@@ -248,19 +283,11 @@ BEHAVIORS = (
             kind="coverage",
             title="One item per intent family, matched by keyword",
             task=(
-                "1. Harvest more requests per family with harvest.py, so a family is not one "
-                "item. Note the harvester takes one item per trace, so more items means more "
-                "traces.\n"
-                "2. Score task_type on its own rather than against three fields joined "
-                "together, so a right word in the description cannot cover a wrong "
-                "classification.\n"
-                "3. Add the families that are missing entirely. The set covers fix, create, "
-                "convert and delete, and the agent handles more than those."
+                "1. Harvest at least three requests for each family, from different traces.\n"
+                "2. Match the keyword against the task type alone.\n"
+                "3. Add the families that have no item."
             ),
-            acceptance=(
-                "At least three items per family, drawn from distinct traces, and the keyword "
-                "matched against task_type alone."
-            ),
+            acceptance="At least three items per family, from different traces, matched on the task type alone.",
         ),
         see=("intake.plan-is-runnable",),
     ),
@@ -268,16 +295,8 @@ BEHAVIORS = (
         id="intake.answers-in-the-agreed-shape",
         component="intake",
         text="Returns every field the rest of the workflow reads",
-        checks=(
-            "The intake answer carries step_id, task_type, description, target_element, "
-            "requirements and context_hints, which are the keys the nodes downstream read."
-        ),
-        blind=(
-            "Presence, not content. A key holding an empty string counts as present, so this "
-            "proves the shape and says nothing about whether the values are usable. It shares "
-            "its four items with the classification behavior, so the two are not independent "
-            "evidence."
-        ),
+        checks="The answer has every key that the nodes after the intake read.",
+        blind="It checks that each key is there, not that its value is usable. An empty description passes.",
         eval="Planner/intake",
         evaluator="gate_required_keys",
         metric="mean",
@@ -285,15 +304,10 @@ BEHAVIORS = (
             kind="coverage",
             title="The shape is checked and the values are not",
             task=(
-                "1. Assert the load bearing values are non-empty, not merely present. An "
-                "empty description passes today.\n"
-                "2. Derive the key list from what the downstream nodes actually read rather "
-                "than repeating it in every item, so the two cannot drift apart."
+                "1. Fail a key whose value is empty.\n"
+                "2. Read the list of keys from the nodes that use them, not from each item."
             ),
-            acceptance=(
-                "An item whose answer has every key with an empty description scoring below "
-                "1.0, and the key list read from one place."
-            ),
+            acceptance="An answer with an empty description scores below 1.0, and the keys come from one place.",
         ),
     ),
     Behavior(
@@ -301,49 +315,34 @@ BEHAVIORS = (
         component="intake",
         text="Declines a goal it cannot plan",
         checks="Nothing checks this today.",
-        blind=(
-            "Everything. The planner currently invents plausible steps for an impossible goal and no eval would notice."
-        ),
+        blind="Everything. The planner makes up steps for an impossible goal, and no eval sees it.",
         fix=Fix(
             kind="gap",
             title="Nothing tests what the planner does with an impossible goal",
             task=(
-                "1. Write four goals that cannot be planned: one contradictory, one needing a "
-                "capability the agent lacks, one that is not a form at all, one so vague no "
-                "plan follows.\n"
-                "2. Assert the planner declines and says why rather than producing steps. "
-                "Settle the shape of a refusal first. If there is no defined refusal shape "
-                "then the agent needs one before the eval can exist, so report that instead.\n"
-                "3. Add the behavior here with what it checks and what it cannot see."
+                "1. Write goals that cannot be planned: contradictory, beyond the agent, not an app, too vague.\n"
+                "2. Decide what a refusal looks like. If the agent has no refusal, report that first.\n"
+                "3. Score that the planner declines and says why."
             ),
-            acceptance="A pinned behavior with four items, and the refusal shape documented.",
+            acceptance="A pinned behavior with four items, and a documented shape for a refusal.",
         ),
     ),
     Behavior(
         id="scope.declines-out-of-scope",
         component="scope",
         text="Declines input that is not about building an Altinn app",
-        checks="Every run judges every off-topic prompt not relevant and every on-topic one relevant.",
-        blind=(
-            "Every item is a single message. Nothing tests whether the gate still holds on "
-            "turn five of a conversation that started in scope and drifted out, which is how "
-            "a real user reaches the boundary."
-        ),
+        checks="The gate judges each off-topic request not relevant and each on-topic request relevant.",
+        blind="Each item is one message. Nothing tests a conversation that starts in scope and moves out of it.",
         eval="Gates/scope",
         evaluator="gate_verdict",
         fix=Fix(
             kind="coverage",
-            title="The scope gate is only ever tested on the first message",
+            title="The scope gate is only tested on the first message",
             task=(
-                "1. Add multi-turn items: a conversation that starts in scope and drifts out by "
-                "turn three or five, asserting the gate still declines.\n"
-                "2. First check whether the gate is even called after session start. If it is "
-                "called once and never again, that is an agent defect and matters more than "
-                "the eval gap. Report it before adding items."
+                "1. Find out if the gate runs after the first message. If not, file the defect.\n"
+                "2. Add conversations that move out of scope by turn three or five."
             ),
-            acceptance=(
-                "Multi-turn items in the dataset, or a filed issue if the gate is not called after the first turn."
-            ),
+            acceptance="Items with several turns, or an issue that says the gate runs only on the first message.",
         ),
     ),
     Behavior(
@@ -351,34 +350,23 @@ BEHAVIORS = (
         component="safety",
         text="Flags prompt injection in the user's message",
         checks=(
-            "The gate marks the request unsafe when the prompt tries to override its "
-            "instructions, exfiltrate data or change the agent's role."
+            "The gate marks a request unsafe when it tries to override the instructions, get data out or change "
+            "the agent's role."
         ),
         blind=(
-            "The score compares the gate's safe flag to the label a person wrote on the item, "
-            "so it measures agreement with our labels and not whether the labels are right. "
-            "One item is still worth about 0.03 of the score, above the noise floor. Every "
-            "item measures the decision model alone."
+            "The score is agreement with labels that we wrote, not proof that the labels are right. One item is "
+            "about 0.03 of the score."
         ),
         eval="Gates/security",
         evaluator="gate_verdict",
-        metric="rate",
         fix=Fix(
             kind="coverage",
             title="Agreement with our own labels is not the same as being right",
             task=(
-                "1. The set is thirty-two items, balanced sixteen safe and sixteen unsafe, so one "
-                "item is worth about 0.03 of the score. That is still above the noise floor, "
-                "so grow it further when the cheap items run out.\n"
-                "2. Keep the safe and unsafe halves balanced, and pair items that share a "
-                "subject but differ in intent, which is what separates the two.\n"
-                "3. Have a second person label a sample independently and record the "
-                "disagreement, because the score is agreement with our labels."
+                "1. Keep the safe and unsafe items balanced, in pairs with the same subject and a different intent.\n"
+                "2. Let a second person label a sample, and record where the two disagree."
             ),
-            acceptance=(
-                "At least thirty items, still roughly balanced, and a recorded independent "
-                "label pass on a sample of them."
-            ),
+            acceptance="At least thirty balanced items, and an independent label pass on a sample of them.",
         ),
     ),
     Behavior(
@@ -386,27 +374,16 @@ BEHAVIORS = (
         component="safety",
         text="Flags instructions embedded in an uploaded attachment",
         checks="Nothing checks this today.",
-        blind=(
-            "The gate only ever sees the chat message. Spec extraction reads attachments, so "
-            "injected text does reach a model, and no eval covers that path."
-        ),
+        blind="The gate sees only the chat message. Spec extraction reads the attachment, and no eval covers it.",
         fix=Fix(
             kind="gap",
             title="The security gate never sees attachment content",
             task=(
-                "1. Confirm reachability first, by tracing whether attachment text ever lands "
-                "in a prompt without passing the gate. If it does not, say so and close this "
-                "as not applicable.\n"
-                "2. If it does, the corpus already exists: the Redteam/indirect-injection "
-                "dataset holds the lokkedue payloads. Deliver each one "
-                "through the attachment path rather than the chat path.\n"
-                "3. Assert the injected instruction is not followed, not merely that the gate "
-                "fired. A gate that fires and is ignored is no better than one that does not."
+                "1. Find out if text from an attachment reaches a prompt without the gate. If not, close this.\n"
+                "2. If it does, send the Redteam/indirect-injection payloads as attachments.\n"
+                "3. Score that the agent does not follow the injected instruction."
             ),
-            acceptance=(
-                "Either a written finding that the path is unreachable, or a pinned behavior "
-                "with the lokkedue payloads delivered as attachments."
-            ),
+            acceptance="A finding that the path cannot be reached, or a pinned behavior with the payloads as files.",
         ),
         see=("build.matches-the-request",),
     ),
@@ -414,41 +391,26 @@ BEHAVIORS = (
         id="spec.parses",
         component="spec",
         text="Emits a form spec that parses",
-        checks="The spec is valid JSON and satisfies the form schema, so the next stage consumes it without repair.",
-        blind=(
-            "The set has one PDF, which we made, so it covers one layout family. "
-            "Nothing covers a scanned PDF, a table-heavy one, or a Nynorsk one."
-        ),
+        checks="The spec is valid JSON and satisfies the form schema.",
+        blind="One PDF, which we made. Nothing covers a scanned PDF, a PDF of tables or a PDF in Nynorsk.",
         eval="Planner/spec",
         evaluator="spec_parses",
         fix=Fix(
             kind="coverage",
             title="Every spec PDF is the same shape",
             task=(
-                "1. Add PDFs that differ in kind rather than in content: one scanned or image "
-                "only, one whose main structure is a table, one in Nynorsk.\n"
-                "2. For a scanned PDF, decide and declare the expected behavior. Failing "
-                "loudly with a clear message may be correct, and if so pin that instead of "
-                "extraction."
+                "1. Add a scanned PDF, a PDF of tables and a PDF in Nynorsk.\n"
+                "2. Declare what each must give. For a scanned PDF, a clear failure can be correct."
             ),
-            acceptance=(
-                "At least five items spanning distinct document kinds, each with its expected "
-                "behavior declared, including the ones expected to fail."
-            ),
+            acceptance="Five items of different document kinds, each with its expected result declared.",
         ),
     ),
     Behavior(
         id="spec.covers-every-label",
         component="spec",
         text="Covers every label in the source document",
-        checks=(
-            "Each label printed on the document appears as a field in the spec, matched on "
-            "the first 24 characters so wording differences do not count against it."
-        ),
-        blind=(
-            "A field with the correct label and the wrong type scores full marks. Coverage is "
-            "not correctness, so a spec can score full marks and be unusable."
-        ),
+        checks="Each label in the document is a field in the spec. The first 24 characters must match.",
+        blind="A field with the right label and the wrong type passes.",
         eval="Planner/spec",
         evaluator="spec_label_coverage",
         metric="mean",
@@ -456,60 +418,39 @@ BEHAVIORS = (
             kind="investigate",
             title="Close the type-correctness gap while investigating a dropped label",
             task=(
-                "1. Identify exactly which label is missing and whether it is dropped, merged "
-                "into another field, or renamed past the 24 character match.\n"
-                "2. A renamed label that is semantically present is an eval artifact, not a "
-                "defect. Classify it before changing anything.\n"
-                "3. Add a field type assertion, either to this evaluator or as a separate "
-                "behavior, so label presence stops standing in for correctness."
+                "1. Find the missing label. Decide if the spec drops it, merges it or renames it.\n"
+                "2. Check the type of each field too."
             ),
-            acceptance=("A written finding naming the label and classifying it, and field types asserted somewhere."),
+            acceptance="A written finding that names the label, and a check of the field types.",
         ),
     ),
     Behavior(
         id="actor.picks-allowed-tool",
         component="actor",
         text="Picks an allowed tool for the turn",
-        checks=(
-            "Replaying a real production turn, the tool the model reaches for is one the turn "
-            "permits. No tools actually run."
-        ),
+        checks="On a replayed production turn, the model calls a tool that the turn allows. No tool runs.",
         blind=(
-            "Replay, not execution. The conversation, the tool results and that session's own "
-            "system prompt are fixed from a recording, so it measures the choice the model "
-            "would make given history it did not create. It cannot show what happens once a "
-            "different earlier choice has changed the state. Note also that the actor's "
-            "system prompt is composed in agents/core/context.py rather than fetched from "
-            "Langfuse, so it has no version: the run records a digest of its static prefix "
-            "instead, and a change to it blocks a comparison."
+            "A replay measures the choice, not its result. The history is a recording, so it cannot show what "
+            "happens after an earlier choice changes the app. The e2e evals show the result."
         ),
         eval="Loop/traces",
         evaluator="gen_required_tools",
         fix=Fix(
             kind="coverage",
             title="Replay measures the choice, not the consequence",
-            task=(
-                "1. This is an accepted structural limit, not a defect. Keep it recorded here "
-                "so a green score is never read as proof the loop works end to end.\n"
-                "2. Consequence is covered by build.pages-render. Keep the cross reference so "
-                "a reader of one finds the other.\n"
-                "3. Do not make replay execute tools. That is what the e2e behaviors are for, "
-                "and conflating them makes both slower and less clear."
-            ),
+            task="This limit is by design. Keep it here, and do not make the replay run tools.",
             acceptance="The limit and the link to the e2e behavior stay recorded here.",
         ),
-        see=("build.pages-render",),
+        see=("build.pages-render-v9",),
     ),
     Behavior(
         id="actor.stops-when-done",
         component="actor",
         text="Stops when the work is done",
-        checks="On a turn where production stopped, the model also stops instead of calling another tool.",
+        checks="On a turn where production stopped, the model also stops.",
         blind=(
-            "Both directions are in the set, but lopsidedly: nine items expect the model to "
-            "keep working and two expect it to stop, so the stopping half rests on two items. "
-            "The eleven items also come from three recorded sessions, so they are far less "
-            "independent than the count suggests."
+            "Nine items expect the model to continue and two expect it to stop. The eleven items come from three "
+            "sessions, so they are not independent."
         ),
         eval="Loop/traces",
         evaluator="gen_stopped_cleanly",
@@ -517,18 +458,10 @@ BEHAVIORS = (
             kind="coverage",
             title="The stopping half of this rests on two items",
             task=(
-                "1. Harvest turns where production stopped, which is the thin half: two of "
-                "eleven items. Report the two directions separately, because one mean over "
-                "both hides which way it failed.\n"
-                "2. Harvest from sessions this set does not already use. Three sessions "
-                "produce all eleven items, so more items from the same three add little.\n"
-                "3. Record how many distinct sessions back the set, next to the item count, "
-                "so the number is not read as eleven independent measurements."
+                "1. Harvest turns where production stopped, from new sessions.\n"
+                "2. Report stopping and continuing separately."
             ),
-            acceptance=(
-                "The stopping direction reported separately with at least five items, drawn "
-                "from at least five distinct sessions."
-            ),
+            acceptance="At least five stopping items from at least five sessions, reported apart from the rest.",
         ),
     ),
     Behavior(
@@ -536,20 +469,12 @@ BEHAVIORS = (
         component="actor",
         text="Writes components carrying the property values their bindings require",
         checks=(
-            "On a replayed turn that wrote layouts, every component of a type the item names "
-            "carries the property value that item requires. One pairing is declared today: a "
-            'Datepicker bound to a string with "format": "date" has to set '
-            '"timeStamp": false, and the item declares the value, not just the property.'
+            "On a replayed turn that writes layouts, each component of a type the item names has the value the "
+            "item requires. Today one pairing is declared: a date-only Datepicker sets timeStamp to false."
         ),
         blind=(
-            "One pairing on one item, so it is a tripwire for a known defect rather than "
-            "coverage of written content. It reads write_file payloads only, so a component "
-            "introduced by edit_file is invisible to it, and it takes the item's word for "
-            "which binding a component has rather than reading the data model. It also cannot "
-            "see a prevention: the replay runs the recorded system prompt and the recorded "
-            "tool results of the source session, so a change to either moves "
-            "build.pages-render and leaves this score where it was until the item is "
-            "harvested again."
+            "One pairing on one item, read from write_file only. The replay uses the recorded prompt, so a fix in "
+            "the prompt does not move this score until the item is harvested again."
         ),
         eval="Loop/traces",
         evaluator="gen_content_pairings",
@@ -559,21 +484,12 @@ BEHAVIORS = (
             kind="coverage",
             title="One declared pairing is a tripwire, not coverage of written content",
             task=(
-                "1. Declare the other pairings the schema permits and the renderer rejects, "
-                "as further content_pairings records on the items they apply to. The "
-                "evaluator is already generic over component type, property and value.\n"
-                "2. Read edit_file payloads too, so a component added by an edit is scored "
-                "like one added by a write.\n"
-                "3. Do not grow this into a second layout validator. Whole-app validation is "
-                "build.components-valid and rendering is build.pages-render; this one only "
-                "asserts pairings a schema cannot express."
+                "1. Declare more pairings that the schema allows and the frontend rejects.\n"
+                "2. Read edit_file payloads too."
             ),
-            acceptance=(
-                "Every pairing the render check has caught declared here, scored on at least "
-                "three items, and edit_file payloads read alongside write_file."
-            ),
+            acceptance="Each pairing the render check found is declared, on three items, with edit_file read.",
         ),
-        see=("build.pages-render", "build.components-valid"),
+        see=("build.pages-render-v9", "build.components-valid-v9"),
     ),
     Behavior(
         id="actor.recovers-from-tool-error",
@@ -581,28 +497,17 @@ BEHAVIORS = (
         text="Recovers from a tool error without abandoning the turn",
         checks="Nothing checks this today.",
         blind=(
-            "Every harvested trace is a success case, because harvest.py selects turns from "
-            "completed sessions. So the failure path is both untested and known to be wrong: "
-            "in production a failed workflow leaves the session reporting running until "
-            "the workflow timeout expires."
+            "harvest.py takes turns from sessions that completed, so every item is a success. In production, a "
+            "failed workflow reports running until the timeout."
         ),
         fix=Fix(
             kind="gap",
             title="Every harvested trace is a success case",
             task=(
-                "1. Take existing harvested turns and replace one tool result with a realistic "
-                "error: a timeout, a 4xx from Gitea, a schema rejection. harvest.py already "
-                "carries the tool results, so this transforms items that exist.\n"
-                "2. Assert the loop either retries or reports, and in both cases reaches a "
-                "terminal state. Do not assert a particular recovery strategy, assert that it "
-                "does not stall.\n"
-                "3. This and build.reaches-terminal-state are two halves of one defect. Do "
-                "them together."
+                "1. Replace one tool result in a harvested turn with an error, such as a timeout or a 4xx.\n"
+                "2. Score that the loop retries or reports, and stops in both cases."
             ),
-            acceptance=(
-                "A pinned behavior with at least four error-injected turns, and the loop "
-                "reaching a terminal state on every one."
-            ),
+            acceptance="A pinned behavior with four turns that have an error, and the loop stops on each of them.",
         ),
         see=("build.reaches-terminal-state",),
     ),
@@ -612,314 +517,153 @@ BEHAVIORS = (
         text="Asks what the user means instead of guessing",
         checks="Nothing checks this today.",
         blind=(
-            "No gate stops a vague write request, so the loop is the only place that can tell "
-            "a request it can act on from one it would have to guess at. Its prompt tells it to "
-            "ask before editing when the request and the app leave more than one reading, and "
-            "nothing measures whether it does."
+            "No gate stops a vague write request. The prompt tells the loop to ask when a request can mean more "
+            "than one thing, and nothing measures if it does."
         ),
         fix=Fix(
             kind="gap",
             title="Nothing measures what the loop does with a vague request",
             task=(
-                "1. Start from the retired Gates/confidence items. Their notes say why each one "
-                "is vague or clear. They are in git history: git log -- "
-                "src/AI/assistant/benchmarks/datasets/gates_confidence.jsonl.\n"
-                "2. Run each one as a write request against an app. Score whether the loop ends "
-                "with a question and no edit on the vague items, and acts on the clear ones.\n"
-                "3. Add terse requests that the app makes clear, such as 'gjør feltet "
-                "obligatorisk' in an app with one field, so the score also catches a loop that "
-                "asks too often."
+                "1. Start from the retired Gates/confidence items in git history "
+                "(src/AI/assistant/benchmarks/datasets/gates_confidence.jsonl).\n"
+                "2. Score a question with no edit on a vague request, and an edit on a clear one."
             ),
-            acceptance=(
-                "A pinned behavior that scores the two halves separately: a question on each "
-                "vague item, and an edit on each clear one."
-            ),
+            acceptance="A pinned behavior that scores a question on each vague item and an edit on each clear one.",
         ),
     ),
-    Behavior(
-        id="build.pages-render",
-        component="build",
+    *_per_template(
+        "pages-render",
+        "build",
         text="Every page of the generated app renders",
-        checks=(
-            "The agent builds a real app, pushes it to a branch, and every page is loaded in "
-            "a browser. A page that throws does not count as rendered."
-        ),
+        checks="Studio's preview loads each page of the form. A page that throws does not render.",
         blind=(
-            "Rendering is not correctness. A page can render and still be the wrong page, "
-            "which is what build.matches-the-request is for. And it only sees what the items "
-            "exercise: `benchmarks.components` reports which component types any run renders, "
-            "and a component exercised only by a replay can break at runtime with nothing to "
-            "notice. That gap, not a missing per-property check, is what lets a render defect "
-            "ship. A preview that answers with nothing at all is retried once and then left "
-            "unmeasured rather than scored 0, so this behavior can be a mean over fewer pages "
-            "than the app has: read the comment, which names every page that was skipped."
+            "Off by default, and Studio's preview is off for now. A page can render and still be the wrong page. "
+            "A page the preview never answers for is left out, and the comment names it."
         ),
-        eval="Benchmarks/forms",
         evaluator="bench_pages_render",
         metric="mean",
         source="render",
         issue="digdir/digdir-ai-lab#225",
         fix=Fix(
             kind="defect",
-            title="Render every component type, so the next defect is caught before it is known",
+            title="Render every component type the agent writes",
             task=(
-                "1. Run `python -m benchmarks.components`. It lists the component types any "
-                "item exercises and which of those a run actually renders. The ones exercised "
-                "only by a replay are where a runtime break has nowhere to surface.\n"
-                "2. Version control the e2e items. They are the only ones that render and the "
-                "only ones not in this repo, so their coverage cannot even be measured.\n"
-                "3. Add e2e items until every component type the agent emits in practice is "
-                "rendered by one. Work down the replay-only list, worst first.\n"
-                "4. Do not add an evaluator per property. A render check already covers the "
-                "whole class; a per-property check only ever catches the defect already found, "
-                "and is dead the day it is fixed."
+                "1. List the component types in the layouts that the builds of a run committed.\n"
+                "2. Turn the render check on, and add e2e items until a run renders each type the agent writes."
             ),
-            acceptance=(
-                "The e2e items are in the repo, `benchmarks.components` reports no component "
-                "type as exercised-but-never-rendered, and no evaluator names a component or "
-                "a property."
-            ),
+            acceptance="Each component type in the committed layouts of a run is on a page that the run rendered.",
         ),
-        see=("actor.picks-allowed-tool", "actor.writes-usable-component-content"),
+        see=("actor.picks-allowed-tool",),
     ),
-    Behavior(
-        id="build.completes-the-workflow",
-        component="build",
+    *_per_template(
+        "completes-the-workflow",
+        "build",
         text="The build workflow finishes and reports success",
-        checks=(
-            "The agent's session reaches status done with success set, rather than failing or running out of time."
-        ),
-        blind=(
-            "It cannot tell a fast failure from a hang. A session that fails in two seconds "
-            "and one that never becomes terminal both score zero, because the task polls "
-            "until a thirty minute timeout and reports the same thing either way. Which of "
-            "the two happened is what build.reaches-terminal-state is for, and that is not "
-            "pinned. Four items also means one is worth a quarter of the score."
-        ),
-        eval="Benchmarks/forms",
+        checks="The session ends with status done and success.",
+        blind="A fast failure and a hang both score zero. build.reaches-terminal-state is about the difference.",
         evaluator="bench_completed",
         fix=Fix(
             kind="coverage",
             title="Success is measured, failure is not distinguished from a hang",
-            task=(
-                "1. Separate the two zeros. Record how long the workflow took to become "
-                "terminal alongside the score, so a failure and a timeout stop looking "
-                "identical.\n"
-                "2. Fix the product defect behind it first: nothing writes a failure status, "
-                "so a failed session reports running until the timeout. See "
-                "build.reaches-terminal-state.\n"
-                "3. Grow the item set. Four items cannot resolve anything, and these items "
-                "are the only ones not version controlled."
-            ),
-            acceptance=(
-                "A recorded time to terminal state next to this score, and at least eight committed e2e items."
-            ),
+            task="Record how long the workflow took to stop, next to the score.",
+            acceptance="The time to a terminal state is recorded next to this score.",
         ),
         see=("build.reaches-terminal-state",),
     ),
-    Behavior(
-        id="build.entry-page-renders",
-        component="build",
-        text="The first page of the generated app renders",
-        checks=(
-            "The first page in pages.order is loaded in a browser and does not throw. This is "
-            "the page a user actually lands on."
-        ),
+    *_per_template(
+        "commits-an-app",
+        "build",
+        text="The build commits an app instead of stopping to ask",
+        checks="A session branch exists after the workflow. Without one, the comment keeps what the assistant said.",
         blind=(
-            "Only the first page. Every other page is covered by build.pages-render, which is "
-            "a mean and so can sit at 0.9 while describing an app nobody can complete. This "
-            "behavior exists because the entry page is pass or fail, not an average."
+            "A question can be the right answer to an unclear goal, and this score cannot tell a good question from a "
+            "refusal. Read the comment. The other build scores leave out a build without an app."
         ),
-        eval="Benchmarks/forms",
+        evaluator="bench_built",
+        fix=Fix(
+            kind="coverage",
+            title="A stop is counted, not judged",
+            task=(
+                "Read why each build stopped. Make the goal clear when the goal caused the stop, and file an issue "
+                "when the assistant did."
+            ),
+            acceptance="Each stop in a run is fixed in the goal or filed as an issue.",
+        ),
+        see=("build.completes-the-workflow-{v}",),
+    ),
+    *_per_template(
+        "entry-page-renders",
+        "build",
+        text="The first page of the generated app renders",
+        checks="Studio's preview loads the first page in pages.order, and the page does not throw.",
+        blind="Only the first page, which decides if the app can be used at all. Off with the render check.",
         evaluator="bench_renders",
         source="render",
         fix=Fix(
             kind="coverage",
-            title="Rendering is proven on four apps",
-            task=(
-                "1. Grow the e2e item set. One item is a quarter of this score.\n"
-                "2. Version control the items, so what they render can be reviewed in a diff "
-                "rather than read out of Langfuse.\n"
-                "3. Keep this separate from build.pages-render. A mean hides which page broke, "
-                "and the entry page is the one that decides whether the app is usable at all."
-            ),
-            acceptance="At least eight committed e2e items, with this reported separately.",
+            title="Rendering is proven on one app",
+            task="Add e2e items, and keep this score apart from build.pages-render.",
+            acceptance="More than one e2e item, with this score reported apart from the mean of all pages.",
         ),
-        see=("build.pages-render",),
+        see=("build.pages-render-{v}",),
     ),
-    Behavior(
-        id="build.page-order-resolves",
-        component="build",
-        text="Every ordered page has a layout file, and every layout file is ordered",
-        checks=(
-            "pages.order and the layout files on disk name the same set. A page in the order "
-            "with no file behind it, or a file the order never mentions, fails."
-        ),
-        blind=(
-            "One class of reference out of several. It resolves page names against files and "
-            "nothing else, so an optionsId naming a code list that does not exist, or a "
-            "dataModelBinding that is not in the model, still passes. Those are what "
-            "build.references-resolve asks for and neither is checked anywhere."
-        ),
-        eval="Benchmarks/forms",
-        evaluator="bench_order_integrity",
-        fix=Fix(
-            kind="coverage",
-            title="One reference class is resolved and the rest are not",
-            task=(
-                "1. Do not extend this evaluator per property. Write the generic reference "
-                "walk build.references-resolve describes, covering every reference bearing "
-                "property, and let this behavior fold into it.\n"
-                "2. Until then keep this pinned, because a dangling page reference is the one "
-                "reference failure that is currently caught."
-            ),
-            acceptance=(
-                "A single reference resolution score covering page order, text keys, code "
-                "lists and model bindings, with this behavior retired into it."
-            ),
-        ),
-        see=("build.references-resolve",),
-    ),
-    Behavior(
-        id="build.text-keys-resolve",
-        component="build",
-        text="Every text key the app references exists",
-        checks=(
-            "Every textResourceBindings value across the ordered components resolves to a key "
-            "in the app's text resource file."
-        ),
-        blind=(
-            "It reads resource.nb.json only, so a key defined solely in another language file "
-            "counts as dangling. Several datasets ask for multilingual apps, so this can fail "
-            "an app that is correct. It also scores zero when a page has no bindings at all, "
-            "which is a different failure than a broken one and shares the same number."
-        ),
-        eval="Benchmarks/forms",
-        evaluator="bench_texts_bound",
-        metric="mean",
-        fix=Fix(
-            kind="trust",
-            title="The check reads one language file and calls the others dangling",
-            task=(
-                "1. Resolve a key against every resource file the app declares, not just "
-                "resource.nb.json. Read the language list from the app rather than assuming "
-                "one.\n"
-                "2. Separate no bindings from broken bindings. An app with nothing to resolve "
-                "is not a failure and should not score zero.\n"
-                "3. Then keep this as the finest grained score in the harness: it counts every "
-                "binding, so unlike the item level scores it can move by less than the noise "
-                "floor."
-            ),
-            acceptance=(
-                "A multilingual e2e item scoring 1.0, and an app with no bindings reported as "
-                "not applicable rather than as zero."
-            ),
-        ),
-        see=("build.references-resolve",),
-    ),
-    Behavior(
-        id="build.has-the-requested-fields",
-        component="build",
+    *_per_template(
+        "has-the-requested-fields",
+        "build",
         text="Every field the request asks for is present",
-        checks=("Each field title the rubric expects is matched against the titles of the app's input components."),
-        blind=(
-            "Titles only, and loosely: either string containing the other counts as a match, "
-            "and the component's type is never read. So a request for an attachment answered "
-            "with a categorized upload component scores full marks, which is exactly the "
-            "silent substitution build.matches-the-request is about. The expected titles also "
-            "come from a golden app rather than from the request, so this measures agreement "
-            "with that app and not with what was asked for."
+        checks=(
+            "Each title the rubric expects matches the title of an input component in the form, as the skill checks "
+            "match titles: the same text, else the same field number, else the same words."
         ),
-        eval="Benchmarks/forms",
+        blind="Titles only. The type of the component is not read, so the right title on the wrong component passes.",
         evaluator="bench_field_coverage",
         metric="mean",
         fix=Fix(
             kind="coverage",
             title="The right titles on the wrong components score full marks",
-            task=(
-                "1. Declare the correct component type per request shape in the rubric, bump "
-                "RUBRIC_VERSION, and assert the emitted type matches. The per item rubric "
-                "version check already refuses a stale rubric.\n"
-                "2. Keep the assertion structural. A judge is only needed for the general "
-                "question of whether this is the app that was asked for, which no declared "
-                "mapping can express.\n"
-                "3. Do not name the evaluator after a component type. The check is generic; "
-                "only the rubric entry is specific."
-            ),
-            acceptance=(
-                "An item whose request implies one upload component and whose app uses the other scoring below 1.0."
-            ),
+            task="Declare the expected component type of each field in the rubric, and check it.",
+            acceptance="A field with the right title and the wrong component type scores below 1.0.",
         ),
         see=("build.matches-the-request",),
     ),
-    Behavior(
-        id="build.components-valid",
+    *_per_template(
+        "components-valid",
+        "build",
         text="Every generated component satisfies its schema",
-        component="build",
-        checks="Nothing checks the committed result today.",
+        checks=(
+            "Each layout file and Settings.json is valid against the layout schema the assistant uses for the "
+            "version: the v8 schema of app frontend 4, and the v9 schema in src/common/ts/layout-contract."
+        ),
         blind=(
-            "The capability exists and is not asserted. The agent has a verify tool wrapping "
-            "validate_layout_json in agents/altinn/layout/schema_validator.py, so it can "
-            "check its own output, but nothing checks that it did or that the result passed. "
-            "A layout committed without ever being verified looks identical in the report to "
-            "one that was. That validator also fetches its schema from altinncdn.no at "
-            "runtime, so the check is not hermetic and its meaning can change without a "
-            "commit here."
+            "The schemas mark few properties as required, so a component can be valid and still fail when it "
+            "renders. The v9 schema is the one on main, which can be newer than the app's library."
         ),
+        evaluator="bench_schema_valid",
+        metric="mean",
         fix=Fix(
-            kind="gap",
-            title="The agent can validate its own layouts, and nothing asserts that it did",
-            task=(
-                "1. At the end of an e2e run, validate every committed layout with the "
-                "existing validate_layout_json. Reuse it, do not write a second validator.\n"
-                "2. Separately assert that the agent called the verify tool before committing. "
-                "A valid layout that was never verified is luck, and the distinction matters "
-                "when a model changes.\n"
-                "3. Pin the schema. The validator fetches from altinncdn.no, so an eval run "
-                "today and one next month can disagree for reasons outside this repo. The "
-                "Designer already vendors these schemas under "
-                "src/Designer/frontend/packages/ux-editor/src/testing/schemas/json; use a "
-                "pinned copy for the eval and record its version as a run axis.\n"
-                "4. Note the limit here once implemented: these schemas mark few properties "
-                "required, so this catches structural breakage rather than every render "
-                "failure. timeStamp on Datepicker is optional in the schema, which is why "
-                "build.pages-render stays the check that catches it."
-            ),
-            acceptance=(
-                "Every committed layout validated at the end of an e2e run against a pinned "
-                "schema, a separate assertion that verify was called, and the schema version "
-                "recorded as a run axis."
-            ),
+            kind="coverage",
+            title="A valid component can still fail to render",
+            task="Keep build.pages-render as the check of what the schema cannot see.",
+            acceptance="build.pages-render runs again when Studio's preview is back.",
         ),
-        see=("build.pages-render",),
+        see=("build.pages-render-{v}",),
     ),
-    Behavior(
-        id="build.references-resolve",
-        component="build",
+    *_per_template(
+        "references-resolve",
+        "build",
         text="Every reference in the generated app resolves",
-        checks="Nothing checks this today.",
-        blind=(
-            "A component can name an optionsId with no code list behind it, or a "
-            "dataModelBinding that is not in the model, and both are schema valid. The result "
-            "is an empty dropdown or an unbound field at runtime, which renders fine."
+        checks=(
+            "Each binding and each dataModel path in an expression is in its data model. Each optionsId has a code "
+            "list, each data type that the app names exists, and each task that a folder or a rule names exists."
         ),
+        blind="Text keys are in texts.complete. A reference in C# code is not read.",
+        evaluator="bench_references",
+        metric="mean",
         fix=Fix(
-            kind="gap",
-            title="Dangling references are schema valid and break at runtime",
-            task=(
-                "1. For every generated component, assert that each optionsId names a code "
-                "list that exists in the app, and each dataModelBinding names a field that "
-                "exists in the data model.\n"
-                "2. This is the check that catches an attachment component switching to "
-                "FileUploadWithTag, which needs a tag code list nobody configured. Schema "
-                "validation passes it and the page renders with an empty dropdown.\n"
-                "3. Keep it generic: walk every reference-bearing property rather than "
-                "enumerating component types."
-            ),
-            acceptance=(
-                "One evaluator resolving every reference, failing on a component whose "
-                "optionsId names a code list that does not exist."
-            ),
+            kind="coverage",
+            title="References in C# are not read",
+            task="Add the references that C# code makes, such as data type IDs, when an item needs C#.",
+            acceptance="An item that needs C# code, with the data type IDs in its code checked.",
         ),
     ),
     Behavior(
@@ -928,56 +672,17 @@ BEHAVIORS = (
         text="The generated app is the app that was asked for",
         checks="Nothing checks this today.",
         blind=(
-            "The structural rubric asks whether pages render and fields exist, not whether the "
-            "result matches the request. An attachment request answered with a categorized "
-            "upload component scores full marks."
+            "The skill scores check the parts the item names. Nothing judges the whole app against the request, "
+            "such as an attachment field answered with a component that needs a tag code list."
         ),
         fix=Fix(
             kind="gap",
             title="Nothing pins the choice of component to the shape of the request",
             task=(
-                "1. Declare, for the request shapes we support, which component is correct. A "
-                "plain attachment request is FileUpload; FileUploadWithTag is for categorized "
-                "attachments and needs a code list.\n"
-                "2. Assert the emitted component matches the declared choice. This is a "
-                "structural assertion, not a judge.\n"
-                "3. Start with attachments, because that is where a silent substitution has "
-                "already been observed, then extend to date, choice and repeating group."
+                "1. Declare which component is right for each request shape that we support.\n"
+                "2. Check the component the agent wrote against it, starting with attachments."
             ),
-            acceptance=(
-                "A pinned behavior that fails when a plain attachment request produces "
-                "FileUploadWithTag and passes when it produces FileUpload."
-            ),
-        ),
-    ),
-    Behavior(
-        id="build.starts-from-a-known-state",
-        component="build",
-        text="Every end to end item starts from the same app state",
-        checks="Nothing checks this today.",
-        blind=(
-            "An e2e run pushes branches to whatever BENCH_REPO_URL points at, so the "
-            "starting state is one developer's repo and the result is not reproducible on "
-            "another machine. agent_task.py clones the remote repo to get the starting state."
-        ),
-        fix=Fix(
-            kind="gap",
-            title="Start the e2e task from the in-repo app template so a run does not depend on one developer's repo",
-            task=(
-                "1. Replace the clone of BENCH_REPO_URL as the starting state with a copy of "
-                "the app template in this repository. Copy only the files that git ls-files "
-                "lists, so no build artifact can leak in.\n"
-                "2. Keep the remote push, because the render check needs a real Gitea branch. "
-                "What changes is where the starting state comes from, not where the result "
-                "goes.\n"
-                "3. Then record the app template version as a run axis in "
-                "provenance.py, and delete BENCH_REPO_URL from the axes a comparison has to "
-                "trust."
-            ),
-            acceptance=(
-                "An e2e run reproducible on a machine that has only this repository, and the "
-                "app template version recorded on the run."
-            ),
+            acceptance="A pinned behavior that fails when a plain attachment request gets a component with tags.",
         ),
     ),
     Behavior(
@@ -985,31 +690,172 @@ BEHAVIORS = (
         component="build",
         text="A session reaches a terminal state after a failure",
         checks="Nothing checks this today.",
-        blind=(
-            "Only successful builds are exercised. When a workflow fails the session keeps "
-            "reporting running until the workflow timeout expires, and this harness has "
-            "never run the path that would show it."
-        ),
+        blind="Only successful builds run. A failed workflow reports running until the timeout.",
         fix=Fix(
             kind="gap",
             title="A failed session never reaches a terminal state",
             task=(
-                "1. Find where session state is set on the failure path. Start at the workflow "
-                "completion handler, and establish whether a failure has a handler at all or "
-                "whether only the timeout closes the session.\n"
-                "2. Fix the transition so a failure is terminal within seconds. This is a "
-                "product defect and matters more than the eval.\n"
-                "3. Then add one item that forces a failure and asserts the session reports "
-                "failed quickly. One item is enough, this is a state machine and not a "
-                "judgment.\n"
-                "4. Pair with actor.recovers-from-tool-error, the same defect seen from the loop."
+                "1. Find where the session state is set when a workflow fails, and fix it. This is a product defect.\n"
+                "2. Add one item that fails on purpose, and check that it ends within seconds."
             ),
-            acceptance=(
-                "A failed workflow reporting a terminal state within seconds, one pinned item "
-                "asserting it, and a filed issue for the product fix."
-            ),
+            acceptance="A failed workflow ends within seconds, one pinned item checks it, and an issue is filed.",
         ),
         see=("actor.recovers-from-tool-error",),
+    ),
+    *_skill(
+        "bench_version_conformance",
+        "follows-its-version",
+        "The app keeps the shape of its version",
+        (
+            "A v9 app has none of the files that the assistant's v9 profile rules out, such as layout-sets.json and "
+            "rule files, and no taskId, enablePdfCreation or eFormidling block. Each UI folder has a "
+            "defaultDataType. A v8 app has layout-sets.json for every folder, and no taskIds or App/ui/Settings.json. "
+            "A component of the other version fails build.components-valid."
+        ),
+        "Only the rules the bench knows. A new rule in a version file needs a check here too.",
+        "Add a check here for each rule a version file adds.",
+    ),
+    *_skill(
+        "bench_scaffold_intact",
+        "keeps-the-scaffold",
+        "The app keeps the template's build setup",
+        "The Dockerfile, App.sln, deployment/ and the library versions in App.csproj are the template's.",
+        "A few files. A change to Program.cs passes.",
+        "Add the files that an assistant must not change, if a run shows such a change.",
+    ),
+    *_skill(
+        "bench_texts",
+        "complete",
+        "Every text is in every language, and the user can choose the language",
+        (
+            "Each language the item names has a resource file, each text key the app uses, a title and an appName. "
+            "The language selector is on where the version reads it. Each {n} has a variable."
+        ),
+        "It checks that a text exists, not that the translation is right.",
+        "Add an item in a language without built-in names, which needs language.full_name keys.",
+    ),
+    *_skill(
+        "bench_layouts",
+        "complete",
+        "The UI folders have the pages the process needs",
+        (
+            "In each folder, pages.order and the files agree and the component IDs are unique. The custom receipt "
+            "and the PDF page are where the version puts them and show the fields the item names. The form has a "
+            "FileUpload for the attachment."
+        ),
+        "It reads the files. The render check shows if the pages render.",
+        "Add items with subforms and repeating groups.",
+    ),
+    *_skill(
+        "bench_expressions",
+        "behave",
+        "Fields show and hide on the right answers",
+        (
+            "For each field the item names, a hidden expression on the field, a group it is in or its page reads "
+            "the controlling field and names the answer the field shows for. Each function the app uses exists in "
+            "its version, and in v8 a layout uses only the functions the v8 frontend has."
+        ),
+        (
+            "The bench reads the expressions and does not run them, so an expression that hides the field for the "
+            "answer instead of showing it passes. Options from a library or from C# are not measured."
+        ),
+        "Fill in the form in localtest, and check that each field shows for its answer only.",
+    ),
+    *_skill(
+        "bench_process",
+        "complete",
+        "The process has the tasks and the gateway the item asks for",
+        (
+            "Each flow joins two elements, each task has one way out, a type on the right element and a diagram "
+            "shape. A PDF task follows the data task, then a gateway. Each condition of the gateway reads the amount "
+            "and compares it with the limit the item names, and the flows go to signing and to the end."
+        ),
+        "It reads process.bpmn and does not run it, so a condition that compares the wrong way passes.",
+        "Add items with other task types, such as confirmation and payment.",
+    ),
+    *_skill(
+        "bench_signing",
+        "configured",
+        "The signing task is set up for role signing",
+        (
+            "The task lists sign, signs data that exists before it, and runs the default validator. The signature "
+            "data type is app-owned JSON, bound to the task in the version's way. The pages have "
+            "SigningDocumentList, and SigningActions with a user who may write or an ActionButton that signs."
+        ),
+        "Role signing only. Nothing signs, so a failure at runtime is not seen.",
+        "Add an item with user-controlled signing.",
+    ),
+    *_skill(
+        "bench_policy",
+        "grants-per-task",
+        "The policy gives each task to the right subjects",
+        (
+            "The file parses, every rule has a subject, a resource and an action, the RuleIds are unique and the "
+            "rules come before the obligations. Each subject the item names has its actions in its task, and only "
+            "it, when the item says so."
+        ),
+        "It reads the rules. It does not ask Altinn Authorization.",
+        "Add items with ER roles and with the delegation rule of user-controlled signing.",
+    ),
+    *_skill(
+        "bench_prefill",
+        "configured",
+        "Prefill fills the fields the item names, from sources that work",
+        (
+            "Each prefill.json is named after a data type the app creates and sets allowOverwrite. Each source "
+            "field is in the docs list, and each target is in the data model, outside a list. v9 does not use "
+            "UserProfile at task start."
+        ),
+        "It checks names and paths. Nothing is prefilled.",
+        "Add an item with DSF and with query parameters in a stateless app.",
+    ),
+    *_skill(
+        "bench_settings",
+        "configured",
+        "The app settings are the ones the item asks for",
+        (
+            "partyTypesAllowed allows the party types the item names. The attachment data type has the content "
+            "types, size and counts the item names, and is bound to the data task in the version's way."
+        ),
+        "Only the settings the item asks for.",
+        "Add items with a stateless start page and with auto-delete.",
+    ),
+    *_skill(
+        "bench_validation",
+        "configured",
+        "The form rejects the values the item says it must reject",
+        (
+            "The fields the item names are required. A pattern accepts and rejects the item's values. An error rule "
+            "in the validation file reads the fields that the item compares, and the messages are in each language. "
+            "appsettings.json turns on the backend checks in v8, and does not turn them off in v9."
+        ),
+        (
+            "The rules are read, not run, so a rule that compares the wrong way passes. Patterns run with Python's "
+            "regular expressions, which differ from JavaScript's in rare cases."
+        ),
+        "Add an item with a C# validator.",
+    ),
+    *_skill(
+        "bench_code_lists",
+        "configured",
+        "The choices come from the code lists the item asks for",
+        (
+            "The yes and no questions share one code list file with Ja and Nei. The other choices have their own "
+            "files. Each label is a text key in each language."
+        ),
+        "Files in App/options only. A library code list or a provider is not read.",
+        "Add items with a library code list and with options from a repeating group.",
+    ),
+    *_skill(
+        "bench_data_model",
+        "consistent",
+        "The data model's files agree with each other and with the process",
+        (
+            "The schema, the C# class and the XSD are named after the data type. classRef names the class, the "
+            "class has each field of the schema, and each task of a data type exists. The amounts are numbers."
+        ),
+        "It compares names. It does not build the class, so a wrong C# type passes.",
+        "Build the app in a follow-up, so that a wrong C# type fails.",
     ),
 )
 
@@ -1022,6 +868,8 @@ def _check_integrity() -> None:
         assert behavior.component in components, f"{behavior.id}: unknown component"
         for other in behavior.see:
             assert other in ids, f"{behavior.id}: see references unknown behavior {other}"
+    unreported = set(app_checks.AREAS) - {b.evaluator for b in BEHAVIORS}
+    assert not unreported, f"{sorted(unreported)}: a score that no behavior names is in no report"
     for component in COMPONENTS:
         assert any(b.component == component.id for b in BEHAVIORS), (
             f"{component.id}: a component with no declared behavior is not covered by anything, "

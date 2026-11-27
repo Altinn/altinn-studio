@@ -1,4 +1,5 @@
 import { ParagraphText } from '@app/form-component/app-components';
+import { withComponentGrid } from '@app/form-component/layout-components/common/storybook';
 import fileTextIcon from '@navikt/aksel-icons/svg/FileText.svg';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
@@ -25,6 +26,7 @@ export const TABS_PROP_CATEGORIES = {
 const meta = {
   title: 'LayoutComponents/Tabs',
   component: TabsLayout,
+  decorators: [withComponentGrid],
   excludeStories: ['TABS_PROP_CATEGORIES'],
   parameters: {
     layout: 'padded',
