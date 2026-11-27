@@ -66,6 +66,7 @@ public class StorageClientInterceptor : HttpMessageHandler
     public bool StampDataElementBlobVersionIds { get; }
     public bool EnforceExpectedProcessStatus { get; set; }
     public string? ForcedMutationConflictMessage { get; set; }
+    public bool ForbidMutations { get; set; }
 
     public void AddInstance(Instance instance)
     {
@@ -683,6 +684,11 @@ public class StorageClientInterceptor : HttpMessageHandler
         if (TryReplayMutation(instanceOwnerPartyId, instanceGuid, request) is { } replayResponse)
         {
             return replayResponse;
+        }
+
+        if (ForbidMutations)
+        {
+            return CreateErrorResponse(HttpStatusCode.Forbidden, string.Empty);
         }
 
         if (ForcedMutationConflictMessage is { } forcedConflictMessage)
