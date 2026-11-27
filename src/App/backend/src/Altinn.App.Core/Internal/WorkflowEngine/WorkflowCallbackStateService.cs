@@ -1,5 +1,4 @@
 using System.Text.Json;
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
@@ -113,14 +112,12 @@ internal sealed class WorkflowCallbackStateService
 
         string? taskId = instance.Process?.CurrentTask?.ElementId;
 
-        InstanceDataUnitOfWork unitOfWork = await _unitOfWorkInitializer.Init(
+        InstanceDataUnitOfWork unitOfWork = await _unitOfWorkInitializer.InitForWorkflowCallback(
             instance,
             versions,
             taskId,
-            language,
-            StorageAuthenticationMethod.ServiceOwner()
+            language
         );
-        unitOfWork.ReadCapturedBlobVersions();
 
         ApplicationMetadata applicationMetadata = _appMetadata.ApplicationMetadata;
 

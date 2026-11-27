@@ -278,8 +278,11 @@ public sealed class InstanceDataUnitOfWorkTests
     public async Task GetPersistedBinaryData_ReadingCapturedBlobVersions_WhenContentWasReplaced_ReturnsTheVersionItLists()
     {
         byte[] capturedBytes = "content"u8.ToArray();
-        await using var setup = await BinaryDataUnitOfWorkSetup.Create(capturedBytes, blobVersionId: BlobVersion(1));
-        setup.DataMutator.ReadCapturedBlobVersions();
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
+            capturedBytes,
+            blobVersionId: BlobVersion(1),
+            forWorkflowCallback: true
+        );
         setup.Services.Storage.AddDataRaw(Guid.Parse(setup.DataElement.Id), "replaced"u8.ToArray(), BlobVersion(2));
 
         ReadOnlyMemory<byte> bytes = await setup.DataMutator.GetPersistedBinaryData(setup.DataElement);
@@ -291,8 +294,11 @@ public sealed class InstanceDataUnitOfWorkTests
     public async Task GetPersistedBinaryData_ReadingCapturedBlobVersions_ReadsByBlobVersionAlsoWhenContentIsUnchanged()
     {
         byte[] capturedBytes = "content"u8.ToArray();
-        await using var setup = await BinaryDataUnitOfWorkSetup.Create(capturedBytes, blobVersionId: BlobVersion(1));
-        setup.DataMutator.ReadCapturedBlobVersions();
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
+            capturedBytes,
+            blobVersionId: BlobVersion(1),
+            forWorkflowCallback: true
+        );
 
         ReadOnlyMemory<byte> bytes = await setup.DataMutator.GetPersistedBinaryData(setup.DataElement);
 
@@ -3922,7 +3928,8 @@ public sealed class InstanceDataUnitOfWorkTests
             string? blobVersionId = null,
             bool lastBlobVersionIdEmpty = false,
             bool withoutBlobVersion = false,
-            Action<Instance>? configureInstance = null
+            Action<Instance>? configureInstance = null,
+            bool forWorkflowCallback = false
         )
         {
             var services = new MockedServiceCollection();
@@ -4024,8 +4031,12 @@ public sealed class InstanceDataUnitOfWorkTests
                     storageVersionMetadata.ProcessStateVersion ?? 1
                 );
             }
-            InstanceDataUnitOfWork dataMutator = initializer
-                .Init(instanceCopy, storageVersionMetadata ?? StorageVersionMetadata.Empty, taskId, language: null)
+            StorageVersionMetadata versions = storageVersionMetadata ?? StorageVersionMetadata.Empty;
+            InstanceDataUnitOfWork dataMutator = (
+                forWorkflowCallback
+                    ? initializer.InitForWorkflowCallback(instanceCopy, versions, taskId, language: null)
+                    : initializer.Init(instanceCopy, versions, taskId, language: null)
+            )
                 .GetAwaiter()
                 .GetResult();
 

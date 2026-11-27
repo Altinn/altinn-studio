@@ -69,7 +69,9 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     // Cache for the binary content of the file as currently in storage before changes in this unit of work.
     private readonly DataElementCache<ReadOnlyMemory<byte>> _binaryCache = new();
 
-    private bool _readsCapturedBlobVersions;
+    // True for the unit of work of a workflow callback. A binary element is then read by the blob version this unit of
+    // work lists for it, which Storage serves to the service owner also after it has deleted or replaced the element.
+    private readonly bool _readsCapturedBlobVersions;
 
     // Data elements to delete (eg RemoveDataElement(dataElementId)), but not yet deleted from instance or storage
     private readonly ConcurrentBag<DataElementChange> _changesForDeletion = [];
@@ -112,7 +114,8 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         IOptions<FrontEndSettings> frontEndSettings,
         string? taskId,
         string? language,
-        Telemetry? telemetry = null
+        Telemetry? telemetry = null,
+        bool readsCapturedBlobVersions = false
     )
     {
         if (instance.Id is not null)
@@ -138,6 +141,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         _appResources = appResources;
         _instanceClient = instanceClient;
         _telemetry = telemetry;
+        _readsCapturedBlobVersions = readsCapturedBlobVersions;
     }
 
     public Instance Instance => _instance;
@@ -529,14 +533,6 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     {
         _binaryCache.Set(id, data);
     }
-
-    /// <summary>
-    /// Makes a read of a binary element return the blob version this unit of work lists for it, also after Storage has
-    /// deleted or replaced the element. A workflow step that runs again after its save was committed then reads what
-    /// its first attempt read, and its save reaches Storage's replay. When Storage does not have the version, the
-    /// element is read as it is now.
-    /// </summary>
-    internal void ReadCapturedBlobVersions() => _readsCapturedBlobVersions = true;
 
     internal void UpdateProcessState(ProcessStateChange processStateChange)
     {
