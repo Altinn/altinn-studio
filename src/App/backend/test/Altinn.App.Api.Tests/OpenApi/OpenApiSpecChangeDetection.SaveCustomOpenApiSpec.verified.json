@@ -3403,14 +3403,6 @@
         },
         "additionalProperties": false
       },
-      "ActionType": {
-        "enum": [
-          0,
-          1
-        ],
-        "type": "integer",
-        "format": "int32"
-      },
       "UserAction": {
         "required": [
           "id"
@@ -3424,7 +3416,11 @@
             "type": "boolean"
           },
           "type": {
-            "$ref": "#/components/schemas/ActionType"
+            "enum": [
+              "ProcessAction",
+              "ServerAction"
+            ],
+            "type": "string"
           }
         },
         "additionalProperties": false
