@@ -175,8 +175,8 @@ internal sealed partial class PreviewPipelineMigration
     }
 
     /// <summary>
-    /// Which names the app declares as its own types, so that without a compilation a name is taken for the Altinn
-    /// one only when the app does not declare it.
+    /// Which names the app declares as its own types, so that a name is taken for the Altinn one only when the app does
+    /// not declare it.
     /// </summary>
     private sealed class TypeNames(IEnumerable<ScannedCSharpFile> files)
     {
@@ -198,21 +198,7 @@ internal sealed partial class PreviewPipelineMigration
         /// <summary>
         /// Whether the name refers to the Altinn type of that name in the pipeline namespace.
         /// </summary>
-        public bool IsAltinn(IdentifierNameSyntax name, SemanticModel? model)
-        {
-            if (model is not null && model.SyntaxTree == name.SyntaxTree)
-            {
-                var info = model.GetSymbolInfo(name);
-                if ((info.Symbol ?? info.CandidateSymbols.FirstOrDefault()) is { } symbol)
-                {
-                    return symbol is INamedTypeSymbol type
-                        && CSharpSemanticQueries.IsAltinnAppSymbol(type)
-                        && type.ContainingNamespace.ToDisplayString() == PipelineApi.Namespace;
-                }
-            }
-
-            return !AppDeclares(name.Identifier.ValueText);
-        }
+        public bool IsAltinn(IdentifierNameSyntax name) => !AppDeclares(name.Identifier.ValueText);
     }
 
     /// <summary>
@@ -231,16 +217,11 @@ internal sealed partial class PreviewPipelineMigration
     /// <summary>
     /// Whether the expression names the Altinn type <paramref name="typeName"/>, bare or qualified with its namespace.
     /// </summary>
-    private static bool NamesAltinnType(
-        SyntaxNode expression,
-        string typeName,
-        TypeNames names,
-        SemanticModel? model
-    ) =>
+    private static bool NamesAltinnType(SyntaxNode expression, string typeName, TypeNames names) =>
         expression switch
         {
             IdentifierNameSyntax identifier => identifier.Identifier.ValueText == typeName
-                && names.IsAltinn(identifier, model),
+                && names.IsAltinn(identifier),
             MemberAccessExpressionSyntax { Name.Identifier.ValueText: var name } access => name == typeName
                 && IsBuilderNamespace(access.Expression),
             QualifiedNameSyntax { Right.Identifier.ValueText: var name } qualified => name == typeName
@@ -251,7 +232,7 @@ internal sealed partial class PreviewPipelineMigration
     /// <summary>
     /// Marks a call to a renamed member whose result the app holds as the type the previews' member returned, which
     /// the renamed one does not return, so that <see cref="RenameRewriter"/> leaves it and reports it. Runs before
-    /// anything is rewritten, so that it sees the code as the app wrote it, and the semantic model still binds it.
+    /// anything is rewritten, so that it sees the code as the app wrote it.
     /// </summary>
     private void MarkHeldResults(TypeNames names)
     {
@@ -265,8 +246,8 @@ internal sealed partial class PreviewPipelineMigration
                     && PreviewApi.RenamedMembers.Any(rename =>
                         rename is { OnInstance: false, Returned: { } returned }
                         && rename.Member == access.Name.Identifier.ValueText
-                        && NamesAltinnType(access.Expression, rename.Type, names, file.SemanticModel)
-                        && IsHeldAs(call, returned, file.SemanticModel)
+                        && NamesAltinnType(access.Expression, rename.Type, names)
+                        && IsHeldAs(call, returned)
                     )
                 )
                 .ToList();
@@ -287,7 +268,7 @@ internal sealed partial class PreviewPipelineMigration
     /// </summary>
     private void RenameEverywhere(ScannedCSharpFile file, TypeNames names, List<UpgradeMessage> messages)
     {
-        var rewriter = new RenameRewriter(names, file.SemanticModel);
+        var rewriter = new RenameRewriter(names);
         var renamed = MethodRewriter.Kept(rewriter.Visit(file.Root), file.Root);
         foreach (var (node, todo) in rewriter.Left)
         {
@@ -308,8 +289,7 @@ internal sealed partial class PreviewPipelineMigration
     /// <c>ServiceTaskMailbox</c> is <c>ReplyAddress</c>, the reply forwarder says reply address where it said
     /// mailbox, and so on. Doc comment references are renamed with them. A method left as it is is not changed.
     /// </summary>
-    private sealed class RenameRewriter(TypeNames names, SemanticModel? model)
-        : CSharpSyntaxRewriter(visitIntoStructuredTrivia: true)
+    private sealed class RenameRewriter(TypeNames names) : CSharpSyntaxRewriter(visitIntoStructuredTrivia: true)
     {
         public SortedSet<string> Renamed { get; } = new(StringComparer.Ordinal);
 
@@ -326,7 +306,7 @@ internal sealed partial class PreviewPipelineMigration
             if (
                 PreviewApi.RenamedTypes.TryGetValue(node.Identifier.ValueText, out var renamed)
                 && IsTypeReference(node)
-                && names.IsAltinn(node, model)
+                && names.IsAltinn(node)
             )
             {
                 Renamed.Add($"{node.Identifier.ValueText} is {renamed}");
@@ -343,8 +323,8 @@ internal sealed partial class PreviewPipelineMigration
             foreach (var rename in PreviewApi.RenamedMembers.Where(rename => rename.Member == member))
             {
                 var matches = rename.OnInstance
-                    ? IsOfAltinnType(node.Expression, rename.Type, names, model) == true
-                    : NamesAltinnType(node.Expression, rename.Type, names, model);
+                    ? IsOfAltinnType(node.Expression, rename.Type, names) == true
+                    : NamesAltinnType(node.Expression, rename.Type, names);
                 if (!matches)
                 {
                     continue;
@@ -385,7 +365,7 @@ internal sealed partial class PreviewPipelineMigration
 
             foreach (var (type, from, to, _, _) in PreviewApi.RenamedMembers)
             {
-                if (member.Identifier.ValueText == from && NamesAltinnType(node.Container, type, names, model))
+                if (member.Identifier.ValueText == from && NamesAltinnType(node.Container, type, names))
                 {
                     Renamed.Add($"{type}.{from} is {to}");
                     return visited.WithMember(
@@ -403,7 +383,7 @@ internal sealed partial class PreviewPipelineMigration
             if (
                 node is { NameColon: { } nameColon, Parent.Parent: { } call }
                 && PreviewApi.RenamedParameters.FirstOrDefault(rename =>
-                    rename.Parameter == nameColon.Name.Identifier.ValueText && Calls(call, rename, names, model) == true
+                    rename.Parameter == nameColon.Name.Identifier.ValueText && Calls(call, rename, names) == true
                 )
                     is { } renamed
             )
@@ -425,7 +405,7 @@ internal sealed partial class PreviewPipelineMigration
                 && PreviewApi.RenamedMembers.FirstOrDefault(rename =>
                     rename.OnInstance
                     && rename.Member == nameColon.Name.Identifier.ValueText
-                    && Matches(node, rename.Type, names, model) == true
+                    && Matches(node, rename.Type, names) == true
                 )
                     is { } renamed
             )
@@ -441,15 +421,15 @@ internal sealed partial class PreviewPipelineMigration
     }
 
     /// <summary>
-    /// Whether the call is to the method or constructor whose parameter <paramref name="rename"/> renames: by the
-    /// method the semantic model binds it to, and otherwise by the type the call creates or its receiver is declared
-    /// with. A call without a receiver is to the app's own method. <c>null</c> when the upgrade cannot tell.
+    /// Whether the call is to the method or constructor whose parameter <paramref name="rename"/> renames: by the type
+    /// the call creates or its receiver is declared with. A call without a receiver is to the app's own method.
+    /// <c>null</c> when the upgrade cannot tell.
     /// </summary>
-    private static bool? Calls(SyntaxNode call, ParameterRename rename, TypeNames names, SemanticModel? model)
+    private static bool? Calls(SyntaxNode call, ParameterRename rename, TypeNames names)
     {
         if (call is ObjectCreationExpressionSyntax creation)
         {
-            return rename.Method == rename.Type && NamesAltinnType(creation.Type, rename.Type, names, model);
+            return rename.Method == rename.Type && NamesAltinnType(creation.Type, rename.Type, names);
         }
 
         if (call is not InvocationExpressionSyntax invocation)
@@ -463,46 +443,26 @@ internal sealed partial class PreviewPipelineMigration
             return false;
         }
 
-        if (model is not null && model.SyntaxTree == invocation.SyntaxTree)
-        {
-            var info = model.GetSymbolInfo(invocation);
-            var methods = (info.Symbol is { } bound ? [bound] : info.CandidateSymbols).OfType<IMethodSymbol>().ToList();
-            if (methods.Count > 0)
-            {
-                return methods.All(method => IsAltinnType(method.ContainingType, rename.Type));
-            }
-        }
-
-        return receiver is null ? false : IsOfAltinnType(receiver, rename.Type, names, model);
+        return receiver is null ? false : IsOfAltinnType(receiver, rename.Type, names);
     }
 
     /// <summary>
-    /// Whether a property pattern's member is one of the type <paramref name="typeName"/>: by the property the
-    /// semantic model binds it to, otherwise by the type the pattern names or the type of what it matches. <c>null</c>
-    /// when the upgrade cannot tell.
+    /// Whether a property pattern's member is one of the type <paramref name="typeName"/>: by the type the pattern names
+    /// or the type of what it matches. <c>null</c> when the upgrade cannot tell.
     /// </summary>
-    private static bool? Matches(SubpatternSyntax subpattern, string typeName, TypeNames names, SemanticModel? model)
+    private static bool? Matches(SubpatternSyntax subpattern, string typeName, TypeNames names)
     {
-        if (subpattern is not { NameColon.Name: var name, Parent.Parent: RecursivePatternSyntax pattern })
+        if (subpattern is not { NameColon: not null, Parent.Parent: RecursivePatternSyntax pattern })
         {
             return null;
         }
 
-        if (
-            model is not null
-            && model.SyntaxTree == subpattern.SyntaxTree
-            && model.GetSymbolInfo(name).Symbol is IPropertySymbol property
-        )
-        {
-            return IsAltinnType(property.ContainingType, typeName);
-        }
-
         if (pattern.Type is { } type)
         {
-            return NamesAltinnType(type, typeName, names, model);
+            return NamesAltinnType(type, typeName, names);
         }
 
-        return PatternInput(pattern) is { } input ? IsOfAltinnType(input, typeName, names, model) : null;
+        return PatternInput(pattern) is { } input ? IsOfAltinnType(input, typeName, names) : null;
     }
 
     /// <summary>
@@ -529,26 +489,12 @@ internal sealed partial class PreviewPipelineMigration
     }
 
     /// <summary>
-    /// Whether the expression is of the Altinn type <paramref name="typeName"/>: by its type when the semantic model
-    /// resolves it, and otherwise by the type its name is declared with. <c>this</c> and <c>base</c> are the app's
-    /// own. <c>null</c> when the upgrade cannot tell, as for what a call returns or a name declared with <c>var</c>.
+    /// Whether the expression is of the Altinn type <paramref name="typeName"/>: by the type its name is declared with.
+    /// <c>this</c> and <c>base</c> are the app's own. <c>null</c> when the upgrade cannot tell, as for what a call
+    /// returns or a name declared with <c>var</c>.
     /// </summary>
-    private static bool? IsOfAltinnType(
-        ExpressionSyntax expression,
-        string typeName,
-        TypeNames names,
-        SemanticModel? model
-    )
+    private static bool? IsOfAltinnType(ExpressionSyntax expression, string typeName, TypeNames names)
     {
-        if (
-            model is not null
-            && model.SyntaxTree == expression.SyntaxTree
-            && model.GetTypeInfo(expression).Type is { TypeKind: not TypeKind.Error } type
-        )
-        {
-            return IsAltinnType(type, typeName);
-        }
-
         IdentifierNameSyntax name;
         switch (Unwrap(expression))
         {
@@ -575,17 +521,11 @@ internal sealed partial class PreviewPipelineMigration
 
         var altinn = declared
             .OfType<TypeSyntax>()
-            .Select(type => NamesAltinnType(Unnullable(type), typeName, names, model: null))
+            .Select(type => NamesAltinnType(Unnullable(type), typeName, names))
             .Distinct()
             .ToList();
         return altinn is [var single] ? single : null;
     }
-
-    private static bool IsAltinnType(ITypeSymbol? type, string typeName) =>
-        type is INamedTypeSymbol named
-        && named.Name == typeName
-        && CSharpSemanticQueries.IsAltinnAppSymbol(named)
-        && named.ContainingNamespace.ToDisplayString() == PipelineApi.Namespace;
 
     private static TypeSyntax Unnullable(TypeSyntax type) =>
         type is NullableTypeSyntax nullable ? nullable.ElementType : type;
@@ -661,11 +601,10 @@ internal sealed partial class PreviewPipelineMigration
 
     /// <summary>
     /// Whether the call's result is held or used as <paramref name="typeName"/>, the type the previews' member
-    /// returned: by the type the semantic model converts it to, and otherwise when it initializes or is assigned to a
-    /// <c>var</c> local or one of that type, is read from, infers <c>FromResult</c>'s type argument, or is returned
-    /// from a method that names the type in its return type.
+    /// returned: when it initializes or is assigned to a <c>var</c> local or one of that type, is read from, infers
+    /// <c>FromResult</c>'s type argument, or is returned from a method that names the type in its return type.
     /// </summary>
-    private static bool IsHeldAs(InvocationExpressionSyntax call, string typeName, SemanticModel? model)
+    private static bool IsHeldAs(InvocationExpressionSyntax call, string typeName)
     {
         ExpressionSyntax direct = call;
         while (direct.Parent is ParenthesizedExpressionSyntax parenthesized)
@@ -688,15 +627,6 @@ internal sealed partial class PreviewPipelineMigration
         )
         {
             value = outer;
-        }
-
-        if (
-            model is not null
-            && model.SyntaxTree == call.SyntaxTree
-            && model.GetTypeInfo(value).ConvertedType is { TypeKind: not TypeKind.Error } converted
-        )
-        {
-            return IsAltinnType(converted, typeName);
         }
 
         bool Names(TypeSyntax? type) =>
@@ -756,9 +686,7 @@ internal sealed partial class PreviewPipelineMigration
                 {
                     Container: var container,
                     Member: NameMemberCrefSyntax { Name: SimpleNameSyntax member }
-                }
-                    when PreviewApi.IsBuilderMethod(member.Identifier.ValueText)
-                        && IsBuilderContainer(container, file.SemanticModel) =>
+                } when PreviewApi.IsBuilderMethod(member.Identifier.ValueText) && IsBuilder(container) =>
                     PreviewApi.RemovedBuilderMethods.GetValueOrDefault(member.Identifier.ValueText)
                         ?? member.Identifier.ValueText,
                 var cref
@@ -766,7 +694,7 @@ internal sealed partial class PreviewPipelineMigration
                         .OfType<IdentifierNameSyntax>()
                         .Any(identifier =>
                             PreviewApi.RemovedTypes.ContainsKey(identifier.Identifier.ValueText)
-                            && names.IsAltinn(identifier, file.SemanticModel)
+                            && names.IsAltinn(identifier)
                         ) => cref.ToString(),
                 _ => null,
             };
@@ -811,17 +739,6 @@ internal sealed partial class PreviewPipelineMigration
         );
 
     /// <summary>
-    /// Whether a doc comment reference's container is the previews' builder: by its symbol when the semantic model
-    /// resolves it, and otherwise by how it is written.
-    /// </summary>
-    private static bool IsBuilderContainer(TypeSyntax container, SemanticModel? model) =>
-        model is not null
-        && model.SyntaxTree == container.SyntaxTree
-        && model.GetSymbolInfo(container).Symbol is ITypeSymbol type
-            ? IsBuilderSymbol(type)
-            : IsBuilder(container, null);
-
-    /// <summary>
     /// Reports what still names the previews' API with its file and line: a removed type, a renamed or removed type
     /// or a renamed member in code a directive disables, and a renamed member read or parameter named where the
     /// upgrade cannot tell whether it is the App library's. A method reported as a whole is skipped, since its to-do
@@ -829,7 +746,6 @@ internal sealed partial class PreviewPipelineMigration
     /// </summary>
     private static void ReportLeftovers(ScannedCSharpFile file, TypeNames names, List<UpgradeMessage> messages)
     {
-        var model = file.SemanticModel;
         var found = new SortedSet<(int Line, string Todo)>();
         bool Visible(SyntaxNode node) => !node.HasAnnotation(_leftAsItIs);
         var nodes = file.Root.DescendantNodes(Visible).ToList();
@@ -837,11 +753,7 @@ internal sealed partial class PreviewPipelineMigration
         foreach (var identifier in identifiers)
         {
             var name = identifier.Identifier.ValueText;
-            if (
-                PreviewApi.RemovedTypes.ContainsKey(name)
-                && IsTypeReference(identifier)
-                && names.IsAltinn(identifier, model)
-            )
+            if (PreviewApi.RemovedTypes.ContainsKey(name) && IsTypeReference(identifier) && names.IsAltinn(identifier))
             {
                 found.Add((file.GetLine(identifier), PreviewApi.WhatBecameOf(name)));
             }
@@ -878,9 +790,9 @@ internal sealed partial class PreviewPipelineMigration
                 var reads = node switch
                 {
                     MemberAccessExpressionSyntax access when access.Name.Identifier.ValueText == rename.Member =>
-                        IsOfAltinnType(access.Expression, rename.Type, names, model),
+                        IsOfAltinnType(access.Expression, rename.Type, names),
                     SubpatternSyntax { NameColon.Name.Identifier.ValueText: var member } subpattern
-                        when member == rename.Member => Matches(subpattern, rename.Type, names, model),
+                        when member == rename.Member => Matches(subpattern, rename.Type, names),
                     _ => false,
                 };
                 if (reads != false)
@@ -907,7 +819,7 @@ internal sealed partial class PreviewPipelineMigration
                 if (
                     argument is { NameColon.Name.Identifier.ValueText: var parameter, Parent.Parent: { } call }
                     && parameter == rename.Parameter
-                    && Calls(call, rename, names, model) != false
+                    && Calls(call, rename, names) != false
                 )
                 {
                     found.Add(

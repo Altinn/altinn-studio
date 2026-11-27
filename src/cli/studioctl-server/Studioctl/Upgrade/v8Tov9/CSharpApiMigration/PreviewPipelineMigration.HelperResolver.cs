@@ -8,21 +8,18 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 internal sealed partial class PreviewPipelineMigration
 {
     /// <summary>
-    /// Finds the app's own methods that a call or method group reaches: through its symbol when the semantic model
-    /// resolves it, and otherwise the way C# looks a method up by name. A bare or <c>this.</c> name looks in the
-    /// caller's type and its bases, then for a bare name in its containing types and <c>using static</c> types;
-    /// <c>base.</c> looks in the bases; a name through a type name looks in that type; and a call on the builder looks
-    /// among extension methods. It finds the methods taking or returning the builder, and any function of the app
-    /// that a composition passes as a step, local functions included.
+    /// Finds the app's own methods that a call or method group reaches, the way C# looks a method up by name. A bare or
+    /// <c>this.</c> name looks in the caller's type and its bases, then for a bare name in its containing types and
+    /// <c>using static</c> types; <c>base.</c> looks in the bases; a name through a type name looks in that type; and a
+    /// call on the builder looks among extension methods. It finds the methods taking or returning the builder, and any
+    /// function of the app that a composition passes as a step, local functions included.
     /// </summary>
     private sealed class HelperResolver
     {
-        private readonly Dictionary<(SyntaxTree Tree, TextSpan Span), PipelineMethod> _byDeclaration = [];
         private readonly Dictionary<string, List<PipelineMethod>> _byType = new(StringComparer.Ordinal);
         private readonly List<PipelineMethod> _extensions = [];
-        private readonly Dictionary<(SyntaxTree Tree, TextSpan Span), StepFunction> _functions = [];
+        private readonly Dictionary<(SyntaxTree Tree, TextSpan Span), StepFunction> _localFunctions = [];
         private readonly Dictionary<string, List<StepFunction>> _functionsByType = new(StringComparer.Ordinal);
-        private readonly Dictionary<SyntaxTree, ScannedCSharpFile> _filesByTree = [];
         private readonly Dictionary<string, List<TypeDeclarationSyntax>> _typesByName = new(StringComparer.Ordinal);
         private readonly Dictionary<string, List<TypeDeclarationSyntax>> _typesByKey = new(StringComparer.Ordinal);
         private readonly List<UsingDirectiveSyntax> _globalStaticUsings = [];
@@ -36,7 +33,6 @@ internal sealed partial class PreviewPipelineMigration
         {
             foreach (var file in files)
             {
-                _filesByTree[file.Root.SyntaxTree] = file;
                 foreach (var type in file.Root.DescendantNodes().OfType<TypeDeclarationSyntax>())
                 {
                     Add(_typesByName, type.Identifier.ValueText, type);
@@ -50,20 +46,16 @@ internal sealed partial class PreviewPipelineMigration
                 {
                     switch (member)
                     {
-                        case BaseFieldDeclarationSyntax field
-                            when BuilderReferences(field.Declaration.Type, file.SemanticModel).Any():
+                        case BaseFieldDeclarationSyntax field when BuilderReferences(field.Declaration.Type).Any():
                             BuilderMembers.UnionWith(
                                 field.Declaration.Variables.Select(static v => v.Identifier.ValueText)
                             );
                             break;
-                        case PropertyDeclarationSyntax property
-                            when BuilderReferences(property.Type, file.SemanticModel).Any():
+                        case PropertyDeclarationSyntax property when BuilderReferences(property.Type).Any():
                             BuilderMembers.Add(property.Identifier.ValueText);
                             break;
                         case MethodDeclarationSyntax method when method.Parent is TypeDeclarationSyntax type:
-                            var function = new StepFunction(file, method);
-                            _functions[(method.SyntaxTree, method.Span)] = function;
-                            Add(_functionsByType, TypeKey(type), function);
+                            Add(_functionsByType, TypeKey(type), new StepFunction(file, method));
                             break;
                     }
                 }
@@ -71,7 +63,6 @@ internal sealed partial class PreviewPipelineMigration
 
             foreach (var method in methods)
             {
-                _byDeclaration[(method.Method.SyntaxTree, method.Method.Span)] = method;
                 if (method.Method.Parent is TypeDeclarationSyntax type)
                 {
                     Add(_byType, TypeKey(type), method);
@@ -89,17 +80,6 @@ internal sealed partial class PreviewPipelineMigration
 
         public IReadOnlyList<PipelineMethod> Resolve(InvocationExpressionSyntax invocation, PipelineMethod caller)
         {
-            if (BySymbol(invocation, caller.Model) is { } declarations)
-            {
-                return
-                [
-                    .. declarations
-                        .Select(reference => _byDeclaration.GetValueOrDefault((reference.SyntaxTree, reference.Span)))
-                        .OfType<PipelineMethod>()
-                        .Distinct(),
-                ];
-            }
-
             var arguments = invocation.ArgumentList.Arguments.Count;
             // The builder's own methods win over an extension method.
             if (
@@ -136,11 +116,6 @@ internal sealed partial class PreviewPipelineMigration
             Func<ParameterListSyntax, bool> fits
         )
         {
-            if (BySymbol(target, file.SemanticModel) is { } declarations)
-            {
-                return [.. declarations.Select(Function).OfType<StepFunction>().Distinct()];
-            }
-
             if (target is SimpleNameSyntax { Identifier.ValueText: var localName })
             {
                 var locals = target
@@ -150,8 +125,7 @@ internal sealed partial class PreviewPipelineMigration
                     ?.DescendantNodes()
                     .OfType<LocalFunctionStatementSyntax>()
                     .Where(local => local.Identifier.ValueText == localName && fits(local.ParameterList))
-                    .Select(local => Function(local.GetReference()))
-                    .OfType<StepFunction>()
+                    .Select(local => LocalFunction(local, file))
                     .ToList();
                 if (locals is { Count: > 0 })
                 {
@@ -168,51 +142,18 @@ internal sealed partial class PreviewPipelineMigration
             );
         }
 
-        private StepFunction? Function(SyntaxReference reference)
+        /// <summary>
+        /// The one <see cref="StepFunction"/> for the local function, however often it is found.
+        /// </summary>
+        private StepFunction LocalFunction(LocalFunctionStatementSyntax declaration, ScannedCSharpFile file)
         {
-            if (_functions.TryGetValue((reference.SyntaxTree, reference.Span), out var function))
-            {
-                return function;
-            }
-
-            if (
-                reference.GetSyntax() is LocalFunctionStatementSyntax declaration
-                && _filesByTree.TryGetValue(declaration.SyntaxTree, out var file)
-            )
+            if (!_localFunctions.TryGetValue((declaration.SyntaxTree, declaration.Span), out var function))
             {
                 function = new StepFunction(file, declaration);
-                _functions[(reference.SyntaxTree, reference.Span)] = function;
-                return function;
+                _localFunctions[(declaration.SyntaxTree, declaration.Span)] = function;
             }
 
-            return null;
-        }
-
-        /// <summary>
-        /// The declarations of the methods the semantic model binds the expression to, or <c>null</c> when it has no
-        /// model or binds it to none.
-        /// </summary>
-        private static IReadOnlyList<SyntaxReference>? BySymbol(ExpressionSyntax expression, SemanticModel? model)
-        {
-            if (model is null || model.SyntaxTree != expression.SyntaxTree)
-            {
-                return null;
-            }
-
-            var info = model.GetSymbolInfo(expression);
-            IEnumerable<ISymbol> symbols = info.Symbol is { } symbol ? [symbol] : info.CandidateSymbols;
-            var methods = symbols.OfType<IMethodSymbol>().ToList();
-            if (methods.Count == 0)
-            {
-                return null;
-            }
-
-            return
-            [
-                .. methods.SelectMany(static method =>
-                    (method.ReducedFrom ?? method).OriginalDefinition.DeclaringSyntaxReferences
-                ),
-            ];
+            return function;
         }
 
         private IReadOnlyList<T> ByName<T>(

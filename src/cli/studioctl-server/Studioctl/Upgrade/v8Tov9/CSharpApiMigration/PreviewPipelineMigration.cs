@@ -16,11 +16,11 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// </summary>
 /// <remarks>
 /// <p><c>Finally</c> and <c>Build</c> are common names, so a call is rewritten only when its receiver is the builder:
-/// by its type when the semantic model resolves it, and otherwise when it is a chain of <c>Stage</c> and
-/// <c>HandleReplies</c> calls rooted at a parameter or local declared <c>PipelineBuilder</c>, at a <c>var</c> local
-/// holding such a chain, or at a call that reaches a method of the app declared to return <c>PipelineBuilder</c>, as
-/// <see cref="HelperResolver"/> finds it. A method the rules cannot place whole is reported and left as it is, with
-/// every reason, as <see cref="Unplaced"/> and <see cref="PlanExternalStages"/> find them.</p>
+/// a chain of <c>Stage</c> and <c>HandleReplies</c> calls rooted at a parameter or local declared
+/// <c>PipelineBuilder</c>, at a <c>var</c> local holding such a chain, or at a call that reaches a method of the app
+/// declared to return <c>PipelineBuilder</c>, as <see cref="HelperResolver"/> finds it. A method the rules cannot place
+/// whole is reported and left as it is, with every reason, as <see cref="Unplaced"/> and
+/// <see cref="PlanExternalStages"/> find them.</p>
 /// <p>The methods a composition passes as its steps get the result types of the current API, as
 /// <see cref="StepTies"/> decides, and the renames that mean the same wherever they stand are made in every file, as
 /// <see cref="RenameRewriter"/> lists them. Whatever still names the previews' API afterwards is reported with its
@@ -97,8 +97,6 @@ internal sealed partial class PreviewPipelineMigration
 
         public Role Role { get; } = role;
 
-        public SemanticModel? Model => File.SemanticModel;
-
         /// <summary>
         /// The names in the method that hold the builder.
         /// </summary>
@@ -128,10 +126,9 @@ internal sealed partial class PreviewPipelineMigration
         var files = _scanner.Files.ToArray();
 
         // Without a compilation, an app's own PipelineBuilder reads like the Altinn one.
-        bool TellsBuildersApart(ScannedCSharpFile file) =>
-            file.SemanticModel is not null || !names.AppDeclares(PipelineApi.Builder);
+        var tellsBuildersApart = !names.AppDeclares(PipelineApi.Builder);
 
-        // Detect everything before rewriting anything: an update refreshes the semantic models.
+        // Detect everything before rewriting anything: an update replaces the tree the nodes found belong to.
         var methods = new List<PipelineMethod>();
         var reported = new HashSet<SyntaxNode>();
         var leftAsItIs = new List<(ScannedCSharpFile File, SyntaxNode Node)>();
@@ -141,9 +138,9 @@ internal sealed partial class PreviewPipelineMigration
             var found = file
                 .Root.DescendantNodes()
                 .OfType<MethodDeclarationSyntax>()
-                .Where(method => TakesOrReturnsBuilder(method, file.SemanticModel))
+                .Where(TakesOrReturnsBuilder)
                 .ToList();
-            if (found.Count > 0 && !TellsBuildersApart(file))
+            if (found.Count > 0 && !tellsBuildersApart)
             {
                 messages.Todo(
                     $"{file.RelativePath}: the app declares its own {PipelineApi.Builder}, which cannot be told apart "
@@ -186,7 +183,7 @@ internal sealed partial class PreviewPipelineMigration
 
         var stepRewrites = steps.Decide(messages);
 
-        foreach (var file in files.Where(TellsBuildersApart))
+        foreach (var file in tellsBuildersApart ? files : [])
         {
             ReportStrayBuilders(file, reported, messages);
         }
@@ -231,7 +228,7 @@ internal sealed partial class PreviewPipelineMigration
 
         // After the methods, so that what they leave is found in its new tree. A snapshot again, of the files those
         // rewrites replaced.
-        foreach (var file in _scanner.Files.Where(TellsBuildersApart).ToArray())
+        foreach (var file in tellsBuildersApart ? _scanner.Files.ToArray() : [])
         {
             cancellationToken.ThrowIfCancellationRequested();
             RewriteDocReferences(file, names, messages);
@@ -254,7 +251,7 @@ internal sealed partial class PreviewPipelineMigration
 
     private static Role RoleOf(MethodDeclarationSyntax method)
     {
-        if (method.ParameterList.Parameters is not [{ Type: var parameterType }] || !IsBuilder(parameterType, null))
+        if (method.ParameterList.Parameters is not [{ Type: var parameterType }] || !IsBuilder(parameterType))
         {
             return Role.Helper;
         }
@@ -283,17 +280,17 @@ internal sealed partial class PreviewPipelineMigration
         {
             switch (node)
             {
-                case ParameterSyntax parameter when IsBuilder(parameter.Type, method.Model):
+                case ParameterSyntax parameter when IsBuilder(parameter.Type):
                     method.Builders.Add(parameter.Identifier.ValueText);
                     break;
                 case DeclarationExpressionSyntax
                 {
                     Designation: SingleVariableDesignationSyntax designation,
-                } declaration when IsBuilder(declaration.Type, method.Model):
+                } declaration when IsBuilder(declaration.Type):
                     method.Builders.Add(designation.Identifier.ValueText);
                     break;
                 case VariableDeclarationSyntax variable:
-                    var declared = IsBuilder(variable.Type, method.Model);
+                    var declared = IsBuilder(variable.Type);
                     foreach (var declarator in variable.Variables)
                     {
                         if (
@@ -406,7 +403,7 @@ internal sealed partial class PreviewPipelineMigration
         );
         foreach (var node in method.Method.DescendantNodesAndSelf())
         {
-            if (DeclaredType(node) is { } type && IsBuilder(type, method.Model))
+            if (DeclaredType(node) is { } type && IsBuilder(type))
             {
                 rewriter.Retype.Add(type);
             }
@@ -566,7 +563,7 @@ internal sealed partial class PreviewPipelineMigration
         var builder = method
             .Method.ParameterList.Parameters.Select(static parameter => parameter.Type)
             .OfType<NameSyntax>()
-            .FirstOrDefault(type => IsBuilder(type, method.Model));
+            .FirstOrDefault(IsBuilder);
         return SyntaxFactory.QualifiedName(
             builder?.WithoutTrivia() ?? SyntaxFactory.IdentifierName(PipelineApi.Builder),
             SyntaxFactory.IdentifierName(PipelineApi.ServiceTaskVariant)
@@ -619,7 +616,7 @@ internal sealed partial class PreviewPipelineMigration
             }
         }
 
-        foreach (var type in BuilderReferences(method.Method, method.Model).Where(t => !rewriter.Retype.Contains(t)))
+        foreach (var type in BuilderReferences(method.Method).Where(t => !rewriter.Retype.Contains(t)))
         {
             yield return $"a {PipelineApi.Builder} it cannot give a variant at line {Line(method.File, type)}";
         }
@@ -666,22 +663,11 @@ internal sealed partial class PreviewPipelineMigration
     }
 
     /// <summary>
-    /// Whether the expression is provably not the builder: by its type when the semantic model resolves it, and
-    /// otherwise when nothing in it is a name that holds the builder, a field or property whose type names it, the
-    /// type itself, or a call to a method of the app that takes or returns it.
+    /// Whether the expression is provably not the builder: nothing in it is a name that holds the builder, a field or
+    /// property whose type names it, the type itself, or a call to a method of the app that takes or returns it.
     /// </summary>
-    private static bool IsNotBuilder(ExpressionSyntax expression, PipelineMethod method, HelperResolver helpers)
-    {
-        if (
-            method.Model is { } model
-            && model.SyntaxTree == expression.SyntaxTree
-            && model.GetTypeInfo(expression).Type is { TypeKind: not TypeKind.Error } type
-        )
-        {
-            return !IsBuilderSymbol(type);
-        }
-
-        return !expression
+    private static bool IsNotBuilder(ExpressionSyntax expression, PipelineMethod method, HelperResolver helpers) =>
+        !expression
             .DescendantNodesAndSelf()
             .Any(node =>
                 node switch
@@ -696,20 +682,16 @@ internal sealed partial class PreviewPipelineMigration
                     _ => false,
                 }
             );
-    }
 
     /// <summary>
     /// The written types in the node that are the previews' builder, at any depth, such as a type argument: each the
     /// outermost name that ends with <c>PipelineBuilder</c>, and not one that only qualifies another, such as
     /// <c>PipelineBuilder.ServiceTask</c>.
     /// </summary>
-    private static IEnumerable<NameSyntax> BuilderReferences(SyntaxNode node, SemanticModel? model) =>
-        node.DescendantNodesAndSelf()
-            .OfType<IdentifierNameSyntax>()
-            .Select(identifier => BuilderReference(identifier, model))
-            .OfType<NameSyntax>();
+    private static IEnumerable<NameSyntax> BuilderReferences(SyntaxNode node) =>
+        node.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>().Select(BuilderReference).OfType<NameSyntax>();
 
-    private static NameSyntax? BuilderReference(IdentifierNameSyntax identifier, SemanticModel? model)
+    private static NameSyntax? BuilderReference(IdentifierNameSyntax identifier)
     {
         if (identifier.Identifier.ValueText != PipelineApi.Builder)
         {
@@ -728,7 +710,7 @@ internal sealed partial class PreviewPipelineMigration
             MemberAccessExpressionSyntax => true,
             _ => false,
         };
-        return !qualifiesAnother && IsBuilder(name, model) ? name : null;
+        return !qualifiesAnother && IsBuilder(name) ? name : null;
     }
 
     /// <summary>
@@ -877,7 +859,7 @@ internal sealed partial class PreviewPipelineMigration
                 when helpers.Resolve(invocation, method) is { Count: > 0 } targets
                     && targets.All(static target =>
                         SimpleName(target.Method.ReturnType) == PreviewApi.ServiceTaskPipeline
-                        || IsBuilder(target.Method.ReturnType, target.Model)
+                        || IsBuilder(target.Method.ReturnType)
                     ) => expression,
             _ => null,
         };
@@ -940,22 +922,15 @@ internal sealed partial class PreviewPipelineMigration
     }
 
     /// <summary>
-    /// Whether the expression is the previews' builder: by its type when the semantic model resolves it, and otherwise
-    /// a name that holds the builder, a call to an app method declared to return one, or a <c>Stage</c> or
-    /// <c>HandleReplies</c> on one of those.
+    /// Whether the expression is the previews' builder: a name that holds the builder, a call to an app method declared
+    /// to return one, or a <c>Stage</c> or <c>HandleReplies</c> on one of those.
     /// </summary>
-    private static bool IsBuilderExpression(ExpressionSyntax expression, PipelineMethod method, HelperResolver helpers)
-    {
-        if (
-            method.Model is { } model
-            && model.SyntaxTree == expression.SyntaxTree
-            && model.GetTypeInfo(expression).Type is { TypeKind: not TypeKind.Error } type
-        )
-        {
-            return IsBuilderSymbol(type);
-        }
-
-        return Unwrap(expression) switch
+    private static bool IsBuilderExpression(
+        ExpressionSyntax expression,
+        PipelineMethod method,
+        HelperResolver helpers
+    ) =>
+        Unwrap(expression) switch
         {
             IdentifierNameSyntax identifier => method.Builders.Contains(identifier.Identifier.ValueText),
             InvocationExpressionSyntax
@@ -963,21 +938,20 @@ internal sealed partial class PreviewPipelineMigration
                 Expression: MemberAccessExpressionSyntax { Name: var name, Expression: var receiver },
             } when _chainingCalls.Contains(name.Identifier.ValueText) => IsBuilderExpression(receiver, method, helpers),
             InvocationExpressionSyntax invocation => helpers.Resolve(invocation, method) is { Count: > 0 } targets
-                && targets.All(static target => IsBuilder(target.Method.ReturnType, target.Model)),
+                && targets.All(static target => IsBuilder(target.Method.ReturnType)),
             _ => false,
         };
-    }
 
-    private static bool TakesOrReturnsBuilder(MethodDeclarationSyntax method, SemanticModel? model) =>
-        IsBuilder(method.ReturnType, model)
-        || method.ParameterList.Parameters.Any(parameter => IsBuilder(parameter.Type, model));
+    private static bool TakesOrReturnsBuilder(MethodDeclarationSyntax method) =>
+        IsBuilder(method.ReturnType)
+        || method.ParameterList.Parameters.Any(static parameter => IsBuilder(parameter.Type));
 
     /// <summary>
-    /// Whether a written type is the previews' builder: by the semantic model when it resolves the type, otherwise
-    /// <c>PipelineBuilder</c>, bare or qualified with its namespace. <c>PipelineBuilder.ServiceTask</c> and
-    /// <c>PipelineBuilder.Lifecycle</c> are not, so a migrated method is left alone.
+    /// Whether a written type is the previews' builder: <c>PipelineBuilder</c>, bare or qualified with its namespace.
+    /// <c>PipelineBuilder.ServiceTask</c> and <c>PipelineBuilder.Lifecycle</c> are not, so a migrated method is left
+    /// alone.
     /// </summary>
-    private static bool IsBuilder(TypeSyntax? type, SemanticModel? model)
+    private static bool IsBuilder(TypeSyntax? type)
     {
         // A var local gets its variant from what it holds.
         if (type is null || type.IsVar)
@@ -985,32 +959,15 @@ internal sealed partial class PreviewPipelineMigration
             return false;
         }
 
-        if (
-            model is not null
-            && model.SyntaxTree == type.SyntaxTree
-            && model.GetTypeInfo(type).Type is { TypeKind: not TypeKind.Error } resolved
-        )
-        {
-            return IsBuilderSymbol(resolved);
-        }
-
         return type switch
         {
             IdentifierNameSyntax identifier => identifier.Identifier.ValueText == PipelineApi.Builder,
             QualifiedNameSyntax qualified => qualified.Right.Identifier.ValueText == PipelineApi.Builder
                 && IsBuilderNamespace(qualified.Left),
-            NullableTypeSyntax nullable => IsBuilder(nullable.ElementType, model),
+            NullableTypeSyntax nullable => IsBuilder(nullable.ElementType),
             _ => false,
         };
     }
-
-    /// <summary>
-    /// The previews' builder: the Altinn <c>PipelineBuilder</c> that is not the variants' abstract base.
-    /// </summary>
-    private static bool IsBuilderSymbol(ITypeSymbol type) =>
-        type is INamedTypeSymbol { Name: PipelineApi.Builder, ContainingType: null, IsAbstract: false } named
-        && named.ContainingNamespace.ToDisplayString() == PipelineApi.Namespace
-        && CSharpSemanticQueries.IsAltinnAppSymbol(named);
 
     /// <summary>
     /// Whether the expression or name is the builder's namespace, with or without <c>global::</c>.
@@ -1052,7 +1009,7 @@ internal sealed partial class PreviewPipelineMigration
             var identifier in file.Root.DescendantNodes(node => !reported.Contains(node)).OfType<IdentifierNameSyntax>()
         )
         {
-            if (BuilderReference(identifier, file.SemanticModel) is { } type)
+            if (BuilderReference(identifier) is { } type)
             {
                 lines.Add(file.GetLine(type));
             }
