@@ -35,8 +35,6 @@ RUN addgroup -g 3000 dotnet && adduser -u 1000 -G dotnet -D -s /bin/false dotnet
 RUN chown -R dotnet:dotnet /App
 
 USER dotnet
-RUN mkdir /tmp/logtelemetry
-
 HEALTHCHECK --interval=1s --timeout=1s --retries=20 \
     CMD wget -nv -t1 --spider 'http://localhost:5005/health' || exit 1
 

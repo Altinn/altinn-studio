@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using Altinn.App.Core.Internal;
+using Microsoft.Extensions.Configuration.Memory;
 
 namespace Altinn.App.Api.Extensions;
 
@@ -40,18 +41,26 @@ internal static class StudioctlLocalConfiguration
             return;
         }
 
+        // Runs at most once per configuration: both AddAltinnAppServices, which needs the OTLP endpoint, and
+        // ConfigureAppWebHost ask for it, in whichever order the app's Program.cs calls them.
+        if (configBuilder.Sources.OfType<StudioctlConfigurationSource>().Any())
+        {
+            return;
+        }
+
         string contentRootPath = hostEnvironment.ContentRootPath;
         IReadOnlyDictionary<string, string?> env = TryReadStudioctlEnvironment(
             FindProjectPath(contentRootPath) ?? contentRootPath,
             _defaultTimeout
         );
-        if (env.Count == 0)
-        {
-            return;
-        }
 
-        configBuilder.AddInMemoryCollection(NormalizeConfigurationKeys(env));
+        configBuilder.Add(new StudioctlConfigurationSource { InitialData = NormalizeConfigurationKeys(env) });
     }
+
+    /// <summary>
+    /// The environment imported from studioctl, as a source of its own so that the import happens once.
+    /// </summary>
+    private sealed class StudioctlConfigurationSource : MemoryConfigurationSource;
 
     internal static bool ShouldAdd(IHostEnvironment? hostEnvironment)
     {

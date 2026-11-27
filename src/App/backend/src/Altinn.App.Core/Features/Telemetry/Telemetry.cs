@@ -262,6 +262,21 @@ public sealed partial class Telemetry : IDisposable
 
     internal static class InternalLabels
     {
+        /// <summary>
+        /// Resource attribute: the app's service owner, its <c>org</c>, such as <c>ttd</c>.
+        /// </summary>
+        internal const string ServiceOwner = "altinn.service_owner";
+
+        /// <summary>
+        /// Resource attribute: the app's name without the service owner.
+        /// </summary>
+        internal const string App = "altinn.app";
+
+        /// <summary>
+        /// Resource attribute: the version of the app libraries. Telemetry without it comes from v8.
+        /// </summary>
+        internal const string AppLibVersion = "altinn.app_lib.version";
+
         internal const string NotificationOrderId = "notification.order.id";
         internal const string Result = "result";
         internal const string Type = "type";

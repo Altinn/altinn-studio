@@ -1,3 +1,4 @@
+using Altinn.App.Api.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Microsoft.AspNetCore.Http.Features;
@@ -28,6 +29,20 @@ internal sealed class TelemetryEnrichingMiddleware
     /// <param name="context">The HTTP context.</param>
     public async Task InvokeAsync(HttpContext context)
     {
+        if (ServiceCollectionExtensions.IsProbe(context.Request))
+        {
+            // Probes are not traffic: the trace instrumentation already leaves them out, and this keeps them out of
+            // the request metrics.
+            var probeMetrics = context.Features.Get<IHttpMetricsTagsFeature>();
+            if (probeMetrics is not null)
+            {
+                probeMetrics.MetricsDisabled = true;
+            }
+
+            await _next(context);
+            return;
+        }
+
         var activity = context.Features.Get<IHttpActivityFeature>()?.Activity;
 
         if (activity is not null)

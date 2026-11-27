@@ -21,8 +21,6 @@ namespace Altinn.App.Core.Configuration
         public string RuntimeCookieName { get; set; }
         public string RuntimeCssFileName { get; set; }
         public string ServiceStylesConfigFileName { get; set; }
-        public bool UseOpenTelemetry { get; set; }
-        public bool UseOpenTelemetryCollector { get; set; }
         public bool XsdValidation { get; set; }
     }
     public class CacheSettings

@@ -107,15 +107,4 @@ public class AppSettings
     /// Enable the functionality to validate form data against corresponding XSD if present
     /// </summary>
     public bool XsdValidation { get; set; }
-
-    /// <summary>
-    /// Enables OpenTelemetry as a substitute for Application Insights SDK
-    /// Improves instrumentation throughout the Altinn app libraries.
-    /// </summary>
-    public bool UseOpenTelemetry { get; set; }
-
-    /// <summary>
-    /// Use OpenTelemetry collector via OTLP exporter instead of Azure Monitor exporters.
-    /// </summary>
-    public bool UseOpenTelemetryCollector { get; set; }
 }
