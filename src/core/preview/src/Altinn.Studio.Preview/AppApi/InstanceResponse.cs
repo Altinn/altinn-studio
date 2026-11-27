@@ -84,34 +84,9 @@ internal sealed record EnrichedProcess(
     IReadOnlyList<ProcessTaskType> ProcessTasks
 )
 {
-    /// <summary>What the user may do in a task in preview: everything a task can let them do.</summary>
-    private static readonly IReadOnlyDictionary<string, bool> s_actions = new Dictionary<string, bool>
-    {
-        ["read"] = true,
-        ["write"] = true,
-        ["complete"] = true,
-        ["confirm"] = true,
-        ["sign"] = true,
-        ["reject"] = true,
-        ["pay"] = true,
-    };
-
     public static EnrichedProcess From(ProcessState state, ProcessDefinition? process)
     {
-        EnrichedTask? currentTask = state.CurrentTask is { } task
-            ? new EnrichedTask(
-                task.Flow,
-                task.Started,
-                task.ElementId,
-                task.Name,
-                task.AltinnTaskType,
-                process?.Task(task.ElementId)?.ElementType ?? "Task",
-                Read: true,
-                Write: true,
-                s_actions,
-                []
-            )
-            : null;
+        EnrichedTask? currentTask = state.CurrentTask is { } task ? EnrichedTask.From(task, process) : null;
         IReadOnlyList<ProcessTaskType> processTasks = process is null
             ? []
             : [.. process.Tasks.Select(t => new ProcessTaskType(t.AltinnTaskType, t.ElementId, t.ElementType))];
@@ -136,7 +111,45 @@ internal sealed record EnrichedTask(
     bool Read,
     bool Write,
     IReadOnlyDictionary<string, bool> Actions,
-    IReadOnlyList<object> UserActions
-);
+    IReadOnlyList<UserAction> UserActions
+)
+{
+    private static readonly IReadOnlyList<TaskAction> s_readAndWrite =
+    [
+        new("read", TaskActionType.ProcessAction),
+        new("write", TaskActionType.ProcessAction),
+    ];
+
+    /// <summary>
+    /// The task as the app describes it to a user its policy lets do everything: read, write and each action the task
+    /// has in the process definition.
+    /// </summary>
+    public static EnrichedTask From(ProcessTask task, ProcessDefinition? process)
+    {
+        IReadOnlyList<UserAction> userActions =
+        [
+            .. s_readAndWrite
+                .Concat(process?.Actions(task.ElementId) ?? [])
+                .DistinctBy(action => action.Id, StringComparer.Ordinal)
+                .Select(action => new UserAction(action.Id, Authorized: true, action.Type)),
+        ];
+        return new EnrichedTask(
+            task.Flow,
+            task.Started,
+            task.ElementId,
+            task.Name,
+            task.AltinnTaskType,
+            process?.Task(task.ElementId)?.ElementType ?? "Task",
+            Read: true,
+            Write: true,
+            userActions
+                .Where(action => action.Type == TaskActionType.ProcessAction)
+                .ToDictionary(action => action.Id, action => action.Authorized, StringComparer.Ordinal),
+            userActions
+        );
+    }
+}
+
+internal sealed record UserAction(string Id, bool Authorized, TaskActionType Type);
 
 internal sealed record ProcessTaskType(string AltinnTaskType, string ElementId, string ElementType);

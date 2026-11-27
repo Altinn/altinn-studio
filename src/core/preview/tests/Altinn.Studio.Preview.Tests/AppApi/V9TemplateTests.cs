@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json.Nodes;
@@ -62,6 +63,25 @@ public sealed class V9TemplateTests : IDisposable
         string task = Value(instance["process"]?["currentTask"]?["elementId"]);
         await Send(HttpMethod.Get, appRoot, $"{instancePath}/bootstrap-form/{task}");
         await Send(HttpMethod.Patch, appRoot, $"{instancePath}/data", """{"patches":[],"ignoredValidators":[]}""");
+        await Send(
+            HttpMethod.Post,
+            appRoot,
+            $"{instancePath}/data/type/ref-data-as-pdf?language=nb",
+            expected: HttpStatusCode.BadRequest
+        );
+        await Send(
+            HttpMethod.Post,
+            appRoot,
+            $"{instancePath}/data?dataType=ref-data-as-pdf",
+            expected: HttpStatusCode.BadRequest
+        );
+        await Send(
+            HttpMethod.Post,
+            appRoot,
+            $"{instancePath}/actions?language=nb",
+            """{"action":"fill","buttonId":"fill-button"}""",
+            HttpStatusCode.NotFound
+        );
         await Send(HttpMethod.Put, appRoot, $"{instancePath}/process/next?returnInstance=true");
         await Send(HttpMethod.Get, appRoot, $"{instancePath}/enriched");
 
@@ -90,7 +110,13 @@ public sealed class V9TemplateTests : IDisposable
         return body?.Url ?? throw new InvalidOperationException("No session URL.");
     }
 
-    private async Task<JsonNode> Send(HttpMethod method, Uri appRoot, string path, string? body = null)
+    private async Task<JsonNode> Send(
+        HttpMethod method,
+        Uri appRoot,
+        string path,
+        string? body = null,
+        HttpStatusCode? expected = null
+    )
     {
         var url = new Uri(appRoot, path);
         using var request = new HttpRequestMessage(method, url);
@@ -102,7 +128,10 @@ public sealed class V9TemplateTests : IDisposable
         using HttpResponseMessage response = await _factory
             .CreatePublicClient()
             .SendAsync(request, TestContext.Current.CancellationToken);
-        Assert.True(response.IsSuccessStatusCode, $"{method} {path} answered {(int)response.StatusCode}.");
+        Assert.True(
+            expected is null ? response.IsSuccessStatusCode : response.StatusCode == expected,
+            $"{method} {path} answered {(int)response.StatusCode}."
+        );
         JsonNode? answer =
             response.Content.Headers.ContentType?.MediaType == "application/json"
                 ? await response.Content.ReadFromJsonAsync<JsonNode>(TestContext.Current.CancellationToken)

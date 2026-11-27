@@ -145,6 +145,77 @@ public sealed class V9AppTests : IDisposable
     }
 
     [Fact]
+    public async Task Task_LetsTheUserDoWhatItsActionsAre()
+    {
+        RepositoryRoot.AddFile(_workingCopy, "App/config/process/process.bpmn", ProcessDefinitionTests.WithActions);
+        Uri appRoot = await StartSession();
+        JsonObject instance = await Send(HttpMethod.Post, new Uri(appRoot, "instances?instanceOwnerPartyId=51001"));
+
+        JsonObject enriched = await Send(HttpMethod.Get, new Uri(appRoot, $"instances/{instance["id"]}/enriched"));
+
+        JsonNode? task = enriched["process"]?["currentTask"];
+        Assert.Equal("""{"read":true,"write":true,"reject":true,"lookup":true}""", task?["actions"]?.ToJsonString());
+        Assert.Equal(
+            [
+                "read:ProcessAction",
+                "write:ProcessAction",
+                "reject:ProcessAction",
+                "fill:ServerAction",
+                "lookup:ProcessAction",
+            ],
+            (task?["userActions"]?.AsArray() ?? []).Select(action =>
+                (bool?)action?["authorized"] is true ? $"{action["id"]}:{action["type"]}" : "not authorized"
+            )
+        );
+    }
+
+    [Theory]
+    [InlineData("data/ref-data-as-pdf?language=en", "Files can't be uploaded in preview.")]
+    [InlineData("data/type/ref-data-as-pdf", "Filer kan ikke lastes opp i forhåndsvisningen.")]
+    public async Task Upload_IsRejected_WithAMessageForTheDeveloper(string path, string message)
+    {
+        Uri appRoot = await StartSession();
+        JsonObject instance = await Send(HttpMethod.Post, new Uri(appRoot, "instances?instanceOwnerPartyId=51001"));
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            new Uri(appRoot, $"instances/{instance["id"]}/{path}")
+        )
+        {
+            Content = new ByteArrayContent([0x25, 0x50, 0x44, 0x46]),
+        };
+
+        using HttpResponseMessage response = await _factory
+            .CreatePublicClient()
+            .SendAsync(request, TestContext.Current.CancellationToken);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<JsonObject>(TestContext.Current.CancellationToken);
+        Assert.StartsWith(
+            message,
+            (string?)body?["uploadValidationIssues"]?[0]?["description"],
+            StringComparison.Ordinal
+        );
+    }
+
+    [Fact]
+    public async Task ServerAction_DoesNothing_AndSaysSo()
+    {
+        Uri appRoot = await StartSession();
+        JsonObject instance = await Send(HttpMethod.Post, new Uri(appRoot, "instances?instanceOwnerPartyId=51001"));
+
+        using HttpResponseMessage response = await SendRaw(
+            HttpMethod.Post,
+            new Uri(appRoot, $"instances/{instance["id"]}/actions?language=nb"),
+            """{"action":"fill","buttonId":"fill-button"}"""
+        );
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<JsonObject>(TestContext.Current.CancellationToken);
+        Assert.Equal(instance["id"]?.ToString(), body?["instance"]?["id"]?.ToString());
+        Assert.Contains("«fill» gjorde ingenting", (string?)body?["error"]?["message"], StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Patch_ChangesNothing_WhenOnePatchFails()
     {
         Uri appRoot = await StartSession();

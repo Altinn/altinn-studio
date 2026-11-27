@@ -1,5 +1,6 @@
 using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Models;
+using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Models.Expressions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
@@ -27,11 +28,23 @@ internal static class SwaggerFilterExtensions
             c.MapType<Expression>(() =>
                 new OpenApiSchemaReference(DocumentFilter.ExpressionSchemaId, hostDocument: null)
             );
+            c.MapType<ActionType>(ActionTypeSchema);
             c.DocumentFilter<DocumentFilter>();
             c.OperationFilter<ExplicitProblemDetailsResponseOperationFilter>();
             c.OperationFilter<ActionsPerformConflictResponseOperationFilter>();
         });
     }
+
+    /// <summary>
+    /// UserAction writes its ActionType as the name, through a converter on the property, which the schema generator
+    /// doesn't see.
+    /// </summary>
+    internal static OpenApiSchema ActionTypeSchema() =>
+        new()
+        {
+            Type = JsonSchemaType.String,
+            Enum = [nameof(ActionType.ProcessAction), nameof(ActionType.ServerAction)],
+        };
 }
 
 internal sealed class ExplicitProblemDetailsResponseOperationFilter : IOperationFilter
