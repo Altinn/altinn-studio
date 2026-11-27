@@ -6,6 +6,7 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Xml;
 using System.Xml.Serialization;
+using Altinn.App.Api.Tests.Mocks;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Enums;
@@ -200,6 +201,23 @@ public static class TestData
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Writes an instance that has no pretest copy, for a test that creates its own. Remove it with
+    /// <see cref="DeleteInstanceAndData(string, string, int, Guid)"/>.
+    /// </summary>
+    public static async Task WriteInstance(Instance instance)
+    {
+        var identifier = new InstanceIdentifier(instance);
+        string instancePath = GetInstancePath(
+            instance.Org,
+            instance.AppId.Split('/')[1],
+            identifier.InstanceOwnerPartyId,
+            identifier.InstanceGuid
+        );
+        Directory.CreateDirectory(Path.GetDirectoryName(instancePath)!);
+        await InstanceClientMockSi.WriteJsonFile(instancePath, instance);
     }
 
     public static void DeleteInstanceAndData(string org, string app, string instanceId)

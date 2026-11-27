@@ -33,7 +33,7 @@ public class CommitProcessStateTests
 
         Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         setup.MutationClient.VerifyNoOtherCalls();
-        Assert.Equal(WorkflowAggregateSaveOutcome.Saved, await Save(setup));
+        Assert.Equal(WorkflowAggregateSaveKind.Saved, (await Save(setup)).Kind);
         StorageInstanceMutationRequest mutation = Assert.Single(mutations);
         Assert.Equal("Task_2", mutation.ProcessState?.State?.CurrentTask?.ElementId);
         Assert.Equal(ProcessStatus.Processing, mutation.ExpectedProcessStatus);
@@ -144,7 +144,7 @@ public class CommitProcessStateTests
 
         var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
-        Assert.Equal(WorkflowAggregateSaveOutcome.NothingToSave, await Save(setup));
+        Assert.Equal(WorkflowAggregateSaveKind.NothingToSave, (await Save(setup)).Kind);
     }
 
     [Fact]
@@ -280,12 +280,15 @@ public class CommitProcessStateTests
         Assert.Equal(ProcessStatus.Processing, setup.UnitOfWork.Instance.Process?.Status);
         Assert.Same(dataElement, Assert.Single(setup.UnitOfWork.Instance.Data));
         Assert.Equal(
-            WorkflowAggregateSaveOutcome.NothingToSave,
-            await setup.UnitOfWork.SaveWorkflowOwnedAggregate(
-                setup.UnitOfWork.GetDataElementChanges(false),
-                Guid.NewGuid().ToString(),
-                CancellationToken.None
-            )
+            WorkflowAggregateSaveKind.NothingToSave,
+            (
+                await setup.UnitOfWork.SaveWorkflowOwnedAggregate(
+                    setup.UnitOfWork.GetDataElementChanges(false),
+                    Guid.NewGuid().ToString(),
+                    callerResult: null,
+                    CancellationToken.None
+                )
+            ).Kind
         );
         setup.MutationClient.VerifyNoOtherCalls();
     }
@@ -446,6 +449,7 @@ public class CommitProcessStateTests
         setup.UnitOfWork.SaveWorkflowOwnedAggregate(
             setup.UnitOfWork.GetDataElementChanges(false),
             Guid.NewGuid().ToString(),
+            callerResult: null,
             CancellationToken.None
         );
 

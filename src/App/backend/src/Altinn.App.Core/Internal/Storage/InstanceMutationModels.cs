@@ -32,6 +32,9 @@ internal sealed class StorageInstanceMutationRequest
 
     [JsonProperty(PropertyName = "processState")]
     public StorageInstanceMutationProcessStateUpdate? ProcessState { get; set; }
+
+    [JsonProperty(PropertyName = "callerResult", NullValueHandling = NullValueHandling.Ignore)]
+    public string? CallerResult { get; set; }
 }
 
 internal sealed class StorageInstanceMutationCreateDataElement
@@ -131,6 +134,9 @@ internal sealed class StorageInstanceMutationResponse
 
     [JsonProperty(PropertyName = "replayed")]
     public bool Replayed { get; init; }
+
+    [JsonProperty(PropertyName = "callerResult")]
+    public string? CallerResult { get; init; }
 }
 
 internal sealed record StorageInstanceMutationContent(
@@ -145,13 +151,15 @@ internal sealed record InstanceMutationWithStorageMetadata
         Instance instance,
         StorageVersionMetadata metadata,
         IReadOnlyList<Guid>? createdDataElementIds = null,
-        bool replayed = false
+        bool replayed = false,
+        string? callerResult = null
     )
     {
         Instance = instance;
         Metadata = metadata;
         CreatedDataElementIds = createdDataElementIds ?? [];
         Replayed = replayed;
+        CallerResult = callerResult;
     }
 
     public Instance Instance { get; }
@@ -161,4 +169,10 @@ internal sealed record InstanceMutationWithStorageMetadata
     public IReadOnlyList<Guid> CreatedDataElementIds { get; }
 
     public bool Replayed { get; }
+
+    /// <summary>
+    /// The <c>callerResult</c> the committed mutation carried: the request's own, or on a replay the one the first
+    /// committed request sent, null when that one sent none.
+    /// </summary>
+    public string? CallerResult { get; }
 }

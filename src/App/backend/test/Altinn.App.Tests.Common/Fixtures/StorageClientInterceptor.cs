@@ -65,7 +65,8 @@ public class StorageClientInterceptor : HttpMessageHandler
     public ApplicationMetadata AppMetadata { get; }
     public bool StampDataElementBlobVersionIds { get; }
     public bool EnforceExpectedProcessStatus { get; set; }
-    public string? ForcedMutationConflictMessage { get; set; }
+    public string? ForcedMutationFailureMessage { get; set; }
+    public HttpStatusCode ForcedMutationFailureStatus { get; set; } = HttpStatusCode.Conflict;
     public bool ForbidMutations { get; set; }
 
     public void AddInstance(Instance instance)
@@ -673,6 +674,11 @@ public class StorageClientInterceptor : HttpMessageHandler
             return shapeFailure;
         }
 
+        if (ValidateCallerResult(mutation, request) is { } callerResultFailure)
+        {
+            return callerResultFailure;
+        }
+
         if (!_instances.TryGetValue($"{instanceOwnerPartyId}/{instanceGuid}", out Instance? instance))
         {
             return CreateErrorResponse(
@@ -691,11 +697,11 @@ public class StorageClientInterceptor : HttpMessageHandler
             return CreateErrorResponse(HttpStatusCode.Forbidden, string.Empty);
         }
 
-        if (ForcedMutationConflictMessage is { } forcedConflictMessage)
+        if (ForcedMutationFailureMessage is { } forcedFailureMessage)
         {
             return CreateErrorResponse(
-                HttpStatusCode.Conflict,
-                JsonConvert.SerializeObject(forcedConflictMessage),
+                ForcedMutationFailureStatus,
+                JsonConvert.SerializeObject(forcedFailureMessage),
                 "application/json"
             );
         }
@@ -795,7 +801,12 @@ public class StorageClientInterceptor : HttpMessageHandler
 
         StampBlobVersionIds(instance);
         string responseBody = JsonConvert.SerializeObject(
-            new StorageInstanceMutationResponse { Instance = instance, CreatedDataElementIds = createdDataElementIds }
+            new StorageInstanceMutationResponse
+            {
+                Instance = instance,
+                CreatedDataElementIds = createdDataElementIds,
+                CallerResult = mutation.CallerResult,
+            }
         );
         HttpResponseMessage response = AddVersionHeaders(
             new HttpResponseMessage(HttpStatusCode.OK)
@@ -804,7 +815,9 @@ public class StorageClientInterceptor : HttpMessageHandler
             },
             instanceOwnerPartyId,
             instanceGuid,
-            IsTerminalWorkflowDelete(mutation, request) ? 1 : GetMutationSubOperationCount(mutation),
+            IsTerminalWorkflowDelete(mutation, request) ? 1
+                : IsResultOnly(mutation) ? 0
+                : GetMutationSubOperationCount(mutation),
             bumpProcessStateVersion: mutation.ProcessState?.State is not null
         );
         StoreMutationReplayRecord(instanceOwnerPartyId, instanceGuid, request, responseBody, response);
@@ -1054,7 +1067,42 @@ public class StorageClientInterceptor : HttpMessageHandler
         return null;
     }
 
+    // As Storage: a callerResult alone writes the idempotency record and changes nothing in the instance.
+    private static bool IsResultOnly(StorageInstanceMutationRequest mutation) =>
+        mutation.CallerResult is not null && !ChangesInstance(mutation);
+
+    private static HttpResponseMessage? ValidateCallerResult(
+        StorageInstanceMutationRequest mutation,
+        HttpRequestMessage request
+    )
+    {
+        if (mutation.CallerResult is null)
+        {
+            return null;
+        }
+
+        if (
+            !request.Headers.TryGetValues(StoragePreconditionHeaders.IdempotencyKeyHeaderName, out var keys)
+            || keys.SingleOrDefault() is not { Length: > 0 }
+        )
+        {
+            return CreateErrorResponse(HttpStatusCode.BadRequest, "callerResult requires an Idempotency-Key.");
+        }
+
+        return mutation.CallerResult.Length is 0 or > MaxCallerResultLength
+            ? CreateErrorResponse(
+                HttpStatusCode.BadRequest,
+                $"callerResult must be between 1 and {MaxCallerResultLength} characters."
+            )
+            : null;
+    }
+
+    private const int MaxCallerResultLength = 4096;
+
     private static bool HasMutationOperations(StorageInstanceMutationRequest mutation) =>
+        mutation.CallerResult is not null || ChangesInstance(mutation);
+
+    private static bool ChangesInstance(StorageInstanceMutationRequest mutation) =>
         mutation.CreateDataElements.Count > 0
         || mutation.UpdateDataElements.Count > 0
         || mutation.DeleteDataElements.Count > 0
@@ -1625,7 +1673,7 @@ public class StorageClientInterceptor : HttpMessageHandler
         string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
         int instanceVersion = _instanceVersions.AddOrUpdate(
             instanceId,
-            instanceVersionIncrement,
+            Math.Max(1, instanceVersionIncrement),
             (_, current) => current + instanceVersionIncrement
         );
         int processStateVersion = _processStateVersions.AddOrUpdate(

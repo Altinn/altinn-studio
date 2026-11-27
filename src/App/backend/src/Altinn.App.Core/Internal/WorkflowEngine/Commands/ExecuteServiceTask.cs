@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.Platform.Storage.Interface.Models;
@@ -124,7 +125,12 @@ internal sealed class ExecuteServiceTask(
                     itemIndex
                 ),
 
-                PipelineConclusion.Final final => await ExecuteConclusion(final, serviceTask, serviceTaskContext),
+                PipelineConclusion.Final final => await ExecuteConclusion(
+                    final,
+                    serviceTask,
+                    serviceTaskContext,
+                    itemIndex
+                ),
 
                 { } item => throw new UnreachableException($"Unknown pipeline item type: {item.GetType().Name}"),
             };
@@ -289,7 +295,6 @@ internal sealed class ExecuteServiceTask(
             MailboxRelay.Decide(
                 verdict,
                 serviceTaskType,
-                context.Payload.StepId,
                 receipt,
                 context.StateCarry,
                 handlerItemIndex,
@@ -324,7 +329,6 @@ internal sealed class ExecuteServiceTask(
             MailboxRelay.DecideSegment(
                 verdict,
                 serviceTaskType,
-                context.Payload.StepId,
                 receipt,
                 context.StateCarry,
                 handlerItemIndex,
@@ -337,8 +341,9 @@ internal sealed class ExecuteServiceTask(
     private static async Task<WorkflowEngineCommandResult> ExecuteConclusion(
         PipelineConclusion.Final final,
         IServiceTask serviceTask,
-        StageContext serviceTaskContext
-    ) => MapServiceTaskResult(await final.Work(serviceTaskContext), serviceTask);
+        StageContext serviceTaskContext,
+        int itemIndex
+    ) => MapServiceTaskResult(await final.Work(serviceTaskContext), serviceTask, itemIndex);
 
     private static FailedWorkflowEngineCommandResult PipelineItemNotFound(string serviceTaskType, int itemIndex) =>
         FailedWorkflowEngineCommandResult.Permanent(
@@ -419,19 +424,11 @@ internal sealed class ExecuteServiceTask(
     ) =>
         result switch
         {
-            // A completed stage never advances the process — the pipeline just moves on to its next step. Which
-            // is a later step of this same workflow, and nothing to do, unless a reply handler is composed
-            // next: a handler is alone in its workflow, so this stage is its own workflow's last step and
-            // completing it is what starts that handler's receive workflow.
-            CompletedStageResult when WorkflowStepSet.ItemStartsItsOwnWorkflow(pipeline, stageIndex + 1) =>
-                MailboxRelay.DecideStageEnd(
-                    task.Type,
-                    context.Payload.StepId,
-                    context.StateCarry,
-                    stageIndex,
-                    pipeline
-                ),
-            CompletedStageResult => new SuccessfulWorkflowEngineCommandResult(),
+            CompletedStageResult => new DecidedWorkflowEngineCommandResult
+            {
+                Verdict = new ServiceTaskVerdict.Completed(),
+                Derive = verdict => ContinueAfterStage(verdict, task, context, stageIndex, pipeline),
+            },
             DeferredStageResult deferred => new DeferredWorkflowEngineCommandResult
             {
                 Delay = deferred.Delay,
@@ -449,6 +446,25 @@ internal sealed class ExecuteServiceTask(
             ),
         };
 
+    private static WorkflowEngineCommandResult ContinueAfterStage(
+        ServiceTaskVerdict verdict,
+        IServiceTask task,
+        WorkflowEngineCommandContext context,
+        int stageIndex,
+        ServiceTaskPipeline pipeline
+    ) =>
+        verdict switch
+        {
+            // A completed stage never advances the process — the pipeline just moves on to its next step. Which
+            // is a later step of this same workflow, and nothing to do, unless a reply handler is composed
+            // next: a handler is alone in its workflow, so this stage is its own workflow's last step and
+            // completing it is what starts that handler's receive workflow.
+            ServiceTaskVerdict.Completed when WorkflowStepSet.ItemStartsItsOwnWorkflow(pipeline, stageIndex + 1) =>
+                MailboxRelay.DecideStageEnd(task.Type, context.StateCarry, stageIndex, pipeline),
+            ServiceTaskVerdict.Completed => new SuccessfulWorkflowEngineCommandResult(),
+            _ => MailboxRelay.VerdictDoesNotFit(task.Type, verdict, $"the stage at index {stageIndex}"),
+        };
+
     /// <summary>
     /// The mailbox-opening stage's widened vocabulary: the stage members map exactly as
     /// <see cref="MapStageResult"/> maps them, except that such a stage is <em>always</em> its workflow's last
@@ -464,16 +480,19 @@ internal sealed class ExecuteServiceTask(
         WorkflowEngineCommandContext context,
         int stageIndex,
         ServiceTaskPipeline pipeline
-    ) =>
-        result switch
+    )
+    {
+        WorkflowCallbackStateCarry carry = context.StateCarry;
+        Func<ServiceTaskVerdict, WorkflowEngineCommandResult> derive = verdict =>
+            MailboxRelay.ContinueAfterOpeningStage(verdict, task.Type, carry, stageIndex, pipeline);
+
+        return result switch
         {
-            CompletedServiceTaskOpeningStageResult => MailboxRelay.DecideStageEnd(
-                task.Type,
-                context.Payload.StepId,
-                context.StateCarry,
-                stageIndex,
-                pipeline
-            ),
+            CompletedServiceTaskOpeningStageResult => new DecidedWorkflowEngineCommandResult
+            {
+                Verdict = new ServiceTaskVerdict.Completed(),
+                Derive = derive,
+            },
             DeferredServiceTaskOpeningStageResult deferred => new DeferredWorkflowEngineCommandResult
             {
                 Delay = deferred.Delay,
@@ -487,8 +506,8 @@ internal sealed class ExecuteServiceTask(
             ConcludedServiceTaskOpeningStageResult concluded => MailboxRelay.DecideOpeningStageConclusion(
                 concluded.Result,
                 task.Type,
-                context.Payload.StepId,
-                context.StateCarry
+                carry,
+                derive
             ),
             // Reachable from app code (see MailboxRelay.Decide's last arm); permanent so it converges.
             _ => UnknownResultType(
@@ -502,8 +521,13 @@ internal sealed class ExecuteServiceTask(
                     + $"{nameof(ServiceTaskOpeningStageResult.Conclude)}"
             ),
         };
+    }
 
-    private static WorkflowEngineCommandResult MapServiceTaskResult(ServiceTaskResult result, IServiceTask task) =>
+    private static WorkflowEngineCommandResult MapServiceTaskResult(
+        ServiceTaskResult result,
+        IServiceTask task,
+        int itemIndex
+    ) =>
         result switch
         {
             FailedServiceTaskResult failed => MapFailure(
@@ -516,9 +540,13 @@ internal sealed class ExecuteServiceTask(
                 Delay = deferred.Delay,
                 Reason = deferred.Reason,
             },
-            SuccessfulServiceTaskResult success => new SuccessfulWorkflowEngineCommandResult
+            SuccessfulServiceTaskResult success => new DecidedWorkflowEngineCommandResult
             {
-                ProcessNextContinuation = new(success.Action),
+                Verdict = new ServiceTaskVerdict.Success(success.Action),
+                Derive = verdict =>
+                    verdict is ServiceTaskVerdict.Success committed
+                        ? new SuccessfulWorkflowEngineCommandResult { ProcessNextContinuation = new(committed.Action) }
+                        : MailboxRelay.VerdictDoesNotFit(task.Type, verdict, $"the conclusion at index {itemIndex}"),
             },
             // Reachable from app code (see MailboxRelay.Decide's last arm); permanent so it converges.
             _ => UnknownResultType(

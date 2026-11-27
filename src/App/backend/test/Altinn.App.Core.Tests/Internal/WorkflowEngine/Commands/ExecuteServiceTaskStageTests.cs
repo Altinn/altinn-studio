@@ -1,6 +1,7 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Models;
@@ -89,6 +90,30 @@ public class ExecuteServiceTaskStageTests
     private const int ConclusionIndex = 1;
 
     /// <summary>
+    /// A verdict that another run of the step committed under another shape of the pipeline, which this item cannot
+    /// return.
+    /// </summary>
+    [Theory]
+    [InlineData(0, "awaitNextReply")]
+    [InlineData(0, "success")]
+    [InlineData(ConclusionIndex, "completed")]
+    [InlineData(ConclusionIndex, "awaitNextReply")]
+    public async Task CommittedVerdictTheItemCannotReturn_FailsPermanentlyAsAMismatch(int itemIndex, string kind)
+    {
+        DecidedWorkflowEngineCommandResult decided = Assert.IsType<DecidedWorkflowEngineCommandResult>(
+            await CreateCommand(new ShippingTask()).Execute(CreateContext(), Payload(itemIndex))
+        );
+
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(
+            decided.Derive(ServiceTaskVerdictFormat.Read($$"""{"kind":"{{kind}}"}""")!)
+        );
+
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("ServiceTaskResultMismatch", failed.ExceptionType);
+        Assert.Null(failed.MailboxContinuation);
+    }
+
+    /// <summary>
     /// The stage-result counterpart of
     /// <c>ExecuteServiceTaskTests.Execute_WhenServiceTaskReturnsAnUnrecognisedResultType_…</c>: a type the
     /// mapper does not know must fail permanently and name itself, never be concluded as a silent success and
@@ -138,7 +163,7 @@ public class ExecuteServiceTaskStageTests
     {
         var command = CreateCommand(new ShippingTask());
 
-        var result = await command.Execute(CreateContext(), Payload(0));
+        var result = (await command.Execute(CreateContext(), Payload(0))).AfterCommit();
 
         var success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.Null(success.ProcessNextContinuation);
@@ -189,7 +214,7 @@ public class ExecuteServiceTaskStageTests
     {
         var command = CreateCommand(new ShippingTask());
 
-        var result = await command.Execute(CreateContext(), Payload(ConclusionIndex));
+        var result = (await command.Execute(CreateContext(), Payload(ConclusionIndex))).AfterCommit();
 
         var success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.NotNull(success.ProcessNextContinuation);
@@ -205,7 +230,7 @@ public class ExecuteServiceTaskStageTests
         };
         var command = CreateCommand(task);
 
-        var result = await command.Execute(CreateContext(), Payload(ConclusionIndex));
+        var result = (await command.Execute(CreateContext(), Payload(ConclusionIndex))).AfterCommit();
 
         var success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.NotNull(success.ProcessNextContinuation);

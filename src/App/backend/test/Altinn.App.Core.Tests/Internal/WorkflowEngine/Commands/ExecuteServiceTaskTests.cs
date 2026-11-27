@@ -168,7 +168,7 @@ public class ExecuteServiceTaskTests
         var context = CreateContext(CreateInstance(), "myServiceTask");
 
         // Act
-        var result = await ((IWorkflowEngineCommand)command).Execute(context);
+        var result = (await ((IWorkflowEngineCommand)command).Execute(context)).AfterCommit();
 
         // Assert
         var success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
@@ -208,7 +208,7 @@ public class ExecuteServiceTaskTests
             executionReferenceTime
         );
 
-        var result = await ((IWorkflowEngineCommand)command).Execute(context);
+        var result = (await ((IWorkflowEngineCommand)command).Execute(context)).AfterCommit();
 
         Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.NotNull(serviceTask.Observed);
@@ -491,7 +491,7 @@ public class ExecuteServiceTaskTests
         var command = CreateCommand(serviceTask);
 
         // Act
-        var result = await ((IWorkflowEngineCommand)command).Execute(context);
+        var result = (await ((IWorkflowEngineCommand)command).Execute(context)).AfterCommit();
 
         // Assert
         var success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);

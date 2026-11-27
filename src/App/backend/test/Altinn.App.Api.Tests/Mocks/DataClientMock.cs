@@ -203,15 +203,55 @@ internal sealed class DataClientMock : IDataClient, IDataClientWithStorageMetada
         return bytes;
     }
 
-    // The file store keeps only the current content of a data element.
-    Task<byte[]?> IDataClientWithStorageMetadata.GetBlobVersionBytes(
+    // As Storage: the current content, or a replaced or deleted version this store kept when it was overwritten.
+    async Task<byte[]?> IDataClientWithStorageMetadata.GetBlobVersionBytes(
         int instanceOwnerPartyId,
         Guid instanceGuid,
         Guid dataId,
         string blobVersionId,
         StorageAuthenticationMethod? authenticationMethod,
         CancellationToken cancellationToken
-    ) => Task.FromResult<byte[]?>(null);
+    )
+    {
+        var instanceIdentifier = new InstanceIdentifier(instanceOwnerPartyId, instanceGuid);
+        if (_storageMetadata.GetRetainedBlobVersion(instanceIdentifier, dataId, blobVersionId) is { } retained)
+        {
+            return retained;
+        }
+
+        (string org, string app) = GetInstanceOrgApp(instanceIdentifier);
+        string dataPath = TestData.GetDataBlobPath(org, app, instanceOwnerPartyId, instanceGuid, dataId);
+        return
+            _storageMetadata.GetDataElementBlobVersionId(instanceIdentifier, dataId) == blobVersionId
+            && File.Exists(dataPath)
+            ? await File.ReadAllBytesAsync(dataPath, cancellationToken)
+            : null;
+    }
+
+    private async Task RetainCurrentContent(
+        string org,
+        string app,
+        InstanceIdentifier instanceIdentifier,
+        Guid dataGuid,
+        CancellationToken cancellationToken
+    )
+    {
+        string dataPath = TestData.GetDataBlobPath(
+            org,
+            app,
+            instanceIdentifier.InstanceOwnerPartyId,
+            instanceIdentifier.InstanceGuid,
+            dataGuid
+        );
+        if (File.Exists(dataPath))
+        {
+            _storageMetadata.RetainBlobVersion(
+                instanceIdentifier,
+                dataGuid,
+                await File.ReadAllBytesAsync(dataPath, cancellationToken)
+            );
+        }
+    }
 
     public async Task<List<AttachmentList>> GetBinaryDataList(
         int instanceOwnerPartyId,
@@ -408,6 +448,7 @@ internal sealed class DataClientMock : IDataClient, IDataClientWithStorageMetada
         );
 
         Debug.Assert(contentType == dataElement.ContentType, "Content type should not change when updating data");
+        await RetainCurrentContent(org, app, instanceIdentifier, Guid.Parse(dataElement.Id), cancellationToken);
         await File.WriteAllBytesAsync(
             Path.Join(dataPath, "blob", dataElement.Id),
             serializedBytes.ToArray(),
@@ -473,6 +514,7 @@ internal sealed class DataClientMock : IDataClient, IDataClientWithStorageMetada
         await stream.CopyToAsync(memoryStream, cancellationToken);
 
         var fileData = memoryStream.ToArray();
+        await RetainCurrentContent(org, app, instanceIdentifier, dataGuid, cancellationToken);
         await File.WriteAllBytesAsync(Path.Join(dataPath, "blob", dataGuid.ToString()), fileData, cancellationToken);
 
         var dataElement = await GetDataElement(
@@ -686,11 +728,52 @@ internal sealed class DataClientMock : IDataClient, IDataClientWithStorageMetada
         CancellationToken cancellationToken
     )
     {
-        _storageMetadata.RegisterAggregateMutationRequest();
+        _storageMetadata.RegisterAggregateMutationRequest(mutation);
         var instanceIdentifier = new InstanceIdentifier(instanceOwnerPartyId, instanceGuid);
-        _storageMetadata.ValidateAggregatePreconditions(instanceIdentifier, mutation, preconditions);
+        ValidateCallerResult(mutation, authenticationMethod, preconditions);
+        await _storageMetadata.WaitForGatheredMutations(cancellationToken);
+        string? keptCallerResult = _storageMetadata.KeepsCallerResults ? mutation.CallerResult : null;
+        using IDisposable instanceLock = await _storageMetadata.LockInstance(instanceIdentifier);
         (string org, string app) = GetInstanceOrgApp(instanceIdentifier);
         string instancePath = TestData.GetInstancePath(org, app, instanceOwnerPartyId, instanceGuid);
+
+        if (_storageMetadata.FindReplay(instanceIdentifier, preconditions) is { } record)
+        {
+            return new InstanceMutationWithStorageMetadata(
+                await ReadInstance(org, app, instanceIdentifier, cancellationToken),
+                _storageMetadata.GetVersions(instanceIdentifier),
+                record.CreatedDataElementIds,
+                replayed: true,
+                record.CallerResult
+            );
+        }
+
+        _storageMetadata.ValidateAggregatePreconditions(instanceIdentifier, mutation, preconditions);
+        int previousInstanceVersion = _storageMetadata.GetVersions(instanceIdentifier).InstanceVersion ?? 0;
+        await _storageMetadata.WaitForGatheredMutationsToPassTheirChecks(cancellationToken);
+        if (IsResultOnly(mutation))
+        {
+            if (keptCallerResult is null)
+            {
+                throw new PlatformHttpException(
+                    HttpStatusCode.BadRequest,
+                    "The mutation request must contain at least one operation."
+                );
+            }
+
+            _storageMetadata.RecordMutation(
+                instanceIdentifier,
+                preconditions,
+                previousInstanceVersion,
+                createdDataElementIds: [],
+                keptCallerResult
+            );
+            return new InstanceMutationWithStorageMetadata(
+                await ReadInstance(org, app, instanceIdentifier, cancellationToken),
+                _storageMetadata.GetVersions(instanceIdentifier),
+                callerResult: keptCallerResult
+            );
+        }
 
         Instance instance = await InstanceClientMockSi.ReadJsonFile<Instance>(instancePath, cancellationToken);
         instance.Data =
@@ -748,6 +831,7 @@ internal sealed class DataClientMock : IDataClient, IDataClientWithStorageMetada
             );
 
             StorageInstanceMutationContent content = contentParts[update.ContentPartName];
+            await RetainCurrentContent(org, app, instanceIdentifier, update.DataElementId, cancellationToken);
             await WriteDataBlob(
                 org,
                 app,
@@ -797,6 +881,7 @@ internal sealed class DataClientMock : IDataClient, IDataClientWithStorageMetada
 
             if (File.Exists(dataBlobPath))
             {
+                await RetainCurrentContent(org, app, instanceIdentifier, delete.DataElementId, cancellationToken);
                 File.Delete(dataBlobPath);
             }
 
@@ -842,8 +927,108 @@ internal sealed class DataClientMock : IDataClient, IDataClientWithStorageMetada
             );
         }
 
-        return new InstanceMutationWithStorageMetadata(instance, versions, createdDataElementIds);
+        _storageMetadata.RecordMutation(
+            instanceIdentifier,
+            preconditions,
+            previousInstanceVersion,
+            createdDataElementIds,
+            keptCallerResult
+        );
+        return new InstanceMutationWithStorageMetadata(
+            instance,
+            versions,
+            createdDataElementIds,
+            callerResult: keptCallerResult
+        );
     }
+
+    private async Task<Instance> ReadInstance(
+        string org,
+        string app,
+        InstanceIdentifier instanceIdentifier,
+        CancellationToken cancellationToken
+    )
+    {
+        Instance instance = await InstanceClientMockSi.ReadJsonFile<Instance>(
+            TestData.GetInstancePath(
+                org,
+                app,
+                instanceIdentifier.InstanceOwnerPartyId,
+                instanceIdentifier.InstanceGuid
+            ),
+            cancellationToken
+        );
+        instance.Data =
+        [
+            .. (
+                await GetDataElements(
+                    org,
+                    app,
+                    instanceIdentifier.InstanceOwnerPartyId,
+                    instanceIdentifier.InstanceGuid,
+                    cancellationToken
+                )
+            ).DistinctBy(dataElement => dataElement.Id),
+        ];
+        foreach (DataElement dataElement in instance.Data)
+        {
+            dataElement.BlobVersionId = _storageMetadata.GetDataElementBlobVersionId(
+                instanceIdentifier,
+                Guid.Parse(dataElement.Id)
+            );
+        }
+
+        return instance;
+    }
+
+    private const int MaxCallerResultLength = 4096;
+
+    // Storage's rules for a callerResult; only the app that owns the instance, acting as the service owner, may send one.
+    private static void ValidateCallerResult(
+        StorageInstanceMutationRequest mutation,
+        StorageAuthenticationMethod? authenticationMethod,
+        StorageWritePreconditions? preconditions
+    )
+    {
+        if (mutation.CallerResult is not { } callerResult)
+        {
+            return;
+        }
+
+        if (preconditions?.IdempotencyKey is null)
+        {
+            throw new PlatformHttpException(HttpStatusCode.BadRequest, "callerResult requires an Idempotency-Key.");
+        }
+
+        if (callerResult.Length is 0 or > MaxCallerResultLength)
+        {
+            throw new PlatformHttpException(
+                HttpStatusCode.BadRequest,
+                $"callerResult must be between 1 and {MaxCallerResultLength} characters."
+            );
+        }
+
+        if (authenticationMethod?.Request is not AuthenticationMethod.AltinnToken)
+        {
+            throw new PlatformHttpException(
+                HttpStatusCode.Forbidden,
+                "Only the app that owns the instance may send a callerResult."
+            );
+        }
+    }
+
+    // As Storage: a callerResult alone writes the idempotency record and changes nothing in the instance.
+    private static bool IsResultOnly(StorageInstanceMutationRequest mutation) =>
+        mutation.CallerResult is not null
+        && mutation.CreateDataElements.Count == 0
+        && mutation.UpdateDataElements.Count == 0
+        && mutation.DeleteDataElements.Count == 0
+        && mutation.DeleteInstance is null
+        && !mutation.AddCompleteConfirmation
+        && mutation.DataValues.Count == 0
+        && mutation.PresentationTexts.Count == 0
+        && mutation.ProcessState?.State is null
+        && mutation.ProcessState?.Events?.Count is not > 0;
 
     private static async Task WriteDataBlob(
         string org,

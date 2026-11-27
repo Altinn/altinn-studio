@@ -182,104 +182,65 @@ public class WorkflowEngineCallbackController : ControllerBase
             throw;
         }
 
+        // A service task step's save, its enqueues and its result are all keyed on the step id, and an empty id is one
+        // constant that every step of every instance would share.
+        if (result is DecidedWorkflowEngineCommandResult && payload.StepId == Guid.Empty)
+        {
+            result = StepIdMissing(command.GetKey());
+        }
+
+        if (result is DecidedWorkflowEngineCommandResult or SuccessfulWorkflowEngineCommandResult)
+        {
+            //TODO: Consider rewriting IInstanceDataMutator so that we can construct one that doesn't allow abandonment in this scenario. Don't think it makes sense when the workflow engine is the caller.
+            if (instanceDataUnitOfWork.HasAbandonIssues)
+            {
+                _logger.LogError(
+                    "Data abandonment detected during callback. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}.",
+                    commandKey,
+                    instanceId,
+                    currentTaskId
+                );
+
+                activity?.SetStatus(ActivityStatusCode.Error, "Data abandonment detected");
+
+                return NonRetryableProblem(
+                    "Data Abandonment",
+                    "Data abandonment detected during callback.",
+                    StatusCodes.Status422UnprocessableEntity
+                );
+            }
+
+            var decided = result as DecidedWorkflowEngineCommandResult;
+            string? callerResult = decided is null ? null : ServiceTaskVerdictFormat.Write(decided.Verdict);
+            StepSave save = await Save(
+                instanceDataUnitOfWork,
+                command,
+                payload,
+                callerResult,
+                instanceId,
+                currentTaskId,
+                activity,
+                cancellationToken
+            );
+            if (save.Problem is { } saveProblem)
+            {
+                return saveProblem;
+            }
+
+            if (save.Refusal is { } refusal)
+            {
+                result = refusal;
+            }
+            else if (decided is not null && save.Outcome is { } saved)
+            {
+                result = Derive(decided, saved, command.GetKey(), instanceId, currentTaskId);
+            }
+        }
+
         switch (result)
         {
             case SuccessfulWorkflowEngineCommandResult success:
             {
-                //TODO: Consider rewriting IInstanceDataMutator so that we can construct one that doesn't allow abandonment in this scenario. Don't think it makes sense when the workflow engine is the caller.
-                if (instanceDataUnitOfWork.HasAbandonIssues)
-                {
-                    _logger.LogError(
-                        "Data abandonment detected during callback. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}.",
-                        commandKey,
-                        instanceId,
-                        currentTaskId
-                    );
-
-                    activity?.SetStatus(ActivityStatusCode.Error, "Data abandonment detected");
-
-                    return NonRetryableProblem(
-                        "Data Abandonment",
-                        "Data abandonment detected during callback.",
-                        StatusCodes.Status422UnprocessableEntity
-                    );
-                }
-
-                try
-                {
-                    DataElementChanges changes = instanceDataUnitOfWork.GetDataElementChanges(false);
-                    // StepId is stable across retries and prevents duplicate Storage mutations.
-                    WorkflowAggregateSaveOutcome saveOutcome = await instanceDataUnitOfWork.SaveWorkflowOwnedAggregate(
-                        changes,
-                        payload.StepId.ToString(),
-                        cancellationToken
-                    );
-                    if (saveOutcome == WorkflowAggregateSaveOutcome.NothingToSave)
-                    {
-                        _logger.LogDebug(
-                            "Workflow callback had no Storage mutation to save. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}.",
-                            commandKey,
-                            instanceId,
-                            currentTaskId
-                        );
-                    }
-                }
-                catch (InstanceMutationReplayedException ex)
-                {
-                    _logger.LogInformation(
-                        ex,
-                        "Storage replayed workflow callback mutation. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}.",
-                        commandKey,
-                        instanceId,
-                        currentTaskId
-                    );
-                }
-                catch (InstanceChangeNotSavableException ex)
-                {
-                    return InstanceChangeNotSavableProblem(ex, commandKey, instanceId, currentTaskId, activity);
-                }
-                catch (InstanceDataStaleException ex)
-                {
-                    _logger.LogError(
-                        ex,
-                        "Storage rejected workflow callback save with 412 Precondition Failed. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}.",
-                        commandKey,
-                        instanceId,
-                        currentTaskId
-                    );
-                    activity?.SetStatus(ActivityStatusCode.Error, "Stale callback state");
-                    return NonRetryableProblem(
-                        "StoragePreconditionFailedException",
-                        "Storage rejected workflow callback save with 412 Precondition Failed. The workflow callback state is stale.",
-                        StatusCodes.Status422UnprocessableEntity
-                    );
-                }
-                catch (PlatformHttpException ex) when (ServiceOwnerAuthorizationDiagnostics.IsForbidden(ex))
-                {
-                    const string rejection = "Storage rejected workflow callback save with 403 Forbidden.";
-                    _logger.LogError(
-                        ex,
-                        rejection + " CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}.",
-                        command.GetKey(),
-                        instanceId,
-                        currentTaskId
-                    );
-                    ReportServiceOwnerDenial(command.GetKey(), instanceId, activity);
-                    activity?.SetStatus(ActivityStatusCode.Error, rejection);
-
-                    // Retryable, like a 403 inside a command. Storage also answers 403 when Altinn Authorization
-                    // fails to reach a decision, and its response does not distinguish that from a missing grant, so
-                    // a permanent failure would fail every in-flight step during an Authorization outage. Storage
-                    // authorizes before it commits anything, so the same step saves once the cause is gone. The
-                    // answer is a 500 and not Storage's 403 because the engine's default retry strategy stops on
-                    // a 403.
-                    return Problem(
-                        title: ex.GetType().Name,
-                        detail: rejection,
-                        statusCode: StatusCodes.Status500InternalServerError
-                    );
-                }
-
                 string updatedState = await _workflowCallbackStateService.CaptureState(
                     instanceDataUnitOfWork,
                     stateCarry
@@ -446,6 +407,225 @@ public class WorkflowEngineCallbackController : ControllerBase
                 throw new InvalidOperationException($"Unexpected result type: {result.GetType().Name}");
         }
     }
+
+    private readonly record struct StepSave(
+        IActionResult? Problem,
+        WorkflowAggregateSaveOutcome? Outcome,
+        FailedWorkflowEngineCommandResult? Refusal = null
+    );
+
+    /// <summary>
+    /// Saves what the step staged, with <paramref name="callerResult"/>, and answers how Storage took the save, or
+    /// the step's failure when Storage refused it.
+    /// </summary>
+    private async Task<StepSave> Save(
+        InstanceDataUnitOfWork instanceDataUnitOfWork,
+        IWorkflowEngineCommand command,
+        AppCallbackPayload payload,
+        string? callerResult,
+        InstanceIdentifier instanceId,
+        string? currentTaskId,
+        Activity? activity,
+        CancellationToken cancellationToken
+    )
+    {
+        string commandKey = command.GetKey();
+        try
+        {
+            DataElementChanges changes = instanceDataUnitOfWork.GetDataElementChanges(false);
+            // StepId is stable across retries and prevents duplicate Storage mutations.
+            WorkflowAggregateSaveOutcome outcome = await instanceDataUnitOfWork.SaveWorkflowOwnedAggregate(
+                changes,
+                payload.StepId.ToString(),
+                callerResult,
+                cancellationToken
+            );
+            if (outcome.Kind == WorkflowAggregateSaveKind.NothingToSave)
+            {
+                _logger.LogDebug(
+                    "Workflow callback had no Storage mutation to save. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}.",
+                    commandKey,
+                    instanceId,
+                    currentTaskId
+                );
+            }
+            else if (outcome.Kind == WorkflowAggregateSaveKind.Replayed)
+            {
+                _logger.LogInformation(
+                    "Storage replayed workflow callback mutation. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}.",
+                    commandKey,
+                    instanceId,
+                    currentTaskId
+                );
+            }
+
+            return new StepSave(Problem: null, outcome);
+        }
+        catch (InstanceChangeNotSavableException ex)
+        {
+            return new StepSave(
+                InstanceChangeNotSavableProblem(ex, commandKey, instanceId, currentTaskId, activity),
+                Outcome: null
+            );
+        }
+        catch (InstanceDataStaleException ex)
+        {
+            _logger.LogError(
+                ex,
+                "Storage rejected workflow callback save with 412 Precondition Failed. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}.",
+                commandKey,
+                instanceId,
+                currentTaskId
+            );
+            activity?.SetStatus(ActivityStatusCode.Error, "Stale callback state");
+            return new StepSave(
+                NonRetryableProblem(
+                    "StoragePreconditionFailedException",
+                    "Storage rejected workflow callback save with 412 Precondition Failed. The workflow callback state is stale.",
+                    StatusCodes.Status422UnprocessableEntity
+                ),
+                Outcome: null
+            );
+        }
+        // Not a service-owner policy gap, and no retry gets past it: the app's own override chose the token.
+        catch (InstanceMutationCallerResultForbiddenException ex)
+        {
+            _logger.LogError(
+                ex,
+                "Storage refused a workflow callback save that went out with an overridden authentication method. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}.",
+                commandKey,
+                instanceId,
+                currentTaskId
+            );
+            activity?.SetStatus(ActivityStatusCode.Error, "Step result sent with an overridden authentication method");
+            return new StepSave(
+                NonRetryableProblem(
+                    nameof(InstanceMutationCallerResultForbiddenException),
+                    ex.Message,
+                    StatusCodes.Status422UnprocessableEntity
+                ),
+                Outcome: null
+            );
+        }
+        // A Storage that does not keep a callerResult refuses a save of the result alone, and a retry would only run
+        // the handler again.
+        catch (PlatformHttpException ex)
+            when (callerResult is not null && ex.StatusCode == System.Net.HttpStatusCode.BadRequest)
+        {
+            return new StepSave(
+                Problem: null,
+                Outcome: null,
+                StorageKeepsNoResult(
+                    $"Storage refused the save of this {commandKey} step, which carried the step's result, with 400 "
+                        + $"Bad Request: {ex.Message}"
+                )
+            );
+        }
+        catch (PlatformHttpException ex) when (ServiceOwnerAuthorizationDiagnostics.IsForbidden(ex))
+        {
+            const string rejection = "Storage rejected workflow callback save with 403 Forbidden.";
+            _logger.LogError(
+                ex,
+                rejection + " CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}.",
+                commandKey,
+                instanceId,
+                currentTaskId
+            );
+            ReportServiceOwnerDenial(commandKey, instanceId, activity);
+            activity?.SetStatus(ActivityStatusCode.Error, rejection);
+
+            // Retryable, like a 403 inside a command. Storage also answers 403 when Altinn Authorization
+            // fails to reach a decision, and its response does not distinguish that from a missing grant, so
+            // a permanent failure would fail every in-flight step during an Authorization outage. Storage
+            // authorizes before it commits anything, so the same step saves once the cause is gone. The
+            // answer is a 500 and not Storage's 403 because the engine's default retry strategy stops on
+            // a 403.
+            return new StepSave(
+                Problem(
+                    title: ex.GetType().Name,
+                    detail: rejection,
+                    statusCode: StatusCodes.Status500InternalServerError
+                ),
+                Outcome: null
+            );
+        }
+    }
+
+    /// <summary>
+    /// What follows the step's verdict: the one Storage answered the save with, which is another run's when it
+    /// replayed the save.
+    /// </summary>
+    private WorkflowEngineCommandResult Derive(
+        DecidedWorkflowEngineCommandResult decided,
+        WorkflowAggregateSaveOutcome saved,
+        string commandKey,
+        InstanceIdentifier instanceId,
+        string? currentTaskId
+    )
+    {
+        if (ServiceTaskVerdictFormat.Read(saved.CallerResult) is not { } committed)
+        {
+            return CommittedVerdictUnreadable(commandKey, saved);
+        }
+
+        if (saved.Kind == WorkflowAggregateSaveKind.Replayed && committed != decided.Verdict)
+        {
+            _logger.LogInformation(
+                "A run of this step decided {OwnResult}, and goes on from {CommittedResult}, which another run committed first. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}.",
+                ServiceTaskVerdictFormat.Write(decided.Verdict),
+                saved.CallerResult,
+                commandKey,
+                instanceId,
+                currentTaskId
+            );
+        }
+
+        return decided.Derive(committed);
+    }
+
+    private static FailedWorkflowEngineCommandResult CommittedVerdictUnreadable(
+        string commandKey,
+        WorkflowAggregateSaveOutcome saved
+    ) =>
+        saved switch
+        {
+            { Kind: WorkflowAggregateSaveKind.Saved, CallerResult: null } => StorageKeepsNoResult(
+                $"Storage committed the save of this {commandKey} step without the step's result."
+            ),
+            { Kind: WorkflowAggregateSaveKind.Replayed, CallerResult: null } =>
+                FailedWorkflowEngineCommandResult.Permanent(
+                    $"Storage answered the save of this {commandKey} step without a result, so the step cannot tell "
+                        + "how the run that committed the save went on. Either an earlier version of the app committed "
+                        + "the save without one, and the step can be resumed on that version, or Storage does not keep "
+                        + "a mutation's callerResult and must be upgraded first.",
+                    StorageResultMissingCode
+                ),
+            { Kind: WorkflowAggregateSaveKind.NothingToSave } => throw new UnreachableException(
+                "A save that carries the step's result always reaches Storage."
+            ),
+            // Retryable: a newer version of the app wrote it, and a retry can reach a pod of that version.
+            _ => FailedWorkflowEngineCommandResult.Retryable(
+                $"Storage answered the save of this {commandKey} step with a result this version of the app "
+                    + $"cannot read: {saved.CallerResult}",
+                "ServiceTaskCommittedResultUnreadable"
+            ),
+        };
+
+    private const string StorageResultMissingCode = "ServiceTaskCommittedResultMissing";
+
+    private static FailedWorkflowEngineCommandResult StorageKeepsNoResult(string answer) =>
+        FailedWorkflowEngineCommandResult.Permanent(
+            answer + " A Storage that does not keep a mutation's callerResult answers so, and must be upgraded first.",
+            StorageResultMissingCode
+        );
+
+    private static FailedWorkflowEngineCommandResult StepIdMissing(string commandKey) =>
+        FailedWorkflowEngineCommandResult.Permanent(
+            $"The workflow engine supplied no step id for this {commandKey} step. The step's save, its result and "
+                + "the workflows it enqueues are keyed on the step id, and an empty one would be shared by every "
+                + "step. Upgrade the workflow engine to a version that sends stepId.",
+            "StepIdMissing"
+        );
 
     // A service-owner 403 reads as a platform failure but is usually a policy gap. It is logged and tagged separately so
     // ops can tell a policy change from a redrive. The app's own metadata names the app, because route values are

@@ -93,9 +93,34 @@ acquiring.
 
 Each callback saves through Storage's aggregate mutation endpoint, with the engine's step ID as the `Idempotency-Key`.
 Storage replays a save with the same key and previous instance version without comparing the body, since a retry can
-produce different bytes. On a replay the app rebuilds its state from Storage and goes on, so the first committed
-attempt wins. A callback with nothing to save skips Storage, which is safe because the same incoming state leads to
-the same decision.
+produce different bytes. On a replay the app drops what the attempt staged and rebuilds its state from Storage, so the
+first committed attempt wins.
+
+A step that runs a stage or reply handler of a service task can also decide differently when it runs again, because
+its handler may ask an external system. Every such step, the conclusion included, saves when it completes, also when
+it changed no data: its save carries the handler's result as `callerResult`, and Storage keeps it with the save's
+idempotency record and answers a replay with it. The callback derives what follows from the result Storage answered
+with, never from its own: the relay's continuation, the next transition and the mailboxes the state still carries.
+Every run of the step therefore goes on the same way and from the data the committed run saved, whether it runs after
+a lost answer, after a failed enqueue or alongside the first. A run that changed nothing saves too, so that it learns
+of an earlier run's save instead of going on from the state from before it. `ServiceTaskVerdictFormat` names the
+stored results.
+
+- A failure or a deferral is not saved, so a retry or a `process/resume` decides again. A run that fails after another
+  run committed a result fails the step, and a resume adopts that result.
+- A replay without a result fails the step permanently: an earlier version of the app, or a Storage that does not keep
+  results, committed the save, and no retry changes that. A result of a kind this version does not know fails it as
+  retryable, since a newer version of the app wrote it and a retry can reach one. The step never goes on from its own
+  result instead.
+- A Storage that does not keep results fails the step permanently at its first save: it commits a save that changed
+  data without the result, and refuses a save of the result alone with 400.
+- Only the organization that owns the instance may store a result. If an authentication override sends a step's save
+  with a token that does not carry the organization that owns the instance, Storage refuses it and the step fails
+  permanently.
+- This holds while Storage keeps the save's idempotency record, 48 hours by default. A run after that decides anew, as
+  the [known gaps](#known-gaps) describe.
+
+A callback of another command with nothing to save skips Storage.
 
 A callback reads a binary element by the blob version its state lists, which Storage serves to the service owner. A
 step that runs again after its save was committed gets the state its first attempt got. That state lists the data
@@ -318,3 +343,14 @@ app does not guard against it. Names would not help either, since a redeploy can
   exchange.
 - If a service task's type is missing from dependency injection, its mint and service task steps fail as retryable
   and never succeed.
+- A reply handler or mailbox-opening stage that fails permanently closes mailboxes on its own result, which is not
+  committed: a reply handler its exchange's, an opening stage every one the state carries. If another run of the step
+  committed a result that kept the exchange open and its answer was lost, the step fails with the mailbox closed. A
+  resume adopts the committed result, and the receiver that run enqueued gets the closed mailbox and runs the closure
+  handler.
+- A service task step that runs again more than 48 hours after a run committed its result no longer goes on from that
+  result, because Storage no longer keeps the save's idempotency record. A save that changed data is refused as stale,
+  which the callback answers with a 422. A save of the result alone commits afresh, so the step decides anew. If it
+  decides otherwise, the engine refuses the relay's enqueue under the step id with a 409 while it still holds the first
+  run's workflow, and the step fails once its retries run out; after the engine has dropped that key, a second
+  continuation starts.
