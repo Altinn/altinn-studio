@@ -29,6 +29,10 @@
   --component-input-color-border-default: none;
 }
 
+.partySelector {
+  margin-left: var(--ds-size-4);
+}
+
 .rightSubHeaderButtons {
   flex-direction: row;
   text-align: right;

@@ -65,7 +65,7 @@ export const PreviewControlHeader = ({
           </StudioSelect>
         </div>
       )}
-      <div className={classes.layoutSetSelector}>
+      <div className={`${classes.layoutSetSelector} ${classes.partySelector}`}>
         <StudioSelect
           label={t('preview.test_as')}
           onChange={(event: ChangeEvent<HTMLSelectElement>) =>
