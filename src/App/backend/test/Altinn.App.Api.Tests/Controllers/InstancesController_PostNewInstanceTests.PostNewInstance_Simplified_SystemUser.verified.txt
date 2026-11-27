@@ -428,9 +428,6 @@
         {
           Tags: [
             {
-              altinn.user.authentication.token.client_id: Guid_1
-            },
-            {
               altinn.user.authentication.token.is_exchanged: true
             },
             {
@@ -461,9 +458,6 @@
         },
         {
           Tags: [
-            {
-              altinn.user.authentication.token.client_id: Guid_1
-            },
             {
               altinn.user.authentication.token.is_exchanged: true
             },

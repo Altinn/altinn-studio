@@ -92,8 +92,7 @@ internal sealed class TelemetryEnrichingMiddleware
                 tags.Add(new Tag(Labels.UserAuthenticationType, auth.GetType().Name));
                 tags.Add(new Tag(Labels.UserAuthenticationTokenIssuer, auth.TokenIssuer));
                 tags.Add(new Tag(Labels.UserAuthenticationTokenIsExchanged, auth.TokenIsExchanged));
-                if (auth.ClientId is not null)
-                    tags.Add(new Tag(Labels.UserAuthenticationTokenClientId, auth.ClientId));
+                // Not the token's client ID, which has a value for every integration: it stays on the span.
             }
             catch (Exception ex)
             {
