@@ -24,14 +24,30 @@ var (
 	errInvalidConnectionString = errors.New("invalid Application Insights connection string")
 )
 
+// canonicalKeys are the connection string keys Azure documents. The .NET SDKs read a key in any case, and the
+// Collector's azure_monitor exporter only as written here, so the destination spells them this way.
+var canonicalKeys = []string{
+	"InstrumentationKey",
+	"IngestionEndpoint",
+	"LiveEndpoint",
+	"ProfilerEndpoint",
+	"SnapshotEndpoint",
+	"EndpointSuffix",
+	"Location",
+	"ApplicationId",
+	"Authorization",
+}
+
 type connectionString struct {
-	// value is the connection string as key=value pairs separated by semicolons, without empty ones.
+	// value is the connection string as key=value pairs separated by semicolons, without empty ones, with the
+	// documented keys in their canonical case.
 	value              string
 	instrumentationKey string
 }
 
-// parseConnectionString checks that the connection string has an instrumentation key and, if it names one, an
-// HTTPS ingestion endpoint, and returns it normalized. Errors never include the value.
+// parseConnectionString checks the connection string as the .NET SDKs do, which reject a key that appears twice in
+// any case, and returns it normalized. It needs an instrumentation key, and every endpoint it names to be an HTTPS
+// URL. Errors never include a value.
 func parseConnectionString(raw []byte) (connectionString, error) {
 	value := strings.TrimSpace(string(raw))
 	if value == "" {
@@ -39,33 +55,37 @@ func parseConnectionString(raw []byte) (connectionString, error) {
 	}
 
 	pairs := make([]string, 0, 4)
-	values := make(map[string]string, 4)
+	seen := make(map[string]bool, 4)
+	instrumentationKey := ""
 	for segment := range strings.SplitSeq(value, ";") {
 		segment = strings.TrimSpace(segment)
 		if segment == "" {
 			continue
 		}
 		key, val, found := strings.Cut(segment, "=")
-		key, val = strings.TrimSpace(key), strings.TrimSpace(val)
+		key, val = canonicalKey(strings.TrimSpace(key)), strings.TrimSpace(val)
 		if !found || key == "" {
 			return connectionString{}, fmt.Errorf("%w: a segment is not key=value", errInvalidConnectionString)
 		}
-		values[key] = val
+		folded := strings.ToLower(key)
+		if seen[folded] {
+			return connectionString{}, fmt.Errorf("%w: %s appears more than once", errInvalidConnectionString, key)
+		}
+		seen[folded] = true
+		if strings.HasSuffix(folded, "endpoint") {
+			parsed, err := url.Parse(val)
+			if err != nil || parsed.Scheme != "https" || parsed.Host == "" {
+				return connectionString{}, fmt.Errorf("%w: %s is not an HTTPS URL", errInvalidConnectionString, key)
+			}
+		}
+		if key == "InstrumentationKey" {
+			instrumentationKey = val
+		}
 		pairs = append(pairs, key+"="+val)
 	}
 
-	instrumentationKey := values["InstrumentationKey"]
 	if instrumentationKey == "" {
 		return connectionString{}, fmt.Errorf("%w: no InstrumentationKey", errInvalidConnectionString)
-	}
-	if endpoint, ok := values["IngestionEndpoint"]; ok {
-		parsed, err := url.Parse(endpoint)
-		if err != nil || parsed.Scheme != "https" || parsed.Host == "" {
-			return connectionString{}, fmt.Errorf(
-				"%w: IngestionEndpoint is not an HTTPS URL",
-				errInvalidConnectionString,
-			)
-		}
 	}
 
 	normalized := strings.Join(pairs, ";")
@@ -75,4 +95,13 @@ func parseConnectionString(raw []byte) (connectionString, error) {
 		)
 	}
 	return connectionString{value: normalized, instrumentationKey: instrumentationKey}, nil
+}
+
+func canonicalKey(key string) string {
+	for _, canonical := range canonicalKeys {
+		if strings.EqualFold(key, canonical) {
+			return canonical
+		}
+	}
+	return key
 }

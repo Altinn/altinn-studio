@@ -938,6 +938,9 @@ func TestReconciler_DefaultMapping_V8AppsTelemetryEnvKeepsLastValid(t *testing.T
 	for _, source := range []*corev1.Secret{
 		appInsightsSource("not a connection string"),
 		appInsightsSource(""),
+		// A rotation that appends the new key instead of replacing the old one, which the .NET SDKs reject.
+		appInsightsSource(testConnectionString + ";instrumentationkey=00000000-0000-0000-0000-000000000002"),
+		appInsightsSource(testConnectionString + ";ProfilerEndpoint=not-a-url"),
 	} {
 		h := newTestHarness(t, DefaultMappings(), source, destSecret.DeepCopy())
 		_, err := h.reconciler.Reconcile(h.ctx(), reconcile.Request{
@@ -949,6 +952,42 @@ func TestReconciler_DefaultMapping_V8AppsTelemetryEnvKeepsLastValid(t *testing.T
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(dest.Data).To(Equal(last))
 	}
+}
+
+func TestReconciler_DefaultMapping_V8AppsTelemetryEnvHasOnlyOwnMetadata(t *testing.T) {
+	g := NewWithT(t)
+
+	mapping := defaultMapping(t, "apps-runtime-telemetry-env")
+	source := appInsightsSource(testConnectionString)
+	source.Labels = map[string]string{
+		"reconcile.external-secrets.io/managed":    "true",
+		"reconcile.external-secrets.io/created-by": "abc",
+	}
+	source.Annotations = map[string]string{"reconcile.external-secrets.io/data-hash": "def"}
+	stale := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        mapping.DestName,
+			Namespace:   mapping.DestNamespace,
+			Labels:      source.Labels,
+			Annotations: source.Annotations,
+		},
+	}
+	ownMetadata := func(g Gomega, dest *corev1.Secret) {
+		g.Expect(dest.Labels).To(Equal(map[string]string{"app.kubernetes.io/managed-by": "altinn-studio-operator"}))
+		g.Expect(dest.Annotations).To(BeEmpty())
+	}
+
+	created := newTestHarness(t, DefaultMappings(), source.DeepCopy())
+	created.reconcile(t, appInsightsSourceName, appInsightsSourceNamespace)
+	dest, err := created.getSecret(mapping.DestName, mapping.DestNamespace)
+	g.Expect(err).NotTo(HaveOccurred())
+	ownMetadata(g, dest)
+
+	updated := newTestHarness(t, DefaultMappings(), source.DeepCopy(), stale)
+	updated.reconcile(t, appInsightsSourceName, appInsightsSourceNamespace)
+	dest, err = updated.getSecret(mapping.DestName, mapping.DestNamespace)
+	g.Expect(err).NotTo(HaveOccurred())
+	ownMetadata(g, dest)
 }
 
 func TestReconciler_DefaultMapping_V8AppsTelemetryEnvSourceDeleted(t *testing.T) {
@@ -975,6 +1014,12 @@ func TestParseConnectionString(t *testing.T) {
 		{"trailing semicolon", key + ";" + endpoint + ";", key + ";" + endpoint},
 		{"spaces and a newline", " " + key + " ; " + endpoint + "\n", key + ";" + endpoint},
 		{"no endpoint", key, key},
+		{
+			"documented keys in another case",
+			"instrumentationKey=" + testInstrumentationKey + ";INGESTIONENDPOINT=https://example.invalid/",
+			key + ";" + endpoint,
+		},
+		{"an undocumented key as written", key + ";SomeNewKey=Value", key + ";SomeNewKey=Value"},
 	}
 	for _, tc := range valid {
 		t.Run(tc.name, func(t *testing.T) {
@@ -991,6 +1036,10 @@ func TestParseConnectionString(t *testing.T) {
 		{"an empty instrumentation key", "InstrumentationKey=;" + endpoint},
 		{"a segment without =", key + ";garbage"},
 		{"an endpoint that isn't HTTPS", key + ";IngestionEndpoint=http://example.invalid/"},
+		{"another endpoint that isn't HTTPS", key + ";LiveEndpoint=http://example.invalid/"},
+		{"an empty endpoint", key + ";SnapshotEndpoint="},
+		{"a key twice", key + ";" + key},
+		{"a key twice in another case", key + ";instrumentationkey=00000000-0000-0000-0000-000000000002"},
 		{"too long", key + ";Other=" + strings.Repeat("x", maxConnectionStringLength)},
 	}
 	for _, tc := range invalid {

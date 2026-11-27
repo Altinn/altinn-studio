@@ -157,17 +157,17 @@ func (r *SecretSyncReconciler) syncToDest(
 	err = r.k8sClient.Get(ctx, destKey, dest)
 
 	if apierrors.IsNotFound(err) {
+		labels, annotations := destMetadata(source, mapping)
 		dest = &corev1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:        destKey.Name,
 				Namespace:   destKey.Namespace,
-				Labels:      copyLabels(source.Labels),
-				Annotations: copyAnnotations(source.Annotations),
+				Labels:      labels,
+				Annotations: annotations,
 			},
 			Type: source.Type,
 			Data: destData,
 		}
-		dest.Labels["app.kubernetes.io/managed-by"] = "altinn-studio-operator"
 
 		if err := r.k8sClient.Create(ctx, dest); err != nil {
 			commontelemetry.SetError(span, "create_destination_secret", err)
@@ -184,9 +184,7 @@ func (r *SecretSyncReconciler) syncToDest(
 		return ctrl.Result{}, fmt.Errorf("failed to get destination secret: %w", err)
 	}
 
-	dest.Labels = copyLabels(source.Labels)
-	dest.Labels["app.kubernetes.io/managed-by"] = "altinn-studio-operator"
-	dest.Annotations = copyAnnotations(source.Annotations)
+	dest.Labels, dest.Annotations = destMetadata(source, mapping)
 	dest.Type = source.Type
 	dest.Data = destData
 
@@ -366,6 +364,18 @@ func (r *SecretSyncReconciler) SyncAll(ctx context.Context) error {
 		commontelemetry.SetError(span, "sync_mappings", syncErr)
 	}
 	return syncErr
+}
+
+func destMetadata(source *corev1.Secret, mapping SecretSyncMapping) (map[string]string, map[string]string) {
+	var labels, annotations map[string]string
+	if mapping.OwnMetadata {
+		labels = make(map[string]string, 1)
+	} else {
+		labels = copyLabels(source.Labels)
+		annotations = copyAnnotations(source.Annotations)
+	}
+	labels["app.kubernetes.io/managed-by"] = "altinn-studio-operator"
+	return labels, annotations
 }
 
 func copyLabels(src map[string]string) map[string]string {
