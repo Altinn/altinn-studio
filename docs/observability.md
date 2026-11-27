@@ -90,6 +90,28 @@ a mark for each deploy, without lookups in Kubernetes or the deploy pipeline.
 Health and readiness probes are not traffic. Services leave them out of traces and out of the request metrics, so
 request rates and latencies show only real callers.
 
+### Apps
+
+The v9 app libraries do this setup for every app, in
+[ServiceCollectionExtensions.cs](../src/App/backend/src/Altinn.App.Api/Extensions/ServiceCollectionExtensions.cs). An
+app exports only over OTLP, with the `OTEL_*` variables that the runtime sets for a deployed app and studioctl for a
+local run.
+
+- `service.name` is the app's name without the service owner, and the libraries add `altinn.service_owner`,
+  `altinn.app` and `altinn.app_lib.version` to the resource. There is no `service.namespace`, so the role name in
+  Application Insights stays the app's name, as for v8 apps.
+- `OTEL_SERVICE_NAME` and `OTEL_RESOURCE_ATTRIBUTES` take precedence over the libraries' values.
+- The libraries set the sampler to always on in code, whatever `OTEL_TRACES_SAMPLER` says, so only the collectors
+  sample. App code marks a trace to be kept with `activity.KeepTrace()`.
+- The libraries' spans and metrics come from the `Altinn.App` source and meter. `Telemetry.ActivitySource` and
+  `Telemetry.Meter` are named after the app, for the app's own code. The libraries' metrics are named
+  `altinn.app_lib.…`.
+- An app exports logs from INFO, except ASP.NET Core's own records, which it exports from WARN. See
+  [Exceptions](#exceptions).
+- An app can send its telemetry to a backend of its own as well, with a named OTLP exporter such as
+  `AddOtlpExporter("my-backend", ...)` and credentials from its app secrets. `UseOtlpExporter()` can't be combined with
+  the libraries' exporter.
+
 ## Units of work and the entry span
 
 A unit of work is one thing a service does for someone: a request, a message, an item from a work queue, a run of a
@@ -402,6 +424,7 @@ The stack can't do these, so don't design telemetry that needs them:
 When a service can't follow a rule, the pull request that needs the exception adds it to this table, with the reason.
 The team decides in review.
 
-| Service             | Rule                                          | Instead                                                                                             | Why                                                                                             |
-| ------------------- | --------------------------------------------- | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| observability-proxy | Metrics over OTLP, named `altinn.<service>.…` | vmagent scrapes its metrics every 30 s, under Prometheus names, and writes them directly to storage | OTLP from the proxy goes through the proxy itself, so a broken proxy would hide its own metrics |
+| Service             | Rule                                          | Instead                                                                                                                                     | Why                                                                                                                             |
+| ------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| observability-proxy | Metrics over OTLP, named `altinn.<service>.…` | vmagent scrapes its metrics every 30 s, under Prometheus names, and writes them directly to storage                                         | OTLP from the proxy goes through the proxy itself, so a broken proxy would hide its own metrics                                 |
+| v9 apps             | Services export only WARN and above           | Apps export logs from INFO, as far as the app's logging configuration lets them through, and the router drops what is below the app's level | An app can choose `logs: information` in `deployment/app.yaml`. The collectors apply the level, so changing it restarts nothing |

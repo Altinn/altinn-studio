@@ -114,6 +114,7 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 		return err
 	}
 	state := startState(opts.Port, recorded, hasRecord)
+	state.Monitoring = opts.Monitoring
 	topology := state.Topology()
 
 	buildOpts, err := e.buildResourceOptions(ctx, runtimeUser, runtimeUsernsMode, relabelBinds, topology, opts)

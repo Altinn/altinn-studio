@@ -6,15 +6,16 @@ namespace Altinn.App.Core.Features;
 partial class Telemetry
 {
     internal Activity? StartEFormidlingCreateMessageActivity() =>
-        ActivitySource.StartActivity($"{Prefix}.CreateMessage");
+        LibraryActivitySource.StartActivity($"{Prefix}.CreateMessage");
 
     internal Activity? StartEFormidlingUploadAttachmentActivity() =>
-        ActivitySource.StartActivity($"{Prefix}.UploadAttachment");
+        LibraryActivitySource.StartActivity($"{Prefix}.UploadAttachment");
 
-    internal Activity? StartEFormidlingSendMessageActivity() => ActivitySource.StartActivity($"{Prefix}.SendMessage");
+    internal Activity? StartEFormidlingSendMessageActivity() =>
+        LibraryActivitySource.StartActivity($"{Prefix}.SendMessage");
 
     internal Activity? StartEFormidlingGetMessageStatusActivity() =>
-        ActivitySource.StartActivity($"{Prefix}.GetMessageStatusById");
+        LibraryActivitySource.StartActivity($"{Prefix}.GetMessageStatusById");
 
     internal static class EFormidlingClient
     {

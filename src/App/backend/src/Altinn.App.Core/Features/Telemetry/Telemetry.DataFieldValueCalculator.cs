@@ -17,7 +17,7 @@ partial class Telemetry
         DataElement dataElement
     )
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.Calculate");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.Calculate");
         activity?.SetInstanceId(instanceId);
         activity?.SetTaskId(taskId);
         activity?.SetTag(Labels.DataType, dataType.Id);

@@ -21,19 +21,15 @@ using Altinn.Common.PEP.Authorization;
 using Altinn.Common.PEP.Clients;
 using Altinn.Studio.Common;
 using AltinnCore.Authentication.JwtCookie;
-using Azure.Monitor.OpenTelemetry.Exporter;
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using OpenTelemetry;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
-using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
@@ -98,17 +94,7 @@ public static class ServiceCollectionExtensions
         services.AddAppServices(config, env);
         services.ConfigureDataProtection();
 
-        var useOpenTelemetrySetting = config.GetValue<bool?>("AppSettings:UseOpenTelemetry");
-
-        // Use Application Insights as default, opt in to use Open Telemetry
-        if (useOpenTelemetrySetting is true)
-        {
-            AddOpenTelemetry(services, config, env);
-        }
-        else
-        {
-            AddApplicationInsights(services, config, env);
-        }
+        AddOpenTelemetry(services, config, env);
 
         services.AddMaskinportenClient();
         services.AddCorrespondenceClient();
@@ -146,88 +132,57 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Adds Application Insights to the service collection.
+    /// The variable that names the collector. Without it the app exports nothing, rather than the OTLP exporter's
+    /// default endpoint on localhost.
     /// </summary>
-    /// <param name="services">Services</param>
-    /// <param name="config">Config</param>
-    /// <param name="env">Environment</param>
-    internal static void AddApplicationInsights(
-        IServiceCollection services,
-        IConfiguration config,
-        IWebHostEnvironment env
-    )
-    {
-        var (applicationInsightsKey, applicationInsightsConnectionString) = GetAppInsightsConfig(config, env);
+    internal const string OtlpEndpointVariable = "OTEL_EXPORTER_OTLP_ENDPOINT";
 
-        if (!string.IsNullOrEmpty(applicationInsightsKey) || !string.IsNullOrEmpty(applicationInsightsConnectionString))
-        {
-            services.AddApplicationInsightsTelemetry(
-                (options) =>
-                {
-                    if (string.IsNullOrEmpty(applicationInsightsConnectionString))
-                    {
-#pragma warning disable CS0618 // Type or member is obsolete
-                        // Set instrumentationKey for compatibility if connectionString does not exist.
-                        options.InstrumentationKey = applicationInsightsKey;
-#pragma warning restore CS0618 // Type or member is obsolete
-                    }
-                    else
-                    {
-                        options.ConnectionString = applicationInsightsConnectionString;
-                    }
-                }
-            );
-            services.AddApplicationInsightsTelemetryProcessor<IdentityTelemetryFilter>();
-            services.AddApplicationInsightsTelemetryProcessor<HealthTelemetryFilter>();
-            services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
-        }
-    }
+    /// <summary>
+    /// The path the runtime's probes call. Probes are not traffic, so they stay out of traces and request metrics.
+    /// </summary>
+    internal const string ProbePath = "/health";
 
+    /// <summary>
+    /// <para>Sets up OpenTelemetry, the only way an app exports telemetry: traces, metrics and logs over OTLP.</para>
+    /// <para>The deployment configures the exporter with the standard <c>OTEL_*</c> variables, which the libraries
+    /// never set: the endpoint, the protocol, <c>OTEL_METRIC_EXPORT_INTERVAL</c> and <c>OTEL_RESOURCE_ATTRIBUTES</c>.
+    /// The runtime sets them for a deployed app, and studioctl for a local run. The SDK keeps every trace, whatever
+    /// the configuration says, and exports logs from the levels the app's logging configuration lets through; the
+    /// collectors sample and filter.</para>
+    /// </summary>
     private static void AddOpenTelemetry(IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
     {
-        var appId = StartupHelper.GetApplicationId(env.ContentRootPath).Split("/")[1];
+        var appIdParts = StartupHelper.GetApplicationId(env.ContentRootPath).Split("/");
+        var org = appIdParts[0];
+        var appId = appIdParts[1];
         var appVersion = config.GetSection("AppSettings").GetValue<string>("AppVersion");
         var isTest = config.GetSection("GeneralSettings").GetValue<bool>("IsTest");
-        if (string.IsNullOrWhiteSpace(appVersion))
+
+        // An app started from an IDE or with `dotnet run` gets its OTEL_* variables from studioctl, through
+        // configuration that ConfigureAppWebHost would add only after this runs in the template's order.
+        if (config is IConfigurationBuilder configBuilder)
         {
-            appVersion = "Local";
+            StudioctlLocalConfiguration.AddIfAvailable(configBuilder, env);
         }
-        services.AddHostedService<TelemetryInitialization>();
+
+        var export = !isTest && !string.IsNullOrWhiteSpace(config[OtlpEndpointVariable]);
+
         services.AddSingleton<Telemetry>();
 
         ConfigureRootRequestPropagation(services);
 
-        var appInsightsConnectionString = GetAppInsightsConnectionStringForOtel(config, env);
-        var useOpenTelemetryCollector = config.GetValue<bool?>("AppSettings:UseOpenTelemetryCollector");
-        var useAzureMonitor =
-            useOpenTelemetryCollector is not true && !string.IsNullOrWhiteSpace(appInsightsConnectionString);
-        if (!isTest && useAzureMonitor)
-        {
-            // Defaults must run before both SDK configuration and service-owner Configure/PostConfigure callbacks,
-            // including callbacks registered before AddAltinnAppServices.
-            services.Insert(
-                0,
-                ServiceDescriptor.Singleton<IConfigureOptions<AzureMonitorExporterOptions>>(
-                    new ConfigureOptions<AzureMonitorExporterOptions>(options =>
-                    {
-                        // Preserve the original v8 policy: collect every trace and retain logs independently
-                        // of trace sampling. New Azure SDK defaults must not silently reduce telemetry.
-                        options.SamplingRatio = 1.0F;
-                        options.TracesPerSecond = null;
-                        options.EnableTraceBasedLogsSampler = false;
-                    })
-                )
-            );
-        }
-
         services
             .AddOpenTelemetry()
-            .ConfigureResource(r =>
-                r.AddService(serviceName: appId, serviceVersion: appVersion, serviceInstanceId: Environment.MachineName)
-            )
+            .ConfigureResource(resource => AppTelemetryResource.Configure(resource, org, appId, appVersion))
             .WithTracing(builder =>
             {
+                // Every trace is kept here, whatever OTEL_TRACES_SAMPLER or the app's settings say: the collectors
+                // sample, with their own levels per app. An app setting a sampler after AddAltinnAppServices still
+                // wins, since the last one set does.
                 builder = builder
+                    .SetSampler(new AlwaysOnSampler())
+                    .AddSource(Telemetry.LibraryInstrumentationName)
+                    // The app's own spans, from Telemetry.ActivitySource.
                     .AddSource(appId)
                     .AddHttpClientInstrumentation(opts =>
                     {
@@ -236,119 +191,53 @@ public static class ServiceCollectionExtensions
                     .AddAspNetCoreInstrumentation(opts =>
                     {
                         opts.RecordException = true;
-                        opts.Filter = httpContext => !httpContext.Request.Path.StartsWithSegments("/health");
+                        opts.Filter = httpContext => !IsProbe(httpContext.Request);
                     });
 
-                if (isTest)
-                    return;
-
-                if (useAzureMonitor)
+                if (export)
                 {
-                    builder = builder.AddAzureMonitorTraceExporter();
-                }
-                else
-                {
-                    builder = builder.AddOtlpExporter();
+                    builder.AddOtlpExporter();
                 }
             })
             .WithMetrics(builder =>
             {
                 builder = builder
+                    .AddMeter(Telemetry.LibraryInstrumentationName)
+                    // The app's own metrics, from Telemetry.Meter.
                     .AddMeter(appId)
+                    .AddMeter(AppTelemetryResource.WorkloadMeterName)
                     .AddRuntimeInstrumentation()
                     .AddHttpClientInstrumentation()
                     .AddAspNetCoreInstrumentation();
 
-                if (isTest)
-                    return;
-
-                if (useAzureMonitor)
+                if (export)
                 {
-                    builder = builder.AddAzureMonitorMetricExporter();
+                    builder.AddOtlpExporter();
                 }
-                else
+            })
+            .WithLogging(
+                builder =>
                 {
-                    builder = builder.AddOtlpExporter();
-                }
-            });
-
-        services.AddLogging(logging =>
-        {
-            logging.AddOpenTelemetry(options =>
-            {
-                options.IncludeFormattedMessage = true;
-
-                if (isTest)
-                    return;
-
-                if (!useAzureMonitor)
-                {
-                    options.AddOtlpExporter();
-                }
-            });
-        });
-
-        if (!isTest && useAzureMonitor)
-        {
-            // The LoggerProviderBuilder overload consumes DI options, unlike the logger-options overload.
-            services.ConfigureOpenTelemetryLoggerProvider(builder => builder.AddAzureMonitorLogExporter());
-            // AddAzureMonitorTraceExporter above registers the SDK configurator, which reads the AzureMonitorExporter
-            // section and APPLICATIONINSIGHTS_CONNECTION_STRING. Setting the platform connection string after it keeps
-            // those settings from overriding it; owner Configure after AddAltinnAppServices and PostConfigure still win.
-            services.Configure<AzureMonitorExporterOptions>(options =>
-                options.ConnectionString = appInsightsConnectionString
-            );
-        }
-    }
-
-    private sealed class TelemetryInitialization(
-        ILogger<TelemetryInitialization> logger,
-        Telemetry telemetry,
-        MeterProvider meterProvider
-    ) : IHostedService
-    {
-        public async Task StartAsync(CancellationToken cancellationToken)
-        {
-            // This codepath for initialization is here only because it makes it a lot easier to
-            // query the metrics from Prometheus using 'increase' without the appearance of a "missed" sample.
-            // 'increase' in Prometheus will not interpret 'none' -> 1 as a delta/increase,
-            // so when querying the increase within a range, there may be 1 less sample than expected.
-            // So here we let the metrics be initialized to 0,
-            // and then run collection/flush on the OTel MeterProvider to make sure they are exported.
-            // The first time we then increment the metric, it will count as a change from 0 -> 1
-            telemetry.Init();
-            try
-            {
-                var task = Task.Factory.StartNew(
-                    () =>
+                    if (export)
                     {
-                        if (!meterProvider.ForceFlush(10_000))
-                        {
-                            logger.LogInformation("Failed to flush metrics after 10 seconds");
-                        }
-                    },
-                    cancellationToken,
-                    // Long running to avoid doing this blocking on a "normal" thread pool thread
-                    TaskCreationOptions.LongRunning | TaskCreationOptions.DenyChildAttach,
-                    TaskScheduler.Default
-                );
-                if (await Task.WhenAny(task, Task.Delay(500, cancellationToken)) != task)
-                {
-                    logger.LogInformation(
-                        "Tried to flush metrics within 0.5 seconds but it was taking too long, proceeding with startup"
-                    );
-                }
-            }
-            catch (Exception ex)
-            {
-                if (ex is OperationCanceledException)
-                    return;
-                logger.LogWarning(ex, "Failed to flush metrics");
-            }
-        }
+                        builder.AddOtlpExporter();
+                    }
+                },
+                options => options.IncludeFormattedMessage = true
+            );
 
-        public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+        // ASP.NET Core's own records, one for each step of every request and probe, repeat what the request's span
+        // says, and their messages carry the query string, which telemetry never does. The console still gets them.
+        services.AddLogging(logging =>
+            logging.AddFilter<OpenTelemetryLoggerProvider>("Microsoft.AspNetCore", LogLevel.Warning)
+        );
+
+        // Created once per process; touching it here makes sure the gauge exists before the meter provider is built.
+        _ = AppTelemetryResource.StartTime;
     }
+
+    internal static bool IsProbe(HttpRequest request) =>
+        request.Path.StartsWithSegments(ProbePath, StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// PDF generation works by using a headless browser to render the frontend of an app instance.
@@ -602,42 +491,6 @@ public static class ServiceCollectionExtensions
         });
 
         services.TryAddSingleton<ValidateAntiforgeryTokenIfAuthCookieAuthorizationFilter>();
-    }
-
-    private static (string? Key, string? ConnectionString) GetAppInsightsConfig(
-        IConfiguration config,
-        IHostEnvironment env
-    )
-    {
-        var isDevelopment = env.IsDevelopment();
-        string? key = isDevelopment
-            ? config["ApplicationInsights:InstrumentationKey"]
-            : Environment.GetEnvironmentVariable("ApplicationInsights__InstrumentationKey");
-        string? connectionString = isDevelopment
-            ? config["ApplicationInsights:ConnectionString"]
-            : Environment.GetEnvironmentVariable("ApplicationInsights__ConnectionString");
-
-        return (key, connectionString);
-    }
-
-    private static string? GetAppInsightsConnectionStringForOtel(IConfiguration config, IHostEnvironment env)
-    {
-        var (key, connString) = GetAppInsightsConfig(config, env);
-        if (string.IsNullOrWhiteSpace(connString))
-        {
-            connString = Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING");
-        }
-        if (!string.IsNullOrWhiteSpace(connString))
-        {
-            return connString;
-        }
-
-        if (!Guid.TryParse(key, out _))
-        {
-            return null;
-        }
-
-        return $"InstrumentationKey={key}";
     }
 
     private static void ConfigureGracefulShutdown(IServiceCollection services, IHostEnvironment env)

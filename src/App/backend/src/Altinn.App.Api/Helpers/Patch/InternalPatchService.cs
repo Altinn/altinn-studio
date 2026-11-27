@@ -80,6 +80,36 @@ internal class InternalPatchService
         int? expectedProcessStateVersion
     )
     {
+        // One count per patch request, whether it applied or not, so the failure rate is the share with error.type.
+        var applied = false;
+        try
+        {
+            var result = await ApplyPatchesCore(
+                instance,
+                versions,
+                patches,
+                language,
+                ignoredValidators,
+                expectedProcessStateVersion
+            );
+            applied = result.Success;
+            return result;
+        }
+        finally
+        {
+            _telemetry?.DataPatched(applied ? Telemetry.Data.PatchResult.Success : Telemetry.Data.PatchResult.Error);
+        }
+    }
+
+    private async Task<ServiceResult<DataPatchResult, ProblemDetails>> ApplyPatchesCore(
+        Instance instance,
+        StorageVersionMetadata versions,
+        Dictionary<Guid, List<JsonPatchOperation>> patches,
+        string? language,
+        List<string>? ignoredValidators,
+        int? expectedProcessStateVersion
+    )
+    {
         using var activity = _telemetry?.StartDataPatchActivity(instance);
         var taskId = instance.Process.CurrentTask.ElementId;
 

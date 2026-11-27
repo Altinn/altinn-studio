@@ -5,7 +5,7 @@
       IdFormat: W3C,
       Tags: [
         {
-          notification.order.id: Guid_1
+          altinn.notification.order.id: Guid_1
         }
       ],
       HasParent: false

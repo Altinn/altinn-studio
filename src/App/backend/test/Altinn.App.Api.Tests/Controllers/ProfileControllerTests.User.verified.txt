@@ -7,6 +7,30 @@
         IdFormat: W3C,
         Tags: [
           {
+            altinn.user.authentication.in_altinn_portal: true
+          },
+          {
+            altinn.user.authentication.level: 2
+          },
+          {
+            altinn.user.authentication.method: BankID
+          },
+          {
+            altinn.user.authentication.token.is_exchanged: false
+          },
+          {
+            altinn.user.authentication.token.issuer: Altinn
+          },
+          {
+            altinn.user.authentication.type: User
+          },
+          {
+            altinn.user.party.id: 501337
+          },
+          {
+            enduser.id: 1337
+          },
+          {
             http.request.method: GET
           },
           {
@@ -32,30 +56,6 @@
           },
           {
             url.scheme: http
-          },
-          {
-            user.authentication.inAltinnPortal: true
-          },
-          {
-            user.authentication.level: 2
-          },
-          {
-            user.authentication.method: BankID
-          },
-          {
-            user.authentication.token.isExchanged: false
-          },
-          {
-            user.authentication.token.issuer: Altinn
-          },
-          {
-            user.authentication.type: User
-          },
-          {
-            user.id: 1337
-          },
-          {
-            user.party.id: 501337
           }
         ],
         HasParent: false

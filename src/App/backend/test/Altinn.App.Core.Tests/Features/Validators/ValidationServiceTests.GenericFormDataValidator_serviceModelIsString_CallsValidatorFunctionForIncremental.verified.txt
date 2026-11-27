@@ -6,19 +6,19 @@
         IdFormat: W3C,
         Tags: [
           {
-            validation.issue_count: 1
+            altinn.validation.issue_count: 1
           },
           {
-            validator.has_relevant_changes: true
+            altinn.validator.has_relevant_changes: true
           },
           {
-            validator.remove_hidden_data: false
+            altinn.validator.remove_hidden_data: false
           },
           {
-            validator.source: Altinn.App.Core.Tests.Features.Validators.ValidationServiceTests+GenericValidatorFake-default
+            altinn.validator.source: Altinn.App.Core.Tests.Features.Validators.ValidationServiceTests+GenericValidatorFake-default
           },
           {
-            validator.type: FormDataValidatorWrapper
+            altinn.validator.type: FormDataValidatorWrapper
           }
         ],
         HasParent: true
@@ -28,10 +28,10 @@
         IdFormat: W3C,
         Tags: [
           {
-            task.id: Task_1
+            altinn.process.task.id: Task_1
           },
           {
-            validation.total_issue_count: 1
+            altinn.validation.total_issue_count: 1
           }
         ],
         Events: [

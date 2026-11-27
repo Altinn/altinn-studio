@@ -3,95 +3,70 @@ using System.Diagnostics;
 using NetEscapades.EnumGenerators;
 using static Altinn.App.Core.Features.Telemetry.NotifySigneesConst;
 using static Altinn.App.Core.Features.Telemetry.ServiceOwnerPartyConst;
-using Tag = System.Collections.Generic.KeyValuePair<string, object?>;
 
 namespace Altinn.App.Core.Features;
 
 partial class Telemetry
 {
-    /// <summary>
-    /// Prometheus' increase and rate functions do not register the first value as an increase, but rather as the registration.<br/>
-    /// This means that going from none (non-existent) to 1 on a counter will register as an increase of 0.<br/>
-    /// In order to work around this, we initialize to 0 for all metrics here.<br/>
-    /// Github issue can be found <a href="https://github.com/prometheus/prometheus/issues/3806">here</a>.
-    /// </summary>
-    /// <param name="context"></param>
     private void InitSigning(InitContext context)
     {
-        InitMetricCounter(
-            context,
-            MetricNameNotifySignees,
-            init: static m =>
-            {
-                foreach (var result in NotifySigneesResultExtensions.GetValues())
-                {
-                    m.Add(0, new Tag(InternalLabels.Result, result.ToStringFast(useMetadataAttributes: true)));
-                }
-            }
-        );
-
+        InitMetricCounter(context, MetricNameNotifySignees, "{notification}", "Notifications the app sent to signees.");
         InitMetricCounter(
             context,
             MetricNameGetServiceOwnerParty,
-            init: static m =>
-            {
-                foreach (var result in ServiceOwnerPartyResultExtensions.GetValues())
-                {
-                    m.Add(0, new Tag(InternalLabels.Result, result.ToStringFast(useMetadataAttributes: true)));
-                }
-            }
+            "{lookup}",
+            "Lookups of the service owner's party for signing."
         );
     }
 
     internal void RecordNotifySignees(NotifySigneesResult result) =>
-        _counters[MetricNameNotifySignees]
-            .Add(1, new Tag(InternalLabels.Result, result.ToStringFast(useMetadataAttributes: true)));
+        _counters[MetricNameNotifySignees].Add(1, Outcome(failed: result == NotifySigneesResult.Error));
 
     internal void RecordGetServiceOwnerParty(ServiceOwnerPartyResult result) =>
-        _counters[MetricNameGetServiceOwnerParty]
-            .Add(1, new Tag(InternalLabels.Result, result.ToStringFast(useMetadataAttributes: true)));
+        _counters[MetricNameGetServiceOwnerParty].Add(1, Outcome(failed: result == ServiceOwnerPartyResult.Error));
 
-    internal Activity? StartAssignSigneesActivity() => ActivitySource.StartActivity("SigningService.AssignSignees");
+    internal Activity? StartAssignSigneesActivity() =>
+        LibraryActivitySource.StartActivity("SigningService.AssignSignees");
 
-    internal Activity? StartReadSigneesActivity() => ActivitySource.StartActivity("SigningService.ReadSignees");
+    internal Activity? StartReadSigneesActivity() => LibraryActivitySource.StartActivity("SigningService.ReadSignees");
 
     internal Activity? StartReadAuthorizedSigneesActivity() =>
-        ActivitySource.StartActivity("SigningService.ReadAuthorizedSignees");
+        LibraryActivitySource.StartActivity("SigningService.ReadAuthorizedSignees");
 
     internal Activity? StartRemoveSigneeStateActivity() =>
-        ActivitySource.StartActivity("SigningService.RemoveSigneeState");
+        LibraryActivitySource.StartActivity("SigningService.RemoveSigneeState");
 
     internal Activity? StartRemoveAllSignaturesActivity(string dataType)
     {
-        Activity? activity = ActivitySource.StartActivity("SigningService.RemoveAllSignatures");
+        Activity? activity = LibraryActivitySource.StartActivity("SigningService.RemoveAllSignatures");
         activity?.SetTag(Labels.DataType, dataType);
         return activity;
     }
 
     internal Activity? StartAbortRuntimeDelegatedSigningActivity(string taskId)
     {
-        Activity? activity = ActivitySource.StartActivity("SigningService.AbortRuntimeDelegatedSigning");
+        Activity? activity = LibraryActivitySource.StartActivity("SigningService.AbortRuntimeDelegatedSigning");
         activity?.SetTag(Labels.TaskId, taskId);
         return activity;
     }
 
     internal Activity? StartRevokeSigneeRightsOnTaskEndActivity(string taskId)
     {
-        Activity? activity = ActivitySource.StartActivity("SigningService.RevokeSigneeRightsOnTaskEnd");
+        Activity? activity = LibraryActivitySource.StartActivity("SigningService.RevokeSigneeRightsOnTaskEnd");
         activity?.SetTag(Labels.TaskId, taskId);
         return activity;
     }
 
     internal Activity? StartGetServiceOwnerPartyActivity() =>
-        ActivitySource.StartActivity("SigningService.GetServiceOwnerParty");
+        LibraryActivitySource.StartActivity("SigningService.GetServiceOwnerParty");
 
     internal Activity? StartGetInstanceOwnerPartyActivity() =>
-        ActivitySource.StartActivity("SigningService.GetInstanceOwnerParty");
+        LibraryActivitySource.StartActivity("SigningService.GetInstanceOwnerParty");
 
     internal static class ServiceOwnerPartyConst
     {
         internal static readonly string MetricNameGetServiceOwnerParty = Metrics.CreateLibName(
-            "signing_get_service_owner_party"
+            "signing.service_owner_party_lookups"
         );
 
         [EnumExtensions(MetadataSource = MetadataSource.DisplayAttribute)]
@@ -107,7 +82,7 @@ partial class Telemetry
 
     internal static class NotifySigneesConst
     {
-        internal static readonly string MetricNameNotifySignees = Metrics.CreateLibName("signing_notify_signees");
+        internal static readonly string MetricNameNotifySignees = Metrics.CreateLibName("signing.signee_notifications");
 
         [EnumExtensions(MetadataSource = MetadataSource.DisplayAttribute)]
         internal enum NotifySigneesResult

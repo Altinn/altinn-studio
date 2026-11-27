@@ -5,16 +5,16 @@
       IdFormat: W3C,
       Tags: [
         {
-          authorization.action: write
+          altinn.authorization.action: write
         },
         {
-          instance.guid: Guid_1
+          altinn.instance.guid: Guid_1
         },
         {
-          instance.owner.party.id: 500600
+          altinn.instance.owner.party.id: 500600
         },
         {
-          task.id: Task_1
+          altinn.process.task.id: Task_1
         }
       ],
       HasParent: true
@@ -30,6 +30,42 @@
       IdFormat: W3C,
       Tags: [
         {
+          altinn.instance.guid: Guid_1
+        },
+        {
+          altinn.instance.owner.party.id: 500600
+        },
+        {
+          altinn.problem.status: 409
+        },
+        {
+          altinn.problem.title: Validation failed for task
+        },
+        {
+          altinn.user.authentication.in_altinn_portal: true
+        },
+        {
+          altinn.user.authentication.level: 2
+        },
+        {
+          altinn.user.authentication.method: BankID
+        },
+        {
+          altinn.user.authentication.token.is_exchanged: false
+        },
+        {
+          altinn.user.authentication.token.issuer: Altinn
+        },
+        {
+          altinn.user.authentication.type: User
+        },
+        {
+          altinn.user.party.id: 500600
+        },
+        {
+          enduser.id: 1337
+        },
+        {
           http.request.method: PUT
         },
         {
@@ -39,16 +75,7 @@
           http.route: {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/next
         },
         {
-          instance.owner.party.id: 500600
-        },
-        {
           network.protocol.version: 1.1
-        },
-        {
-          problem.status: 409
-        },
-        {
-          problem.title: Validation failed for task
         },
         {
           server.address: localhost
@@ -64,30 +91,6 @@
         },
         {
           url.scheme: http
-        },
-        {
-          user.authentication.inAltinnPortal: true
-        },
-        {
-          user.authentication.level: 2
-        },
-        {
-          user.authentication.method: BankID
-        },
-        {
-          user.authentication.token.isExchanged: false
-        },
-        {
-          user.authentication.token.issuer: Altinn
-        },
-        {
-          user.authentication.type: User
-        },
-        {
-          user.id: 1337
-        },
-        {
-          user.party.id: 500600
         }
       ],
       HasParent: false
@@ -98,10 +101,10 @@
       Status: Error,
       Tags: [
         {
-          instance.guid: Guid_1
+          altinn.instance.guid: Guid_1
         },
         {
-          process.error.type: Conflict
+          altinn.process.error.type: Conflict
         }
       ],
       HasParent: true
@@ -112,10 +115,10 @@
       Status: Error,
       Tags: [
         {
-          instance.guid: Guid_1
+          altinn.instance.guid: Guid_1
         },
         {
-          process.error.type: Conflict
+          altinn.process.error.type: Conflict
         }
       ],
       HasParent: true
@@ -145,7 +148,7 @@
       IdFormat: W3C,
       Tags: [
         {
-          Type: Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models.Skjema
+          altinn.data.model.type: Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models.Skjema
         }
       ],
       HasParent: true
@@ -155,16 +158,16 @@
       IdFormat: W3C,
       Tags: [
         {
-          validation.issue_count: 0
+          altinn.validation.issue_count: 0
         },
         {
-          validator.remove_hidden_data: false
+          altinn.validator.remove_hidden_data: false
         },
         {
-          validator.source: Required
+          altinn.validator.source: Required
         },
         {
-          validator.type: RequiredLayoutValidator
+          altinn.validator.type: RequiredLayoutValidator
         }
       ],
       HasParent: true
@@ -174,16 +177,16 @@
       IdFormat: W3C,
       Tags: [
         {
-          validation.issue_count: 0
+          altinn.validation.issue_count: 0
         },
         {
-          validator.remove_hidden_data: false
+          altinn.validator.remove_hidden_data: false
         },
         {
-          validator.source: Expression
+          altinn.validator.source: Expression
         },
         {
-          validator.type: ExpressionValidator
+          altinn.validator.type: ExpressionValidator
         }
       ],
       HasParent: true
@@ -193,16 +196,16 @@
       IdFormat: W3C,
       Tags: [
         {
-          validation.issue_count: 0
+          altinn.validation.issue_count: 0
         },
         {
-          validator.remove_hidden_data: false
+          altinn.validator.remove_hidden_data: false
         },
         {
-          validator.source: Altinn.App.Core.Features.Validation.Default.DefaultTaskValidator-*
+          altinn.validator.source: Altinn.App.Core.Features.Validation.Default.DefaultTaskValidator-*
         },
         {
-          validator.type: TaskValidatorWrapper
+          altinn.validator.type: TaskValidatorWrapper
         }
       ],
       HasParent: true
@@ -212,16 +215,16 @@
       IdFormat: W3C,
       Tags: [
         {
-          validation.issue_count: 0
+          altinn.validation.issue_count: 0
         },
         {
-          validator.remove_hidden_data: false
+          altinn.validator.remove_hidden_data: false
         },
         {
-          validator.source: Altinn.App.Core.Features.Validation.Default.DefaultDataElementValidator-*
+          altinn.validator.source: Altinn.App.Core.Features.Validation.Default.DefaultDataElementValidator-*
         },
         {
-          validator.type: DataElementValidatorWrapper
+          altinn.validator.type: DataElementValidatorWrapper
         }
       ],
       HasParent: true
@@ -231,16 +234,16 @@
       IdFormat: W3C,
       Tags: [
         {
-          validation.issue_count: 0
+          altinn.validation.issue_count: 0
         },
         {
-          validator.remove_hidden_data: true
+          altinn.validator.remove_hidden_data: true
         },
         {
-          validator.source: DataAnnotations
+          altinn.validator.source: DataAnnotations
         },
         {
-          validator.type: FormDataValidatorWrapper
+          altinn.validator.type: FormDataValidatorWrapper
         }
       ],
       HasParent: true
@@ -250,16 +253,16 @@
       IdFormat: W3C,
       Tags: [
         {
-          validation.issue_count: 0
+          altinn.validation.issue_count: 0
         },
         {
-          validator.remove_hidden_data: false
+          altinn.validator.remove_hidden_data: false
         },
         {
-          validator.source: Not a valid validation source
+          altinn.validator.source: Not a valid validation source
         },
         {
-          validator.type: FormDataValidatorWrapper
+          altinn.validator.type: FormDataValidatorWrapper
         }
       ],
       HasParent: true
@@ -269,16 +272,16 @@
       IdFormat: W3C,
       Tags: [
         {
-          validation.issue_count: 1
+          altinn.validation.issue_count: 1
         },
         {
-          validator.remove_hidden_data: false
+          altinn.validator.remove_hidden_data: false
         },
         {
-          validator.source: test-source
+          altinn.validator.source: test-source
         },
         {
-          validator.type: FormDataValidatorWrapper
+          altinn.validator.type: FormDataValidatorWrapper
         }
       ],
       HasParent: true
@@ -288,10 +291,10 @@
       IdFormat: W3C,
       Tags: [
         {
-          task.id: Task_1
+          altinn.process.task.id: Task_1
         },
         {
-          validation.total_issue_count: 1
+          altinn.validation.total_issue_count: 1
         }
       ],
       HasParent: true
@@ -304,6 +307,15 @@
       Measurements: [
         {
           Tags: [
+            {
+              altinn.user.authentication.token.is_exchanged: false
+            },
+            {
+              altinn.user.authentication.token.issuer: Altinn
+            },
+            {
+              altinn.user.authentication.type: User
+            },
             {
               http.request.method: PUT
             },
@@ -321,15 +333,6 @@
             },
             {
               url.scheme: http
-            },
-            {
-              user.authentication.token.isExchanged: false
-            },
-            {
-              user.authentication.token.issuer: Altinn
-            },
-            {
-              user.authentication.type: User
             }
           ]
         }

@@ -19,11 +19,7 @@ public sealed class OpenTelemetryRootingTests(ITestOutputHelper _output)
             _output,
             TestApps.Basic,
             scenario: "open-telemetry-parent-based-sampler",
-            environmentVariables: new Dictionary<string, string>
-            {
-                ["AppSettings__UseOpenTelemetry"] = "true",
-                ["GeneralSettings__IsTest"] = "true",
-            }
+            environmentVariables: new Dictionary<string, string> { ["GeneralSettings__IsTest"] = "true" }
         );
 
         var endpoint = $"/ttd/{fixture.EffectiveApp}/api/testing/telemetry/current-activity";

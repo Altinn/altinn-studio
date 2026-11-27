@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Net.Http.Headers;
+using Altinn.App.Api.Tests.Data;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,6 +38,38 @@ public class TelemetryEnrichingMiddlewareTests : ApiTestBase
             client.DefaultRequestHeaders.Add("X-Altinn-IsPdf", "true");
 
         return (telemetry, async () => await client.GetStringAsync($"/{org}/{app}/api/v1/applicationmetadata"));
+    }
+
+    [Fact]
+    public async Task Request_Span_Has_The_Instance_From_The_Route()
+    {
+        OverrideServicesForThisTest = services =>
+            services.AddTelemetrySink(
+                additionalActivitySources: source => source.Name == "Microsoft.AspNetCore",
+                additionalMeters: source => source.Name == "Microsoft.AspNetCore.Hosting"
+            );
+        const string org = "tdd";
+        const string app = "contributer-restriction";
+        const int partyId = 500600;
+        var instanceGuid = new Guid("6e1e7e1e-0b5e-4a11-9c3e-7e1e3e7e1e01");
+        TestData.PrepareInstance(org, app, partyId, instanceGuid);
+        try
+        {
+            using var client = GetRootedUserClient(org, app, partyId: partyId);
+            var telemetry = Services.GetRequiredService<TelemetrySink>();
+
+            using var response = await client.GetAsync($"/{org}/{app}/instances/{partyId}/{instanceGuid}");
+            Assert.True(response.IsSuccessStatusCode);
+            await telemetry.WaitForServerActivity();
+
+            var activity = Assert.Single(telemetry.CapturedActivities, a => a.Kind == ActivityKind.Server);
+            Assert.Equal(instanceGuid, activity.GetTagItem(Telemetry.Labels.InstanceGuid));
+            Assert.Equal(partyId, activity.GetTagItem(Telemetry.Labels.InstanceOwnerPartyId));
+        }
+        finally
+        {
+            TestData.DeleteInstanceAndData(org, app, partyId, instanceGuid);
+        }
     }
 
     [Fact]

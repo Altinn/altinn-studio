@@ -8,11 +8,11 @@ namespace Altinn.App.Core.Features;
 
 partial class Telemetry
 {
-    internal Activity? StartGetPartyListActivity() => ActivitySource.StartActivity($"{Prefix}.GetPartyList");
+    internal Activity? StartGetPartyListActivity() => LibraryActivitySource.StartActivity($"{Prefix}.GetPartyList");
 
     internal Activity? StartValidateSelectedPartyActivity(int partyId)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.ValidateSelectedParty");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.ValidateSelectedParty");
         activity?.SetInstanceOwnerPartyId(partyId);
         return activity;
     }
@@ -23,7 +23,7 @@ partial class Telemetry
         string? taskId = null
     )
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.AuthorizeAction");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.AuthorizeAction");
 
         activity?.SetInstanceId(instanceIdentifier.InstanceGuid);
         activity?.SetInstanceOwnerPartyId(instanceIdentifier.InstanceOwnerPartyId);
@@ -37,12 +37,12 @@ partial class Telemetry
         List<AltinnAction> actions
     )
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.AuthorizeActions");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.AuthorizeActions");
         if (activity is not null)
         {
             activity.SetInstanceId(instance);
             var now = DateTimeOffset.UtcNow;
-            ActivityTagsCollection tags = new([new("actions.count", actions.Count)]);
+            ActivityTagsCollection tags = new([new("altinn.authorization.actions.count", actions.Count)]);
             for (int i = 0; i < actions.Count; i++)
             {
                 var action = actions[i];
@@ -61,7 +61,7 @@ partial class Telemetry
         string action
     )
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.IsAuthorizerForTaskAndAction");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.IsAuthorizerForTaskAndAction");
         if (activity is not null)
         {
             activity.SetTaskId(taskId);

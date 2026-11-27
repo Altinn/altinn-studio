@@ -10,10 +10,9 @@ partial class Telemetry
 {
     private void InitProcesses(InitContext context)
     {
-        InitMetricCounter(context, MetricNameProcessesStarted, static m => m.Add(0));
-        InitMetricCounter(context, MetricNameProcessesEnded, static m => m.Add(0));
-
-        InitMetricHistogram(context, MetricNameProcessesDuration);
+        InitMetricCounter(context, MetricNameProcessesStarted, "{process}", "Processes the app started.");
+        InitMetricCounter(context, MetricNameProcessesEnded, "{process}", "Processes that ended.");
+        InitMetricHistogram(context, MetricNameProcessesDuration, "Time from a process's start until it ended.");
     }
 
     internal void ProcessStarted()
@@ -23,27 +22,28 @@ partial class Telemetry
 
     internal void ProcessEnded(ProcessStateChange processChange)
     {
-        if (processChange?.NewProcessState?.Started is null || processChange?.NewProcessState?.Ended is null)
+        if (processChange?.NewProcessState is not { Ended: { } ended } state)
         {
             return;
         }
-        var state = processChange.NewProcessState;
 
         _counters[MetricNameProcessesEnded].Add(1);
-        var duration = state.Ended.Value - state.Started.Value;
-        _histograms[MetricNameProcessesDuration].Record(duration.TotalSeconds);
+        if (state.Started is { } started)
+        {
+            _histograms[MetricNameProcessesDuration].Record((ended - started).TotalSeconds);
+        }
     }
 
     internal Activity? StartProcessStartActivity(Instance instance)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.Start");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.Start");
         activity?.SetInstanceId(instance);
         return activity;
     }
 
     internal Activity? StartProcessNextActivity(Instance instance, string? action)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.Next");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.Next");
         activity?.SetInstanceId(instance);
         activity?.SetTag(InternalLabels.ProcessAction, action);
         return activity;
@@ -51,28 +51,28 @@ partial class Telemetry
 
     internal Activity? StartApiProcessNextActivity(InstanceIdentifier instanceIdentifier)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.ApiNext");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.ApiNext");
         activity?.SetInstanceId(instanceIdentifier.InstanceGuid);
         return activity;
     }
 
     internal Activity? StartProcessHandleEventsActivity(Instance instance)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.HandleEvents");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.HandleEvents");
         activity?.SetInstanceId(instance);
         return activity;
     }
 
     internal Activity? StartProcessStoreEventsActivity(Instance instance)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.StoreEvents");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.StoreEvents");
         activity?.SetInstanceId(instance);
         return activity;
     }
 
     internal Activity? StartProcessExecuteServiceTaskActivity(Instance instance, string serviceTaskType)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.ExecuteServiceTask");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.ExecuteServiceTask");
         activity?.SetInstanceId(instance);
         activity?.SetTag(InternalLabels.ProcessServiceTaskType, serviceTaskType);
         return activity;
@@ -80,14 +80,14 @@ partial class Telemetry
 
     internal Activity? StartProcessEndActivity(Instance instance)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.End");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.End");
         activity?.SetInstanceId(instance);
         return activity;
     }
 
     internal Activity? StartProcessCallbackActivity(Guid instanceGuid, string commandKey)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.Callback");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.Callback");
         activity?.SetInstanceId(instanceGuid);
         activity?.SetTag(InternalLabels.ProcessCallbackCommand, commandKey);
         return activity;
@@ -95,7 +95,7 @@ partial class Telemetry
 
     internal Activity? StartProcessHandleUserActionActivity(Instance instance, string? action)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.HandleUserAction");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.HandleUserAction");
         activity?.SetInstanceId(instance);
         activity?.SetTag(InternalLabels.ProcessAction, action);
         return activity;
@@ -103,7 +103,7 @@ partial class Telemetry
 
     internal Activity? StartProcessMoveToNextActivity(Instance instance, string? action)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.MoveToNext");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.MoveToNext");
         activity?.SetInstanceId(instance);
         activity?.SetTag(InternalLabels.ProcessAction, action);
         return activity;
@@ -111,7 +111,7 @@ partial class Telemetry
 
     internal Activity? StartProcessGenerateChangeEventActivity(Instance instance, string eventType)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.GenerateChangeEvent");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.GenerateChangeEvent");
         activity?.SetInstanceId(instance);
         activity?.SetTag(InternalLabels.ProcessEventType, eventType);
         return activity;
@@ -119,14 +119,14 @@ partial class Telemetry
 
     internal Activity? StartProcessLoadAuthDetailsActivity(string authType)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.LoadAuthDetails");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.LoadAuthDetails");
         activity?.SetTag(Labels.UserAuthenticationType, authType);
         return activity;
     }
 
     internal Activity? StartProcessRegisterEventActivity(Instance instance)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.RegisterEvent");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.RegisterEvent");
         activity?.SetInstanceId(instance);
         return activity;
     }
@@ -137,7 +137,7 @@ partial class Telemetry
         string? action
     )
     {
-        var activity = ActivitySource.StartActivity("ProcessNavigator.GetNextTask");
+        var activity = LibraryActivitySource.StartActivity("ProcessNavigator.GetNextTask");
         activity?.SetInstanceId(instance);
         activity?.SetTag(InternalLabels.ProcessCurrentElement, currentElement);
         activity?.SetTag(InternalLabels.ProcessAction, action);
@@ -148,8 +148,8 @@ partial class Telemetry
     {
         internal const string Prefix = "Process";
 
-        internal static readonly string MetricNameProcessesStarted = Metrics.CreateLibName("processes_started");
-        internal static readonly string MetricNameProcessesEnded = Metrics.CreateLibName("processes_ended");
-        internal static readonly string MetricNameProcessesDuration = Metrics.CreateLibName("processes_duration");
+        internal static readonly string MetricNameProcessesStarted = Metrics.CreateLibName("processes.started");
+        internal static readonly string MetricNameProcessesEnded = Metrics.CreateLibName("processes.ended");
+        internal static readonly string MetricNameProcessesDuration = Metrics.CreateLibName("processes.duration");
     }
 }

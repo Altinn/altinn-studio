@@ -14,9 +14,11 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `studioctl auth token [--env ENV]` prints the API key you logged in with, so scripts and other tools can call Studio as you, for example with `$(studioctl auth token)`. ([#21867](https://github.com/Altinn/altinn-studio/pull/21867))
 - `studioctl app upgrade v9` names the custom task types in your process, such as `sftp`. Keep each one's `Type` string when you port its task class, or instances started under v8 can't finish that task. ([#21979](https://github.com/Altinn/altinn-studio/pull/21979))
 - `studioctl app upgrade v9` sets `"onProcessEnd": { "confirm": true }` in `applicationmetadata.json` for apps whose eFormidling task, or Fiks Arkiv task with `markInstanceComplete` on, confirmed instances as complete in v8. The v9 tasks no longer confirm by themselves. The upgrade removes `markInstanceComplete` from `appsettings*.json`. ([#21944](https://github.com/Altinn/altinn-studio/pull/21944))
+- `studioctl app upgrade v9` removes `UseOpenTelemetry`, `UseOpenTelemetryCollector`, `OTEL_*` and the `ApplicationInsights` settings from `appsettings*.json`, deletes unused `Microsoft.ApplicationInsights` usings, and reports other code that uses the Application Insights SDK or `UseOtlpExporter()`, with what to use instead. ([#19775](https://github.com/Altinn/altinn-studio/issues/19775))
 
 ### Changed
 
+- `studioctl app run` and `studioctl app env` give v9 apps their OpenTelemetry settings: metrics every 15 seconds, and the collector of `studioctl env up --monitoring` when it runs. ([#19775](https://github.com/Altinn/altinn-studio/issues/19775))
 - Localtest lets apps delete locked data, and change locked data of a data type with `taskIds`, as Altinn Storage does. A change outside the data type's tasks is still refused with `409 Conflict`. ([#22098](https://github.com/Altinn/altinn-studio/pull/22098))
 - `studioctl app upgrade v9` reports `ProcessTaskDataLocker` and `IProcessTaskDataLocker` as removed in v9. Before, it pointed code that used the class to the interface. ([#22100](https://github.com/Altinn/altinn-studio/pull/22100))
 

@@ -1,3 +1,4 @@
+using Altinn.App.Api.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Microsoft.AspNetCore.Http.Features;
@@ -28,6 +29,20 @@ internal sealed class TelemetryEnrichingMiddleware
     /// <param name="context">The HTTP context.</param>
     public async Task InvokeAsync(HttpContext context)
     {
+        if (ServiceCollectionExtensions.IsProbe(context.Request))
+        {
+            // Probes are not traffic: the trace instrumentation already leaves them out, and this keeps them out of
+            // the request metrics.
+            var probeMetrics = context.Features.Get<IHttpMetricsTagsFeature>();
+            if (probeMetrics is not null)
+            {
+                probeMetrics.MetricsDisabled = true;
+            }
+
+            await _next(context);
+            return;
+        }
+
         var activity = context.Features.Get<IHttpActivityFeature>()?.Activity;
 
         if (activity is not null)
@@ -49,15 +64,12 @@ internal sealed class TelemetryEnrichingMiddleware
                 }
 
                 var routeValues = context.Request.RouteValues;
-                if (
-                    routeValues.TryGetValue("instanceGuid", out var instanceGuidObj)
-                    && instanceGuidObj is Guid instanceGuid
-                )
+                if (TryGetGuid(routeValues, "instanceGuid", out var instanceGuid))
                 {
                     activity.SetInstanceId(instanceGuid);
                 }
 
-                if (routeValues.TryGetValue("dataGuid", out var dataGuidObj) && dataGuidObj is Guid dataGuid)
+                if (TryGetGuid(routeValues, "dataGuid", out var dataGuid))
                 {
                     activity.SetDataElementId(dataGuid);
                 }
@@ -80,8 +92,7 @@ internal sealed class TelemetryEnrichingMiddleware
                 tags.Add(new Tag(Labels.UserAuthenticationType, auth.GetType().Name));
                 tags.Add(new Tag(Labels.UserAuthenticationTokenIssuer, auth.TokenIssuer));
                 tags.Add(new Tag(Labels.UserAuthenticationTokenIsExchanged, auth.TokenIsExchanged));
-                if (auth.ClientId is not null)
-                    tags.Add(new Tag(Labels.UserAuthenticationTokenClientId, auth.ClientId));
+                // Not the token's client ID, which has a value for every integration: it stays on the span.
             }
             catch (Exception ex)
             {
@@ -90,6 +101,22 @@ internal sealed class TelemetryEnrichingMiddleware
         }
 
         await _next(context);
+    }
+
+    // Route values are strings until model binding converts them, which happens after this middleware.
+    private static bool TryGetGuid(RouteValueDictionary routeValues, string key, out Guid value)
+    {
+        switch (routeValues.TryGetValue(key, out var raw) ? raw : null)
+        {
+            case Guid guid:
+                value = guid;
+                return true;
+            case string text:
+                return Guid.TryParse(text, out value);
+            default:
+                value = default;
+                return false;
+        }
     }
 }
 

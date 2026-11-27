@@ -5,8 +5,8 @@ namespace Altinn.App.Core.Features;
 partial class Telemetry
 {
     internal Activity? StartSendSignatureReceiptActivity() =>
-        ActivitySource.StartActivity("SigningReceiptService.SendSignatureReceipt");
+        LibraryActivitySource.StartActivity("SigningReceiptService.SendSignatureReceipt");
 
     internal Activity? StartGetCorrespondenceHeadersActivity() =>
-        ActivitySource.StartActivity("SigningReceiptService.GetCorrespondenceHeaders");
+        LibraryActivitySource.StartActivity("SigningReceiptService.GetCorrespondenceHeaders");
 }

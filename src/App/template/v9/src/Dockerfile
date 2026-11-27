@@ -28,6 +28,4 @@ RUN apk add --no-cache icu-libs icu-data-full tzdata
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 
 USER dotnet
-RUN mkdir /tmp/logtelemetry
-
 ENTRYPOINT ["dotnet", "Altinn.Application.dll"]

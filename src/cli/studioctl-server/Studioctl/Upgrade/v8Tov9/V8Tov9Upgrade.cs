@@ -212,6 +212,10 @@ internal static class V8Tov9Upgrade
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateAppResourcesParameterNames(scanner));
 
+        // Before CheckRemovedCSharpApis, which then reports only the Application Insights code that is left.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, RemoveUnusedApplicationInsightsUsings(scanner));
+
         // Last of the C# rewrites, so the using directives the steps above leave behind are covered
         // too. The rule migration further down generates its code without the redundant usings.
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -239,6 +243,9 @@ internal static class V8Tov9Upgrade
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await RemoveEnforceDataTypeTaskIdSetting(projectFile));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await RemoveTelemetrySettings(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await CheckAppFileNameCase(projectFile));
@@ -707,6 +714,38 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error enabling implicit usings", ex);
+        }
+    }
+
+    /// <summary>
+    /// Removes using directives for the Application Insights SDK from files that use nothing from it: v9 no longer
+    /// brings the SDK in, so they would stop the app from compiling. Needs the v8 semantic model to prove a directive
+    /// unused; without one, CheckRemovedCSharpApis reports the directives instead.
+    /// </summary>
+    static int RemoveUnusedApplicationInsightsUsings(CSharpSourceScanner scanner)
+    {
+        UpgradeConsole.BeginStep("Unused Application Insights usings");
+        try
+        {
+            var migration = new UnusedApplicationInsightsUsingMigration(scanner);
+            if (!scanner.HasSemanticModels && migration.HasSdkUsings)
+            {
+                UpgradeConsole.Skip(
+                    "Kept the Application Insights using directives: without semantic analysis they cannot be proven "
+                        + "unused. The removed C# APIs step lists them."
+                );
+                return ExitSuccess;
+            }
+
+            return ReportMigrationResult(
+                migration.Migrate(),
+                cleanText: "No unused using directives for the Application Insights SDK",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error removing unused Application Insights using directives", ex);
         }
     }
 
@@ -1233,6 +1272,7 @@ internal static class V8Tov9Upgrade
                 ).Detect(),
                 new RemovedFeatureManagementDetector(scanner).Detect(),
                 new RemovedAppSettingsMemberDetector(pristineView).Detect(),
+                new ApplicationInsightsUsageDetector(scanner, projectFile).Detect(),
                 new InternalizedAppTypeDetector(pristineView).Detect()
             );
 
@@ -1374,6 +1414,30 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error removing the JsonObjectInDataResponse feature flag from the appsettings files", ex);
+        }
+    }
+
+    /// <summary>
+    /// Removes the telemetry settings v9 no longer reads from the appsettings files: UseOpenTelemetry,
+    /// UseOpenTelemetryCollector, the ApplicationInsights section and Logging:ApplicationInsights. v9 apps export only
+    /// over OpenTelemetry, configured by the runtime and studioctl.
+    /// </summary>
+    static async Task<int> RemoveTelemetrySettings(string projectFile)
+    {
+        UpgradeConsole.BeginStep("Telemetry settings");
+        try
+        {
+            var appFolder = Path.GetDirectoryName(projectFile) ?? projectFile;
+            var result = await TelemetrySettingsMigration.Migrate(appFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No Application Insights or OpenTelemetry settings in the appsettings files",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error removing the telemetry settings from the appsettings files", ex);
         }
     }
 

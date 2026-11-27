@@ -315,11 +315,13 @@ public sealed class WrappedServiceProvider : IKeyedServiceProvider, IDisposable,
         var telemetry = _serviceProvider.GetRequiredService<Telemetry>();
         _tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddSource(telemetry.ActivitySource.Name)
+            .AddSource(telemetry.LibraryActivitySource.Name)
             .AddSource(FakeHttpMessageHandler.ActivitySource.Name)
             .AddInMemoryExporter(Traces)
             .Build();
         _meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddMeter(telemetry.ActivitySource.Name)
+            .AddMeter(telemetry.Meter.Name)
+            .AddMeter(telemetry.LibraryMeter.Name)
             .AddInMemoryExporter(Metrics)
             .Build();
         _loggerProvider = _serviceProvider.GetRequiredService<LoggerProvider>();

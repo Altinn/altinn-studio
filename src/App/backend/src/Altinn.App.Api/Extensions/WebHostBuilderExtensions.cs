@@ -20,16 +20,8 @@ public static class WebHostBuilderExtensions
         builder.ConfigureAppConfiguration(
             (context, configBuilder) =>
             {
-                var config = new List<KeyValuePair<string, string?>>();
-
-                if (context.HostingEnvironment.IsDevelopment())
-                {
-                    config.Add(new("OTEL_TRACES_SAMPLER", "always_on"));
-                    config.Add(new("OTEL_METRIC_EXPORT_INTERVAL", "10000"));
-                    config.Add(new("OTEL_METRIC_EXPORT_TIMEOUT", "8000"));
-                }
-
-                configBuilder.AddInMemoryCollection(config);
+                // The OTEL_* variables come from the runtime, or from studioctl for a local run. The libraries set
+                // none of them, not even for Development.
                 StudioctlLocalConfiguration.AddIfAvailable(configBuilder, context.HostingEnvironment);
 
                 // Both the directory and the hosted file names come from the platform, and are read back out

@@ -5,7 +5,7 @@
       IdFormat: W3C,
       Tags: [
         {
-          type: sms
+          altinn.notification.type: sms
         }
       ],
       HasParent: false
@@ -13,17 +13,14 @@
   ],
   Metrics: [
     {
-      Name: altinn_app_lib_notification_orders,
-      MeterName: test,
+      Name: altinn.app_lib.notification.orders,
+      MeterName: Altinn.App,
       Measurements: [
         {
           Value: 1.0,
           Tags: [
             {
-              result: success
-            },
-            {
-              type: sms
+              altinn.notification.type: sms
             }
           ]
         }

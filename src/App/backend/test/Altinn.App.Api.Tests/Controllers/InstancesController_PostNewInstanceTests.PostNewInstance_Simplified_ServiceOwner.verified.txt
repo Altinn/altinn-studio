@@ -6,6 +6,33 @@
       IdFormat: W3C,
       Tags: [
         {
+          altinn.organization.name: tdd
+        },
+        {
+          altinn.organization.number: 405003309
+        },
+        {
+          altinn.user.authentication.level: 3
+        },
+        {
+          altinn.user.authentication.method: maskinporten
+        },
+        {
+          altinn.user.authentication.token.client_id: Guid_1
+        },
+        {
+          altinn.user.authentication.token.is_exchanged: true
+        },
+        {
+          altinn.user.authentication.token.issuer: Maskinporten
+        },
+        {
+          altinn.user.authentication.type: ServiceOwner
+        },
+        {
+          enduser.id: 405003309
+        },
+        {
           http.request.method: POST
         },
         {
@@ -18,41 +45,17 @@
           network.protocol.version: 1.1
         },
         {
-          organization.name: tdd
-        },
-        {
-          organization.number: 405003309
-        },
-        {
           server.address: localhost
         },
         {
           server.port: 80
         },
         {
-          TestId: Guid_1
+          TestId: Guid_2
         },
         {Scrubbed},
         {
           url.scheme: http
-        },
-        {
-          user.authentication.level: 3
-        },
-        {
-          user.authentication.method: maskinporten
-        },
-        {
-          user.authentication.token.clientId: Guid_2
-        },
-        {
-          user.authentication.token.isExchanged: true
-        },
-        {
-          user.authentication.token.issuer: Maskinporten
-        },
-        {
-          user.authentication.type: ServiceOwner
         }
       ],
       HasParent: false
@@ -63,6 +66,42 @@
       IdFormat: W3C,
       Tags: [
         {
+          altinn.data.guid: Guid_3
+        },
+        {
+          altinn.instance.guid: Guid_4
+        },
+        {
+          altinn.instance.owner.party.id: 5001337
+        },
+        {
+          altinn.organization.name: tdd
+        },
+        {
+          altinn.organization.number: 405003309
+        },
+        {
+          altinn.user.authentication.level: 3
+        },
+        {
+          altinn.user.authentication.method: maskinporten
+        },
+        {
+          altinn.user.authentication.token.client_id: Guid_1
+        },
+        {
+          altinn.user.authentication.token.is_exchanged: true
+        },
+        {
+          altinn.user.authentication.token.issuer: Maskinporten
+        },
+        {
+          altinn.user.authentication.type: ServiceOwner
+        },
+        {
+          enduser.id: 405003309
+        },
+        {
           http.request.method: GET
         },
         {
@@ -72,16 +111,7 @@
           http.route: {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGuid:guid}
         },
         {
-          instance.owner.party.id: 5001337
-        },
-        {
           network.protocol.version: 1.1
-        },
-        {
-          organization.name: tdd
-        },
-        {
-          organization.number: 405003309
         },
         {
           server.address: localhost
@@ -90,29 +120,11 @@
           server.port: 80
         },
         {
-          TestId: Guid_1
+          TestId: Guid_2
         },
         {Scrubbed},
         {
           url.scheme: http
-        },
-        {
-          user.authentication.level: 3
-        },
-        {
-          user.authentication.method: maskinporten
-        },
-        {
-          user.authentication.token.clientId: Guid_2
-        },
-        {
-          user.authentication.token.isExchanged: true
-        },
-        {
-          user.authentication.token.issuer: Maskinporten
-        },
-        {
-          user.authentication.type: ServiceOwner
         }
       ],
       HasParent: false
@@ -122,7 +134,7 @@
       IdFormat: W3C,
       Tags: [
         {
-          instance.owner.party.id: 5001337
+          altinn.instance.owner.party.id: 5001337
         }
       ],
       HasParent: true
@@ -133,10 +145,10 @@
       Status: Ok,
       Tags: [
         {
-          instance.guid: Guid_3
+          altinn.instance.guid: Guid_4
         },
         {
-          process.callback.command: AcquireProcessingStatus
+          altinn.process.callback.command: AcquireProcessingStatus
         }
       ],
       HasParent: true
@@ -147,10 +159,10 @@
       Status: Ok,
       Tags: [
         {
-          instance.guid: Guid_3
+          altinn.instance.guid: Guid_4
         },
         {
-          process.callback.command: CommitProcessState
+          altinn.process.callback.command: CommitProcessState
         }
       ],
       HasParent: true
@@ -161,10 +173,10 @@
       Status: Ok,
       Tags: [
         {
-          instance.guid: Guid_3
+          altinn.instance.guid: Guid_4
         },
         {
-          process.callback.command: CleanupGeneratedFromTask
+          altinn.process.callback.command: CleanupGeneratedFromTask
         }
       ],
       HasParent: true
@@ -175,10 +187,10 @@
       Status: Ok,
       Tags: [
         {
-          instance.guid: Guid_3
+          altinn.instance.guid: Guid_4
         },
         {
-          process.callback.command: CommonTaskInitialization
+          altinn.process.callback.command: CommonTaskInitialization
         }
       ],
       HasParent: true
@@ -189,10 +201,10 @@
       Status: Ok,
       Tags: [
         {
-          instance.guid: Guid_3
+          altinn.instance.guid: Guid_4
         },
         {
-          process.callback.command: ReleaseProcessingStatus
+          altinn.process.callback.command: ReleaseProcessingStatus
         }
       ],
       HasParent: true
@@ -202,7 +214,7 @@
       IdFormat: W3C,
       Tags: [
         {
-          process.event.type: process_EndTask
+          altinn.process.event.type: process_EndTask
         }
       ],
       HasParent: true
@@ -238,7 +250,7 @@
       IdFormat: W3C,
       Tags: [
         {
-          process.current.element: StartEvent_1
+          altinn.process.current.element: StartEvent_1
         }
       ],
       HasParent: true
@@ -338,7 +350,7 @@
       IdFormat: W3C,
       Tags: [
         {
-          Type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
+          altinn.data.model.type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
         }
       ],
       HasParent: true
@@ -348,7 +360,7 @@
       IdFormat: W3C,
       Tags: [
         {
-          Type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
+          altinn.data.model.type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
         }
       ],
       HasParent: true
@@ -358,7 +370,7 @@
       IdFormat: W3C,
       Tags: [
         {
-          Type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
+          altinn.data.model.type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
         }
       ],
       HasParent: true
@@ -368,7 +380,7 @@
       IdFormat: W3C,
       Tags: [
         {
-          Type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
+          altinn.data.model.type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
         }
       ],
       HasParent: true
@@ -378,7 +390,7 @@
       IdFormat: W3C,
       Tags: [
         {
-          Type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
+          altinn.data.model.type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
         }
       ],
       HasParent: true
@@ -388,7 +400,7 @@
       IdFormat: W3C,
       Tags: [
         {
-          Type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
+          altinn.data.model.type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
         }
       ],
       HasParent: true
@@ -398,7 +410,7 @@
       IdFormat: W3C,
       Tags: [
         {
-          Type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
+          altinn.data.model.type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
         }
       ],
       HasParent: true
@@ -408,7 +420,7 @@
       IdFormat: W3C,
       Tags: [
         {
-          Type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
+          altinn.data.model.type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
         }
       ],
       HasParent: true
@@ -422,6 +434,15 @@
         {
           Tags: [
             {
+              altinn.user.authentication.token.is_exchanged: true
+            },
+            {
+              altinn.user.authentication.token.issuer: Maskinporten
+            },
+            {
+              altinn.user.authentication.type: ServiceOwner
+            },
+            {
               http.request.method: GET
             },
             {
@@ -434,27 +455,24 @@
               network.protocol.version: 1.1
             },
             {
-              TestId: Guid_1
+              TestId: Guid_2
             },
             {
               url.scheme: http
-            },
-            {
-              user.authentication.token.clientId: Guid_2
-            },
-            {
-              user.authentication.token.isExchanged: true
-            },
-            {
-              user.authentication.token.issuer: Maskinporten
-            },
-            {
-              user.authentication.type: ServiceOwner
             }
           ]
         },
         {
           Tags: [
+            {
+              altinn.user.authentication.token.is_exchanged: true
+            },
+            {
+              altinn.user.authentication.token.issuer: Maskinporten
+            },
+            {
+              altinn.user.authentication.type: ServiceOwner
+            },
             {
               http.request.method: POST
             },
@@ -468,22 +486,10 @@
               network.protocol.version: 1.1
             },
             {
-              TestId: Guid_1
+              TestId: Guid_2
             },
             {
               url.scheme: http
-            },
-            {
-              user.authentication.token.clientId: Guid_2
-            },
-            {
-              user.authentication.token.isExchanged: true
-            },
-            {
-              user.authentication.token.issuer: Maskinporten
-            },
-            {
-              user.authentication.type: ServiceOwner
             }
           ]
         }

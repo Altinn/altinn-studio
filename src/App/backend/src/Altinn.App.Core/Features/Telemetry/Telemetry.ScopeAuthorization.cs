@@ -5,11 +5,11 @@ namespace Altinn.App.Core.Features;
 partial class Telemetry
 {
     internal Activity? StartScopeAuthorizationServiceInitActivity() =>
-        ActivitySource.StartActivity("ScopeAuthorizationService.Initialize");
+        LibraryActivitySource.StartActivity("ScopeAuthorizationService.Initialize");
 
     internal Activity? StartScopeAuthorizationActivity()
     {
-        var activity = ActivitySource.StartActivity("ScopeAuthorizationMiddleware.Authorize");
+        var activity = LibraryActivitySource.StartActivity("ScopeAuthorizationMiddleware.Authorize");
         return activity;
     }
 }

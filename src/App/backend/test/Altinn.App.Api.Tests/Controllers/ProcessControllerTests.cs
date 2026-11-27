@@ -1060,6 +1060,37 @@ public class ProcessControllerTests : ApiTestBase
     }
 
     [Fact]
+    public async Task RunProcessNext_ToTheEndEvent_CountsTheProcessEndOnce()
+    {
+        var pdfMock = SetupPdfGeneratorMock();
+        OverrideServicesForThisTest = (services) => services.AddSingleton(pdfMock.Object);
+        using var client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
+        // This host's own library meter: other test hosts have meters of the same name.
+        var libraryMeter = Services.GetRequiredService<Telemetry>().LibraryMeter;
+        var measurements = new System.Collections.Concurrent.ConcurrentQueue<string>();
+        using var listener = new System.Diagnostics.Metrics.MeterListener();
+        listener.InstrumentPublished = (instrument, l) =>
+        {
+            if (
+                ReferenceEquals(instrument.Meter, libraryMeter)
+                && instrument.Name.StartsWith("altinn.app_lib.processes.")
+            )
+                l.EnableMeasurementEvents(instrument);
+        };
+        listener.SetMeasurementEventCallback<long>((instrument, _, _, _) => measurements.Enqueue(instrument.Name));
+        listener.SetMeasurementEventCallback<double>((instrument, _, _, _) => measurements.Enqueue(instrument.Name));
+        listener.Start();
+
+        var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{_instanceId}/process/next", null);
+        nextResponse.Should().HaveStatusCode(HttpStatusCode.OK);
+
+        var instance = await TestData.GetInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);
+        instance.Process.EndEvent.Should().Be("EndEvent_1");
+        // Counted in the callback that committed the end, once, and not as a start.
+        measurements.Should().BeEquivalentTo(["altinn.app_lib.processes.ended", "altinn.app_lib.processes.duration"]);
+    }
+
+    [Fact]
     public async Task RunNextWithAction_WhenActionIsNotDefinedInBpmn_ReturnsOk()
     {
         var pdfMock = SetupPdfGeneratorMock();

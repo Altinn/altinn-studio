@@ -15,6 +15,21 @@ namespace Altinn.App.Core.Features;
 /// </summary>
 public static class TelemetryActivityExtensions
 {
+    private const string KeepSamplingValue = "always";
+
+    /// <summary>
+    /// <para>Marks the span so that the collectors keep its whole trace, whatever their sampling.</para>
+    /// <para>Mark only units of work that are rare and where each one matters, such as a payment or a shipment that
+    /// failed in an unusual way, never an app's ordinary traffic.</para>
+    /// </summary>
+    /// <param name="activity">Activity</param>
+    /// <returns>Activity</returns>
+    public static Activity KeepTrace(this Activity activity)
+    {
+        activity.SetTag(Labels.Sampling, KeepSamplingValue);
+        return activity;
+    }
+
     /// <summary>
     /// Sets the user ID as a tag/attribute on the activity/span
     /// </summary>
@@ -377,6 +392,9 @@ public static class TelemetryActivityExtensions
             }
             case Authenticated.Org auth:
             {
+                // enduser.id is whoever the request acts for, in the ID that authenticated them: for an
+                // organization, its organization number, as Maskinporten has it.
+                activity.SetTag(Labels.UserId, auth.OrgNo);
                 activity.SetOrganizationNumber(auth.OrgNo);
                 activity.SetAuthenticationMethod(auth.AuthenticationMethod);
                 activity.SetAuthenticationLevel(auth.AuthenticationLevel);
@@ -384,6 +402,7 @@ public static class TelemetryActivityExtensions
             }
             case Authenticated.ServiceOwner auth:
             {
+                activity.SetTag(Labels.UserId, auth.OrgNo);
                 activity.SetOrganizationNumber(auth.OrgNo);
                 activity.SetOrganizationName(auth.Name);
                 activity.SetAuthenticationMethod(auth.AuthenticationMethod);

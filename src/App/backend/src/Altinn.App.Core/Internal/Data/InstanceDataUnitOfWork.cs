@@ -893,8 +893,31 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         }
 
         ApplyAggregateMutationResult(changes, mutationPlan, result);
+        RecordCommittedProcessChange(_stagedProcessStateChange);
         ClearStagedInstanceMutations();
         return WorkflowAggregateSaveOutcome.Saved;
+    }
+
+    /// <summary>
+    /// Counts a process start or end once Storage has committed it. The save is keyed on the workflow step, so a retry
+    /// whose first attempt committed gets a replay, which never reaches here: each process is counted once.
+    /// </summary>
+    private void RecordCommittedProcessChange(ProcessStateChange? change)
+    {
+        if (_telemetry is null || change?.NewProcessState is not { } newState)
+        {
+            return;
+        }
+
+        if (change.OldProcessState?.Started is null && newState.Started is not null)
+        {
+            _telemetry.ProcessStarted();
+        }
+
+        if (change.OldProcessState?.Ended is null && newState.Ended is not null)
+        {
+            _telemetry.ProcessEnded(change);
+        }
     }
 
     private void ValidateCanSaveChangesOrThrow(bool workflowOwned)

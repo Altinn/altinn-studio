@@ -7,7 +7,7 @@ partial class Telemetry
 {
     internal Activity? StartAddEventActivity(Instance instance)
     {
-        var activity = ActivitySource.StartActivity("EventClient.GetAsyncWithId");
+        var activity = LibraryActivitySource.StartActivity("EventClient.GetAsyncWithId");
         activity?.SetInstanceId(instance);
         return activity;
     }

@@ -147,8 +147,6 @@ internal class ProcessEngine : IProcessEngine
             Events = events,
         };
 
-        _telemetry?.ProcessStarted();
-
         var changeResult = new ProcessChangeResult() { Success = true, ProcessStateChange = processStateChange };
         activity?.SetProcessChangeResult(changeResult);
         return changeResult;

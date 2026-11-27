@@ -4,5 +4,5 @@ namespace Altinn.App.Core.Features;
 
 partial class Telemetry
 {
-    internal Activity? StartAnalyzeActivity() => ActivitySource.StartActivity("FileAnalysis.Analyze");
+    internal Activity? StartAnalyzeActivity() => LibraryActivitySource.StartActivity("FileAnalysis.Analyze");
 }

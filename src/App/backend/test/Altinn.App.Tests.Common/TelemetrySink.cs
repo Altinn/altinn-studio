@@ -161,7 +161,9 @@ public sealed record TelemetrySink : IDisposable
             {
                 if (IsDisposed)
                     return false;
-                var sameSource = ReferenceEquals(activitySource, Object.ActivitySource);
+                var sameSource =
+                    ReferenceEquals(activitySource, Object.ActivitySource)
+                    || ReferenceEquals(activitySource, Object.LibraryActivitySource);
                 return sameSource || (additionalActivitySources?.Invoke(activitySource) ?? false);
             },
             Sample = (ref ActivityCreationOptions<ActivityContext> options) =>
@@ -191,7 +193,9 @@ public sealed record TelemetrySink : IDisposable
             {
                 if (IsDisposed)
                     return;
-                var sameSource = ReferenceEquals(instrument.Meter, Object.Meter);
+                var sameSource =
+                    ReferenceEquals(instrument.Meter, Object.Meter)
+                    || ReferenceEquals(instrument.Meter, Object.LibraryMeter);
                 if (!sameSource && (additionalMeters is null || !additionalMeters(instrument.Meter)))
                     return;
 

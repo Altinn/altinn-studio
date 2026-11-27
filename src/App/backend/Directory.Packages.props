@@ -10,7 +10,6 @@
     <PackageVersion Include="Altinn.Platform.Storage.Interface" Version="5.0.0-rc.4" />
     <PackageVersion Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.5.1" />
     <PackageVersion Include="Azure.Identity" Version="1.21.0" />
-    <PackageVersion Include="Azure.Monitor.OpenTelemetry.Exporter" Version="1.7.0" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
     <PackageVersion Include="BenchmarkDotNet.Diagnostics.dotTrace" Version="0.15.8" />
     <PackageVersion Include="Buildalyzer.Workspaces" Version="8.0.0" />
@@ -23,7 +22,6 @@
     <PackageVersion Include="JmesPath.Net" Version="1.1.0" />
     <PackageVersion Include="JsonPatch.Net" Version="4.0.1" />
     <PackageVersion Include="JWTCookieAuthentication" Version="3.0.1" />
-    <PackageVersion Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.23.0" />
     <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="18.4.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="11.0.0" />
     <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="11.0.0" />

@@ -15,7 +15,7 @@ partial class Telemetry
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(taskId);
 
-        var activity = ActivitySource.StartActivity($"{Prefix}.ValidateInstanceAtTask");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.ValidateInstanceAtTask");
         activity?.SetTaskId(taskId);
         return activity;
     }
@@ -25,7 +25,7 @@ partial class Telemetry
         ArgumentException.ThrowIfNullOrWhiteSpace(taskId);
         ArgumentNullException.ThrowIfNull(changes);
 
-        var activity = ActivitySource.StartActivity($"{Prefix}.ValidateIncremental");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.ValidateIncremental");
         activity?.SetTaskId(taskId);
         // Log the IDs of the elements that have changed together with their data type
         var changesPrefix = "ChangedDataElements";

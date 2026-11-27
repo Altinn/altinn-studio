@@ -16,9 +16,13 @@ type appEnv struct {
 	values map[string]string
 }
 
+// Local runs export metrics every 15 s, as deployed apps and our own services do, the interval Grafana's metrics
+// datasource assumes. The app libraries set no OTEL_* values themselves: the runtime sets them for a deployed app.
+const otelMetricExportInterval = "15000"
+
 // newAppRunEnv builds the environment an app is started with. secretsDir is required - every run is given a
 // secrets directory, and the caller has created it by now; keysDir is set only where studioctl decides where
-// the data-protection keys go.
+// the data-protection keys go; otlpEndpoint only when a local collector runs.
 func newAppRunEnv(
 	current []string,
 	kestrelURL string,
@@ -26,10 +30,22 @@ func newAppRunEnv(
 	appFrontendAssetBaseUrl string,
 	secretsDir string,
 	keysDir string,
+	otlpEndpoint string,
 ) []string {
 	env := newAppEnv(current)
 	env.addRunDefaults(kestrelURL, topology, appFrontendAssetBaseUrl, secretsDir, keysDir)
+	env.addTelemetryDefaults(otlpEndpoint)
 	return env.entries()
+}
+
+// addTelemetryDefaults sets the OpenTelemetry SDK's standard variables. The app exports only when it is given an
+// endpoint, so without a local collector it exports nothing. A value in the developer's shell wins, as for the other
+// defaults.
+func (e appEnv) addTelemetryDefaults(otlpEndpoint string) {
+	e.setDefault("OTEL_METRIC_EXPORT_INTERVAL", otelMetricExportInterval)
+	if otlpEndpoint != "" {
+		e.setDefault("OTEL_EXPORTER_OTLP_ENDPOINT", otlpEndpoint)
+	}
 }
 
 func newAppEnv(current []string) appEnv {
@@ -82,7 +98,6 @@ func (e appEnv) addRunDefaults(
 	e.setDefault("AppSettings__OpenIdWellKnownEndpoint", endpoints.platform+"/authentication/api/v1/openid/")
 	e.setDefault("GeneralSettings__ExternalAppBaseUrl", topology.AppBaseURL())
 	e.setDefault("GeneralSettings__HostName", topology.AppHostName())
-	e.setDefault("OTEL_EXPORTER_OTLP_ENDPOINT", topology.OTelURL())
 	e.setDefault("PlatformSettings__ApiStorageEndpoint", endpoints.platform+"/storage/api/v1/")
 	e.setDefault("PlatformSettings__ApiRegisterEndpoint", endpoints.platform+"/register/api/v1/")
 	e.setDefault("PlatformSettings__ApiProfileEndpoint", endpoints.platform+"/profile/api/v1/")
