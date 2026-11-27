@@ -1,10 +1,12 @@
+using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9;
 
 /// <summary>
 /// Removes the telemetry settings v9 no longer reads from the app's appsettings files: <c>AppSettings:UseOpenTelemetry</c>,
-/// <c>AppSettings:UseOpenTelemetryCollector</c>, the <c>ApplicationInsights</c> section and <c>Logging:ApplicationInsights</c>.
+/// <c>AppSettings:UseOpenTelemetryCollector</c>, the <c>ApplicationInsights</c> section, <c>Logging:ApplicationInsights</c>
+/// and top-level <c>OTEL_*</c> keys.
 /// A v9 app exports telemetry only over OpenTelemetry (OTLP), to the collectors in the runtime cluster, which forward it
 /// to the service owner's Application Insights. The runtime, and studioctl for a local run, configure the exporter with
 /// the standard <c>OTEL_*</c> environment variables.
@@ -82,12 +84,68 @@ internal static class TelemetrySettingsMigration
             notRemoved: (messages, name) => NotRemoved(messages, name, "Logging:ApplicationInsights")
         );
 
+        var otelMessages = new List<UpgradeMessage>();
+        foreach (var key in TopLevelOtelKeys(appFolder))
+        {
+            var result = await AppSettingsPropertyRemoval.Migrate(
+                appFolder,
+                [key],
+                removed: (messages, name, value) =>
+                    messages.Warn(
+                        $"Removed {key} = {Describe(value)} from {name}: the runtime, and studioctl for a local run, set "
+                            + "the OpenTelemetry SDK's OTEL_* settings as environment variables, which override the file. "
+                            + "The collectors set the environment's name (deployment.environment.name)."
+                    ),
+                notRemoved: (messages, name) => NotRemoved(messages, name, key)
+            );
+            otelMessages.AddRange(result.Messages);
+        }
+
         return new MigrationResult([
             .. useOpenTelemetry.Messages,
             .. useCollector.Messages,
             .. applicationInsights.Messages,
             .. logging.Messages,
+            .. otelMessages,
         ]);
+    }
+
+    /// <summary>
+    /// The top-level <c>OTEL_*</c> keys in any of the appsettings files, once per spelling that differs other than in
+    /// case. The OpenTelemetry SDK reads them from configuration, so an app could set them in a file.
+    /// </summary>
+    private static IReadOnlyList<string> TopLevelOtelKeys(string appFolder)
+    {
+        var keys = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var file in Directory.EnumerateFiles(appFolder, "appsettings*.json").Order(StringComparer.Ordinal))
+        {
+            try
+            {
+                var (text, _) = Utf8TextFile.Decode(File.ReadAllBytes(file));
+                var root = JsonNode.Parse(
+                    text,
+                    documentOptions: new JsonDocumentOptions
+                    {
+                        AllowTrailingCommas = true,
+                        CommentHandling = JsonCommentHandling.Skip,
+                    }
+                );
+                if (root is not JsonObject properties)
+                    continue;
+                foreach (var (key, _) in properties)
+                {
+                    if (key.StartsWith("OTEL_", StringComparison.OrdinalIgnoreCase))
+                        keys.Add(key);
+                }
+            }
+            catch (Exception exception)
+                when (exception is JsonException or ArgumentException or System.Text.DecoderFallbackException)
+            {
+                // Not JSON, or not UTF-8: not ours to rewrite.
+            }
+        }
+
+        return [.. keys];
     }
 
     private static void NotRemoved(List<UpgradeMessage> messages, string name, string setting) =>

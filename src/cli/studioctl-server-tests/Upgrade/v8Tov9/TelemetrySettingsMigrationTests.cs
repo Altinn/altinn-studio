@@ -54,6 +54,68 @@ public sealed class TelemetrySettingsMigrationTests : IDisposable
     }
 
     [Fact]
+    public async Task Removes_top_level_otel_keys_and_says_what_they_held()
+    {
+        _app.Write(
+            "appsettings.json",
+            """
+            {
+              "AppSettings": {
+                "OTEL_SERVICE_NAME": "nested keys are not the SDK's"
+              },
+              "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment=Local",
+              "OTEL_METRICS_EXPORTER": "otlp",
+              "otel_logs_exporter": "otlp",
+              "OpenTelemetry": {
+                "ElasticExporter": { "Endpoint": "https://elastic.example" }
+              }
+            }
+            """
+        );
+        _app.Write(
+            "appsettings.Production.json",
+            """
+            {
+              "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment=Production"
+            }
+            """
+        );
+
+        var result = await Migrate();
+
+        Assert.False(result.RequiresManualFollowUp);
+        Assert.Equal(4, result.Warnings.Count);
+        Assert.Contains(
+            result.Warnings,
+            w =>
+                w.StartsWith(
+                    "Removed OTEL_RESOURCE_ATTRIBUTES = \"deployment.environment=Production\" from appsettings.Production.json",
+                    StringComparison.Ordinal
+                )
+        );
+        Assert.Equal(
+            """
+            {
+              "AppSettings": {
+                "OTEL_SERVICE_NAME": "nested keys are not the SDK's"
+              },
+              "OpenTelemetry": {
+                "ElasticExporter": { "Endpoint": "https://elastic.example" }
+              }
+            }
+            """,
+            _app.Read("appsettings.json")
+        );
+        Assert.Equal(
+            """
+            {
+            }
+            """,
+            _app.Read("appsettings.Production.json")
+        );
+    }
+
+    [Fact]
     public async Task Removes_a_section_followed_by_another_with_its_own_comma()
     {
         _app.Write(

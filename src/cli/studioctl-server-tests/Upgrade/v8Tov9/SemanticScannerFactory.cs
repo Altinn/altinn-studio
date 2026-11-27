@@ -19,6 +19,11 @@ internal static class SemanticScannerFactory
             ?? throw new InvalidOperationException("TRUSTED_PLATFORM_ASSEMBLIES not available")
         )
             .Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries)
+            // The test platform's own telemetry brings in the Application Insights SDK. An app compiled here gets it
+            // only from the stub a test passes, as from its own package references.
+            .Where(static path =>
+                !Path.GetFileName(path).StartsWith("Microsoft.ApplicationInsights", StringComparison.OrdinalIgnoreCase)
+            )
             .Select(static path => (MetadataReference)MetadataReference.CreateFromFile(path))
             .ToList()
     );

@@ -212,6 +212,10 @@ internal static class V8Tov9Upgrade
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateAppResourcesParameterNames(scanner));
 
+        // Before CheckRemovedCSharpApis, which then reports only the Application Insights code that is left.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, RemoveUnusedApplicationInsightsUsings(scanner));
+
         // Last of the C# rewrites, so the using directives the steps above leave behind are covered
         // too. The rule migration further down generates its code without the redundant usings.
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -710,6 +714,38 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error enabling implicit usings", ex);
+        }
+    }
+
+    /// <summary>
+    /// Removes using directives for the Application Insights SDK from files that use nothing from it: v9 no longer
+    /// brings the SDK in, so they would stop the app from compiling. Needs the v8 semantic model to prove a directive
+    /// unused; without one, CheckRemovedCSharpApis reports the directives instead.
+    /// </summary>
+    static int RemoveUnusedApplicationInsightsUsings(CSharpSourceScanner scanner)
+    {
+        UpgradeConsole.BeginStep("Unused Application Insights usings");
+        try
+        {
+            var migration = new UnusedApplicationInsightsUsingMigration(scanner);
+            if (!scanner.HasSemanticModels && migration.HasSdkUsings)
+            {
+                UpgradeConsole.Skip(
+                    "Kept the Application Insights using directives: without semantic analysis they cannot be proven "
+                        + "unused. The removed C# APIs step lists them."
+                );
+                return ExitSuccess;
+            }
+
+            return ReportMigrationResult(
+                migration.Migrate(),
+                cleanText: "No unused using directives for the Application Insights SDK",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error removing unused Application Insights using directives", ex);
         }
     }
 

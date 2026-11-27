@@ -101,7 +101,10 @@ internal sealed class RedundantUsingDirectiveMigration
         return text.StartsWith(GlobalAliasPrefix, StringComparison.Ordinal) ? text[GlobalAliasPrefix.Length..] : text;
     }
 
-    private static CompilationUnitSyntax Remove(CompilationUnitSyntax root, UsingDirectiveSyntax[] directives)
+    /// <summary>
+    /// Removes the directives with their lines, keeping comments and preprocessor directives around them.
+    /// </summary>
+    internal static CompilationUnitSyntax Remove(CompilationUnitSyntax root, UsingDirectiveSyntax[] directives)
     {
         var tracked = root.TrackNodes(directives);
         foreach (var directive in directives)
