@@ -232,6 +232,21 @@ public class EngineSettingsConfigurationTests
     }
 
     [Fact]
+    public void AddWorkflowEngineHost_DefaultsZeroIntervals_InSettingsTheHostRegistered()
+    {
+        var services = new ServiceCollection();
+        services.Configure<EngineSettings>(opts => opts.DatabaseCommandTimeout = TimeSpan.FromSeconds(10));
+        services.AddWorkflowEngineHost();
+
+        using var sp = services.BuildServiceProvider();
+        var settings = sp.GetRequiredService<IOptions<EngineSettings>>().Value;
+
+        Assert.Equal(TimeSpan.FromSeconds(5), settings.MetricsCollectionInterval);
+        Assert.Equal(TimeSpan.FromSeconds(15), settings.WorkflowCountCollectionInterval);
+        Assert.Equal(TimeSpan.FromSeconds(10), settings.DatabaseCommandTimeout);
+    }
+
+    [Fact]
     public void Validation_RejectsZeroCommandTimeout_WhenDefaultsBypassed()
     {
         // PostConfigure patches zero/negative → default, so validation only fires
