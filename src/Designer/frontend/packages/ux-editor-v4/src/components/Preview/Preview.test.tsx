@@ -196,6 +196,28 @@ describe('Preview', () => {
     post(new URL(mockSessionUrl).origin, appContextMock.previewIframeRef.current.contentWindow);
     expect(appContextMock.previewBridgeOriginRef.current).toBe(new URL(mockSessionUrl).origin);
   });
+
+  it('keeps the bridge ready when the frame shows another page, which only changes the fragment', async () => {
+    const view = render();
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('preview.loading_preview_controller')),
+    );
+    const ready = { source: 'altinn-studio-preview', version: 1, type: 'ready' };
+    const origin = new URL(mockSessionUrl).origin;
+    const source = appContextMock.previewIframeRef.current.contentWindow;
+    act(() => window.dispatchEvent(new MessageEvent('message', { data: ready, origin, source })));
+    const page = appContextMock.selectedFormLayoutName;
+
+    try {
+      appContextMock.selectedFormLayoutName = 'anotherPage';
+      view.rerender(<Preview collapsed={false} onCollapseToggle={collapseToggle} />);
+
+      expect(appContextMock.previewIframeRef.current.src).toMatch(/#\/instance\/.+\/anotherPage$/);
+      expect(appContextMock.previewBridgeOriginRef.current).toBe(origin);
+    } finally {
+      appContextMock.selectedFormLayoutName = page;
+    }
+  });
 });
 
 const collapseToggle = vi.fn();

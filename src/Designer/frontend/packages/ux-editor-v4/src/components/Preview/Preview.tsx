@@ -120,13 +120,15 @@ const PreviewFrame = () => {
     ignoreComponentErrors,
     previewBridgeOriginRef,
   );
-  // Each page in the frame says when it is ready for changes, so what the page before said goes.
+  // The bridge says once per document when it is ready for changes. The frontend's routes are in the URL's fragment,
+  // so another page or task in the frame keeps the document, and only a new one starts over.
+  const previewDocument = previewURL?.split('#')[0];
   useEffect(() => {
     previewBridgeOriginRef.current = null;
     return () => {
       previewBridgeOriginRef.current = null;
     };
-  }, [previewURL, checksum, previewBridgeOriginRef]);
+  }, [previewDocument, checksum, previewBridgeOriginRef]);
 
   if (isSessionError || isInstanceError) {
     return (
