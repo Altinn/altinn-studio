@@ -13,6 +13,104 @@ spec:
           - key: altinn.service_owner
             value: ${SERVICEOWNER_ID}
             action: insert
+      # k8s_attributes keeps a value the sender has already set, so a service could otherwise
+      # choose the attributes transform/route reads. Remove them first: then they come only
+      # from the pod that k8s_attributes finds by the sender's k8s.pod.uid.
+      resource/untrusted:
+        attributes:
+          - key: k8s.namespace.name
+            action: delete
+          - key: k8s.deployment.name
+            action: delete
+          - key: altinn.k8s.namespace.runtime
+            action: delete
+          - key: altinn.telemetry.route
+            action: delete
+      # Finds the pod only by k8s.pod.uid, which every workload here sets from the downward API
+      # (the app chart, our deployments, and the platform's collector for Traefik). Base's
+      # fallbacks would let a service name another pod by its IP, which is easy to learn, and
+      # the connection's address is the router's own Linkerd proxy, which matches no pod.
+      # Telemetry without a known pod gets no namespace and no route.
+      #
+      # Also extracts the namespace's altinn.studio/runtime label, the one otel-router-ingress
+      # admits our namespaces by. transform/route reads it and then removes it.
+      k8s_attributes:
+        pod_association:
+          - sources:
+              - from: resource_attribute
+                name: k8s.pod.uid
+        extract:
+          labels:
+            - tag_name: altinn.k8s.namespace.runtime
+              key: altinn.studio/runtime
+              from: namespace
+      # Where each resource's telemetry goes, from the pod k8s_attributes found, never from
+      # what the service says about itself. The gateway routes on altinn.telemetry.route and
+      # removes it before export. Later statements win:
+      #   control_plane  our services, in the namespaces labelled altinn.studio/runtime, and
+      #                  kubernetes-wrapper, which runs among the apps
+      #   data_plane     pdf3
+      #   app            apps, which are everything else in default
+      #   ingress        Traefik, which the platform's collector forwards from the traefik
+      #                  namespace. Its spans start the traces of our services behind it, such
+      #                  as the runtime gateway's, and go only to Victoria. Most of them are
+      #                  apps' traffic, so they take apps' queues here.
+      # Anything else gets no route and is dropped (routing/*, filter/unrouted).
+      transform/route:
+        error_mode: ignore
+        trace_statements:
+          - context: resource
+            statements: &route
+              - set(resource.attributes["altinn.telemetry.route"], "control_plane") where resource.attributes["altinn.k8s.namespace.runtime"] == "true"
+              - set(resource.attributes["altinn.telemetry.route"], "data_plane") where resource.attributes["k8s.namespace.name"] == "runtime-pdf3"
+              - set(resource.attributes["altinn.telemetry.route"], "app") where resource.attributes["k8s.namespace.name"] == "default"
+              - set(resource.attributes["altinn.telemetry.route"], "control_plane") where resource.attributes["k8s.namespace.name"] == "default" and resource.attributes["k8s.deployment.name"] == "kuberneteswrapper-kubernetes-api-wrapper"
+              - set(resource.attributes["altinn.telemetry.route"], "ingress") where resource.attributes["k8s.namespace.name"] == "traefik"
+              - delete_key(resource.attributes, "altinn.k8s.namespace.runtime")
+        metric_statements:
+          - context: resource
+            statements: *route
+        log_statements:
+          - context: resource
+            statements: *route
+      # Telemetry from a pod transform/route doesn't know. Dropped rather than sent to our
+      # workspace or the service owner's. otelcol_processor_filter_*_filtered counts it, by
+      # processor and pipeline.
+      filter/unrouted:
+        error_mode: ignore
+        traces:
+          span: ['true']
+        metrics:
+          metric: ['true']
+        logs:
+          log_record: ['true']
+
+    # Apps' telemetry, and Traefik's, which is mostly apps' traffic, gets exporters and
+    # queues of its own, so a flood from apps fills only its own queue and our telemetry still
+    # reaches the gateway.
+    connectors:
+      routing/traces:
+        default_pipelines: [traces/unrouted]
+        table:
+          - condition: resource.attributes["altinn.telemetry.route"] == "app" or resource.attributes["altinn.telemetry.route"] == "ingress"
+            pipelines: [traces/apps]
+          - condition: resource.attributes["altinn.telemetry.route"] != nil
+            pipelines: [traces/studio]
+      routing/metrics:
+        default_pipelines: [metrics/unrouted]
+        table:
+          - condition: resource.attributes["altinn.telemetry.route"] == "app" or resource.attributes["altinn.telemetry.route"] == "ingress"
+            pipelines: [metrics/apps]
+          - condition: resource.attributes["altinn.telemetry.route"] != nil
+            pipelines: [metrics/studio]
+      routing/logs:
+        default_pipelines: [logs/unrouted]
+        table:
+          - condition: resource.attributes["altinn.telemetry.route"] == "app" or resource.attributes["altinn.telemetry.route"] == "ingress"
+            pipelines: [logs/apps]
+          - condition: resource.attributes["altinn.telemetry.route"] != nil
+            pipelines: [logs/studio]
+
     exporters:
       load_balancing/traces:
         routing_key: traceID
@@ -98,17 +196,141 @@ spec:
             hostname: otel-gateway-collector-headless.runtime-obs.svc.cluster.local
             port: '4317'
 
+      load_balancing/apps_traces:
+        routing_key: traceID
+        # Same settings as load_balancing/traces.
+        timeout: 10s
+        retry_on_failure:
+          enabled: true
+          initial_interval: 5s
+          randomization_factor: 0.5
+          multiplier: 1.5
+          max_interval: 30s
+          max_elapsed_time: 300s
+        sending_queue:
+          enabled: true
+          sizer: bytes
+          queue_size: 8388608
+        protocol:
+          otlp:
+            tls:
+              insecure: true
+            retry_on_failure:
+              enabled: false
+            sending_queue:
+              enabled: false
+        resolver:
+          dns:
+            hostname: otel-gateway-collector-headless.runtime-obs.svc.cluster.local
+            port: '4317'
+      load_balancing/apps_logs:
+        routing_key: traceID
+        # Same settings as load_balancing/traces.
+        timeout: 10s
+        retry_on_failure:
+          enabled: true
+          initial_interval: 5s
+          randomization_factor: 0.5
+          multiplier: 1.5
+          max_interval: 30s
+          max_elapsed_time: 300s
+        sending_queue:
+          enabled: true
+          sizer: bytes
+          queue_size: 8388608
+        protocol:
+          otlp:
+            tls:
+              insecure: true
+            retry_on_failure:
+              enabled: false
+            sending_queue:
+              enabled: false
+        resolver:
+          dns:
+            hostname: otel-gateway-collector-headless.runtime-obs.svc.cluster.local
+            port: '4317'
+      load_balancing/apps_metrics:
+        routing_key: resource
+        # Same settings as load_balancing/traces.
+        timeout: 10s
+        retry_on_failure:
+          enabled: true
+          initial_interval: 5s
+          randomization_factor: 0.5
+          multiplier: 1.5
+          max_interval: 30s
+          max_elapsed_time: 300s
+        sending_queue:
+          enabled: true
+          sizer: bytes
+          queue_size: 8388608
+        protocol:
+          otlp:
+            tls:
+              insecure: true
+            retry_on_failure:
+              enabled: false
+            sending_queue:
+              enabled: false
+        resolver:
+          dns:
+            hostname: otel-gateway-collector-headless.runtime-obs.svc.cluster.local
+            port: '4317'
+      nop: {}
+
     service:
       pipelines:
-        traces:
+        # The router's pipelines start here, at the receiver, and classify; routing/* hands each
+        # resource on to the pipeline for its route.
+        traces/in:
           receivers: [otlp]
-          processors: [resource_detection/aks, k8s_attributes, resource/environment, resource/service_owner, transform/drop, batch]
+          processors: [memory_limiter, resource/untrusted, resource_detection/aks, k8s_attributes, transform/route, resource/environment, resource/service_owner, transform/drop]
+          exporters: [routing/traces]
+        traces/studio:
+          receivers: [routing/traces]
+          processors: [batch]
           exporters: [load_balancing/traces]
-        metrics:
+        traces/apps:
+          receivers: [routing/traces]
+          processors: [batch]
+          exporters: [load_balancing/apps_traces]
+        traces/unrouted:
+          receivers: [routing/traces]
+          processors: [filter/unrouted]
+          exporters: [nop]
+        metrics/in:
           receivers: [otlp]
-          processors: [filter/exporter_calls, resource_detection/aks, k8s_attributes, resource/environment, resource/service_owner, transform/drop, batch]
+          processors: [memory_limiter, filter/exporter_calls, resource/untrusted, resource_detection/aks, k8s_attributes, transform/route, resource/environment, resource/service_owner, transform/drop]
+          exporters: [routing/metrics]
+        metrics/studio:
+          receivers: [routing/metrics]
+          processors: [batch]
           exporters: [load_balancing/metrics]
-        logs:
+        metrics/apps:
+          receivers: [routing/metrics]
+          processors: [batch]
+          exporters: [load_balancing/apps_metrics]
+        metrics/unrouted:
+          receivers: [routing/metrics]
+          processors: [filter/unrouted]
+          exporters: [nop]
+        # filter/logs, base's WARN and above, applies to apps as to our services. A per-app level
+        # from deployment/app.yaml (#21792) would come from a label on the app's Deployment,
+        # which k8s_attributes reads, so it comes after transform/route.
+        logs/in:
           receivers: [otlp]
-          processors: [filter/logs, resource_detection/aks, k8s_attributes, resource/environment, resource/service_owner, transform/drop, batch]
+          processors: [memory_limiter, resource/untrusted, resource_detection/aks, k8s_attributes, transform/route, filter/logs, resource/environment, resource/service_owner, transform/drop]
+          exporters: [routing/logs]
+        logs/studio:
+          receivers: [routing/logs]
+          processors: [batch]
           exporters: [load_balancing/logs]
+        logs/apps:
+          receivers: [routing/logs]
+          processors: [batch]
+          exporters: [load_balancing/apps_logs]
+        logs/unrouted:
+          receivers: [routing/logs]
+          processors: [filter/unrouted]
+          exporters: [nop]

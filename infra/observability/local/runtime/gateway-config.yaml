@@ -1,6 +1,7 @@
-# Victoria is the only destination. Without the Application Insights pipelines
-# there is nothing to route, so the routing connectors and their per-plane
-# pipelines go too, and metrics get a single pipeline of their own.
+# Victoria is the only real destination. The routing and every pipeline stay as in
+# production, so what each source's telemetry goes through, and what is dropped, is the
+# same here; only the Application Insights exporters become debug exporters, whose log
+# lines and otelcol_exporter_sent_* metrics show what would have gone to each workspace.
 # The Application Insights connection strings go, and the pod's UID from base
 # stays. The test operations fail the build if the overlay reorders the list.
 - op: test
@@ -9,40 +10,54 @@
 - op: test
   path: /spec/env/2/name
   value: DATA_PLANE_CONNECTION_STRING
+- op: test
+  path: /spec/env/3/name
+  value: APPS_CONNECTION_STRING
+- op: remove
+  path: /spec/env/3
 - op: remove
   path: /spec/env/2
 - op: remove
   path: /spec/env/1
 - op: remove
-  path: /spec/config/connectors
-- op: remove
   path: /spec/config/exporters/azure_monitor~1control_plane
 - op: remove
   path: /spec/config/exporters/azure_monitor~1data_plane
+- op: remove
+  path: /spec/config/exporters/azure_monitor~1apps
+- op: add
+  path: /spec/config/exporters/debug~1control_plane
+  value: {verbosity: basic}
+- op: add
+  path: /spec/config/exporters/debug~1data_plane
+  value: {verbosity: basic}
+- op: add
+  path: /spec/config/exporters/debug~1apps
+  value: {verbosity: basic}
+- op: replace
+  path: /spec/config/service/pipelines/traces~1control_plane/exporters
+  value: [debug/control_plane]
+- op: replace
+  path: /spec/config/service/pipelines/traces~1data_plane/exporters
+  value: [debug/data_plane]
+- op: replace
+  path: /spec/config/service/pipelines/traces~1apps/exporters
+  value: [debug/apps]
+- op: replace
+  path: /spec/config/service/pipelines/metrics~1apps/exporters
+  value: [debug/apps]
+- op: replace
+  path: /spec/config/service/pipelines/logs~1control_plane/exporters
+  value: [debug/control_plane]
+- op: replace
+  path: /spec/config/service/pipelines/logs~1data_plane/exporters
+  value: [debug/data_plane]
+- op: replace
+  path: /spec/config/service/pipelines/logs~1apps/exporters
+  value: [debug/apps]
 - op: replace
   path: /spec/config/exporters/otlp_http~1victoria/endpoint
   value: http://observability-proxy.observability.svc.cluster.local/internal/observability/otlp
-- op: remove
-  path: /spec/config/service/pipelines/traces~1in
-- op: remove
-  path: /spec/config/service/pipelines/traces~1control_plane
-- op: remove
-  path: /spec/config/service/pipelines/traces~1data_plane
-- op: remove
-  path: /spec/config/service/pipelines/metrics~1in
-- op: remove
-  path: /spec/config/service/pipelines/metrics~1control_plane
-- op: remove
-  path: /spec/config/service/pipelines/metrics~1data_plane
-- op: add
-  path: /spec/config/service/pipelines/metrics~1victoria
-  value:
-    receivers: [otlp]
-    processors: [filter/metrics_allowlist, batch]
-    exporters: [otlp_http/victoria]
-- op: remove
-  path: /spec/config/service/pipelines/logs~1in
-- op: remove
-  path: /spec/config/service/pipelines/logs~1control_plane
-- op: remove
-  path: /spec/config/service/pipelines/logs~1data_plane
+- op: replace
+  path: /spec/config/exporters/otlp_http~1apps_victoria/endpoint
+  value: http://observability-proxy.observability.svc.cluster.local/internal/observability/otlp

@@ -27,6 +27,21 @@ browsers.
   stores it in the cluster's Application Insights and Azure Monitor Workspace. It finds each service's pod by
   `k8s.pod.uid`, so without it the telemetry looks like the router's.
 
+In a runtime cluster, v9 apps export to the same router, at `http://otel-router.runtime-obs.svc.cluster.local:4317`
+over gRPC. Their telemetry is the service owner's, so it doesn't reach our workspaces:
+
+- The router tells apps from our services by the namespace of the pod that sent the telemetry, never by an attribute
+  the sender sets. Apps run in `default`, and our services in the namespaces labelled `altinn.studio/runtime`.
+  Traefik's spans, which the platform's collector forwards from `traefik`, start the traces of our services behind
+  it, such as the runtime gateway, and go only to VictoriaTraces. The platform's collector sends its own sample of
+  them to the service owner's Application Insights.
+- Apps' traces, logs and metrics go to the service owner's Application Insights, through exporters and queues of
+  their own, so a slow Application Insights doesn't hold up our telemetry. Apps and our services share each
+  collector's memory, so a flood from apps can make a collector refuse ours too.
+- Of apps' telemetry, only an allowlist of metrics without anything that identifies a person or an instance reaches
+  VictoriaMetrics.
+- Telemetry from a pod the router doesn't know goes nowhere.
+
 [infra/observability](../infra/observability) configures the collectors.
 [The pipeline's contract](#the-pipelines-contract) below lists what they do to a service's telemetry.
 
@@ -202,20 +217,21 @@ its current names. Our own `altinn.` names are only for what the conventions don
 
 ### Shared vocabulary
 
-| Concept                                    | Attribute                        | Where                                                                                                                   | On metrics                                       |
-| ------------------------------------------ | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
-| Service owner                              | `altinn.service_owner`           | Resource where the value is fixed for the process. Span, metric and log attribute in shared services                    | Yes                                              |
-| App                                        | `altinn.app`                     | Resource in apps. Span, metric and log attribute in shared services. In Designer, only when `altinn.repo_type` is `app` | Yes. Shared services raise the cardinality limit |
-| Environment the service runs in            | `deployment.environment.name`    | Resource, set by the router                                                                                             | Yes                                              |
-| Runtime environment an operation targets   | `altinn.environment`             | Span, metric and log attribute in services outside the runtime, such as Designer deploying to `tt02`                    | Yes                                              |
-| Repository type                            | `altinn.repo_type`               | Span, metric and log attribute wherever work concerns a Studio repository                                               | Yes                                              |
-| App library version                        | `altinn.app_lib.version`         | Resource in v9 apps. Missing means v8                                                                                   | Yes                                              |
-| Process task type                          | `altinn.process.task.type`       | Span, metric and log attribute                                                                                          | Yes                                              |
-| Process task                               | `altinn.process.task.id`         | Span and log attribute. Metric attribute within an app                                                                  | Within an app only                               |
-| Instance                                   | `altinn.instance.guid`           | Span and log attribute, on both sides of linked work                                                                    | No                                               |
-| Instance owner                             | `altinn.instance.owner.party.id` | Span and log attribute                                                                                                  | No                                               |
-| The user or system a unit of work acts for | `enduser.id`                     | Span and log attribute. The ID the system that authenticated them uses, such as a Studio username or an Altinn user ID  | No                                               |
-| App deploy                                 | `altinn.app_deploy.build.id`     | Span and log attribute on every part of a deploy                                                                        | No                                               |
+| Concept                                    | Attribute                        | Where                                                                                                                                   | On metrics                                       |
+| ------------------------------------------ | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| Service owner                              | `altinn.service_owner`           | Resource where the value is fixed for the process. Span, metric and log attribute in shared services                                    | Yes                                              |
+| App                                        | `altinn.app`                     | Resource in apps. Span, metric and log attribute in shared services. In Designer, only when `altinn.repo_type` is `app`                 | Yes. Shared services raise the cardinality limit |
+| Environment the service runs in            | `deployment.environment.name`    | Resource, set by the router                                                                                                             | Yes                                              |
+| Runtime environment an operation targets   | `altinn.environment`             | Span, metric and log attribute in services outside the runtime, such as Designer deploying to `tt02`                                    | Yes                                              |
+| Repository type                            | `altinn.repo_type`               | Span, metric and log attribute wherever work concerns a Studio repository                                                               | Yes                                              |
+| App library version                        | `altinn.app_lib.version`         | Resource in v9 apps. Missing means v8                                                                                                   | Yes                                              |
+| App runtime version                        | `altinn.app_runtime.version`     | Resource in v9 apps, set by the runtime from the release. The version of the contract between the app and the runtime, not of a library | Yes                                              |
+| Process task type                          | `altinn.process.task.type`       | Span, metric and log attribute                                                                                                          | Yes                                              |
+| Process task                               | `altinn.process.task.id`         | Span and log attribute. Metric attribute within an app                                                                                  | Within an app only                               |
+| Instance                                   | `altinn.instance.guid`           | Span and log attribute, on both sides of linked work                                                                                    | No                                               |
+| Instance owner                             | `altinn.instance.owner.party.id` | Span and log attribute                                                                                                                  | No                                               |
+| The user or system a unit of work acts for | `enduser.id`                     | Span and log attribute. The ID the system that authenticated them uses, such as a Studio username or an Altinn user ID                  | No                                               |
+| App deploy                                 | `altinn.app_deploy.build.id`     | Span and log attribute on every part of a deploy                                                                                        | No                                               |
 
 - The same key is a resource attribute where the value is fixed for the process, as in an app or in a service owner's
   own cluster, and a span, metric or log attribute where it varies per unit of work, as in a shared service.
@@ -311,7 +327,10 @@ section.
 - The router adds the pod's Kubernetes metadata to the resource. It finds the pod by `k8s.pod.uid`. In DIS Core,
   where the collectors may not read pods, the deployment sets the pod's metadata in `OTEL_RESOURCE_ATTRIBUTES`
   instead, as pdf3's does.
-- The router drops logs below WARN.
+- The router drops logs below WARN, from apps too.
+- In a runtime cluster, the router finds the pod only by `k8s.pod.uid`, and replaces any `k8s.namespace.name` and
+  `k8s.deployment.name` a service sets. It drops telemetry from a pod it can't find, and from a namespace other than
+  ours, `default` and `traefik`. It keeps apps' instrumentation scope, and clears ours.
 - The router drops the `http.client.*` data points of a service's own exports to the router.
 - The gateway keeps only the metrics in its allowlist: our own (`altinn.*`), and the semantic conventions'
   namespaces that our services emit, such as `http.*`, `signalr.server.*`, `cicd.*` and the language runtimes'
@@ -319,6 +338,20 @@ section.
   it adds per process.
 - The gateway samples traces, as [Sampling](#sampling) describes. A service sets `altinn.sampling` only to mark a
   trace to be kept.
+- The gateway samples apps' traces as it samples ours. The Application Insights exporter sets no sample rate, so
+  request counts in the service owner's Application Insights are those of the kept traces. Count an app's requests
+  from its metrics, as for our services.
+- The gateway removes query strings from apps' and Traefik's spans, since Traefik's spans carry them as they came.
+- The gateway sends Application Insights the latest value of each of an app's series once a minute, as a per-interval
+  value, which Application Insights adds up. Apps export every 15 s, as our services do.
+- For VictoriaMetrics, the gateway chooses apps' metrics by the meter that made them, and keeps only their known
+  attributes and values:
+  - the app libraries' own, from the `Altinn.App` meter
+  - `altinn.workload.start_time`, from `Altinn.Studio.Workload`
+  - `http.server.request.duration`, from ASP.NET Core's `Microsoft.AspNetCore.Hosting`, by method, status and error type
+
+  Of the resource attributes, it keeps those that name the service, the pod, the service owner and the versions.
+  Metrics from the app's own meter, named after the app, go only to the service owner's Application Insights.
 
 The pipeline doesn't derive metrics from spans. A service emits the metrics it needs itself.
 

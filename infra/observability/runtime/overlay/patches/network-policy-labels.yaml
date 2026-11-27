@@ -8,6 +8,11 @@ spec:
         - namespaceSelector:
             matchLabels:
               altinn.studio/runtime: "true"
+        # Apps, and kubernetes-wrapper, which runs among them. Kubernetes sets this label on
+        # every namespace, and default has no altinn.studio/runtime label.
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: default
         # The platform's collector, which forwards Traefik's spans so app traces keep their
         # ingress span.
         - namespaceSelector:

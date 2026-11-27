@@ -92,5 +92,24 @@ func DefaultMappings() []SecretSyncMapping {
 				}, nil
 			},
 		},
+		{
+			// The runtime collectors' gateway sends v9 apps' telemetry there, and reads it from its own namespace
+			// (infra/observability/runtime/overlay/patches/gateway-secrets.yaml). The exporter refuses to start on
+			// a value it can't parse, and with it our own pipelines, so this copy is normalized as the v8 one is.
+			SourceNamespace: appInsightsSourceNamespace,
+			SourceName:      appInsightsSourceName,
+			DestNamespace:   "runtime-obs",
+			DestName:        "apps-azure-monitor-secret",
+			CanDeleteDest:   true,
+			OwnMetadata:     true,
+			// An invalid value fails the sync, so the destination keeps the last valid one.
+			BuildData: func(_ context.Context, _ client.Client, data map[string][]byte) (map[string][]byte, error) {
+				cs, err := parseConnectionString(data[appInsightsSourceKey])
+				if err != nil {
+					return nil, err
+				}
+				return map[string][]byte{"connection-string": []byte(cs.value)}, nil
+			},
+		},
 	}
 }

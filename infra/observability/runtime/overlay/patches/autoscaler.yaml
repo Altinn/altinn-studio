@@ -1,0 +1,17 @@
+# Apps send through the same collectors as our services, so each can add pods when apps send
+# more. The minimum is base's two replicas, and the targets are well above what the
+# collectors use today, so the autoscaler adds nothing until it is needed. Targets are
+# percentages of the CPU request (50m for the router, 100m for the gateway), so 300 is 150m
+# and 300m, below each limit. Memory is no target: a Go process returns memory slowly, so
+# the autoscaler would hardly scale down, and memory_limiter guards it instead.
+#
+# The HorizontalPodAutoscaler sets spec.replicas on the OpenTelemetryCollector, so this overlay
+# stops setting it. Otherwise Flux would set it back to 2 on every reconcile.
+- op: remove
+  path: /spec/replicas
+- op: add
+  path: /spec/autoscaler
+  value:
+    minReplicas: 2
+    maxReplicas: 4
+    targetCPUUtilization: 300

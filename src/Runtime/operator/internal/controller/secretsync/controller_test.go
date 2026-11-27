@@ -1006,6 +1006,59 @@ func TestReconciler_DefaultMapping_V8AppsTelemetryEnvSourceDeleted(t *testing.T)
 	g.Expect(err).To(HaveOccurred())
 }
 
+func TestReconciler_DefaultMapping_CollectorsConnectionString(t *testing.T) {
+	g := NewWithT(t)
+
+	h := newTestHarness(t, DefaultMappings(), appInsightsSource(" "+testConnectionString+";\n"))
+	h.reconcile(t, appInsightsSourceName, appInsightsSourceNamespace)
+
+	dest, err := h.getSecret("apps-azure-monitor-secret", "runtime-obs")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(dest.Data).To(Equal(map[string][]byte{"connection-string": []byte(testConnectionString)}))
+	g.Expect(dest.Labels).To(Equal(map[string]string{"app.kubernetes.io/managed-by": "altinn-studio-operator"}))
+
+	// The same source also gives v8 apps theirs.
+	_, err = h.getSecret("apps-runtime-telemetry-env", "default")
+	g.Expect(err).NotTo(HaveOccurred())
+}
+
+func TestReconciler_DefaultMapping_CollectorsConnectionStringKeepsLastValid(t *testing.T) {
+	g := NewWithT(t)
+
+	mapping := defaultMapping(t, "apps-azure-monitor-secret")
+	last := map[string][]byte{"connection-string": []byte("InstrumentationKey=last-valid")}
+	destSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{Name: mapping.DestName, Namespace: mapping.DestNamespace},
+		Data:       last,
+	}
+
+	h := newTestHarness(t, DefaultMappings(), appInsightsSource(testConnectionString+";garbage"), destSecret)
+	_, err := h.reconciler.Reconcile(h.ctx(), reconcile.Request{
+		NamespacedName: client.ObjectKey{Name: appInsightsSourceName, Namespace: appInsightsSourceNamespace},
+	})
+	g.Expect(err).To(MatchError(errInvalidConnectionString))
+
+	dest, err := h.getSecret(mapping.DestName, mapping.DestNamespace)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(dest.Data).To(Equal(last))
+}
+
+func TestReconciler_DefaultMapping_CollectorsConnectionStringSourceDeleted(t *testing.T) {
+	g := NewWithT(t)
+
+	mapping := defaultMapping(t, "apps-azure-monitor-secret")
+	destSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{Name: mapping.DestName, Namespace: mapping.DestNamespace},
+		Data:       map[string][]byte{"connection-string": []byte("old")},
+	}
+
+	h := newTestHarness(t, DefaultMappings(), destSecret)
+	h.reconcile(t, appInsightsSourceName, appInsightsSourceNamespace)
+
+	_, err := h.getSecret(mapping.DestName, mapping.DestNamespace)
+	g.Expect(err).To(HaveOccurred())
+}
+
 func TestParseConnectionString(t *testing.T) {
 	const key = "InstrumentationKey=" + testInstrumentationKey
 	const endpoint = "IngestionEndpoint=https://example.invalid/"
