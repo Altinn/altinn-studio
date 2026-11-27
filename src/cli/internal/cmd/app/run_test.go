@@ -61,9 +61,7 @@ func TestBuildDockerRunSpec_AddsDockerLocaltestEnv(t *testing.T) {
 		"GeneralSettings__ExternalAppBaseUrl=http://local.altinn.cloud:8000/{org}/{app}/",
 		"GeneralSettings__HostName=local.altinn.cloud",
 		"OTEL_EXPORTER_OTLP_ENDPOINT=http://otel.local.altinn.cloud:4317",
-		"OTEL_TRACES_SAMPLER=always_on",
-		"OTEL_METRIC_EXPORT_INTERVAL=10000",
-		"OTEL_METRIC_EXPORT_TIMEOUT=8000",
+		"OTEL_METRIC_EXPORT_INTERVAL=15000",
 		"PlatformSettings__ApiStorageEndpoint=http://local.altinn.cloud:8000/storage/api/v1/",
 		"PlatformSettings__ApiPdf2Endpoint=http://pdf.local.altinn.cloud:8000/pdf",
 		"PlatformSettings__ApiWorkflowEngineEndpoint=http://workflow-engine.local.altinn.cloud:8000/api/v1/",
@@ -72,8 +70,8 @@ func TestBuildDockerRunSpec_AddsDockerLocaltestEnv(t *testing.T) {
 	})
 }
 
-// The app libraries set no OTEL_* values themselves, so a local run gets them from studioctl: every trace, metrics
-// every 10 s, and the collector only when the environment runs one, since an app given no endpoint exports nothing.
+// The app libraries set no OTEL_* values themselves, so a local run gets them from studioctl: metrics every 15 s, and
+// the collector only when the environment runs one, since an app given no endpoint exports nothing.
 func TestBuildDotnetRunSpec_SetsTheOpenTelemetrySettings(t *testing.T) {
 	t.Parallel()
 
@@ -102,9 +100,7 @@ func TestBuildDotnetRunSpec_SetsTheOpenTelemetrySettings(t *testing.T) {
 			}
 
 			assertEnvContainsAll(t, spec.Env, []string{
-				"OTEL_TRACES_SAMPLER=always_on",
-				"OTEL_METRIC_EXPORT_INTERVAL=10000",
-				"OTEL_METRIC_EXPORT_TIMEOUT=8000",
+				"OTEL_METRIC_EXPORT_INTERVAL=15000",
 			})
 			if tc.otlpEndpoint == "" {
 				assertEnvMissing(t, spec.Env, "OTEL_EXPORTER_OTLP_ENDPOINT")
