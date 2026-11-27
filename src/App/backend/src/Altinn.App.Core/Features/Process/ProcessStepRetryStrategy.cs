@@ -19,31 +19,38 @@ namespace Altinn.App.Core.Features.Process;
 public sealed record ProcessStepRetryStrategy
 {
     /// <summary>
+    /// Apps create a strategy with <see cref="Exponential"/>, <see cref="Linear"/>, <see cref="Constant"/> or
+    /// <see cref="None"/>, which cover every valid shape: a strategy built field by field, such as one with no
+    /// interval and unbounded retries, would only fail validation at startup.
+    /// </summary>
+    internal ProcessStepRetryStrategy() { }
+
+    /// <summary>
     /// The backoff shape used to space out retries.
     /// </summary>
-    public ProcessStepBackoffType BackoffType { get; init; }
+    public ProcessStepBackoffType BackoffType { get; internal init; }
 
     /// <summary>
     /// The base interval between attempts. The actual delay grows or stays constant based on
     /// <see cref="BackoffType"/>. Must be positive unless <see cref="MaxRetries"/> is 0.
     /// </summary>
-    public TimeSpan BaseInterval { get; init; }
+    public TimeSpan BaseInterval { get; internal init; }
 
     /// <summary>
     /// The maximum number of retries before the step is given up on. Null means unbounded (subject to
     /// <see cref="MaxDuration"/>).
     /// </summary>
-    public int? MaxRetries { get; init; }
+    public int? MaxRetries { get; internal init; }
 
     /// <summary>
     /// The maximum delay between retries. Useful for capping linear and exponential backoff.
     /// </summary>
-    public TimeSpan? MaxDelay { get; init; }
+    public TimeSpan? MaxDelay { get; internal init; }
 
     /// <summary>
     /// The maximum wall-clock time to keep retrying, across all attempts.
     /// </summary>
-    public TimeSpan? MaxDuration { get; init; }
+    public TimeSpan? MaxDuration { get; internal init; }
 
     /// <summary>
     /// Creates an exponential backoff retry strategy.

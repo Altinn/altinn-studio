@@ -48,7 +48,7 @@ public sealed record StageContext
     /// persisted time when the workflow step was enqueued.
     /// </summary>
     /// <remarks>Provided by the workflow engine as <c>Workflow.StartAt ?? Step.CreatedAt</c>.</remarks>
-    public DateTimeOffset ExecutionReferenceTime { get; internal init; }
+    public DateTimeOffset ExecutionReferenceTime { get; init; }
 
     /// <summary>
     /// The clock bounding <em>this attempt</em> (<see cref="ProcessStepOptions.MaxExecutionTime"/>):
