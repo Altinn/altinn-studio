@@ -14,11 +14,24 @@ internal sealed class SuccessfulWorkflowEngineCommandResult : WorkflowEngineComm
 
     /// <summary>
     /// What the mailbox relay must do once this callback's data changes are saved and re-captured: enqueue the
-    /// exchange's next receiver, or close the mailbox and start what comes after it. <c>null</c> on every callback
-    /// that is not a mailbox reply handler's. It rides the result rather than being acted on inside the command
-    /// because the successor must start on the state this handler <em>published</em>.
+    /// exchange's next receiver, or close the mailbox and start what comes after it. Set only by
+    /// <see cref="DecidedWorkflowEngineCommandResult.Derive"/>, after the save. It rides the result rather than being
+    /// acted on inside the command because the successor must start on the state this handler <em>published</em>.
     /// </summary>
     public MailboxContinuation? MailboxContinuation { get; init; }
+}
+
+/// <summary>
+/// A service task's stage or reply handler returned a <see cref="ServiceTaskVerdict"/>. The callback saves the step with
+/// the verdict and then asks <see cref="Derive"/> what follows the verdict Storage committed, which is another run's
+/// when Storage replays the save. <see cref="Derive"/> answers a success, or a permanent failure when the verdict does
+/// not fit the step or its continuation cannot be planned.
+/// </summary>
+internal sealed class DecidedWorkflowEngineCommandResult : WorkflowEngineCommandResult
+{
+    public required ServiceTaskVerdict Verdict { get; init; }
+
+    public required Func<ServiceTaskVerdict, WorkflowEngineCommandResult> Derive { get; init; }
 }
 
 /// <summary>

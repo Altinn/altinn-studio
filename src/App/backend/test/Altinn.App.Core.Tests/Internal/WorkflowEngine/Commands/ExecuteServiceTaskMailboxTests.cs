@@ -185,8 +185,9 @@ public class ExecuteServiceTaskMailboxTests
     {
         var task = new ArchivingTask();
 
-        WorkflowEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(MintedCarry()), Payload(SendStageIndex));
+        WorkflowEngineCommandResult result = (
+            await CreateCommand(task).Execute(CreateContext(MintedCarry()), Payload(SendStageIndex))
+        ).AfterCommit();
 
         Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
 
@@ -251,8 +252,9 @@ public class ExecuteServiceTaskMailboxTests
     {
         var task = new ArchivingTask();
 
-        WorkflowEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(MintedCarry()), Payload(itemIndex: 1));
+        WorkflowEngineCommandResult result = (
+            await CreateCommand(task).Execute(CreateContext(MintedCarry()), Payload(itemIndex: 1))
+        ).AfterCommit();
 
         Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.Contains("RecordDispatch", task.Seen);
@@ -265,11 +267,11 @@ public class ExecuteServiceTaskMailboxTests
         var task = new PlainTask();
 
         Assert.IsType<SuccessfulWorkflowEngineCommandResult>(
-            await CreateCommand(task).Execute(CreateContext(), Payload(SendStageIndex))
+            (await CreateCommand(task).Execute(CreateContext(), Payload(SendStageIndex))).AfterCommit()
         );
         // The plain task's conclusion is its item 1, right after the one stage.
         Assert.IsType<SuccessfulWorkflowEngineCommandResult>(
-            await CreateCommand(task).Execute(CreateContext(), Payload(itemIndex: 1))
+            (await CreateCommand(task).Execute(CreateContext(), Payload(itemIndex: 1))).AfterCommit()
         );
 
         Assert.Contains("SendStage", task.Seen);
@@ -342,8 +344,10 @@ public class ExecuteServiceTaskMailboxTests
     {
         var task = new ArchivingTask();
 
-        WorkflowEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(MintedCarry(), Delivered(_carriedMailboxId)), ReceivePayload());
+        WorkflowEngineCommandResult result = (
+            await CreateCommand(task)
+                .Execute(CreateContext(MintedCarry(), Delivered(_carriedMailboxId)), ReceivePayload())
+        ).AfterCommit();
 
         Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.Contains("OnMessage", task.Seen);
@@ -409,8 +413,9 @@ public class ExecuteServiceTaskMailboxTests
     {
         var task = new SendOnlyTask();
 
-        WorkflowEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(MintedCarry()), Payload(SendStageIndex));
+        WorkflowEngineCommandResult result = (
+            await CreateCommand(task).Execute(CreateContext(MintedCarry()), Payload(SendStageIndex))
+        ).AfterCommit();
 
         SuccessfulWorkflowEngineCommandResult success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.Null(success.ProcessNextContinuation);
@@ -437,8 +442,9 @@ public class ExecuteServiceTaskMailboxTests
     {
         var task = new ArchivingTask();
 
-        WorkflowEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(MintedCarry()), Payload(itemIndex: 1));
+        WorkflowEngineCommandResult result = (
+            await CreateCommand(task).Execute(CreateContext(MintedCarry()), Payload(itemIndex: 1))
+        ).AfterCommit();
 
         SuccessfulWorkflowEngineCommandResult success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         MailboxContinuation.ContinueAfterStage continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(
@@ -463,7 +469,9 @@ public class ExecuteServiceTaskMailboxTests
         var task = new SendThenTwoStagesTask();
 
         // An empty carry on purpose: a stage that starts nothing reads nothing from it.
-        WorkflowEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(), Payload(itemIndex: 1));
+        WorkflowEngineCommandResult result = (
+            await CreateCommand(task).Execute(CreateContext(), Payload(itemIndex: 1))
+        ).AfterCommit();
 
         SuccessfulWorkflowEngineCommandResult success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.Null(success.MailboxContinuation);
@@ -478,8 +486,9 @@ public class ExecuteServiceTaskMailboxTests
     {
         var task = new SendThenTwoStagesTask();
 
-        WorkflowEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(MintedCarry()), Payload(itemIndex: 2));
+        WorkflowEngineCommandResult result = (
+            await CreateCommand(task).Execute(CreateContext(MintedCarry()), Payload(itemIndex: 2))
+        ).AfterCommit();
 
         SuccessfulWorkflowEngineCommandResult success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         MailboxContinuation.ContinueAfterStage continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(
@@ -501,8 +510,9 @@ public class ExecuteServiceTaskMailboxTests
         var task = new ArchivingTask();
         WorkflowCallbackStateCarry carry = MintedCarry();
 
-        WorkflowEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(carry), Payload(SendStageIndex));
+        WorkflowEngineCommandResult result = (
+            await CreateCommand(task).Execute(CreateContext(carry), Payload(SendStageIndex))
+        ).AfterCommit();
 
         SuccessfulWorkflowEngineCommandResult success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.Null(success.ProcessNextContinuation);
@@ -531,8 +541,9 @@ public class ExecuteServiceTaskMailboxTests
         };
         WorkflowCallbackStateCarry carry = MintedCarry();
 
-        WorkflowEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(carry), Payload(SendStageIndex));
+        WorkflowEngineCommandResult result = (
+            await CreateCommand(task).Execute(CreateContext(carry), Payload(SendStageIndex))
+        ).AfterCommit();
 
         SuccessfulWorkflowEngineCommandResult success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.NotNull(success.ProcessNextContinuation);
@@ -582,8 +593,9 @@ public class ExecuteServiceTaskMailboxTests
         var task = new MidPipelineConcluderTask();
         WorkflowCallbackStateCarry carry = MintedCarry();
 
-        WorkflowEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(carry), Payload(SendStageIndex));
+        WorkflowEngineCommandResult result = (
+            await CreateCommand(task).Execute(CreateContext(carry), Payload(SendStageIndex))
+        ).AfterCommit();
 
         SuccessfulWorkflowEngineCommandResult success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.NotNull(success.ProcessNextContinuation);

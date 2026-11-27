@@ -648,7 +648,8 @@ internal sealed class DataClient : IDataClient, IDataClientWithStorageMetadata, 
                 instance,
                 StorageResponseMetadata.ReadVersionMetadata(response),
                 mutationResponse.CreatedDataElementIds,
-                mutationResponse.Replayed
+                mutationResponse.Replayed,
+                mutationResponse.CallerResult
             );
         }
 

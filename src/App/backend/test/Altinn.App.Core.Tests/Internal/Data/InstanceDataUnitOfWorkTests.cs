@@ -614,10 +614,11 @@ public sealed class InstanceDataUnitOfWorkTests
         WorkflowAggregateSaveOutcome firstOutcome = await setup.DataMutator.SaveWorkflowOwnedAggregate(
             setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false),
             "delete-cached-form",
+            callerResult: null,
             CancellationToken.None
         );
 
-        Assert.Equal(WorkflowAggregateSaveOutcome.Saved, firstOutcome);
+        Assert.Equal(WorkflowAggregateSaveKind.Saved, firstOutcome.Kind);
         Assert.DoesNotContain(setup.DataMutator.Instance.Data, dataElement => dataElement.Id == formDataElement.Id);
         Assert.DoesNotContain(derivedFieldId, setup.DataMutator.Instance.DataValues.Keys);
         RequestResponse mutationRequest = Assert.Single(
@@ -635,10 +636,11 @@ public sealed class InstanceDataUnitOfWorkTests
         WorkflowAggregateSaveOutcome secondOutcome = await setup.DataMutator.SaveWorkflowOwnedAggregate(
             new DataElementChanges([]),
             "after-cached-form-deletion",
+            callerResult: null,
             CancellationToken.None
         );
 
-        Assert.Equal(WorkflowAggregateSaveOutcome.NothingToSave, secondOutcome);
+        Assert.Equal(WorkflowAggregateSaveKind.NothingToSave, secondOutcome.Kind);
         Assert.Single(
             setup.Services.Storage.RequestsResponses,
             request =>
@@ -1296,6 +1298,7 @@ public sealed class InstanceDataUnitOfWorkTests
         WorkflowAggregateSaveOutcome outcome = await setup.DataMutator.SaveWorkflowOwnedAggregate(
             setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false),
             "workflow-data-values-key",
+            callerResult: null,
             CancellationToken.None
         );
 
@@ -1306,7 +1309,7 @@ public sealed class InstanceDataUnitOfWorkTests
                 && request.RequestUrl?.AbsolutePath.EndsWith("/mutations", StringComparison.Ordinal) == true
         );
         StorageInstanceMutationRequest mutation = DeserializeMutationRequest(mutationRequest.RequestBody!);
-        Assert.Equal(WorkflowAggregateSaveOutcome.Saved, outcome);
+        Assert.Equal(WorkflowAggregateSaveKind.Saved, outcome.Kind);
         Assert.Equal(
             new Dictionary<string, string?> { ["caseNumber"] = "2026-1", ["eFormidlingShipmentStatus"] = "levert" },
             mutation.DataValues
@@ -1335,6 +1338,62 @@ public sealed class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
+    public async Task SaveWorkflowOwnedAggregate_WithACallerResultAndNothingStaged_SavesTheResultAlone()
+    {
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
+            "initial"u8.ToArray(),
+            new StorageVersionMetadata(InstanceVersion: 7, ProcessStateVersion: 3),
+            seedStorageVersions: true,
+            blobVersionId: BlobVersion(1)
+        );
+
+        WorkflowAggregateSaveOutcome outcome = await setup.DataMutator.SaveWorkflowOwnedAggregate(
+            setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false),
+            "workflow-result-key",
+            """{"kind":"completed"}""",
+            CancellationToken.None
+        );
+
+        RequestResponse mutationRequest = Assert.Single(
+            setup.Services.Storage.RequestsResponses,
+            request => request.RequestUrl?.AbsolutePath.EndsWith("/mutations", StringComparison.Ordinal) == true
+        );
+        StorageInstanceMutationRequest mutation = DeserializeMutationRequest(mutationRequest.RequestBody!);
+        Assert.Equal(WorkflowAggregateSaveKind.Saved, outcome.Kind);
+        Assert.Equal("""{"kind":"completed"}""", mutation.CallerResult);
+        Assert.Empty(mutation.UpdateDataElements);
+        Assert.Empty(mutation.DataValues);
+        Assert.Null(mutation.ProcessState);
+        Assert.Equal(7, setup.DataMutator.StorageVersions.InstanceVersion);
+    }
+
+    [Fact]
+    public async Task SaveWorkflowOwnedAggregate_WhenReplayed_AnswersTheCallerResultTheCommittedSaveCarried()
+    {
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
+            "initial"u8.ToArray(),
+            new StorageVersionMetadata(InstanceVersion: 7, ProcessStateVersion: 3),
+            seedStorageVersions: true,
+            blobVersionId: BlobVersion(1)
+        );
+        await setup.DataMutator.SaveWorkflowOwnedAggregate(
+            setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false),
+            "workflow-step-key",
+            "first",
+            CancellationToken.None
+        );
+
+        WorkflowAggregateSaveOutcome replayed = await setup.DataMutator.SaveWorkflowOwnedAggregate(
+            setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false),
+            "workflow-step-key",
+            "second",
+            CancellationToken.None
+        );
+
+        Assert.Equal(new WorkflowAggregateSaveOutcome(WorkflowAggregateSaveKind.Replayed, "first"), replayed);
+    }
+
+    [Fact]
     public async Task SaveWorkflowOwnedAggregate_CommitsDataWithWorkflowPreconditions()
     {
         byte[] initialBytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");
@@ -1353,6 +1412,7 @@ public sealed class InstanceDataUnitOfWorkTests
         WorkflowAggregateSaveOutcome outcome = await setup.DataMutator.SaveWorkflowOwnedAggregate(
             setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false),
             "workflow-save-key",
+            callerResult: null,
             CancellationToken.None
         );
 
@@ -1362,7 +1422,7 @@ public sealed class InstanceDataUnitOfWorkTests
                 request.RequestMethod == HttpMethod.Post
                 && request.RequestUrl?.AbsolutePath.EndsWith("/mutations", StringComparison.Ordinal) == true
         );
-        Assert.Equal(WorkflowAggregateSaveOutcome.Saved, outcome);
+        Assert.Equal(WorkflowAggregateSaveKind.Saved, outcome.Kind);
         Assert.Equal("7", mutationRequest.RequestHeaders.GetValues("If-Instance-Version-Match").Single());
         Assert.Equal("3", mutationRequest.RequestHeaders.GetValues("If-Process-State-Version-Match").Single());
         Assert.Equal("workflow-save-key", mutationRequest.RequestHeaders.GetValues("Idempotency-Key").Single());
@@ -1409,10 +1469,11 @@ public sealed class InstanceDataUnitOfWorkTests
         WorkflowAggregateSaveOutcome outcome = await setup.DataMutator.SaveWorkflowOwnedAggregate(
             setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false),
             "workflow-save-key",
+            callerResult: null,
             CancellationToken.None
         );
 
-        Assert.Equal(WorkflowAggregateSaveOutcome.Saved, outcome);
+        Assert.Equal(WorkflowAggregateSaveKind.Saved, outcome.Kind);
         var mutationRequest = Assert.Single(
             setup.Services.Storage.RequestsResponses,
             request =>
@@ -1473,6 +1534,7 @@ public sealed class InstanceDataUnitOfWorkTests
         WorkflowAggregateSaveOutcome outcome = await setup.DataMutator.SaveWorkflowOwnedAggregate(
             setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false),
             "workflow-process-state-status-key",
+            callerResult: null,
             CancellationToken.None
         );
 
@@ -1483,7 +1545,7 @@ public sealed class InstanceDataUnitOfWorkTests
                 && request.RequestUrl?.AbsolutePath.EndsWith("/mutations", StringComparison.Ordinal) == true
         );
         StorageInstanceMutationRequest mutation = DeserializeMutationRequest(mutationRequest.RequestBody!);
-        Assert.Equal(WorkflowAggregateSaveOutcome.Saved, outcome);
+        Assert.Equal(WorkflowAggregateSaveKind.Saved, outcome.Kind);
         Assert.Equal(ProcessStatus.Processing, mutation.ExpectedProcessStatus);
         Assert.Equal(expectedPayloadProcessStatus, mutation.ProcessState?.State?.Status);
         Assert.Equal("Task_2", mutation.ProcessState?.State?.CurrentTask?.ElementId);
@@ -1523,6 +1585,7 @@ public sealed class InstanceDataUnitOfWorkTests
         WorkflowAggregateSaveOutcome outcome = await setup.DataMutator.SaveWorkflowOwnedAggregate(
             setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false),
             "workflow-keep-key",
+            callerResult: null,
             CancellationToken.None
         );
 
@@ -1533,7 +1596,7 @@ public sealed class InstanceDataUnitOfWorkTests
                 && request.RequestUrl?.AbsolutePath.EndsWith("/mutations", StringComparison.Ordinal) == true
         );
         StorageInstanceMutationRequest mutation = DeserializeMutationRequest(mutationRequest.RequestBody!);
-        Assert.Equal(WorkflowAggregateSaveOutcome.Saved, outcome);
+        Assert.Equal(WorkflowAggregateSaveKind.Saved, outcome.Kind);
         Assert.Equal(ProcessStatus.Processing, mutation.ExpectedProcessStatus);
         Assert.Null(mutation.ProcessState);
         Assert.Equal(snapshotStatus, setup.DataMutator.Instance.Process?.Status);
@@ -1555,6 +1618,7 @@ public sealed class InstanceDataUnitOfWorkTests
         WorkflowAggregateSaveOutcome outcome = await setup.DataMutator.SaveWorkflowOwnedAggregate(
             setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false),
             "workflow-confirm-key",
+            callerResult: null,
             CancellationToken.None
         );
 
@@ -1565,7 +1629,7 @@ public sealed class InstanceDataUnitOfWorkTests
                 && request.RequestUrl?.AbsolutePath.EndsWith("/mutations", StringComparison.Ordinal) == true
         );
         StorageInstanceMutationRequest mutation = DeserializeMutationRequest(mutationRequest.RequestBody!);
-        Assert.Equal(WorkflowAggregateSaveOutcome.Saved, outcome);
+        Assert.Equal(WorkflowAggregateSaveKind.Saved, outcome.Kind);
         Assert.True(mutation.AddCompleteConfirmation);
         Assert.Equal("levert", mutation.DataValues["eFormidlingShipmentStatus"]);
 
@@ -1635,6 +1699,7 @@ public sealed class InstanceDataUnitOfWorkTests
             setup.DataMutator.SaveWorkflowOwnedAggregate(
                 setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false),
                 "workflow-user-auth-key",
+                callerResult: null,
                 CancellationToken.None
             )
         );
@@ -1688,6 +1753,7 @@ public sealed class InstanceDataUnitOfWorkTests
         WorkflowAggregateSaveOutcome outcome = await setup.DataMutator.SaveWorkflowOwnedAggregate(
             setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false),
             "workflow-release-key",
+            callerResult: null,
             CancellationToken.None
         );
 
@@ -1700,7 +1766,7 @@ public sealed class InstanceDataUnitOfWorkTests
         StorageInstanceMutationRequest mutation = NewtonsoftJson.DeserializeObject<StorageInstanceMutationRequest>(
             mutationRequest.RequestBody!
         )!;
-        Assert.Equal(WorkflowAggregateSaveOutcome.Saved, outcome);
+        Assert.Equal(WorkflowAggregateSaveKind.Saved, outcome.Kind);
         Assert.Equal(ProcessStatus.Processing, mutation.ExpectedProcessStatus);
         Assert.Equal(ProcessStatus.Idle, mutation.ProcessState?.State?.Status);
         Assert.Equal("Task_1", mutation.ProcessState?.State?.CurrentTask?.ElementId);
@@ -1712,10 +1778,11 @@ public sealed class InstanceDataUnitOfWorkTests
         WorkflowAggregateSaveOutcome secondOutcome = await setup.DataMutator.SaveWorkflowOwnedAggregate(
             setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false),
             "workflow-release-after-success-key",
+            callerResult: null,
             CancellationToken.None
         );
 
-        Assert.Equal(WorkflowAggregateSaveOutcome.NothingToSave, secondOutcome);
+        Assert.Equal(WorkflowAggregateSaveKind.NothingToSave, secondOutcome.Kind);
         Assert.Single(
             setup.Services.Storage.RequestsResponses,
             request =>
@@ -1746,6 +1813,7 @@ public sealed class InstanceDataUnitOfWorkTests
             setup.DataMutator.SaveWorkflowOwnedAggregate(
                 setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false),
                 Guid.NewGuid().ToString(),
+                callerResult: null,
                 CancellationToken.None
             )
         );
@@ -1791,10 +1859,11 @@ public sealed class InstanceDataUnitOfWorkTests
         WorkflowAggregateSaveOutcome outcome = await setup.DataMutator.SaveWorkflowOwnedAggregate(
             setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false),
             Guid.NewGuid().ToString(),
+            callerResult: null,
             CancellationToken.None
         );
 
-        Assert.Equal(WorkflowAggregateSaveOutcome.Saved, outcome);
+        Assert.Equal(WorkflowAggregateSaveKind.Saved, outcome.Kind);
         Assert.True(storedInstance.Status?.IsHardDeleted);
         Assert.Equal(8, setup.DataMutator.StorageVersions.InstanceVersion);
         Assert.Equal(4, setup.DataMutator.StorageVersions.ProcessStateVersion);
@@ -1824,6 +1893,7 @@ public sealed class InstanceDataUnitOfWorkTests
         await setup.DataMutator.SaveWorkflowOwnedAggregate(
             setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false),
             Guid.NewGuid().ToString(),
+            callerResult: null,
             CancellationToken.None
         );
 
@@ -1840,6 +1910,7 @@ public sealed class InstanceDataUnitOfWorkTests
         await setup.DataMutator.SaveWorkflowOwnedAggregate(
             setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false),
             Guid.NewGuid().ToString(),
+            callerResult: null,
             CancellationToken.None
         );
 
@@ -1880,7 +1951,12 @@ public sealed class InstanceDataUnitOfWorkTests
         DataElementChanges changes = setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false);
 
         InstanceDataStaleException exception = await Assert.ThrowsAsync<InstanceDataStaleException>(() =>
-            setup.DataMutator.SaveWorkflowOwnedAggregate(changes, "stale-workflow-save", CancellationToken.None)
+            setup.DataMutator.SaveWorkflowOwnedAggregate(
+                changes,
+                "stale-workflow-save",
+                callerResult: null,
+                CancellationToken.None
+            )
         );
 
         PlatformHttpException innerException = Assert.IsType<PlatformHttpException>(exception.InnerException);
@@ -1953,15 +2029,21 @@ public sealed class InstanceDataUnitOfWorkTests
         DataElementChanges changes = unitOfWork.GetDataElementChanges(initializeAltinnRowId: false);
 
         await Assert.ThrowsAsync<HttpRequestException>(() =>
-            unitOfWork.SaveWorkflowOwnedAggregate(changes, "workflow-release-retry-key", CancellationToken.None)
+            unitOfWork.SaveWorkflowOwnedAggregate(
+                changes,
+                "workflow-release-retry-key",
+                callerResult: null,
+                CancellationToken.None
+            )
         );
         WorkflowAggregateSaveOutcome retryOutcome = await unitOfWork.SaveWorkflowOwnedAggregate(
             changes,
             "workflow-release-retry-key",
+            callerResult: null,
             CancellationToken.None
         );
 
-        Assert.Equal(WorkflowAggregateSaveOutcome.Saved, retryOutcome);
+        Assert.Equal(WorkflowAggregateSaveKind.Saved, retryOutcome.Kind);
         Assert.Equal(2, capturedMutations.Count);
         Assert.All(
             capturedMutations,
@@ -1998,10 +2080,11 @@ public sealed class InstanceDataUnitOfWorkTests
         WorkflowAggregateSaveOutcome outcome = await setup.DataMutator.SaveWorkflowOwnedAggregate(
             changes,
             "empty-callback-key",
+            callerResult: null,
             CancellationToken.None
         );
 
-        Assert.Equal(WorkflowAggregateSaveOutcome.NothingToSave, outcome);
+        Assert.Equal(WorkflowAggregateSaveKind.NothingToSave, outcome.Kind);
         Assert.DoesNotContain(
             setup.Services.Storage.RequestsResponses,
             request => request.RequestUrl?.AbsolutePath.EndsWith("/mutations", StringComparison.Ordinal) == true
@@ -2079,6 +2162,7 @@ public sealed class InstanceDataUnitOfWorkTests
         WorkflowAggregateSaveOutcome outcome = await setup.DataMutator.SaveWorkflowOwnedAggregate(
             changes,
             "workflow-derived-fields-key",
+            callerResult: null,
             CancellationToken.None
         );
 
@@ -2088,7 +2172,7 @@ public sealed class InstanceDataUnitOfWorkTests
                 request.RequestMethod == HttpMethod.Post
                 && request.RequestUrl?.AbsolutePath.EndsWith("/mutations", StringComparison.Ordinal) == true
         );
-        Assert.Equal(WorkflowAggregateSaveOutcome.Saved, outcome);
+        Assert.Equal(WorkflowAggregateSaveKind.Saved, outcome.Kind);
         Assert.Contains(
             "\"dataValues\":{\"paymentStatus\":\"paid\"}",
             mutationRequest.RequestBody,
@@ -2149,11 +2233,12 @@ public sealed class InstanceDataUnitOfWorkTests
         WorkflowAggregateSaveOutcome outcome = await setup.DataMutator.SaveWorkflowOwnedAggregate(
             changes,
             "unchanged-callback-key",
+            callerResult: null,
             CancellationToken.None
         );
 
         Assert.Empty(changes.AllChanges);
-        Assert.Equal(WorkflowAggregateSaveOutcome.NothingToSave, outcome);
+        Assert.Equal(WorkflowAggregateSaveKind.NothingToSave, outcome.Kind);
         Assert.DoesNotContain(
             setup.Services.Storage.RequestsResponses,
             request => request.RequestUrl?.AbsolutePath.EndsWith("/mutations", StringComparison.Ordinal) == true
@@ -2261,19 +2346,21 @@ public sealed class InstanceDataUnitOfWorkTests
         WorkflowAggregateSaveOutcome outcome = await unitOfWork.SaveWorkflowOwnedAggregate(
             changes,
             "callback-step-id",
+            callerResult: null,
             CancellationToken.None
         );
 
         Assert.Null(capturedMutation?.ProcessState);
         StorageInstanceMutationUpdateDataElement update = Assert.Single(capturedMutation?.UpdateDataElements ?? []);
         Assert.Equal(dataElementId, update.DataElementId);
-        Assert.Equal(WorkflowAggregateSaveOutcome.Saved, outcome);
+        Assert.Equal(WorkflowAggregateSaveKind.Saved, outcome.Kind);
         WorkflowAggregateSaveOutcome secondOutcome = await unitOfWork.SaveWorkflowOwnedAggregate(
             unitOfWork.GetDataElementChanges(initializeAltinnRowId: false),
             "callback-step-id-after-save",
+            callerResult: null,
             CancellationToken.None
         );
-        Assert.Equal(WorkflowAggregateSaveOutcome.NothingToSave, secondOutcome);
+        Assert.Equal(WorkflowAggregateSaveKind.NothingToSave, secondOutcome.Kind);
     }
 
     [Fact]
@@ -2374,10 +2461,11 @@ public sealed class InstanceDataUnitOfWorkTests
         WorkflowAggregateSaveOutcome outcome = await unitOfWork.SaveWorkflowOwnedAggregate(
             unitOfWork.GetDataElementChanges(initializeAltinnRowId: false),
             "callback-step-id",
+            callerResult: null,
             CancellationToken.None
         );
 
-        Assert.Equal(WorkflowAggregateSaveOutcome.Saved, outcome);
+        Assert.Equal(WorkflowAggregateSaveKind.Saved, outcome.Kind);
         Assert.Equal([dataElement.Id, notDeletedWithStatus.Id], unitOfWork.Instance.Data.Select(element => element.Id));
     }
 
@@ -2469,6 +2557,7 @@ public sealed class InstanceDataUnitOfWorkTests
         WorkflowAggregateSaveOutcome outcome = await unitOfWork.SaveWorkflowOwnedAggregate(
             changes,
             "callback-delete-step-id",
+            callerResult: null,
             CancellationToken.None
         );
 
@@ -2481,17 +2570,18 @@ public sealed class InstanceDataUnitOfWorkTests
         Assert.Equal(8, capturedPreconditions?.ProcessStateVersion);
         Assert.Equal("callback-delete-step-id", capturedPreconditions?.IdempotencyKey);
         Assert.True(unitOfWork.Instance.Status.IsHardDeleted);
-        Assert.Equal(WorkflowAggregateSaveOutcome.Saved, outcome);
+        Assert.Equal(WorkflowAggregateSaveKind.Saved, outcome.Kind);
         WorkflowAggregateSaveOutcome secondOutcome = await unitOfWork.SaveWorkflowOwnedAggregate(
             unitOfWork.GetDataElementChanges(initializeAltinnRowId: false),
             "callback-delete-step-id-after-save",
+            callerResult: null,
             CancellationToken.None
         );
-        Assert.Equal(WorkflowAggregateSaveOutcome.NothingToSave, secondOutcome);
+        Assert.Equal(WorkflowAggregateSaveKind.NothingToSave, secondOutcome.Kind);
     }
 
     [Fact]
-    public async Task SaveWorkflowOwnedAggregate_WhenStorageResponseIsReplayed_RebuildsFromStorageAndThrows()
+    public async Task SaveWorkflowOwnedAggregate_WhenStorageResponseIsReplayed_RebuildsFromStorage()
     {
         const int instanceOwnerPartyId = 1337;
         Guid instanceGuid = Guid.NewGuid();
@@ -2628,8 +2718,16 @@ public sealed class InstanceDataUnitOfWorkTests
         unitOfWork.UpdateInstanceDataValue("attempt", "two");
         DataElementChanges changes = unitOfWork.GetDataElementChanges(initializeAltinnRowId: false);
 
-        await Assert.ThrowsAsync<InstanceMutationReplayedException>(() =>
-            unitOfWork.SaveWorkflowOwnedAggregate(changes, "callback-step-id", CancellationToken.None)
+        Assert.Equal(
+            WorkflowAggregateSaveKind.Replayed,
+            (
+                await unitOfWork.SaveWorkflowOwnedAggregate(
+                    changes,
+                    "callback-step-id",
+                    callerResult: null,
+                    CancellationToken.None
+                )
+            ).Kind
         );
 
         Assert.Equal(authoritativeDataElementId.ToString(), Assert.Single(unitOfWork.Instance.Data).Id);
@@ -2642,9 +2740,10 @@ public sealed class InstanceDataUnitOfWorkTests
         WorkflowAggregateSaveOutcome replayRebuildOutcome = await unitOfWork.SaveWorkflowOwnedAggregate(
             unitOfWork.GetDataElementChanges(initializeAltinnRowId: false),
             "callback-step-id-after-replay",
+            callerResult: null,
             CancellationToken.None
         );
-        Assert.Equal(WorkflowAggregateSaveOutcome.NothingToSave, replayRebuildOutcome);
+        Assert.Equal(WorkflowAggregateSaveKind.NothingToSave, replayRebuildOutcome.Kind);
     }
 
     [Fact]
@@ -2767,6 +2866,7 @@ public sealed class InstanceDataUnitOfWorkTests
             setup.UnitOfWork.SaveWorkflowOwnedAggregate(
                 changes,
                 "workflow-mixed-authentication",
+                callerResult: null,
                 CancellationToken.None
             )
         );
@@ -2856,6 +2956,57 @@ public sealed class InstanceDataUnitOfWorkTests
         VerifySingleAggregateMutation(setup);
     }
 
+    /// <summary>
+    /// Storage takes a callerResult only from the organization that owns the instance, so a 403 to one that went out
+    /// with an overridden token is the override's doing. Any other 403 may be an Authorization outage.
+    /// </summary>
+    [Theory]
+    [InlineData("""{"kind":"completed"}""", true, typeof(InstanceMutationCallerResultForbiddenException))]
+    [InlineData(null, true, typeof(PlatformHttpException))]
+    [InlineData("""{"kind":"completed"}""", false, typeof(PlatformHttpException))]
+    public async Task SaveWorkflowOwnedAggregate_WhenForbidden_TellsAnOverriddenTokensResultApart(
+        string? callerResult,
+        bool customToken,
+        Type expected
+    )
+    {
+        AuthenticationResolutionSetup setup = CreateAuthenticationResolutionSetup(
+            1,
+            new StorageVersionMetadata(InstanceVersion: 1, ProcessStateVersion: 1)
+        );
+        setup
+            .MutationClientMock.Setup(x =>
+                x.CommitInstanceMutationWithStorageMetadata(
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageInstanceMutationRequest>(),
+                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<StorageWritePreconditions?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(new PlatformHttpException(HttpStatusCode.Forbidden, "Forbidden"));
+        setup.UnitOfWork.OverrideAuthenticationMethod(
+            setup.DataTypes[0],
+            customToken
+                ? StorageAuthenticationMethod.Custom(static () => Task.FromResult(default(JwtToken)))
+                : StorageAuthenticationMethod.ServiceOwner()
+        );
+        setup.UnitOfWork.RemoveDataElement(setup.DataElements[0]);
+
+        Exception exception = await Assert.ThrowsAnyAsync<Exception>(() =>
+            setup.UnitOfWork.SaveWorkflowOwnedAggregate(
+                setup.UnitOfWork.GetDataElementChanges(initializeAltinnRowId: false),
+                "workflow-step-key",
+                callerResult,
+                CancellationToken.None
+            )
+        );
+
+        Assert.IsType(expected, exception);
+    }
+
     [Fact]
     public async Task SaveWorkflowOwnedAggregate_WithoutContributingDataAuthentication_UsesServiceOwnerDefault()
     {
@@ -2875,10 +3026,11 @@ public sealed class InstanceDataUnitOfWorkTests
         WorkflowAggregateSaveOutcome outcome = await setup.UnitOfWork.SaveWorkflowOwnedAggregate(
             new DataElementChanges([]),
             "workflow-default-authentication",
+            callerResult: null,
             CancellationToken.None
         );
 
-        Assert.Equal(WorkflowAggregateSaveOutcome.Saved, outcome);
+        Assert.Equal(WorkflowAggregateSaveKind.Saved, outcome.Kind);
         AuthenticationMethod.AltinnToken request = Assert.IsType<AuthenticationMethod.AltinnToken>(
             setup.AuthenticationMethod?.Request
         );
@@ -3058,7 +3210,12 @@ public sealed class InstanceDataUnitOfWorkTests
         await setup.DataMutator.GetBinaryData(setup.DataElement);
         setup.DataMutator.UpdateBinaryDataElement(setup.DataElement, setup.DataElement.ContentType!, updatedBytes);
         DataElementChanges changes = setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false);
-        await setup.DataMutator.SaveWorkflowOwnedAggregate(changes, "previous-data-loaded", CancellationToken.None);
+        await setup.DataMutator.SaveWorkflowOwnedAggregate(
+            changes,
+            "previous-data-loaded",
+            callerResult: null,
+            CancellationToken.None
+        );
 
         ReadOnlyMemory<byte> previousBytes = await setup
             .DataMutator.GetPreviousDataAccessor()
@@ -3085,6 +3242,7 @@ public sealed class InstanceDataUnitOfWorkTests
         await setup.DataMutator.SaveWorkflowOwnedAggregate(
             changes,
             "previous-data-unavailable",
+            callerResult: null,
             CancellationToken.None
         );
 
@@ -3224,8 +3382,16 @@ public sealed class InstanceDataUnitOfWorkTests
         unitOfWork.UpdateBinaryDataElement(dataElement, dataElement.ContentType!, updatedBytes);
         DataElementChanges changes = unitOfWork.GetDataElementChanges(initializeAltinnRowId: false);
 
-        await Assert.ThrowsAsync<InstanceMutationReplayedException>(() =>
-            unitOfWork.SaveWorkflowOwnedAggregate(changes, "previous-data-replay-loaded", CancellationToken.None)
+        Assert.Equal(
+            WorkflowAggregateSaveKind.Replayed,
+            (
+                await unitOfWork.SaveWorkflowOwnedAggregate(
+                    changes,
+                    "previous-data-replay-loaded",
+                    callerResult: null,
+                    CancellationToken.None
+                )
+            ).Kind
         );
 
         ReadOnlyMemory<byte> previousBytes = await unitOfWork.GetPreviousDataAccessor().GetBinaryData(dataElement);
@@ -3242,8 +3408,16 @@ public sealed class InstanceDataUnitOfWorkTests
         unitOfWork.UpdateBinaryDataElement(dataElement, dataElement.ContentType!, updatedBytes);
         DataElementChanges changes = unitOfWork.GetDataElementChanges(initializeAltinnRowId: false);
 
-        await Assert.ThrowsAsync<InstanceMutationReplayedException>(() =>
-            unitOfWork.SaveWorkflowOwnedAggregate(changes, "previous-data-replay-unavailable", CancellationToken.None)
+        Assert.Equal(
+            WorkflowAggregateSaveKind.Replayed,
+            (
+                await unitOfWork.SaveWorkflowOwnedAggregate(
+                    changes,
+                    "previous-data-replay-unavailable",
+                    callerResult: null,
+                    CancellationToken.None
+                )
+            ).Kind
         );
 
         await AssertPreviousBinaryDataUnavailable(unitOfWork, dataElement);

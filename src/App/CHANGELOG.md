@@ -10,8 +10,15 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Changed
+
+- Breaking: Every stage and handler of a service task saves its result to Storage when it completes, also when it changed no data. This needs a Storage and LocalTest that keep a save's `callerResult`. With an older one, such a step fails. ([#22177](https://github.com/Altinn/altinn-studio/pull/22177))
+- Breaking: A service task step that the previous version saved, and that runs again after the upgrade, fails, also when resumed. To finish it, resume it on the previous version. ([#22177](https://github.com/Altinn/altinn-studio/pull/22177))
+- Breaking: A service task step that saves through `OverrideAuthenticationMethod`, with a token that does not carry the organization that owns the instance, now fails. Storage lets only that organization store a step's result. ([#22177](https://github.com/Altinn/altinn-studio/pull/22177))
+
 ### Fixed
 
+- A service task step that the workflow engine runs again, after a lost answer or while an earlier run is still going, now goes on as the run that saved first decided, also when its handler decides differently. Before, Storage could keep one run's data while the process went on from another run's result. ([#22177](https://github.com/Altinn/altinn-studio/pull/22177))
 - Apps running against LocalTest no longer log `Not able to generate access token` on every call to Register, Profile and other platform services. ([#22165](https://github.com/Altinn/altinn-studio/pull/22165))
 - PDFs of forms with large repeating groups are generated faster. A form with 936 rows of radio buttons and date pickers took 11 seconds to become a PDF, and now takes 5. ([#22148](https://github.com/Altinn/altinn-studio/pull/22148))
 - A process transition no longer stays in `processing` when the workflow engine runs a step again after that step deleted or replaced a file, as the payment task does with an unfinished payment. The retry reads the file as it was and completes. This also covers process hooks and service tasks. ([#21909](https://github.com/Altinn/altinn-studio/issues/21909))

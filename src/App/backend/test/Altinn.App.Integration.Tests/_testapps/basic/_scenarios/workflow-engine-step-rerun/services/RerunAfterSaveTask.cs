@@ -123,6 +123,7 @@ internal static class StepRerunState
 {
     private static int _storeFilesRuns;
     private static int _replaceAndRemoveRuns;
+    private static int _decideRuns;
 
     /// <summary>The run number of this call of the stage, counted from one.</summary>
     public static int NextStoreFilesRun() => Interlocked.Increment(ref _storeFilesRuns);
@@ -130,10 +131,14 @@ internal static class StepRerunState
     /// <summary>The run number of this call of the stage, counted from one.</summary>
     public static int NextReplaceAndRemoveRun() => Interlocked.Increment(ref _replaceAndRemoveRuns);
 
+    /// <summary>The run number of this call of the stage, counted from one.</summary>
+    public static int NextDecideRun() => Interlocked.Increment(ref _decideRuns);
+
     public static void Reset()
     {
         Interlocked.Exchange(ref _storeFilesRuns, 0);
         Interlocked.Exchange(ref _replaceAndRemoveRuns, 0);
+        Interlocked.Exchange(ref _decideRuns, 0);
     }
 }
 
@@ -157,6 +162,7 @@ public static class ServiceRegistration
     public static void RegisterServices(IServiceCollection services)
     {
         services.AddTransient<IProcessTask, RerunAfterSaveTask>();
+        services.AddTransient<IServiceTask, DecidesOnceServiceTask>();
         services.AddSingleton<IEndpointConfigurator, StepRerunEndpoints>();
         services.Configure<MvcOptions>(options => options.Filters.Add(new LoseAnswerFilter()));
     }

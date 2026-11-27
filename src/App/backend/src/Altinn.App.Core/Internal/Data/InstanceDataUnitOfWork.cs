@@ -24,11 +24,23 @@ using KeyValueEntry = Altinn.Platform.Storage.Interface.Models.KeyValueEntry;
 
 namespace Altinn.App.Core.Internal.Data;
 
-internal enum WorkflowAggregateSaveOutcome
+internal enum WorkflowAggregateSaveKind
 {
     Saved,
     NothingToSave,
+
+    /// <summary>
+    /// Storage had committed a save under the same idempotency key and answered with that one. The unit of work is
+    /// rebuilt from Storage's state, and nothing this attempt staged is kept.
+    /// </summary>
+    Replayed,
 }
+
+/// <summary>
+/// How a workflow-owned save went, and the <c>callerResult</c> Storage answered with: the request's own when it
+/// committed the save, the committed save's when it replayed one, null when nothing was saved.
+/// </summary>
+internal sealed record WorkflowAggregateSaveOutcome(WorkflowAggregateSaveKind Kind, string? CallerResult);
 
 /// <summary>
 /// Class that caches form data to avoid multiple calls to the data service for a single validation
@@ -774,13 +786,20 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             _defaultAuthenticationMethod,
             GetTaskBoundWritePreconditions(),
             expectedProcessStatus: null,
+            callerResult: null,
             CancellationToken.None
         );
     }
 
+    /// <summary>
+    /// Commits what the workflow step staged, with <paramref name="callerResult"/>, which Storage keeps with the
+    /// mutation's idempotency record and answers a replay with. A <paramref name="callerResult"/> is saved even when
+    /// nothing else is staged.
+    /// </summary>
     internal async Task<WorkflowAggregateSaveOutcome> SaveWorkflowOwnedAggregate(
         DataElementChanges changes,
         string idempotencyKey,
+        string? callerResult,
         CancellationToken cancellationToken
     )
     {
@@ -795,10 +814,11 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             StorageAuthenticationMethod.ServiceOwner(),
             GetWorkflowOwnedWritePreconditions(_storageVersions, idempotencyKey),
             expectedProcessStatus: ProcessStatus.Processing,
+            callerResult,
             cancellationToken
         );
 
-        if (outcome == WorkflowAggregateSaveOutcome.Saved)
+        if (outcome.Kind == WorkflowAggregateSaveKind.Saved)
         {
             // The cache still holds an updated binary element's previous bytes, kept for post-save validation of
             // user saves. Once the change is committed and cleared, the cache must hold what was written, since
@@ -823,6 +843,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         StorageAuthenticationMethod defaultAuthenticationMethod,
         StorageWritePreconditions preconditions,
         ProcessStatus? expectedProcessStatus,
+        string? callerResult,
         CancellationToken cancellationToken
     )
     {
@@ -830,6 +851,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
         var mutationPlan = BuildAggregateMutationPlan(changes);
         mutationPlan.Request.ExpectedProcessStatus = expectedProcessStatus;
+        mutationPlan.Request.CallerResult = callerResult;
         ApplyStagedProcessState(mutationPlan.Request);
         ApplyStagedInstanceDeletion(mutationPlan.Request);
         ApplyStagedCompleteConfirmation(mutationPlan.Request);
@@ -837,7 +859,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         ApplyStagedInstanceDataValues(mutationPlan.Request);
         if (!mutationPlan.HasMutations)
         {
-            return WorkflowAggregateSaveOutcome.NothingToSave;
+            return new WorkflowAggregateSaveOutcome(WorkflowAggregateSaveKind.NothingToSave, CallerResult: null);
         }
 
         if (preconditions.IdempotencyKey is not null && preconditions.InstanceVersion is null)
@@ -882,19 +904,27 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         {
             throw new InstanceDataStaleException(exception);
         }
+        // Storage takes a callerResult only from the organization that owns the instance, so this 403 is the
+        // override's doing and no retry or policy change fixes it.
+        catch (PlatformHttpException exception)
+            when (exception.Response.StatusCode == System.Net.HttpStatusCode.Forbidden
+                && callerResult is not null
+                && authenticationMethod.Request is not AuthenticationMethod.AltinnToken
+            )
+        {
+            throw new InstanceMutationCallerResultForbiddenException(authenticationMethod, exception);
+        }
 
         // Replay can only occur for preconditions carrying an idempotency key (workflow-owned saves).
         if (result.Replayed)
         {
             await RebuildFromStorageAfterReplay(cancellationToken);
-            throw new InstanceMutationReplayedException(
-                "Storage replayed the workflow-owned instance mutation. The unit of work has been rebuilt from Storage state."
-            );
+            return new WorkflowAggregateSaveOutcome(WorkflowAggregateSaveKind.Replayed, result.CallerResult);
         }
 
         ApplyAggregateMutationResult(changes, mutationPlan, result);
         ClearStagedInstanceMutations();
-        return WorkflowAggregateSaveOutcome.Saved;
+        return new WorkflowAggregateSaveOutcome(WorkflowAggregateSaveKind.Saved, result.CallerResult);
     }
 
     private void ValidateCanSaveChangesOrThrow(bool workflowOwned)
@@ -1578,7 +1608,8 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             || Request.DataValues.Count > 0
             || Request.PresentationTexts.Count > 0
             || Request.ProcessState?.State is not null
-            || Request.ProcessState?.Events?.Count > 0;
+            || Request.ProcessState?.Events?.Count > 0
+            || Request.CallerResult is not null;
     }
 
     internal async Task<ReadOnlyMemory<byte>> GetPersistedBinaryData(DataElementIdentifier dataElementIdentifier)

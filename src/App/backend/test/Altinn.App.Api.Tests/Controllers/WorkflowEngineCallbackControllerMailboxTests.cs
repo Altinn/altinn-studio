@@ -7,9 +7,12 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.App.Api.Tests.Data;
+using Altinn.App.Api.Tests.Mocks;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
@@ -17,6 +20,7 @@ using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -44,8 +48,20 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase
     /// </summary>
     private const int HandlerIndex = 1;
 
+    private readonly List<Guid> _writtenInstances = [];
+
     public WorkflowEngineCallbackControllerMailboxTests(ITestOutputHelper outputHelper)
         : base(outputHelper) { }
+
+    public override async Task DisposeAsync()
+    {
+        foreach (Guid instanceGuid in _writtenInstances)
+        {
+            TestData.DeleteInstanceAndData(Org, App, InstanceOwnerPartyId, instanceGuid);
+        }
+
+        await base.DisposeAsync();
+    }
 
     /// <summary>A pipeline answered by messages, whose handlers return whatever the test wants.</summary>
     /// <param name="trailingStage">
@@ -324,11 +340,17 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase
         );
         var signer = Services.GetRequiredService<WorkflowStateSigner>();
 
+        // In Storage, since a step whose handler completes saves its result even when it changed nothing.
+        Instance instance = CreateInstance(instanceGuid);
+        await TestData.WriteInstance(instance);
+        _writtenInstances.Add(instanceGuid);
+        StorageVersionMetadata versions = Services.GetRequiredService<ApiTestStorageMetadata>().GetVersions(instance);
+
         var incoming = new WorkflowCallbackState
         {
-            Instance = CreateInstance(instanceGuid),
-            InstanceVersion = 9,
-            ProcessStateVersion = 4,
+            Instance = instance,
+            InstanceVersion = versions.InstanceVersion!.Value,
+            ProcessStateVersion = versions.ProcessStateVersion!.Value,
             FormData = [],
             Mailboxes = new Dictionary<string, CarriedMailbox>
             {
@@ -380,7 +402,11 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase
             Org = Org,
             InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId.ToString() },
             Data = [],
-            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
+            Process = new ProcessState
+            {
+                Status = ProcessStatus.Processing,
+                CurrentTask = new ProcessElementInfo { ElementId = "Task_1" },
+            },
         };
 
     /// <summary>

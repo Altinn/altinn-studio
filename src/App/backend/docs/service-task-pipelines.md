@@ -95,11 +95,23 @@ is the durable guard for send-then-poll and send-then-receive work: give the sen
 - Stages share state through `StageContext.InstanceDataMutator` and nothing else: a completed
   stage's data changes are saved into the workflow state and visible to every stage after it.
 - A failed attempt saves nothing — the retry starts from exactly the state the attempt received. A handler
-  that must _record_ something records it and returns success.
-- A stage also runs again when its save committed but the app's answer never reached the engine. The retry
-  starts from the state the first attempt received, and Storage discards the retry's save because the step
-  id is the same. The stages after it see what the first attempt saved. Work outside Storage runs a second
-  time, which is why it must be idempotent.
+  that must _record_ something records it and returns success. A step can still save and then fail, when what
+  follows its result cannot be planned; a resume replays the save and fails the same way.
+- A stage also runs again when its save committed but the app's answer never reached the engine, and two
+  attempts can even overlap. The retry starts from the state the first attempt received, and Storage discards
+  the retry's save because the step id is the same. The stages after it see what the first attempt saved.
+- The retry may decide differently, for example because an external system answers differently the second
+  time. Every stage and handler saves its result when it completes, also when it changed no data, so within
+  48 hours of the first attempt the step still goes on from the result that attempt committed, with that
+  attempt's data. A stage or reply handler can return whatever the answer it gets calls for.
+- A failure is not committed, so a retry after one decides again. A retry that fails permanently fails the
+  step even when an earlier attempt committed a result, and a reply handler's failure closes its exchange. A
+  handler that keys its external calls on `StageContext.StepId` can tell a message it already handled, and
+  return what it returned the first time.
+- Storage takes a step's result only from the organization that owns the instance. If a step changes a data
+  type that `OverrideAuthenticationMethod` set to a token that does not carry the organization that owns the
+  instance, Storage refuses the save and the step fails permanently.
+- Work outside Storage runs a second time, which is why it must be idempotent.
 
 ### Stage results
 

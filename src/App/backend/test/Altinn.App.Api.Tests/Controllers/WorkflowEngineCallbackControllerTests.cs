@@ -870,11 +870,16 @@ public class WorkflowEngineCallbackControllerTests
         Assert.Single(storedInstance.Data);
     }
 
-    [Fact]
-    public async Task ExecuteCommand_WhenWorkflowOwnedSaveGetsAnotherStorageFailure_PropagatesWithoutTheDiagnosis()
+    [Theory]
+    [InlineData(HttpStatusCode.Conflict)]
+    [InlineData(HttpStatusCode.BadRequest)]
+    public async Task ExecuteCommand_WhenWorkflowOwnedSaveGetsAnotherStorageFailure_PropagatesWithoutTheDiagnosis(
+        HttpStatusCode status
+    )
     {
         await using ControllerSetup setup = CreateSetup(new AddBinaryDataCommand());
-        setup.Services.Storage.ForcedMutationConflictMessage = "unrelated conflict";
+        setup.Services.Storage.ForcedMutationFailureMessage = "unrelated failure";
+        setup.Services.Storage.ForcedMutationFailureStatus = status;
 
         await Assert.ThrowsAsync<PlatformHttpException>(() => setup.Execute(AddBinaryDataCommand.Key, Guid.NewGuid()));
 
@@ -973,7 +978,7 @@ public class WorkflowEngineCallbackControllerTests
     public async Task ExecuteCommand_WhenAcquireGetsUnrelatedStorageConflict_PropagatesForTheEngineToRetry()
     {
         await using ControllerSetup setup = CreateSetup(_ => { });
-        setup.Services.Storage.ForcedMutationConflictMessage = "unrelated conflict";
+        setup.Services.Storage.ForcedMutationFailureMessage = "unrelated conflict";
 
         PlatformHttpException exception = await Assert.ThrowsAsync<PlatformHttpException>(() =>
             setup.Execute(ProcessingStatusAcquirer.Key, stepId: Guid.NewGuid())
@@ -1008,7 +1013,12 @@ public class WorkflowEngineCallbackControllerTests
 
         Assert.IsType<OkObjectResult>(result);
         Assert.Equal("captured"u8.ToArray(), serviceTask.ReadData);
-        Assert.Empty(GetMutationRequests(setup.Services));
+        // A read changes nothing, so the step's save carries its result alone.
+        StorageInstanceMutationRequest mutation = DeserializeMutationRequest(
+            Assert.Single(GetMutationRequests(setup.Services)).RequestBody!
+        );
+        Assert.Equal("""{"kind":"success"}""", mutation.CallerResult);
+        Assert.Empty(mutation.UpdateDataElements);
     }
 
     [Fact]
@@ -1303,6 +1313,29 @@ public class WorkflowEngineCallbackControllerTests
         Assert.Equal(ended, storedInstance.Status.Archived);
         Assert.True(capturedState.Instance.Status.IsArchived);
         Assert.Equal(ended, capturedState.Instance.Status.Archived);
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_StepThatRunsNoServiceTask_SavesWithoutACallerResult()
+    {
+        await using ControllerSetup setup = CreateSetup(new StageEndedProcessCommand(DateTime.UtcNow));
+
+        IActionResult result = await setup.Execute(StageEndedProcessCommand.Key, stepId: Guid.NewGuid());
+
+        Assert.IsType<OkObjectResult>(result);
+        string requestBody = Assert.Single(GetMutationRequests(setup.Services)).RequestBody!;
+        Assert.DoesNotContain("callerResult", requestBody, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_StepThatRunsNoServiceTaskAndChangesNothing_DoesNotSave()
+    {
+        await using ControllerSetup setup = CreateSetup(new UnchangingCommand());
+
+        IActionResult result = await setup.Execute(UnchangingCommand.Key, stepId: Guid.NewGuid());
+
+        Assert.IsType<OkObjectResult>(result);
+        Assert.Empty(GetMutationRequests(setup.Services));
     }
 
     [Fact]
@@ -1959,6 +1992,16 @@ public class WorkflowEngineCallbackControllerTests
             unitOfWork.UpdateProcessState(processStateChange);
             return Task.FromResult<WorkflowEngineCommandResult>(new SuccessfulWorkflowEngineCommandResult());
         }
+    }
+
+    private sealed class UnchangingCommand : IWorkflowEngineCommand
+    {
+        public const string Key = "UnchangingForCallbackTest";
+
+        public string GetKey() => Key;
+
+        public Task<WorkflowEngineCommandResult> Execute(WorkflowEngineCommandContext context) =>
+            Task.FromResult<WorkflowEngineCommandResult>(new SuccessfulWorkflowEngineCommandResult());
     }
 
     private sealed class CallbackClock(DateTimeOffset now) : TimeProvider

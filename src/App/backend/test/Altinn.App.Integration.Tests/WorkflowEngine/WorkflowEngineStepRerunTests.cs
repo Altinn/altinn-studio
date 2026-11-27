@@ -3,6 +3,7 @@ using System.Text;
 using Altinn.App.Api.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Xunit.Abstractions;
+using AppProcessWorkflowFailure = Altinn.App.Core.Internal.Process.Elements.AppProcessWorkflowFailure;
 using CoreProcessState = Altinn.App.Core.Internal.Process.Elements.AppProcessState;
 using WorkflowActivityStatus = Altinn.App.Core.Internal.Process.Elements.WorkflowActivityStatus;
 
@@ -61,6 +62,51 @@ public class WorkflowEngineStepRerunTests(ITestOutputHelper output, AppFixtureCl
         Assert.Equal("replaced.txt", attachment.Filename);
         var content = Assert.Single(download.Data.OfType<InstanceDataDownload.Binary>());
         Assert.Equal("replaced-v2", Encoding.UTF8.GetString(Assert.IsType<byte[]>(content.Data.Data.Model)));
+    }
+
+    /// <summary>
+    /// The service task's stage concludes the task on its first run, and its answer is lost after the save. Its
+    /// second run only completes the stage. The second run must go on as the first decided: the process reaches its
+    /// end, with the data of the first run, instead of starting a receive workflow for the exchange the first run
+    /// closed.
+    /// </summary>
+    [Fact]
+    public async Task ProcessNext_ServiceTaskStageThatDecidesDifferentlyWhenItRunsAgain_GoesOnAsItsFirstRunDecided()
+    {
+        await using var fixtureScope = await classFixture.Get(output, TestApps.Basic, scenario: Scenario);
+        var fixture = fixtureScope.Fixture;
+        using (var reset = await fixture.GetDirectAppClient().PostAsync($"/test/{Scenario}/reset", null))
+        {
+            reset.EnsureSuccessStatusCode();
+        }
+
+        string token = await fixture.Auth.GetUserToken(userId: 1337);
+        using AppFixture.ReadApiResponse<Instance> instance = await CreateInstance(fixture, token);
+        await PatchValidFormData(fixture, token, instance);
+        using (var toTask2 = await fixture.Instances.ProcessNext(token, instance))
+        {
+            Assert.Contains(toTask2.Response.StatusCode, new[] { HttpStatusCode.OK, HttpStatusCode.Accepted });
+        }
+        await WaitForIdle(fixture, token, instance);
+
+        using var toServiceTask = await fixture.Instances.ProcessNext(token, instance);
+        Assert.Contains(toServiceTask.Response.StatusCode, new[] { HttpStatusCode.OK, HttpStatusCode.Accepted });
+        await WaitForIdle(fixture, token, instance);
+
+        string logs = await fixture.GetSnapshotAppLogs();
+        AssertInOrder(
+            logs,
+            "StepRerun.Decide.Run1.Concluded",
+            "StepRerun.AnswerLost",
+            "StepRerun.Decide.Run2.Completed"
+        );
+        Assert.DoesNotContain("StepRerun.Decide.Run3", logs);
+        Assert.DoesNotContain("StepRerun.Decide.Unexpected", logs);
+
+        using var download = await fixture.Instances.Download(token, instance);
+        Instance stored = download.Instance.Data.Model!;
+        Assert.NotNull(stored.Process.Ended);
+        Assert.Equal("run-1", stored.DataValues?.GetValueOrDefault("decidedBy"));
     }
 
     private static async Task<AppFixture.ReadApiResponse<Instance>> CreateInstance(AppFixture fixture, string token)
@@ -124,6 +170,12 @@ public class WorkflowEngineStepRerunTests(ITestOutputHelper output, AppFixtureCl
             if (lastSeenStatus == WorkflowActivityStatus.Idle)
             {
                 return;
+            }
+
+            if (lastSeenStatus == WorkflowActivityStatus.Failed)
+            {
+                AppProcessWorkflowFailure? failure = process.Data.Model?.Workflow?.Failure;
+                Assert.Fail($"The transition failed: {failure?.Kind} (workflow {failure?.WorkflowId}).");
             }
 
             await Task.Delay(TimeSpan.FromMilliseconds(500));

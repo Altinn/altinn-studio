@@ -337,11 +337,12 @@ public class FiksArkivMessageSenderTest
         WorkflowAggregateSaveOutcome saveOutcome = await unitOfWork.SaveWorkflowOwnedAggregate(
             changes,
             "d483baea-587c-47cf-beca-1d1a4e3849b1",
+            callerResult: null,
             CancellationToken.None
         );
 
         Assert.Equal(1, commitCalls);
-        Assert.Equal(WorkflowAggregateSaveOutcome.Saved, saveOutcome);
+        Assert.Equal(WorkflowAggregateSaveKind.Saved, saveOutcome.Kind);
         Assert.Equal(committedVersions, unitOfWork.StorageVersions);
     }
 }
