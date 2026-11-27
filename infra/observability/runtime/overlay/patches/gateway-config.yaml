@@ -113,16 +113,16 @@ spec:
 
     connectors:
       # Routes on the router's verdict. Only a router from before the apps pipeline sends
-      # telemetry without one, while a rollout or a rollback mixes versions, and it keeps that
-      # router's routes: pdf3 to the data plane and the rest to the control plane. Remove the
-      # default and the nil rules once every ring runs this router. Until then apps must not
-      # export to the router, since an older gateway sends everything to our workspace.
+      # telemetry without one, while a rollout or a rollback mixes versions, and the default
+      # sends it where that router's telemetry went. Remove the defaults once every ring runs
+      # this router. Until then apps must not export to the router, since an older gateway
+      # sends everything to our workspace.
       routing/traces:
-        default_pipelines: [traces/control_plane, traces/victoria]
+        default_pipelines: [traces/studio, traces/victoria]
         table:
-          - condition: resource.attributes["altinn.telemetry.route"] == nil and HasPrefix(resource.attributes["service.name"], "pdf3-")
-            pipelines: [traces/data_plane, traces/victoria]
-          - condition: resource.attributes["altinn.telemetry.route"] == "app"
+          - condition: resource.attributes["altinn.telemetry.route"] == "studio"
+            pipelines: [traces/studio, traces/victoria]
+          - condition: resource.attributes["altinn.telemetry.route"] == "apps"
             pipelines: [traces/apps]
           # Traefik's spans go only to Victoria, where they start our services' traces, such
           # as the runtime gateway's. The platform's collector already sends its own sample
@@ -130,44 +130,28 @@ spec:
           # show twice there.
           - condition: resource.attributes["altinn.telemetry.route"] == "ingress"
             pipelines: [traces/victoria]
-          - condition: resource.attributes["altinn.telemetry.route"] == "data_plane"
-            pipelines: [traces/data_plane, traces/victoria]
-          - condition: resource.attributes["altinn.telemetry.route"] == "control_plane"
-            pipelines: [traces/control_plane, traces/victoria]
       routing/metrics:
-        default_pipelines: [metrics/control_plane]
+        default_pipelines: [metrics/studio]
         table:
-          - condition: resource.attributes["altinn.telemetry.route"] == nil and HasPrefix(resource.attributes["service.name"], "pdf3-")
-            pipelines: [metrics/data_plane]
-          - condition: resource.attributes["altinn.telemetry.route"] == "app"
+          - condition: resource.attributes["altinn.telemetry.route"] == "studio" or resource.attributes["altinn.telemetry.route"] == "ingress"
+            pipelines: [metrics/studio]
+          - condition: resource.attributes["altinn.telemetry.route"] == "apps"
             pipelines: [metrics/apps, metrics/apps_victoria]
-          - condition: resource.attributes["altinn.telemetry.route"] == "ingress"
-            pipelines: [metrics/control_plane]
-          - condition: resource.attributes["altinn.telemetry.route"] == "data_plane"
-            pipelines: [metrics/data_plane]
-          - condition: resource.attributes["altinn.telemetry.route"] == "control_plane"
-            pipelines: [metrics/control_plane]
       routing/logs:
-        default_pipelines: [logs/control_plane, logs/victoria]
+        default_pipelines: [logs/studio, logs/victoria]
         table:
-          - condition: resource.attributes["altinn.telemetry.route"] == nil and HasPrefix(resource.attributes["service.name"], "pdf3-")
-            pipelines: [logs/data_plane, logs/victoria]
-          - condition: resource.attributes["altinn.telemetry.route"] == "app"
+          - condition: resource.attributes["altinn.telemetry.route"] == "studio"
+            pipelines: [logs/studio, logs/victoria]
+          - condition: resource.attributes["altinn.telemetry.route"] == "apps"
             pipelines: [logs/apps]
           - condition: resource.attributes["altinn.telemetry.route"] == "ingress"
             pipelines: [logs/victoria]
-          - condition: resource.attributes["altinn.telemetry.route"] == "data_plane"
-            pipelines: [logs/data_plane, logs/victoria]
-          - condition: resource.attributes["altinn.telemetry.route"] == "control_plane"
-            pipelines: [logs/control_plane, logs/victoria]
 
     exporters:
-      azure_monitor/control_plane:
+      # Our Application Insights, for our services' traces and logs.
+      azure_monitor/studio:
         spaneventsenabled: true
-        connection_string: $${env:CONTROL_PLANE_CONNECTION_STRING}
-      azure_monitor/data_plane:
-        spaneventsenabled: true
-        connection_string: $${env:DATA_PLANE_CONNECTION_STRING}
+        connection_string: $${env:STUDIO_CONNECTION_STRING}
       # The service owner's Application Insights, which the platform provides in the cluster
       # and the operator copies into this namespace (secretsync). Without the Secret the
       # Collector would not start, and nor would our own pipelines, so a placeholder that
@@ -234,16 +218,12 @@ spec:
           receivers: [otlp]
           processors: [memory_limiter, transform/query_strings]
           exporters: [routing/traces]
-        traces/control_plane:
+        traces/studio:
           receivers: [routing/traces]
           processors: [resource/route, transform/azuremonitor, transform/pdf3_expected_429_success, transform/azuremonitor_expected_404, tail_sampling, batch]
-          exporters: [azure_monitor/control_plane]
-        traces/data_plane:
-          receivers: [routing/traces]
-          processors: [resource/route, transform/azuremonitor, transform/pdf3_expected_429_success, transform/azuremonitor_expected_404, tail_sampling, batch]
-          exporters: [azure_monitor/data_plane]
-        # Victoria receives every span of our services once, from both planes, and Traefik's,
-        # without the Application Insights transforms, and samples them with its own
+          exporters: [azure_monitor/studio]
+        # Victoria receives every span of our services, and Traefik's, without the
+        # Application Insights transforms, and samples them with its own
         # tail_sampling instance. The pipelines keep the same traces only while no sampling
         # policy reads an attribute those transforms change.
         traces/victoria:
@@ -264,13 +244,8 @@ spec:
           receivers: [otlp]
           processors: [memory_limiter]
           exporters: [routing/metrics]
-        # Our metrics go to Victoria only, not to Application Insights. Each point takes one of
-        # the two planes, so none is sent twice.
-        metrics/control_plane:
-          receivers: [routing/metrics]
-          processors: [resource/route, filter/metrics_allowlist, batch]
-          exporters: [otlp_http/victoria]
-        metrics/data_plane:
+        # Our metrics go to Victoria only, not to Application Insights.
+        metrics/studio:
           receivers: [routing/metrics]
           processors: [resource/route, filter/metrics_allowlist, batch]
           exporters: [otlp_http/victoria]
@@ -288,14 +263,10 @@ spec:
           receivers: [otlp]
           processors: [memory_limiter, transform/query_strings]
           exporters: [routing/logs]
-        logs/control_plane:
+        logs/studio:
           receivers: [routing/logs]
           processors: [resource/route, batch]
-          exporters: [azure_monitor/control_plane]
-        logs/data_plane:
-          receivers: [routing/logs]
-          processors: [resource/route, batch]
-          exporters: [azure_monitor/data_plane]
+          exporters: [azure_monitor/studio]
         logs/victoria:
           receivers: [routing/logs]
           processors: [resource/route, batch]

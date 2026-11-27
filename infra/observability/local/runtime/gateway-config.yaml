@@ -6,40 +6,27 @@
 # stays. The test operations fail the build if the overlay reorders the list.
 - op: test
   path: /spec/env/1/name
-  value: CONTROL_PLANE_CONNECTION_STRING
+  value: STUDIO_CONNECTION_STRING
 - op: test
   path: /spec/env/2/name
-  value: DATA_PLANE_CONNECTION_STRING
-- op: test
-  path: /spec/env/3/name
   value: APPS_CONNECTION_STRING
-- op: remove
-  path: /spec/env/3
 - op: remove
   path: /spec/env/2
 - op: remove
   path: /spec/env/1
 - op: remove
-  path: /spec/config/exporters/azure_monitor~1control_plane
-- op: remove
-  path: /spec/config/exporters/azure_monitor~1data_plane
+  path: /spec/config/exporters/azure_monitor~1studio
 - op: remove
   path: /spec/config/exporters/azure_monitor~1apps
 - op: add
-  path: /spec/config/exporters/debug~1control_plane
-  value: {verbosity: basic}
-- op: add
-  path: /spec/config/exporters/debug~1data_plane
+  path: /spec/config/exporters/debug~1studio
   value: {verbosity: basic}
 - op: add
   path: /spec/config/exporters/debug~1apps
   value: {verbosity: basic}
 - op: replace
-  path: /spec/config/service/pipelines/traces~1control_plane/exporters
-  value: [debug/control_plane]
-- op: replace
-  path: /spec/config/service/pipelines/traces~1data_plane/exporters
-  value: [debug/data_plane]
+  path: /spec/config/service/pipelines/traces~1studio/exporters
+  value: [debug/studio]
 - op: replace
   path: /spec/config/service/pipelines/traces~1apps/exporters
   value: [debug/apps]
@@ -47,11 +34,8 @@
   path: /spec/config/service/pipelines/metrics~1apps/exporters
   value: [debug/apps]
 - op: replace
-  path: /spec/config/service/pipelines/logs~1control_plane/exporters
-  value: [debug/control_plane]
-- op: replace
-  path: /spec/config/service/pipelines/logs~1data_plane/exporters
-  value: [debug/data_plane]
+  path: /spec/config/service/pipelines/logs~1studio/exporters
+  value: [debug/studio]
 - op: replace
   path: /spec/config/service/pipelines/logs~1apps/exporters
   value: [debug/apps]

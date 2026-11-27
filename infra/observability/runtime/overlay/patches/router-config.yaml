@@ -47,24 +47,22 @@ spec:
       # Where each resource's telemetry goes, from the pod k8s_attributes found, never from
       # what the service says about itself. The gateway routes on altinn.telemetry.route and
       # removes it before export. Later statements win:
-      #   control_plane  our services, in the namespaces labelled altinn.studio/runtime, and
-      #                  kubernetes-wrapper, which runs among the apps
-      #   data_plane     pdf3
-      #   app            apps, which are everything else in default
-      #   ingress        Traefik, which the platform's collector forwards from the traefik
-      #                  namespace. Its spans start the traces of our services behind it, such
-      #                  as the runtime gateway's, and go only to Victoria. Most of them are
-      #                  apps' traffic, so they take apps' queues here.
+      #   studio   our services, in the namespaces labelled altinn.studio/runtime, and
+      #            kubernetes-wrapper, which runs among the apps
+      #   apps     apps, which are everything else in default
+      #   ingress  Traefik, which the platform's collector forwards from the traefik namespace.
+      #            Its spans start the traces of our services behind it, such as the runtime
+      #            gateway's, and go only to Victoria. Most of them are apps' traffic, so they
+      #            take apps' queues here.
       # Anything else gets no route and is dropped (routing/*, filter/unrouted).
       transform/route:
         error_mode: ignore
         trace_statements:
           - context: resource
             statements: &route
-              - set(resource.attributes["altinn.telemetry.route"], "control_plane") where resource.attributes["altinn.k8s.namespace.runtime"] == "true"
-              - set(resource.attributes["altinn.telemetry.route"], "data_plane") where resource.attributes["k8s.namespace.name"] == "runtime-pdf3"
-              - set(resource.attributes["altinn.telemetry.route"], "app") where resource.attributes["k8s.namespace.name"] == "default"
-              - set(resource.attributes["altinn.telemetry.route"], "control_plane") where resource.attributes["k8s.namespace.name"] == "default" and resource.attributes["k8s.deployment.name"] == "kuberneteswrapper-kubernetes-api-wrapper"
+              - set(resource.attributes["altinn.telemetry.route"], "studio") where resource.attributes["altinn.k8s.namespace.runtime"] == "true"
+              - set(resource.attributes["altinn.telemetry.route"], "apps") where resource.attributes["k8s.namespace.name"] == "default"
+              - set(resource.attributes["altinn.telemetry.route"], "studio") where resource.attributes["k8s.namespace.name"] == "default" and resource.attributes["k8s.deployment.name"] == "kuberneteswrapper-kubernetes-api-wrapper"
               - set(resource.attributes["altinn.telemetry.route"], "ingress") where resource.attributes["k8s.namespace.name"] == "traefik"
               - delete_key(resource.attributes, "altinn.k8s.namespace.runtime")
         metric_statements:
@@ -92,21 +90,21 @@ spec:
       routing/traces:
         default_pipelines: [traces/unrouted]
         table:
-          - condition: resource.attributes["altinn.telemetry.route"] == "app" or resource.attributes["altinn.telemetry.route"] == "ingress"
+          - condition: resource.attributes["altinn.telemetry.route"] == "apps" or resource.attributes["altinn.telemetry.route"] == "ingress"
             pipelines: [traces/apps]
           - condition: resource.attributes["altinn.telemetry.route"] != nil
             pipelines: [traces/studio]
       routing/metrics:
         default_pipelines: [metrics/unrouted]
         table:
-          - condition: resource.attributes["altinn.telemetry.route"] == "app" or resource.attributes["altinn.telemetry.route"] == "ingress"
+          - condition: resource.attributes["altinn.telemetry.route"] == "apps" or resource.attributes["altinn.telemetry.route"] == "ingress"
             pipelines: [metrics/apps]
           - condition: resource.attributes["altinn.telemetry.route"] != nil
             pipelines: [metrics/studio]
       routing/logs:
         default_pipelines: [logs/unrouted]
         table:
-          - condition: resource.attributes["altinn.telemetry.route"] == "app" or resource.attributes["altinn.telemetry.route"] == "ingress"
+          - condition: resource.attributes["altinn.telemetry.route"] == "apps" or resource.attributes["altinn.telemetry.route"] == "ingress"
             pipelines: [logs/apps]
           - condition: resource.attributes["altinn.telemetry.route"] != nil
             pipelines: [logs/studio]
