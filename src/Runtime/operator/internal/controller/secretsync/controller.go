@@ -76,17 +76,18 @@ func (r *SecretSyncReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	)
 	defer span.End()
 
-	mapping := r.findMapping(req.Name, req.Namespace)
-	if mapping == nil {
-		return ctrl.Result{}, nil
+	// A source can feed several destinations. Each one syncs on its own, so one that fails doesn't hold up the others.
+	var syncErr error
+	for _, mapping := range r.findMappings(req.Name, req.Namespace) {
+		var err error
+		if mapping.SourceName == req.Name && mapping.SourceNamespace == req.Namespace {
+			_, err = r.reconcileFromSource(ctx, span, mapping)
+		} else {
+			_, err = r.reconcileFromDest(ctx, span, mapping)
+		}
+		syncErr = errors.Join(syncErr, err)
 	}
-
-	isSource := mapping.SourceName == req.Name && mapping.SourceNamespace == req.Namespace
-
-	if isSource {
-		return r.reconcileFromSource(ctx, span, *mapping)
-	}
-	return r.reconcileFromDest(ctx, span, *mapping)
+	return ctrl.Result{}, syncErr
 }
 
 // reconcileFromSource syncs source -> dest when source changes.
@@ -205,6 +206,13 @@ func (r *SecretSyncReconciler) buildDestData(
 	sourceData map[string][]byte,
 	mapping SecretSyncMapping,
 ) (map[string][]byte, error) {
+	if mapping.BuildData != nil {
+		data, err := mapping.BuildData(ctx, r.k8sClient, sourceData)
+		if err != nil {
+			return nil, fmt.Errorf("transform secret data: %w", err)
+		}
+		return data, nil
+	}
 	if mapping.BuildOutput == nil {
 		return copyData(sourceData), nil
 	}
@@ -278,17 +286,20 @@ func (r *SecretSyncReconciler) clearDestination(
 	return ctrl.Result{}, nil
 }
 
-func (r *SecretSyncReconciler) findMapping(name, namespace string) *SecretSyncMapping {
-	for i := range r.mappings {
-		m := &r.mappings[i]
-		if m.SourceName == name && m.SourceNamespace == namespace {
-			return m
-		}
-		if m.DestName == name && m.DestNamespace == namespace {
-			return m
+// findMappings returns the mappings that read the secret, and the mapping that writes it.
+func (r *SecretSyncReconciler) findMappings(name, namespace string) []SecretSyncMapping {
+	var found []SecretSyncMapping
+	for _, m := range r.mappings {
+		if (m.SourceName == name && m.SourceNamespace == namespace) ||
+			(m.DestName == name && m.DestNamespace == namespace) {
+			found = append(found, m)
 		}
 	}
-	return nil
+	return found
+}
+
+func (r *SecretSyncReconciler) hasMapping(name, namespace string) bool {
+	return len(r.findMappings(name, namespace)) > 0
 }
 
 // SetupWithManager registers the controller with the manager.
@@ -305,16 +316,16 @@ func (r *SecretSyncReconciler) SetupWithManager(mgr ctrl.Manager) error {
 func (r *SecretSyncReconciler) secretPredicate() predicate.Predicate {
 	return predicate.Funcs{
 		CreateFunc: func(e event.CreateEvent) bool {
-			return r.findMapping(e.Object.GetName(), e.Object.GetNamespace()) != nil
+			return r.hasMapping(e.Object.GetName(), e.Object.GetNamespace())
 		},
 		UpdateFunc: func(e event.UpdateEvent) bool {
-			return r.findMapping(e.ObjectNew.GetName(), e.ObjectNew.GetNamespace()) != nil
+			return r.hasMapping(e.ObjectNew.GetName(), e.ObjectNew.GetNamespace())
 		},
 		DeleteFunc: func(e event.DeleteEvent) bool {
-			return r.findMapping(e.Object.GetName(), e.Object.GetNamespace()) != nil
+			return r.hasMapping(e.Object.GetName(), e.Object.GetNamespace())
 		},
 		GenericFunc: func(e event.GenericEvent) bool {
-			return r.findMapping(e.Object.GetName(), e.Object.GetNamespace()) != nil
+			return r.hasMapping(e.Object.GetName(), e.Object.GetNamespace())
 		},
 	}
 }
@@ -326,14 +337,16 @@ func (r *SecretSyncReconciler) SyncAll(ctx context.Context) error {
 	)
 	defer span.End()
 
+	// Reconciling a source syncs every mapping that reads it, so each source is reconciled once.
 	var syncErr error
+	synced := make(map[client.ObjectKey]bool, len(r.mappings))
 	for _, mapping := range r.mappings {
-		_, err := r.Reconcile(ctx, reconcile.Request{
-			NamespacedName: client.ObjectKey{
-				Name:      mapping.SourceName,
-				Namespace: mapping.SourceNamespace,
-			},
-		})
+		sourceKey := client.ObjectKey{Name: mapping.SourceName, Namespace: mapping.SourceNamespace}
+		if synced[sourceKey] {
+			continue
+		}
+		synced[sourceKey] = true
+		_, err := r.Reconcile(ctx, reconcile.Request{NamespacedName: sourceKey})
 		if err != nil {
 			syncErr = errors.Join(syncErr, err)
 			if !errors.Is(err, context.Canceled) {

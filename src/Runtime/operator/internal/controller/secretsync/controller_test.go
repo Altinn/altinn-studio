@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/go-logr/zapr"
@@ -709,8 +710,7 @@ func TestReconciler_DefaultMapping_GrafanaURLEnrichment(t *testing.T) {
 	g := NewWithT(t)
 
 	mappings := DefaultMappings()
-	g.Expect(mappings).To(HaveLen(1))
-	mapping := mappings[0]
+	mapping := defaultMapping(t, "external-grafana-altinn-studio-gateway-token")
 
 	grafanaCR := grafanaapi.NewGrafanaWithExternalURL(
 		"grafana",
@@ -742,7 +742,7 @@ func TestReconciler_DefaultMapping_GrafanaCRMissing(t *testing.T) {
 	g := NewWithT(t)
 
 	mappings := DefaultMappings()
-	mapping := mappings[0]
+	mapping := defaultMapping(t, "external-grafana-altinn-studio-gateway-token")
 
 	sourceSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
@@ -767,7 +767,7 @@ func TestReconciler_DefaultMapping_GrafanaCRNoExternalSpec(t *testing.T) {
 	g := NewWithT(t)
 
 	mappings := DefaultMappings()
-	mapping := mappings[0]
+	mapping := defaultMapping(t, "external-grafana-altinn-studio-gateway-token")
 
 	grafanaCR := grafanaapi.NewGrafana("grafana", "external-grafana")
 
@@ -788,6 +788,223 @@ func TestReconciler_DefaultMapping_GrafanaCRNoExternalSpec(t *testing.T) {
 	})
 	g.Expect(err).To(HaveOccurred())
 	g.Expect(err.Error()).To(ContainSubstring("grafana CR has no external spec"))
+}
+
+func TestReconciler_SourceWithSeveralMappingsSyncsEach(t *testing.T) {
+	g := NewWithT(t)
+
+	failing := SecretSyncMapping{
+		SourceName:      "shared",
+		SourceNamespace: "source-ns",
+		DestName:        "failing",
+		DestNamespace:   "dest-ns",
+		DestKey:         "out",
+		BuildOutput: func(_ context.Context, _ client.Client, _ map[string][]byte) ([]byte, error) {
+			return nil, errTransformFailed
+		},
+	}
+	copied := SecretSyncMapping{
+		SourceName:      "shared",
+		SourceNamespace: "source-ns",
+		DestName:        "copied",
+		DestNamespace:   "other-ns",
+	}
+	source := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{Name: "shared", Namespace: "source-ns"},
+		Data:       map[string][]byte{"key": []byte("value")},
+	}
+
+	h := newTestHarness(t, []SecretSyncMapping{failing, copied}, source)
+	_, err := h.reconciler.Reconcile(h.ctx(), reconcile.Request{
+		NamespacedName: client.ObjectKey{Name: "shared", Namespace: "source-ns"},
+	})
+	g.Expect(err).To(MatchError(errTransformFailed))
+
+	dest, err := h.getSecret("copied", "other-ns")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(dest.Data).To(Equal(source.Data))
+	_, err = h.getSecret("failing", "dest-ns")
+	g.Expect(err).To(HaveOccurred())
+}
+
+func TestReconciler_DestinationDriftResyncsOnlyItsMapping(t *testing.T) {
+	g := NewWithT(t)
+
+	builds := map[string]int{}
+	mapping := func(dest string) SecretSyncMapping {
+		return SecretSyncMapping{
+			SourceName:      "shared",
+			SourceNamespace: "source-ns",
+			DestName:        dest,
+			DestNamespace:   "dest-ns",
+			BuildData: func(_ context.Context, _ client.Client, data map[string][]byte) (map[string][]byte, error) {
+				builds[dest]++
+				return data, nil
+			},
+		}
+	}
+	source := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{Name: "shared", Namespace: "source-ns"},
+		Data:       map[string][]byte{"key": []byte("value")},
+	}
+
+	h := newTestHarness(t, []SecretSyncMapping{mapping("first"), mapping("second")}, source)
+	h.reconcile(t, "second", "dest-ns")
+	g.Expect(builds).To(Equal(map[string]int{"second": 1}))
+
+	g.Expect(h.reconciler.SyncAll(h.ctx())).To(Succeed())
+	g.Expect(builds).To(Equal(map[string]int{"first": 1, "second": 2}))
+}
+
+func TestReconciler_BuildDataWritesTheWholeDestination(t *testing.T) {
+	g := NewWithT(t)
+
+	mapping := SecretSyncMapping{
+		SourceName:      "source-secret",
+		SourceNamespace: "source-ns",
+		DestName:        "dest-secret",
+		DestNamespace:   "dest-ns",
+		BuildData: func(_ context.Context, _ client.Client, data map[string][]byte) (map[string][]byte, error) {
+			return map[string][]byte{"A": data["in"], "B": []byte("b")}, nil
+		},
+	}
+	source := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{Name: mapping.SourceName, Namespace: mapping.SourceNamespace},
+		Data:       map[string][]byte{"in": []byte("a")},
+	}
+	dest := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{Name: mapping.DestName, Namespace: mapping.DestNamespace},
+		Data:       map[string][]byte{"stale": []byte("x")},
+	}
+
+	h := newTestHarness(t, []SecretSyncMapping{mapping}, source, dest)
+	h.reconcile(t, mapping.SourceName, mapping.SourceNamespace)
+
+	got, err := h.getSecret(mapping.DestName, mapping.DestNamespace)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(got.Data).To(Equal(map[string][]byte{"A": []byte("a"), "B": []byte("b")}))
+}
+
+func defaultMapping(t *testing.T, destName string) SecretSyncMapping {
+	t.Helper()
+	for _, mapping := range DefaultMappings() {
+		if mapping.DestName == destName {
+			return mapping
+		}
+	}
+	t.Fatalf("no default mapping to %q", destName)
+	return SecretSyncMapping{}
+}
+
+const (
+	testInstrumentationKey = "00000000-0000-0000-0000-000000000001"
+	testConnectionString   = "InstrumentationKey=" + testInstrumentationKey + ";" +
+		"IngestionEndpoint=https://example.invalid/;LiveEndpoint=https://live.example.invalid/"
+)
+
+func appInsightsSource(connectionString string) *corev1.Secret {
+	return &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{Name: appInsightsSourceName, Namespace: appInsightsSourceNamespace},
+		Type:       corev1.SecretTypeOpaque,
+		Data:       map[string][]byte{appInsightsSourceKey: []byte(connectionString)},
+	}
+}
+
+func TestReconciler_DefaultMapping_V8AppsTelemetryEnv(t *testing.T) {
+	g := NewWithT(t)
+
+	h := newTestHarness(t, DefaultMappings(), appInsightsSource(" "+testConnectionString+";\n"))
+	h.reconcile(t, appInsightsSourceName, appInsightsSourceNamespace)
+
+	dest, err := h.getSecret("apps-runtime-telemetry-env", "default")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(dest.Type).To(Equal(corev1.SecretTypeOpaque))
+	g.Expect(dest.Data).To(Equal(map[string][]byte{
+		"ApplicationInsights__ConnectionString":   []byte(testConnectionString),
+		"ApplicationInsights__InstrumentationKey": []byte(testInstrumentationKey),
+	}))
+}
+
+func TestReconciler_DefaultMapping_V8AppsTelemetryEnvKeepsLastValid(t *testing.T) {
+	g := NewWithT(t)
+
+	mapping := defaultMapping(t, "apps-runtime-telemetry-env")
+	last := map[string][]byte{"ApplicationInsights__ConnectionString": []byte("InstrumentationKey=last-valid")}
+	destSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{Name: mapping.DestName, Namespace: mapping.DestNamespace},
+		Data:       last,
+	}
+
+	for _, source := range []*corev1.Secret{
+		appInsightsSource("not a connection string"),
+		appInsightsSource(""),
+	} {
+		h := newTestHarness(t, DefaultMappings(), source, destSecret.DeepCopy())
+		_, err := h.reconciler.Reconcile(h.ctx(), reconcile.Request{
+			NamespacedName: client.ObjectKey{Name: appInsightsSourceName, Namespace: appInsightsSourceNamespace},
+		})
+		g.Expect(err).To(HaveOccurred())
+
+		dest, err := h.getSecret(mapping.DestName, mapping.DestNamespace)
+		g.Expect(err).NotTo(HaveOccurred())
+		g.Expect(dest.Data).To(Equal(last))
+	}
+}
+
+func TestReconciler_DefaultMapping_V8AppsTelemetryEnvSourceDeleted(t *testing.T) {
+	g := NewWithT(t)
+
+	mapping := defaultMapping(t, "apps-runtime-telemetry-env")
+	destSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{Name: mapping.DestName, Namespace: mapping.DestNamespace},
+		Data:       map[string][]byte{"ApplicationInsights__ConnectionString": []byte("old")},
+	}
+
+	h := newTestHarness(t, DefaultMappings(), destSecret)
+	h.reconcile(t, appInsightsSourceName, appInsightsSourceNamespace)
+
+	_, err := h.getSecret(mapping.DestName, mapping.DestNamespace)
+	g.Expect(err).To(HaveOccurred())
+}
+
+func TestParseConnectionString(t *testing.T) {
+	const key = "InstrumentationKey=" + testInstrumentationKey
+	const endpoint = "IngestionEndpoint=https://example.invalid/"
+	valid := []struct{ name, in, want string }{
+		{"as it is", key + ";" + endpoint, key + ";" + endpoint},
+		{"trailing semicolon", key + ";" + endpoint + ";", key + ";" + endpoint},
+		{"spaces and a newline", " " + key + " ; " + endpoint + "\n", key + ";" + endpoint},
+		{"no endpoint", key, key},
+	}
+	for _, tc := range valid {
+		t.Run(tc.name, func(t *testing.T) {
+			g := NewWithT(t)
+			out, err := parseConnectionString([]byte(tc.in))
+			g.Expect(err).NotTo(HaveOccurred())
+			g.Expect(out.value).To(Equal(tc.want))
+			g.Expect(out.instrumentationKey).To(Equal(testInstrumentationKey))
+		})
+	}
+
+	invalid := []struct{ name, in string }{
+		{"no instrumentation key", endpoint},
+		{"an empty instrumentation key", "InstrumentationKey=;" + endpoint},
+		{"a segment without =", key + ";garbage"},
+		{"an endpoint that isn't HTTPS", key + ";IngestionEndpoint=http://example.invalid/"},
+		{"too long", key + ";Other=" + strings.Repeat("x", maxConnectionStringLength)},
+	}
+	for _, tc := range invalid {
+		t.Run(tc.name, func(t *testing.T) {
+			g := NewWithT(t)
+			_, err := parseConnectionString([]byte(tc.in))
+			g.Expect(err).To(MatchError(errInvalidConnectionString))
+			g.Expect(err.Error()).NotTo(ContainSubstring("00000000"))
+		})
+	}
+
+	g := NewWithT(t)
+	_, err := parseConnectionString([]byte("  "))
+	g.Expect(err).To(MatchError(errNoConnectionString))
 }
 
 func TestSyncAll_StopsOnCancellationAndKeepsPriorFailures(t *testing.T) {
