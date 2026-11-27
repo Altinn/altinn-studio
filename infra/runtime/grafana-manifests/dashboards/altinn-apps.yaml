@@ -162,7 +162,7 @@ spec:
             {
               "azureLogAnalytics": {
                 "dashboardTime": true,
-                "query": "customMetrics\n| where $__timeFilter(timestamp)\n| where name == \"altinn_app_lib_instances_created\"\n| where cloud_RoleName in ($app)\n| summarize Value = sum(valueSum) by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc;",
+                "query": "customMetrics\n| where $__timeFilter(timestamp)\n| where name in (\"altinn_app_lib_instances_created\", \"altinn.app_lib.instances.created\")\n| where cloud_RoleName in ($app)\n| summarize Value = sum(valueSum) by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc;",
                 "resources": [
                   "/subscriptions/$sub/resourceGroups/monitor-$org-$env-rg/providers/Microsoft.Insights/components/$org-$env-ai"
                 ],
@@ -262,7 +262,7 @@ spec:
             {
               "azureLogAnalytics": {
                 "dashboardTime": true,
-                "query": "customMetrics\n| where $__timeFilter(timestamp)\n| where name == \"altinn_app_lib_instances_completed\"\n| where cloud_RoleName in ($app)\n| summarize Value = sum(valueSum) by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc;",
+                "query": "customMetrics\n| where $__timeFilter(timestamp)\n| where name in (\"altinn_app_lib_instances_completed\", \"altinn.app_lib.instances.completed\")\n| where cloud_RoleName in ($app)\n| summarize Value = sum(valueSum) by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc;",
                 "resources": [
                   "/subscriptions/$sub/resourceGroups/monitor-$org-$env-rg/providers/Microsoft.Insights/components/$org-$env-ai"
                 ],
@@ -362,7 +362,7 @@ spec:
             {
               "azureLogAnalytics": {
                 "dashboardTime": true,
-                "query": "customMetrics\n| where $__timeFilter(timestamp)\n| where name == \"altinn_app_lib_processes_started\"\n| where cloud_RoleName in ($app)\n| summarize Value = sum(valueSum) by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc;",
+                "query": "customMetrics\n| where $__timeFilter(timestamp)\n| where name in (\"altinn_app_lib_processes_started\", \"altinn.app_lib.processes.started\")\n| where cloud_RoleName in ($app)\n| summarize Value = sum(valueSum) by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc;",
                 "resources": [
                   "/subscriptions/$sub/resourceGroups/monitor-$org-$env-rg/providers/Microsoft.Insights/components/$org-$env-ai"
                 ],
@@ -566,7 +566,7 @@ spec:
             {
               "azureLogAnalytics": {
                 "dashboardTime": true,
-                "query": "customMetrics\n| where $__timeFilter(timestamp)\n| where name == \"altinn_app_lib_processes_ended\"\n| where cloud_RoleName in ($app)\n| summarize Value = sum(valueSum) by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc;",
+                "query": "customMetrics\n| where $__timeFilter(timestamp)\n| where name in (\"altinn_app_lib_processes_ended\", \"altinn.app_lib.processes.ended\")\n| where cloud_RoleName in ($app)\n| summarize Value = sum(valueSum) by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc;",
                 "resources": [
                   "/subscriptions/$sub/resourceGroups/monitor-$org-$env-rg/providers/Microsoft.Insights/components/$org-$env-ai"
                 ],

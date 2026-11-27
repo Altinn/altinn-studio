@@ -59,8 +59,24 @@ internal sealed class AzureMonitorClient(
 
     internal static IReadOnlyCollection<string> OperationNameKeys { get; } = _operationNames.Keys.ToArray();
 
-    internal static IReadOnlyCollection<string> MetricNames { get; } =
-    ["altinn_app_lib_processes_started", "altinn_app_lib_processes_ended"];
+    // The app libraries' metric names: v8 apps keep the Prometheus-style names, and v9 apps use the dotted names of
+    // docs/observability.md. The API reports both under the v8 name.
+    private static readonly IDictionary<string, string[]> _metricNames = new Dictionary<string, string[]>
+    {
+        {
+            "altinn_app_lib_processes_started",
+            ["altinn_app_lib_processes_started", "altinn.app_lib.processes.started"]
+        },
+        { "altinn_app_lib_processes_ended", ["altinn_app_lib_processes_ended", "altinn.app_lib.processes.ended"] },
+    };
+
+    private static readonly IReadOnlyDictionary<string, string> _metricNameReverseMap = _metricNames
+        .SelectMany(kvp => kvp.Value.Select(v => (Key: kvp.Key, Value: v)))
+        .ToDictionary(t => t.Value, t => t.Key);
+
+    private static string MetricNamesFilter => string.Join("','", _metricNames.Values.SelectMany(value => value));
+
+    internal static IReadOnlyCollection<string> MetricNames { get; } = _metricNames.Keys.ToArray();
 
     internal static int GetBucketSize(int range)
     {
@@ -392,8 +408,6 @@ internal sealed class AzureMonitorClient(
     {
         ThrowIfInvalidReportPeriod(from, to);
 
-        var names = MetricNames;
-
         var logAnalyticsWorkspaceId = GetApplicationLogAnalyticsWorkspaceId();
 
         var interval = GetInterval(GetPeriodMinutes(from, to));
@@ -401,7 +415,7 @@ internal sealed class AzureMonitorClient(
         var query =
             $@"
                 AppMetrics
-                | where Name in ('{string.Join("','", names)}')
+                | where Name in ('{MetricNamesFilter}')
                 | summarize Count = sum(Sum) by Name, AppRoleName, DateTimeOffset = bin(TimeGenerated, {interval})
                 | order by DateTimeOffset desc";
 
@@ -414,15 +428,19 @@ internal sealed class AzureMonitorClient(
         );
 
         return response
-            .Value.Table.Rows.GroupBy(row => (AppName: row.GetString("AppRoleName"), Name: row.GetString("Name")))
-            .Select(group => new Metric
+            .Value.Table.Rows.GroupBy(row =>
+                (AppName: row.GetString("AppRoleName"), Name: _metricNameReverseMap[row.GetString("Name")])
+            )
+            .Select(group =>
             {
-                AppName = group.Key.AppName,
-                Name = group.Key.Name,
-                Timestamps = group.Select(row =>
-                    row.GetDateTimeOffset("DateTimeOffset")?.ToUnixTimeMilliseconds() ?? 0
-                ),
-                Counts = group.Select(row => row.GetDouble("Count") ?? 0),
+                var buckets = SumCountsPerBucket(group);
+                return new Metric
+                {
+                    AppName = group.Key.AppName,
+                    Name = group.Key.Name,
+                    Timestamps = buckets.Select(bucket => bucket.Timestamp),
+                    Counts = buckets.Select(bucket => bucket.Count),
+                };
             });
     }
 
@@ -503,7 +521,7 @@ internal sealed class AzureMonitorClient(
             $@"
                 AppMetrics
                 | where AppRoleName == '{app.Replace("'", "''")}'
-                | where Name in ('{string.Join("','", names)}')
+                | where Name in ('{MetricNamesFilter}')
                 | summarize Count = sum(Sum) by Name, DateTimeOffset = bin(TimeGenerated, {interval})
                 | order by DateTimeOffset desc";
 
@@ -516,14 +534,16 @@ internal sealed class AzureMonitorClient(
         );
 
         var metrics = response
-            .Value.Table.Rows.GroupBy(row => row.GetString("Name"))
-            .Select(group => new AppMetric
+            .Value.Table.Rows.GroupBy(row => _metricNameReverseMap[row.GetString("Name")])
+            .Select(group =>
             {
-                Name = group.Key,
-                Timestamps = group.Select(row =>
-                    row.GetDateTimeOffset("DateTimeOffset")?.ToUnixTimeMilliseconds() ?? 0
-                ),
-                Counts = group.Select(row => row.GetDouble("Count") ?? 0),
+                var buckets = SumCountsPerBucket(group);
+                return new AppMetric
+                {
+                    Name = group.Key,
+                    Timestamps = buckets.Select(bucket => bucket.Timestamp),
+                    Counts = buckets.Select(bucket => bucket.Count),
+                };
             });
 
         return names.Select(name =>
