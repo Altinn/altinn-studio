@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using System.Xml.Serialization;
 
 namespace Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
@@ -53,6 +54,7 @@ public class AltinnAction
 /// <summary>
 /// Defines the different types of actions
 /// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum ActionType
 {
     /// <summary>

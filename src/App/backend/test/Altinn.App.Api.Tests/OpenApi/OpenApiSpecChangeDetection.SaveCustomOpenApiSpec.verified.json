@@ -3405,11 +3405,10 @@
       },
       "ActionType": {
         "enum": [
-          0,
-          1
+          "ProcessAction",
+          "ServerAction"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "UserAction": {
         "required": [
