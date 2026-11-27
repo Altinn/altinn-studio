@@ -350,6 +350,45 @@ public class WorkflowEngineServiceTests
     }
 
     [Fact]
+    public async Task EnqueueAndWaitForWorkflow_ChainStartThatDoesNotClaimTheInstance_IsRefusedBeforeTheEngineSeesIt()
+    {
+        var instance = CreateInstance(Guid.NewGuid());
+        var envelope = new WorkflowEnqueueEnvelope(
+            new WorkflowEnqueueRequest
+            {
+                Workflows =
+                [
+                    new WorkflowRequest
+                    {
+                        OperationId = "Process next: Task_1 -> Task_2",
+                        Steps =
+                        [
+                            new StepRequest
+                            {
+                                OperationId = CommitProcessState.Key,
+                                Command = CommandDefinition.Create(
+                                    "app",
+                                    new AppCommandData { CommandKey = CommitProcessState.Key }
+                                ),
+                            },
+                        ],
+                    },
+                ],
+            },
+            Namespace,
+            IdempotencyKey: "key",
+            CollectionKey: new InstanceIdentifier(instance).InstanceGuid.ToString()
+        );
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        var service = CreateService(client, Mock.Of<IInstanceClientWithStorageMetadata>());
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.EnqueueAndWaitForWorkflow(instance, () => Task.FromResult(envelope), CancellationToken.None)
+        );
+        client.VerifyNoOtherCalls();
+    }
+
+    [Fact]
     public void CreateProcessNextIdempotencyKey_UsesExactInstanceGuidAndAuthoritativeVersion()
     {
         Guid instanceGuid = Guid.Parse("173a5bda-f76c-454c-840f-dea11a0c98b9");

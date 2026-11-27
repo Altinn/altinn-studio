@@ -110,7 +110,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     /// <param name="instance">The instance the workflow is enqueued for.</param>
     /// <param name="createEnvelope">Builds the enqueue request.</param>
     /// <param name="cancellationToken">Cancels the enqueue and the wait.</param>
-    private async Task<ProcessNextWorkflowResult> EnqueueAndWaitForWorkflow(
+    internal async Task<ProcessNextWorkflowResult> EnqueueAndWaitForWorkflow(
         Instance instance,
         Func<Task<WorkflowEnqueueEnvelope>> createEnvelope,
         CancellationToken cancellationToken
