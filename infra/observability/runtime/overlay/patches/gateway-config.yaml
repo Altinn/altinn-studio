@@ -58,7 +58,8 @@ spec:
       # Apps export every 15 s, as our services do, so Victoria gets their metrics as it gets
       # ours. Application Insights gets the latest value of each series once a minute instead,
       # as many points as it gets from v8 apps. A running total's latest value carries every
-      # increase before it, so no count is lost.
+      # increase before it, so no count is lost. Running totals and gauges only: the processor
+      # passes per-interval values on as they come, which apps don't export by default.
       interval/apps:
         interval: 60s
       # Application Insights adds up per-interval values, and apps export running totals.
@@ -83,6 +84,9 @@ spec:
         error_mode: ignore
         metrics:
           metric:
+            # transform/apps_metrics can't add up a summary's points, which would keep all their
+            # attributes. The meters below make none.
+            - 'metric.type == METRIC_DATA_TYPE_SUMMARY'
             - 'not (instrumentation_scope.name == "Altinn.App" or (instrumentation_scope.name == "Altinn.Studio.Workload" and metric.name == "altinn.workload.start_time") or (instrumentation_scope.name == "Microsoft.AspNetCore.Hosting" and metric.name == "http.server.request.duration"))'
       # Keeps only attributes with few values that identify no person or instance, whatever
       # the app adds. On the resource, which an app can extend through

@@ -331,7 +331,8 @@ section.
   trace to be kept.
 - The gateway samples apps' traces as it samples ours. Application Insights gets no sample rate, so its request
   counts are those of the kept traces.
-- The gateway sends Application Insights one value per app series a minute, however often the app exports.
+- The gateway sends Application Insights one value per app series a minute, however often the app exports, for
+  running totals and gauges, which apps export by default.
 - Of apps' metrics, VictoriaMetrics gets only the app libraries' own, the start time and the request duration, with
   attributes that identify no person or instance. Metrics an app defines itself go only to the service owner's
   Application Insights. The [gateway's configuration](../infra/observability/runtime/overlay/patches/gateway-config.yaml)
