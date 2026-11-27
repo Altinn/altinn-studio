@@ -112,10 +112,6 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
         // the instance permanently stuck (the retry can never use a fresh id), resume the existing
         // message: skip everything if it already left the outbox, otherwise finish the upload/send
         // steps the earlier attempt did not complete.
-        //
-        // A resume sends again even if the earlier attempt's send was accepted. The integrasjonspunkt
-        // only queues a send and reports the message as created until its worker has sent it, so a
-        // resume in that window cannot tell. Not sending would risk a message that never leaves.
         bool resumingExistingMessage = false;
 
         // Safe to abandon mid-shipment, for the same reason: a created-but-unsent message is exactly
@@ -154,10 +150,11 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
             {
                 await _eFormidlingClient.UploadAttachment(stream, instanceGuid, metadataFilename, cancellationToken);
             }
-            catch (PlatformHttpException e) when (resumingExistingMessage && IsDuplicateFilenameError(e))
+            catch (PlatformHttpException e) when (resumingExistingMessage)
             {
-                _logger.LogInformation(
-                    "eFormidling metadata {Filename} was already uploaded to message {MessageId} by an earlier attempt.",
+                _logger.LogWarning(
+                    e,
+                    "Re-upload of eFormidling metadata {Filename} failed while resuming message {MessageId}; assuming it was uploaded by the earlier attempt.",
                     metadataFilename,
                     instanceGuid
                 );
@@ -282,23 +279,11 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
     /// <summary>
     /// Identifies the integrasjonspunkt's duplicate-message error from the captured response body.
     /// </summary>
-    internal static bool IsMessageAlreadyExistsError(PlatformHttpException exception) =>
-        IsIntegrasjonspunktError(exception, "MessageAlreadyExistsException");
-
-    /// <summary>
-    /// Identifies the integrasjonspunkt's refusal of an upload whose filename the message already has. It
-    /// stores a file before it records the filename, so the refusal means an earlier upload of that file
-    /// completed.
-    /// </summary>
-    internal static bool IsDuplicateFilenameError(PlatformHttpException exception) =>
-        IsIntegrasjonspunktError(exception, "DuplicateFilenameException");
-
     /// <remarks>
-    /// The body is normally a JSON object naming the Java exception in an <c>exception</c> field, and that field
-    /// then decides. The substring match covers a body without that field, such as one that is not JSON or one
-    /// the snapshot truncated.
+    /// The body is normally a JSON object naming the Java exception in an <c>exception</c> field. The
+    /// substring fallback covers a body that is not JSON, or one the snapshot truncated.
     /// </remarks>
-    private static bool IsIntegrasjonspunktError(PlatformHttpException exception, string exceptionName)
+    internal static bool IsMessageAlreadyExistsError(PlatformHttpException exception)
     {
         string body = exception.Response.Content;
         if (string.IsNullOrEmpty(body))
@@ -311,11 +296,11 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
             using var document = JsonDocument.Parse(body);
             if (
                 document.RootElement.ValueKind is JsonValueKind.Object
-                && document.RootElement.TryGetProperty("exception", out JsonElement reportedException)
+                && document.RootElement.TryGetProperty("exception", out JsonElement exceptionName)
+                && exceptionName.GetString() == "no.difi.meldingsutveksling.exceptions.MessageAlreadyExistsException"
             )
             {
-                return reportedException.ValueKind is JsonValueKind.String
-                    && reportedException.GetString() == $"no.difi.meldingsutveksling.exceptions.{exceptionName}";
+                return true;
             }
         }
         catch (JsonException)
@@ -323,7 +308,7 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
             // Not a JSON body - fall through to the substring match.
         }
 
-        return body.Contains(exceptionName, StringComparison.Ordinal);
+        return body.Contains("MessageAlreadyExistsException", StringComparison.Ordinal);
     }
 
     private static void ThrowIfMessageFailed(Statuses statuses, string messageId)
@@ -340,17 +325,19 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
     /// <param name="dataAccessor">Reads the shipped instance and its data element content from the current unit of work.</param>
     /// <param name="eformidlingMetadataFilename">Filename already claimed by the metadata document.</param>
     /// <param name="config">The validated eFormidling configuration for the task.</param>
-    /// <param name="resumingExistingMessage">
-    /// Set when resuming a message created by an earlier attempt. The integrasjonspunkt refuses an
-    /// attachment that attempt already uploaded, and only that refusal is passed over: any other
-    /// upload failure fails the shipment, so the message is never sent with an attachment missing.
+    /// <param name="tolerateUploadFailures">
+    /// Set when resuming a message created by an earlier attempt, where re-uploading an attachment
+    /// that already exists may be rejected. Known blind spot: a <see cref="PlatformHttpException"/>
+    /// here cannot be told apart from a transient failure, so a resume could in principle proceed to
+    /// send with an attachment missing - the integrasjonspunkt's duplicate-upload behavior is
+    /// unverified. Hence the loud warning per skipped attachment rather than silence.
     /// </param>
     /// <param name="cancellationToken">Checked before each attachment; see the caller's remarks on why abandoning here is safe.</param>
     private async Task SendInstanceData(
         IInstanceDataAccessor dataAccessor,
         string eformidlingMetadataFilename,
         ValidAltinnEFormidlingConfiguration config,
-        bool resumingExistingMessage = false,
+        bool tolerateUploadFailures = false,
         CancellationToken cancellationToken = default
     )
     {
@@ -407,10 +394,11 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
                     cancellationToken
                 );
             }
-            catch (PlatformHttpException e) when (resumingExistingMessage && IsDuplicateFilenameError(e))
+            catch (PlatformHttpException e) when (tolerateUploadFailures)
             {
-                _logger.LogInformation(
-                    "eFormidling attachment {Filename} was already uploaded to message {MessageId} by an earlier attempt.",
+                _logger.LogWarning(
+                    e,
+                    "Re-upload of eFormidling attachment {Filename} failed while resuming message {MessageId}; assuming it was uploaded by the earlier attempt.",
                     uniqueFileName,
                     instanceGuid
                 );
