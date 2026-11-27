@@ -47,13 +47,13 @@ spec:
       # Where each resource's telemetry goes, from the pod k8s_attributes found, never from
       # what the service says about itself. The gateway routes on altinn.telemetry.route and
       # removes it before export. Later statements win:
-      #   studio   our services, in the namespaces labelled altinn.studio/runtime, and
+      #   studio   our services, in the namespaces labeled altinn.studio/runtime, and
       #            kubernetes-wrapper, which runs among the apps
       #   apps     apps, which are everything else in default
       #   ingress  Traefik, which the platform's collector forwards from the traefik namespace.
-      #            Its spans start the traces of our services behind it, such as the runtime
-      #            gateway's, and go only to Victoria. Most of them are apps' traffic, so they
-      #            take apps' queues here.
+      #            Its spans start the traces of requests through it. The gateway sends those
+      #            of requests to our services where ours go, and the rest only to Victoria.
+      #            Most of them are apps' traffic, so they take apps' queues here.
       # Anything else gets no route and is dropped (routing/*, filter/unrouted).
       transform/route:
         error_mode: ignore

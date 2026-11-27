@@ -337,8 +337,9 @@ section.
   attributes that identify no person or instance. Metrics an app defines itself go only to the service owner's
   Application Insights. The [gateway's configuration](../infra/observability/runtime/overlay/patches/gateway-config.yaml)
   lists them.
-- Traefik's spans, which start the traces of our services behind it, go only to VictoriaTraces. The platform's
-  collector sends its own sample of them to the service owner's Application Insights.
+- Traefik's spans start the traces of requests through it. Those of requests to our services go where our traces
+  go, sampled with them. The rest go only to VictoriaTraces, and the platform's collector sends its own sample of
+  them to the service owner's Application Insights.
 
 The pipeline doesn't derive metrics from spans. A service emits the metrics it needs itself.
 
