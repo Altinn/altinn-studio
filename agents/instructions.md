@@ -60,5 +60,8 @@ When posting multiline GitHub comments from a shell, pass the body through stdin
 - Subagents, your harness's own delegated workers, run in this Sandbox with no setup. Use them for reviews, research
   and parallel work.
 - `studioctl` is logged in at boot to each Studio environment that has an API key.
+- A server you start listens on this Sandbox's `localhost`, not the user's. They open one, such as `hugo server` for
+  altinn-studio-docs, by running `agentctl port-forward <agent> <port>` on their own machine, with this Agent's name
+  from `$AGENT_NAME`.
 - The clock is Norwegian local time (Europe/Oslo), not UTC, and so are the dates you write into commits, changelogs
   and files.

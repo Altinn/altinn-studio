@@ -35,6 +35,8 @@ studioctl version
 uv --version
 golangci-lint version
 typst --version
+hugo version
+hugo version | grep -qF +extended || fail "hugo is not the extended edition altinn-studio-docs builds with"
 # Every .NET major a global.json in the repository pins needs its own SDK; latestFeature roll-forward
 # never crosses a major.
 for major in 8 10 11; do
