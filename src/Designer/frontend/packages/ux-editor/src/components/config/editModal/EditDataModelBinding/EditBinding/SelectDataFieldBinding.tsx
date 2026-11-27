@@ -17,6 +17,7 @@ type SelectDataFieldProps = {
   handleBindingChange: (dataModelBindings: ExplicitDataModelBinding) => void;
   bindingKey: string;
   componentType: ComponentType;
+  hasGroupBinding?: boolean;
 };
 
 export const SelectDataFieldBinding = ({
@@ -24,6 +25,7 @@ export const SelectDataFieldBinding = ({
   handleBindingChange,
   bindingKey,
   componentType,
+  hasGroupBinding,
 }: SelectDataFieldProps): React.JSX.Element => {
   const { t } = useTranslation();
   const { dataType: currentDataModel, field: currentDataModelField } = internalBindingFormat || {
@@ -32,7 +34,12 @@ export const SelectDataFieldBinding = ({
   };
   const { dataModelMetadata, isDataModelValid, selectedDataModel } =
     useValidDataModels(currentDataModel);
-  const dataModelFields = getDataModelFields({ componentType, bindingKey, dataModelMetadata });
+  const dataModelFields = getDataModelFields({
+    componentType,
+    bindingKey,
+    dataModelMetadata,
+    hasGroupBinding,
+  });
   const isDataModelFieldValid = validateSelectedDataField(currentDataModelField, dataModelFields);
   const [isBindingError, setIsBindingError] = React.useState(
     !isDataModelFieldValid || !isDataModelValid,
