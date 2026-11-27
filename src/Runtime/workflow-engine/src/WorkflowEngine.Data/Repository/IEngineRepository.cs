@@ -113,6 +113,14 @@ internal interface IEngineRepository
     Task<WorkflowStatusCounts> CountWorkflowsByStatus(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Gets the number of incomplete and failed workflows per namespace and status, with the enqueued workflows that
+    /// have a future <c>StartAt</c> counted apart as scheduled. Every count comes from one statement.
+    /// </summary>
+    Task<IReadOnlyList<NamespaceStatusCount>> CountIncompleteAndFailedWorkflowsByNamespace(
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
     /// Gets the status of a workflow by its database ID and namespace, or null if not found.
     /// </summary>
     Task<PersistentItemStatus?> GetWorkflowStatus(

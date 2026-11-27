@@ -57,6 +57,10 @@ public class EngineSettingsConfigurationTests
         Assert.Equal(50, settings.MaxStepsPerWorkflow);
         Assert.Equal(50, settings.MaxLabels);
 
+        // Metrics
+        Assert.Equal(TimeSpan.FromSeconds(5), settings.MetricsCollectionInterval);
+        Assert.Equal(TimeSpan.FromSeconds(15), settings.WorkflowCountCollectionInterval);
+
         // Heartbeat
         Assert.Equal(TimeSpan.FromSeconds(10), settings.HeartbeatInterval);
         Assert.Equal(TimeSpan.FromSeconds(30), settings.StaleWorkflowThreshold);
@@ -212,6 +216,8 @@ public class EngineSettingsConfigurationTests
             """
             {
               "EngineSettings": {
+                "MetricsCollectionInterval": "00:00:00",
+                "WorkflowCountCollectionInterval": "00:00:00",
                 "Concurrency": { "MaxWorkers": 0 },
                 "WriteBuffer": { "MaxBatchSize": 0 }
               }
@@ -219,8 +225,25 @@ public class EngineSettingsConfigurationTests
             """
         );
 
+        Assert.Equal(TimeSpan.FromSeconds(5), settings.MetricsCollectionInterval);
+        Assert.Equal(TimeSpan.FromSeconds(15), settings.WorkflowCountCollectionInterval);
         Assert.Equal(400, settings.Concurrency.MaxWorkers);
         Assert.Equal(100, settings.WriteBuffer.MaxBatchSize);
+    }
+
+    [Fact]
+    public void AddWorkflowEngineHost_DefaultsZeroIntervals_InSettingsTheHostRegistered()
+    {
+        var services = new ServiceCollection();
+        services.Configure<EngineSettings>(opts => opts.DatabaseCommandTimeout = TimeSpan.FromSeconds(10));
+        services.AddWorkflowEngineHost();
+
+        using var sp = services.BuildServiceProvider();
+        var settings = sp.GetRequiredService<IOptions<EngineSettings>>().Value;
+
+        Assert.Equal(TimeSpan.FromSeconds(5), settings.MetricsCollectionInterval);
+        Assert.Equal(TimeSpan.FromSeconds(15), settings.WorkflowCountCollectionInterval);
+        Assert.Equal(TimeSpan.FromSeconds(10), settings.DatabaseCommandTimeout);
     }
 
     [Fact]

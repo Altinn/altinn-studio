@@ -77,6 +77,11 @@ internal sealed class EngineDbContext : DbContext
                 .HasIndex(e => new { e.Namespace, e.Status }, "ix_workflows_namespace_status_incomplete")
                 .HasFilter($"status IN ({PersistentItemStatusMap.IncompleteSqlList})");
 
+            // See EngineRepository.IncompleteAndFailedWorkflowCountsSql.
+            entity
+                .HasIndex(e => new { e.Namespace, e.Status }, "ix_workflows_namespace_status_failed")
+                .HasFilter($"status IN ({PersistentItemStatusMap.FailedSqlList})");
+
             // Backs the throttle sweep's park pass, which walks one namespace's Requeued
             // population in keyset pages ordered by id. id has to be a key column for the page
             // boundary to narrow the scan instead of filtering it afterwards; without this index

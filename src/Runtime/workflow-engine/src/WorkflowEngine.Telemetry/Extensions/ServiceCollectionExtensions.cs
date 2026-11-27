@@ -17,6 +17,12 @@ namespace WorkflowEngine.Telemetry.Extensions;
 /// </summary>
 public static class ServiceCollectionExtensions
 {
+    /// <summary>
+    /// Room for every series of <see cref="Metrics.WorkflowCount"/>: up to 1,001 namespaces with 9 statuses each. The
+    /// SDK's default of 2,000 series would fold the rest into one.
+    /// </summary>
+    private const int WorkflowCountCardinalityLimit = 10_000;
+
     extension(IServiceCollection services)
     {
         /// <summary>
@@ -218,7 +224,11 @@ public static class ServiceCollectionExtensions
                         .AddView(Metrics.EngineMainLoopServiceTime.Name, durationView)
                         .AddView(Metrics.EngineMainLoopTotalTime.Name, durationView)
                         .AddView(Metrics.MailboxReceiverWakeLatency.Name, wakeLatencyView)
-                        .AddView(Metrics.StepWaitDuration.Name, waitBudgetView);
+                        .AddView(Metrics.StepWaitDuration.Name, waitBudgetView)
+                        .AddView(
+                            Metrics.WorkflowCount.Name,
+                            new MetricStreamConfiguration { CardinalityLimit = WorkflowCountCardinalityLimit }
+                        );
                 });
 
             return services;
