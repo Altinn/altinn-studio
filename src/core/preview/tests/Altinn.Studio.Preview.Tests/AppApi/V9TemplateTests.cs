@@ -16,15 +16,16 @@ public sealed class V9TemplateTests : IDisposable
 
     private readonly PreviewApplicationFactory _factory = new();
     private readonly List<string> _differences = [];
+    private readonly string _workingCopy;
 
     public V9TemplateTests()
     {
-        string workingCopy = _factory.Root.AddWorkingCopy("developer", Org, App);
+        _workingCopy = _factory.Root.AddWorkingCopy("developer", Org, App);
         string template = Path.Combine(AppContext.BaseDirectory, "AppTemplate");
         foreach (string file in Directory.EnumerateFiles(template, "*", SearchOption.AllDirectories))
         {
-            string target = Path.Combine(workingCopy, Path.GetRelativePath(template, file));
-            Directory.CreateDirectory(Path.GetDirectoryName(target) ?? workingCopy);
+            string target = Path.Combine(_workingCopy, Path.GetRelativePath(template, file));
+            Directory.CreateDirectory(Path.GetDirectoryName(target) ?? _workingCopy);
             File.Copy(file, target);
         }
     }
@@ -48,6 +49,7 @@ public sealed class V9TemplateTests : IDisposable
     [Fact]
     public async Task Answers_MatchTheAppApi()
     {
+        AddExpressionValidationAndCalculation();
         Uri appRoot = await StartSession();
 
         await Send(HttpMethod.Get, appRoot, "api/authentication/keepAlive");
@@ -70,6 +72,25 @@ public sealed class V9TemplateTests : IDisposable
             "Preview's mock of the app API in AppApiEndpoints answers otherwise than the app API:"
                 + Environment.NewLine
                 + string.Join(Environment.NewLine, _differences)
+        );
+    }
+
+    private void AddExpressionValidationAndCalculation()
+    {
+        string models = Path.Combine(_workingCopy, "App", "models");
+        File.WriteAllText(
+            Path.Combine(models, "model.validation.json"),
+            """
+            {
+              "validations": {
+                "property1": [{ "message": "Not this", "condition": ["equals", ["dataModel", "property1"], "this"] }]
+              }
+            }
+            """
+        );
+        File.WriteAllText(
+            Path.Combine(models, "model.calculation.json"),
+            """{ "calculations": [{ "field": "property2", "expression": ["dataModel", "property1"] }] }"""
         );
     }
 

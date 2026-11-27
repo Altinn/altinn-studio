@@ -93,7 +93,8 @@ internal static partial class AppApiEndpoints
 
     /// <summary>
     /// What the frontend needs to show a form: the folder's layouts, the schema and data of each form data element,
-    /// and the app's static code lists. Preview validates nothing, so it sends no validation issues or configuration.
+    /// and the app's static code lists. The frontend runs the expression validations and calculations of the data it
+    /// can change, as in an app. Preview runs no validation of its own, so it sends no validation issues.
     /// </summary>
     private static async Task<IResult> GetFormBootstrap(
         HttpContext context,
@@ -126,13 +127,15 @@ internal static partial class AppApiEndpoints
                 continue;
             }
 
+            bool writable = dataType.IsWritable(element, currentTask);
             dataModels[element.DataType] = new JsonObject
             {
                 ["schema"] = files.Schema(element.DataType),
                 ["initialData"] = instance.FormData.GetValueOrDefault(Guid.Parse(element.Id))?.DeepClone(),
                 ["dataElementId"] = element.Id,
-                ["writable"] = dataType.IsWritable(element, currentTask),
-                ["expressionValidationConfig"] = null,
+                ["writable"] = writable,
+                ["expressionValidationConfig"] = writable ? files.ExpressionValidation(element.DataType) : null,
+                ["calculationConfig"] = writable ? CalculationConfig(files.Calculations(element.DataType)) : null,
             };
         }
 
@@ -155,6 +158,35 @@ internal static partial class AppApiEndpoints
             }
         );
     }
+
+    /// <summary>
+    /// The calculations as the app library reads them: a list of fields and their expressions, with the names in any
+    /// case. The app doesn't start with the v8 format, an object keyed by field, so preview sends none for it.
+    /// </summary>
+    private static JsonObject? CalculationConfig(JsonNode? file)
+    {
+        if (file is not JsonObject config || Property(config, "calculations") is not JsonArray items)
+        {
+            return null;
+        }
+
+        var calculations = new JsonArray();
+        foreach (JsonObject item in items.OfType<JsonObject>())
+        {
+            calculations.Add(
+                new JsonObject
+                {
+                    ["field"] = Property(item, "field")?.DeepClone(),
+                    ["expression"] = Property(item, "expression")?.DeepClone(),
+                }
+            );
+        }
+
+        return new JsonObject { ["calculations"] = calculations };
+    }
+
+    private static JsonNode? Property(JsonObject node, string name) =>
+        node.FirstOrDefault(property => string.Equals(property.Key, name, StringComparison.OrdinalIgnoreCase)).Value;
 
     private static Task<IResult> PatchFormData(
         HttpContext context,

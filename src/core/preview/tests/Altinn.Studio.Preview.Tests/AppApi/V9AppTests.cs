@@ -145,6 +145,41 @@ public sealed class V9AppTests : IDisposable
     }
 
     [Fact]
+    public async Task Form_HasTheExpressionValidationsAndCalculations_OfTheDataItCanChange()
+    {
+        RepositoryRoot.AddFile(
+            _workingCopy,
+            "App/models/model.validation.json",
+            """
+            {
+              // The app reads comments and trailing commas.
+              "validations": { "name": ["required-name"] },
+              "definitions": { "required-name": { "message": "Name it", "condition": ["equals", ["dataModel", "name"], null] } },
+            }
+            """
+        );
+        RepositoryRoot.AddFile(
+            _workingCopy,
+            "App/models/model.calculation.json",
+            """{ "Calculations": [{ "Field": "greeting", "Expression": ["concat", "Hei ", ["dataModel", "name"]] }] }"""
+        );
+        Uri appRoot = await StartSession();
+        JsonObject instance = await Send(HttpMethod.Post, new Uri(appRoot, "instances?instanceOwnerPartyId=51001"));
+
+        JsonObject form = await Send(
+            HttpMethod.Get,
+            new Uri(appRoot, $"instances/{instance["id"]}/bootstrap-form/Task_1")
+        );
+
+        JsonNode? model = form["dataModels"]?["model"];
+        Assert.Equal("required-name", (string?)model?["expressionValidationConfig"]?["validations"]?["name"]?[0]);
+        Assert.Equal(
+            """{"calculations":[{"field":"greeting","expression":["concat","Hei ",["dataModel","name"]]}]}""",
+            model?["calculationConfig"]?.ToJsonString()
+        );
+    }
+
+    [Fact]
     public async Task Patch_ChangesNothing_WhenOnePatchFails()
     {
         Uri appRoot = await StartSession();

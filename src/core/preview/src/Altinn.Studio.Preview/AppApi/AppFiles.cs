@@ -74,6 +74,8 @@ internal sealed partial class AppFiles(AppFolder folder)
 
     public JsonNode? ExpressionValidation(string dataType) => ReadJson($"App/models/{dataType}.validation.json");
 
+    public JsonNode? Calculations(string dataType) => ReadJson($"App/models/{dataType}.calculation.json");
+
     public JsonNode? OptionsList(string optionsId) => ReadJson($"App/options/{optionsId}.json");
 
     /// <summary>The layouts of a UI folder, by page name, or <c>null</c> when there is no such folder.</summary>
