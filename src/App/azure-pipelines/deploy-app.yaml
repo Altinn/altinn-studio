@@ -571,7 +571,7 @@ steps:
                 name: apps-runtime-common-secrets-env
             # The service owner's Application Insights, which the operator provides in the cluster
             # (src/Runtime/operator/internal/controller/secretsync). Optional, so that a cluster without it still
-            # starts the app, without telemetry.
+            # starts the app, without the Application Insights settings.
             - secretRef:
                 name: apps-runtime-telemetry-env
                 optional: true
