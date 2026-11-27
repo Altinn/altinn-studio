@@ -663,7 +663,7 @@ public static class Metrics
 
     /// <summary>
     /// Gauge of the incomplete and failed workflows, per namespace (<c>altinn.workflow_engine.namespace</c>) and status
-    /// (<c>altinn.workflow_engine.workflow.status</c>), with <c>Scheduled</c> split from <c>Enqueued</c>.
+    /// (<c>altinn.workflow_engine.workflow.status</c>), with <c>scheduled</c> split from <c>enqueued</c>.
     /// </summary>
     /// <remarks>One series per namespace and status; the workflow count collector bounds the namespaces.</remarks>
     public static readonly ObservableGauge<long> WorkflowCount = Meter.CreateObservableGauge(

@@ -715,11 +715,11 @@ with a future start, `workflow.waiting`, `workflow.failed` (`Failed`, `Canceled`
 Every `WorkflowCountCollectionInterval` (15 seconds, how often deployments export) a separate read counts the
 incomplete and failed workflows per namespace, through partial indexes over those statuses, so its cost grows with
 them and not with the table. `workflow.count` reports it with `altinn.workflow_engine.namespace` and
-`altinn.workflow_engine.workflow.status`: `Scheduled`, `Enqueued`, `Processing`, `Requeued`, `Waiting`, `Held`,
-`Failed`, `Canceled` and `DependencyFailed`. `Scheduled` holds the enqueued workflows with a future start and
-`Enqueued` the rest, so no workflow is in two statuses and any of them can be summed. Completed and abandoned
-workflows are only in the database-wide gauges. The two reads run at different times, so the per-namespace counts
-can differ from the database-wide ones for a moment.
+`altinn.workflow_engine.workflow.status`: `scheduled`, `enqueued`, `processing`, `requeued`, `waiting`, `held`,
+`failed`, `canceled` and `dependency_failed`, the status names in snake_case. `scheduled` holds the enqueued workflows
+with a future start and `enqueued` the rest, so no workflow is in two statuses and any of them can be summed.
+Completed and abandoned workflows are only in the database-wide gauges. The two reads run at different times, so the
+per-namespace counts can differ from the database-wide ones for a moment.
 
 - **A namespace keeps every status's series until the process stops,** at 0 where it has no workflows in that status.
   A count that drops to zero reads as zero, not as the last value of a series that went away.

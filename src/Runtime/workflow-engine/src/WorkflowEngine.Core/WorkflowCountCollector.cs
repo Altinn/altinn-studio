@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using WorkflowEngine.Core.Extensions;
 using WorkflowEngine.Data;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Repository;
@@ -21,13 +22,13 @@ internal sealed class WorkflowCountCollector(
     TimeProvider timeProvider
 ) : BackgroundService
 {
-    internal const string ScheduledStatus = "Scheduled";
+    internal const string ScheduledStatus = "scheduled";
 
     internal static readonly string[] ReportedStatuses =
     [
         ScheduledStatus,
-        .. PersistentItemStatusMap.Incomplete.Select(status => status.ToString()),
-        .. PersistentItemStatusMap.Failed.Select(status => status.ToString()),
+        .. PersistentItemStatusMap.Incomplete.Select(status => status.ToTelemetryValue()),
+        .. PersistentItemStatusMap.Failed.Select(status => status.ToTelemetryValue()),
     ];
 
     /// <summary>
@@ -94,7 +95,7 @@ internal sealed class WorkflowCountCollector(
                 ns = OtherNamespace;
             namedNamespaces.Add(ns);
 
-            var key = (ns, count.Scheduled ? ScheduledStatus : count.Status.ToString());
+            var key = (ns, count.Scheduled ? ScheduledStatus : count.Status.ToTelemetryValue());
             byNamespaceAndStatus[key] = byNamespaceAndStatus.GetValueOrDefault(key) + count.Count;
         }
 

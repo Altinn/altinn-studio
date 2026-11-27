@@ -1,10 +1,10 @@
 using System.Diagnostics;
-using System.Text.Json;
 using System.Threading.Channels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using WorkflowEngine.Core.Extensions;
 using WorkflowEngine.Data;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
@@ -154,12 +154,9 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
         [
             (TelemetryAttributes.WorkflowId, workflow.DatabaseId),
             (TelemetryAttributes.WorkflowOperationId, workflow.OperationId),
-            (TelemetryAttributes.WorkflowStatus, workflow.Status.ToString()),
+            (TelemetryAttributes.WorkflowStatus, workflow.Status.ToTelemetryValue()),
             (TelemetryAttributes.UpdateDirtyStepCount, dirtySteps.Count),
-            (
-                TelemetryAttributes.UpdateReason,
-                reason ?? $"workflow_{JsonNamingPolicy.SnakeCaseLower.ConvertName(workflow.Status.ToString())}"
-            ),
+            (TelemetryAttributes.UpdateReason, reason ?? $"workflow_{workflow.Status.ToTelemetryValue()}"),
         ];
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)

@@ -91,9 +91,9 @@ public static class TelemetryAttributes
     public const string WorkflowOperationId = "altinn.workflow_engine.workflow.operation_id";
 
     /// <summary>
-    /// A workflow's lifecycle status, such as <c>Processing</c>, <c>Completed</c> or <c>Failed</c>: the status
-    /// names of the engine API. The workflow count gauge adds <c>Scheduled</c>, for the enqueued workflows with a
-    /// future start, and counts only the rest as <c>Enqueued</c>.
+    /// A workflow's lifecycle status, such as <c>processing</c>, <c>completed</c> or <c>dependency_failed</c>: the
+    /// status names of the engine API in snake_case. The workflow count gauge adds <c>scheduled</c>, for the enqueued
+    /// workflows with a future start, and counts only the rest as <c>enqueued</c>.
     /// </summary>
     public const string WorkflowStatus = "altinn.workflow_engine.workflow.status";
 

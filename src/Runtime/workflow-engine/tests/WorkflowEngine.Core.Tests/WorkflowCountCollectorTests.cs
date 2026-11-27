@@ -30,15 +30,15 @@ public class WorkflowCountCollectorTests
     /// </summary>
     private static readonly string[] _statuses =
     [
-        "Scheduled",
-        "Enqueued",
-        "Processing",
-        "Requeued",
-        "Waiting",
-        "Held",
-        "Failed",
-        "Canceled",
-        "DependencyFailed",
+        "scheduled",
+        "enqueued",
+        "processing",
+        "requeued",
+        "waiting",
+        "held",
+        "failed",
+        "canceled",
+        "dependency_failed",
     ];
 
     /// <summary>
@@ -84,10 +84,10 @@ public class WorkflowCountCollectorTests
         Assert.Equal(
             Grid(
                 ["ttd/a", "ttd/b"],
-                ("ttd/a", "Scheduled", 2),
-                ("ttd/a", "Enqueued", 3),
-                ("ttd/a", "DependencyFailed", 1),
-                ("ttd/b", "Canceled", 4)
+                ("ttd/a", "scheduled", 2),
+                ("ttd/a", "enqueued", 3),
+                ("ttd/a", "dependency_failed", 1),
+                ("ttd/b", "canceled", 4)
             ),
             AsGrid(series)
         );
@@ -101,7 +101,7 @@ public class WorkflowCountCollectorTests
 
         var series = WorkflowCountCollector.ToSeries([Count("ttd/b", PersistentItemStatus.Waiting, 1)], named);
 
-        Assert.Equal(Grid(["ttd/a", "ttd/b"], ("ttd/b", "Waiting", 1)), AsGrid(series));
+        Assert.Equal(Grid(["ttd/a", "ttd/b"], ("ttd/b", "waiting", 1)), AsGrid(series));
     }
 
     [Fact]
@@ -126,7 +126,7 @@ public class WorkflowCountCollectorTests
         );
 
         Assert.Equal(
-            Grid([.. named, "_OTHER"], [.. named.Select(ns => (ns, "Failed", 1L)), ("_OTHER", "Failed", 5L)]),
+            Grid([.. named, "_OTHER"], [.. named.Select(ns => (ns, "failed", 1L)), ("_OTHER", "failed", 5L)]),
             AsGrid(series)
         );
     }
@@ -221,7 +221,7 @@ public class WorkflowCountCollectorTests
         await collector.StopAsync(ct);
 
         Assert.False(readEarly, "the collector read again before WorkflowCountCollectionInterval had passed");
-        Assert.Equal(Grid(["ttd/a"], ("ttd/a", "Failed", 1)), gauge);
+        Assert.Equal(Grid(["ttd/a"], ("ttd/a", "failed", 1)), gauge);
     }
 
     /// <summary>
