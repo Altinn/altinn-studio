@@ -33,15 +33,15 @@ The decisions:
 
 Every value a v9 app reads belongs to one of these kinds, and each kind has one owner and one way into the app.
 
-| Kind                  | Examples                                                                                            | Owner              | Deployed app                                                                                   | Local run                                                                                            | App can override                                          |
-| --------------------- | --------------------------------------------------------------------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| Provisioned secrets   | The app's Maskinporten client, app codes, the APIM subscription key                                 | Team Altinn Studio | Files the runtime operator writes into `provisioned-secrets/`                                  | Files studioctl writes into `provisioned-secrets/`                                                   | No                                                        |
-| Runtime configuration | Altinn Platform endpoints, host names, cookie names, links to other Altinn services                 | Team Altinn Studio | JSON files in `runtime-config/`, from `infra/runtime/apps-config` and from the runtime cluster | JSON files studioctl writes into `runtime-config/`                                                   | No                                                        |
-| Startup values        | The environment's name, where the runtime directory is, the app's version, the OTLP export settings | Team Altinn Studio | Environment variables the runtime cluster sets                                                 | Environment variables studioctl sets                                                                 | Only the metric export interval, in `deployment/app.yaml` |
-| Contracts             | The validation message prefixes that app code writes and the app libraries parse                    | Team Altinn Studio | Constants in the app libraries                                                                 | The same                                                                                             | No                                                        |
-| App configuration     | Which validations run, PDF settings, the app's own integrations                                     | The app            | `appsettings*.json`, over defaults in the app libraries                                        | The same, plus user secrets and `appsettings.Local.json`                                             | Yes                                                       |
-| App secrets           | API keys for the app's own integrations                                                             | The service owner  | The service owner's vault, which the runtime operator writes into `app-secrets/`               | Values studioctl stores and writes into `app-secrets/`, or user secrets and `appsettings.Local.json` | Yes                                                       |
-| Deployment settings   | Replicas, resources, which shared secrets the app reads                                             | The app            | `deployment/app.yaml`                                                                          | studioctl reads the same file                                                                        | -                                                         |
+| Kind                  | Examples                                                                                            | Owner              | Deployed app                                                                                   | Local run                                                                                            | App can override |
+| --------------------- | --------------------------------------------------------------------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ---------------- |
+| Provisioned secrets   | The app's Maskinporten client, app codes, the APIM subscription key                                 | Team Altinn Studio | Files the runtime operator writes into `provisioned-secrets/`                                  | Files studioctl writes into `provisioned-secrets/`                                                   | No               |
+| Runtime configuration | Altinn Platform endpoints, host names, cookie names, links to other Altinn services                 | Team Altinn Studio | JSON files in `runtime-config/`, from `infra/runtime/apps-config` and from the runtime cluster | JSON files studioctl writes into `runtime-config/`                                                   | No               |
+| Startup values        | The environment's name, where the runtime directory is, the app's version, the OTLP export settings | Team Altinn Studio | Environment variables the runtime cluster sets                                                 | Environment variables studioctl sets                                                                 | No               |
+| Contracts             | The validation message prefixes that app code writes and the app libraries parse                    | Team Altinn Studio | Constants in the app libraries                                                                 | The same                                                                                             | No               |
+| App configuration     | Which validations run, PDF settings, the app's own integrations                                     | The app            | `appsettings*.json`, over defaults in the app libraries                                        | The same, plus user secrets and `appsettings.Local.json`                                             | Yes              |
+| App secrets           | API keys for the app's own integrations                                                             | The service owner  | The service owner's vault, which the runtime operator writes into `app-secrets/`               | Values studioctl stores and writes into `app-secrets/`, or user secrets and `appsettings.Local.json` | Yes              |
+| Deployment settings   | Replicas, resources, which shared secrets the app reads                                             | The app            | `deployment/app.yaml`                                                                          | studioctl reads the same file                                                                        | -                |
 
 ### The runtime version
 
@@ -267,12 +267,17 @@ configuration in a library that does not know it.
   Azure Monitor exporter and the settings that chose between them.
 - The exporter's settings are startup values, in the standard `OTEL_*` environment variables, as
   [observability.md](../observability.md#setting-up-a-service) asks of every service: the endpoint, the protocol, the
-  metric export interval, the app's name in `OTEL_SERVICE_NAME`, and in `OTEL_RESOURCE_ATTRIBUTES` the pod's UID,
-  `altinn.service_owner`, `altinn.app`, `service.version` and the runtime version. The runtime cluster sets them for a
-  deployed app, from `infra/runtime/apps-config`, and studioctl for a local run. Without an endpoint, the app exports
-  nothing, as in a local run without a collector.
-- The libraries set no `OTEL_*` values in code, not even for Development, and no resource attributes of their own:
-  the app's identity comes from the runtime, the same for every kind of app and every SDK.
+  metric export interval of 15 s, the app's name in `OTEL_SERVICE_NAME`, and in `OTEL_RESOURCE_ATTRIBUTES` the pod's
+  UID, `altinn.service_owner`, `altinn.app`, `service.version` and `altinn.app_runtime.version`, the app's
+  [runtime version](#the-runtime-version). The runtime cluster sets them for a deployed app, from
+  `infra/runtime/apps-config`, and studioctl for a local run. Without an endpoint, the app exports nothing, as in a
+  local run without a collector.
+- The libraries set no `OTEL_*` values in code, not even for Development. The app's identity comes from the runtime,
+  the same for every kind of app and every SDK. A library may set the app's name and its own version, such as
+  `altinn.app_lib.version`, as defaults for a run without the runtime's variables, such as a test, and the runtime's
+  variables override them. The collectors never route by what an app says about itself.
+- The libraries sample every trace (always on), whatever an incoming trace context says. The collectors decide what
+  to keep.
 - In a runtime cluster, the endpoint is the collectors' router in `runtime-obs`,
   `http://otel-router.runtime-obs.svc.cluster.local:4317`, over gRPC, the OTLP exporter's default protocol. The
   collectors are shared with our own services, with a pipeline of their own for apps:
@@ -284,10 +289,10 @@ configuration in a library that does not know it.
   - It has its own exporters and queues, and a memory limiter, so a slow Application Insights does not hold up our
     own telemetry.
 - Moving app telemetry to another backend changes the apps pipeline's exporter, not apps.
-- We decide what reaches the service owner, with defaults that every app gets: traces sampled as ours are, logs from
-  WARN, and metrics every 60 s rather than our services' 15 s, so Application Insights gets as many points as it does
-  from v8 apps. We change a default in the collectors, and apps follow without a redeploy. Traces
-  are for following a unit of work, and logs for what someone needs to act on, as
+- We decide what reaches the service owner, with defaults that every app gets: traces sampled as ours are, and logs
+  from WARN. The collectors send Application Insights each metric series' latest value once a minute, so it gets as
+  many points as it does from v8 apps, without losing a count. We change a default in the collectors, and apps follow
+  without a redeploy. Traces are for following a unit of work, and logs for what someone needs to act on, as
   [observability.md](../observability.md#which-signal-for-what) says.
 - An app that needs more chooses other levels in [`deployment/app.yaml`](#deploymentappyaml). Code can keep a single
   trace, or a single log record below the app's level, by setting `altinn.sampling` to `always` on it.
@@ -296,9 +301,11 @@ configuration in a library that does not know it.
   - traffic, errors and latency from `http.server.request.duration`, which any SDK's HTTP instrumentation emits
   - starts, restarts and deploys from `altinn.workload.start_time`, which every process reports, as our services do
 - What a kind of app's libraries know beyond that, such as a form app's instances and processes, they report under
-  fixed meter and activity source names of their own, never the app's name. The collectors tell them apart from the
-  service owner's own telemetry by those names. The service owner's own metrics and spans go only to the service
-  owner's Application Insights, under any names they choose.
+  fixed meter and activity source names of their own, such as `Altinn.App`, never the app's name. The collectors tell
+  them apart from the service owner's own telemetry by those names. The meter and activity source the v9 libraries
+  offer app code stay named after the app, as in v8, where 33 apps in production create metrics of their own. The
+  service owner's own metrics and spans go only to the service owner's Application Insights, under any names they
+  choose. App code adds other meters, such as a library's, in code.
 
 ### `deployment/app.yaml`
 
@@ -344,7 +351,6 @@ configuration in a library that does not know it.
     telemetry:
       traces: sampled # sampled | all | errors
       logs: warning # warning | information
-      metricInterval: 60s # 60s | 15s
     environments:
       tt02:
         telemetry:
@@ -358,8 +364,6 @@ configuration in a library that does not know it.
   - The runtime writes the trace and log levels as labels on the app's Deployment, not on its pods, so a change
     restarts nothing. The collectors read them from there, and ignore any value the app's telemetry carries, so app
     code cannot change its own level.
-  - The metric interval is a setting of the app's SDK, so the runtime sets `OTEL_METRIC_EXPORT_INTERVAL` from it. It
-    is the one startup value an app can choose.
   - A local run keeps every signal and level, whatever the app sets.
 
 - The upgrade drops what we own, such as the probes, the `datakeys`, `accesstoken` and `altinn-appsettings-secret`
