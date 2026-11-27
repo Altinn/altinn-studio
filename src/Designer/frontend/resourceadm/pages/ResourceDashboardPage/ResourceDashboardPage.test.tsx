@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { render, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { ResourceDashboardPage } from './ResourceDashboardPage';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@designer/testing/mocks/i18nMock';
@@ -367,6 +367,32 @@ describe('ResourceDashBoardPage', () => {
     await user.click(accessListButton);
 
     expect(mockedNavigate).toHaveBeenCalledWith('/ttd/ttd-resources/accesslists');
+  });
+
+  it('should navigate to / when the resources repository does not exist', async () => {
+    const getRepoMetadata = vi.fn().mockImplementation(() => Promise.resolve(''));
+    renderResourceDashboardPage({ getRepoMetadata });
+
+    await waitFor(() => expect(mockedNavigate).toHaveBeenCalledWith('/'));
+    expect(
+      screen.queryByText(textMock('resourceadm.dashboard_create_resource')),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should navigate to / when fetching the resources repository fails', async () => {
+    const getRepoMetadata = vi.fn().mockImplementation(() => Promise.reject(new Error()));
+    renderResourceDashboardPage({ getRepoMetadata });
+
+    await waitFor(() => expect(mockedNavigate).toHaveBeenCalledWith('/'));
+  });
+
+  it('should not navigate away when the resources repository exists', async () => {
+    renderResourceDashboardPage();
+
+    expect(
+      await screen.findByText(textMock('resourceadm.dashboard_create_resource')),
+    ).toBeInTheDocument();
+    expect(mockedNavigate).not.toHaveBeenCalledWith('/');
   });
 });
 
