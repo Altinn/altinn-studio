@@ -22,15 +22,16 @@ partial class Telemetry
 
     internal void ProcessEnded(ProcessStateChange processChange)
     {
-        if (processChange?.NewProcessState?.Started is null || processChange?.NewProcessState?.Ended is null)
+        if (processChange?.NewProcessState is not { Ended: { } ended } state)
         {
             return;
         }
-        var state = processChange.NewProcessState;
 
         _counters[MetricNameProcessesEnded].Add(1);
-        var duration = state.Ended.Value - state.Started.Value;
-        _histograms[MetricNameProcessesDuration].Record(duration.TotalSeconds);
+        if (state.Started is { } started)
+        {
+            _histograms[MetricNameProcessesDuration].Record((ended - started).TotalSeconds);
+        }
     }
 
     internal Activity? StartProcessStartActivity(Instance instance)

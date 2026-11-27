@@ -30,6 +30,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
+- `altinn.app_lib.processes.ended` and `altinn.app_lib.processes.duration` record each process end again, and `altinn.app_lib.processes.started` no longer counts an instantiation that then fails. ([#20672](https://github.com/Altinn/altinn-studio/issues/20672))
 - `altinn.app_lib.data.patched` counts form data patches, with `error.type` on the ones that fail. It had recorded nothing since 8.5. ([#19775](https://github.com/Altinn/altinn-studio/issues/19775))
 - A request's span carries the instance's `altinn.instance.guid`, so searching traces by instance also finds the request that worked on it. ([#19775](https://github.com/Altinn/altinn-studio/issues/19775))
 - PDFs of forms with large repeating groups are generated faster. A form with 936 rows of radio buttons and date pickers took 11 seconds to become a PDF, and now takes 5. ([#22148](https://github.com/Altinn/altinn-studio/pull/22148))

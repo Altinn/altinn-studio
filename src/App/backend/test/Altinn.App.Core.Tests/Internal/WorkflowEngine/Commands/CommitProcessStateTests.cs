@@ -11,6 +11,7 @@ using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.ProcessEnd;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
+using Altinn.App.Tests.Common;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Options;
@@ -132,6 +133,139 @@ public class CommitProcessStateTests
         Assert.Equal("EndEvent_1", releaseMutation.ProcessState?.State?.EndEvent);
         Assert.Empty(releaseMutation.DeleteDataElements);
         Assert.True(releaseMutation.DeleteInstance?.Hard);
+    }
+
+    [Fact]
+    public async Task Commit_CountsAProcessStartOnceStorageHasIt()
+    {
+        using var telemetry = new TelemetrySink();
+        Instance instance = CreateInstance("Task_1");
+        instance.Process = null;
+        CommandSetup setup = CreateCommandSetup(instance, telemetry: telemetry.Object);
+        CaptureMutations(setup);
+        var started = new DateTime(2026, 11, 2, 8, 0, 0, DateTimeKind.Utc);
+        var payload = new ProcessStateChangePayload(
+            new ProcessStateChange
+            {
+                OldProcessState = null,
+                NewProcessState = new ProcessState
+                {
+                    Started = started,
+                    StartEvent = "StartEvent_1",
+                    CurrentTask = new ProcessElementInfo { ElementId = "Task_1" },
+                },
+                Events = [new InstanceEvent { EventType = InstanceEventType.process_StartEvent.ToString() }],
+            }
+        );
+
+        await ExecuteAndSave(setup, CreateCommand(), CreateContext(setup.UnitOfWork, payload));
+
+        Assert.Single(Measurements(telemetry, "altinn.app_lib.processes.started"));
+        Assert.Empty(Measurements(telemetry, "altinn.app_lib.processes.ended"));
+    }
+
+    [Fact]
+    public async Task Commit_CountsAProcessEndAndItsDurationOnceStorageHasIt()
+    {
+        using var telemetry = new TelemetrySink();
+        Instance instance = CreateInstance("Task_1");
+        var started = new DateTime(2026, 11, 2, 8, 0, 0, DateTimeKind.Utc);
+        instance.Process!.Started = started;
+        CommandSetup setup = CreateCommandSetup(instance, telemetry: telemetry.Object);
+        CaptureMutations(setup);
+        ProcessStateChangePayload payload = CreateProcessEndPayload(instance, started.AddHours(3));
+        payload.ProcessStateChange.NewProcessState!.Started = started;
+
+        await ExecuteAndSave(setup, CreateCommand(), CreateContext(setup.UnitOfWork, payload));
+        await ExecuteAndSave(setup, CreateRelease(), CreateContext(setup.UnitOfWork, serializedPayload: null));
+
+        Assert.Single(Measurements(telemetry, "altinn.app_lib.processes.ended"));
+        var duration = Assert.Single(Measurements(telemetry, "altinn.app_lib.processes.duration"));
+        Assert.Equal(TimeSpan.FromHours(3).TotalSeconds, duration.Value);
+        Assert.Empty(Measurements(telemetry, "altinn.app_lib.processes.started"));
+    }
+
+    [Fact]
+    public async Task Commit_DoesNotCountATaskTransition()
+    {
+        using var telemetry = new TelemetrySink();
+        Instance instance = CreateInstance("Task_1");
+        instance.Process!.Started = DateTime.UtcNow;
+        CommandSetup setup = CreateCommandSetup(instance, telemetry: telemetry.Object);
+        CaptureMutations(setup);
+        ProcessStateChangePayload payload = CreateProcessStateChangePayload(instance, "Task_2");
+        payload.ProcessStateChange.NewProcessState!.Started = instance.Process.Started;
+
+        await ExecuteAndSave(setup, CreateCommand(), CreateContext(setup.UnitOfWork, payload));
+
+        Assert.Empty(Measurements(telemetry, "altinn.app_lib.processes.started"));
+        Assert.Empty(Measurements(telemetry, "altinn.app_lib.processes.ended"));
+    }
+
+    [Fact]
+    public async Task Commit_DoesNotCountAProcessEndAgainWhenStorageReplaysTheSave()
+    {
+        using var telemetry = new TelemetrySink();
+        Instance instance = CreateInstance("Task_1");
+        var started = DateTime.UtcNow.AddHours(-1);
+        instance.Process!.Started = started;
+        Instance committed = CreateInstance("Task_1");
+        committed.Id = instance.Id;
+        committed.Process = new ProcessState
+        {
+            Started = started,
+            Ended = DateTime.UtcNow,
+            EndEvent = "EndEvent_1",
+            Status = ProcessStatus.Processing,
+        };
+        var instanceClient = new Mock<IInstanceClientWithStorageMetadata>();
+        instanceClient
+            .Setup(x =>
+                x.GetInstanceWithStorageMetadata(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new InstanceWithStorageMetadata(committed, new StorageVersionMetadata(14, 9)));
+        CommandSetup setup = CreateCommandSetup(
+            instance,
+            telemetry: telemetry.Object,
+            instanceClient: instanceClient.Object
+        );
+        setup
+            .MutationClient.Setup(x =>
+                x.CommitInstanceMutationWithStorageMetadata(
+                    1337,
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageInstanceMutationRequest>(),
+                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<StorageWritePreconditions?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                new InstanceMutationWithStorageMetadata(
+                    committed,
+                    new StorageVersionMetadata(14, 9),
+                    [],
+                    replayed: true
+                )
+            );
+        ProcessStateChangePayload payload = CreateProcessEndPayload(instance, DateTime.UtcNow);
+        payload.ProcessStateChange.NewProcessState!.Started = started;
+
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(
+            await ((IWorkflowEngineCommand)CreateCommand()).Execute(CreateContext(setup.UnitOfWork, payload))
+        );
+        await Assert.ThrowsAsync<InstanceMutationReplayedException>(() => Save(setup));
+
+        Assert.Empty(Measurements(telemetry, "altinn.app_lib.processes.ended"));
+        Assert.Empty(Measurements(telemetry, "altinn.app_lib.processes.duration"));
     }
 
     [Fact]
@@ -506,7 +640,12 @@ public class CommitProcessStateTests
         return mutations;
     }
 
-    private static CommandSetup CreateCommandSetup(Instance instance, ApplicationMetadata? applicationMetadata = null)
+    private static CommandSetup CreateCommandSetup(
+        Instance instance,
+        ApplicationMetadata? applicationMetadata = null,
+        Telemetry? telemetry = null,
+        IInstanceClientWithStorageMetadata? instanceClient = null
+    )
     {
         applicationMetadata ??= new ApplicationMetadata("ttd/test-app") { DataTypes = [] };
         var dataClientMock = new Mock<IDataClientWithStorageMetadata>(MockBehavior.Strict);
@@ -516,18 +655,22 @@ public class CommitProcessStateTests
             new StorageVersionMetadata(InstanceVersion: 12, ProcessStateVersion: 8),
             dataClientMock.Object,
             mutationClientMock.Object,
-            Mock.Of<IInstanceClientWithStorageMetadata>(),
+            instanceClient ?? Mock.Of<IInstanceClientWithStorageMetadata>(),
             applicationMetadata,
             Mock.Of<ITranslationService>(),
             new ModelSerializationService(null!),
             Mock.Of<IAppResources>(),
             Options.Create(new FrontEndSettings()),
             taskId: null,
-            language: null
+            language: null,
+            telemetry: telemetry
         );
 
         return new CommandSetup(unitOfWork, mutationClientMock);
     }
+
+    private static IReadOnlyList<MetricMeasurement> Measurements(TelemetrySink telemetry, string name) =>
+        telemetry.CapturedMetrics.TryGetValue((name, "Altinn.App"), out var measurements) ? measurements : [];
 
     private sealed record CommandSetup(InstanceDataUnitOfWork UnitOfWork, Mock<IInstanceMutationClient> MutationClient);
 }
