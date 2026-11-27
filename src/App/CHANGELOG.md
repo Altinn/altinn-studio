@@ -12,7 +12,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
-- The OpenAPI description gives the `type` of a task's `userActions` as `ProcessAction` or `ServerAction`, as the app sends it, so clients generated from it no longer expect a number. ([#22167](https://github.com/Altinn/altinn-studio/pull/22167))
+- The OpenAPI description gives the `type` of a task's `userActions` as `ProcessAction` or `ServerAction`, as the app sends it, so clients generated from it no longer expect a number. ([#22168](https://github.com/Altinn/altinn-studio/pull/22168))
 - PDFs of forms with large repeating groups are generated faster. A form with 936 rows of radio buttons and date pickers took 11 seconds to become a PDF, and now takes 5. ([#22148](https://github.com/Altinn/altinn-studio/pull/22148))
 
 ## [9.0.0-preview.15] - 2026-11-25
