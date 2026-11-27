@@ -21,6 +21,7 @@ import { PreviewActions } from './PreviewActions/PreviewActions';
 import { noPreviewComponentErrors } from 'app-shared/utils/studioBridge';
 import { useStudioBridge } from 'app-shared/hooks/useStudioBridge';
 import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
+import { FeatureFlag, useFeatureFlag } from '@designer/feature-flags';
 
 // The bridge only takes messages from the frame's origin, so a URL that doesn't parse leaves it without one.
 const originOf = (url: string): string | undefined => {
@@ -30,6 +31,8 @@ const originOf = (url: string): string | undefined => {
     return undefined;
   }
 };
+
+const ignoreComponentErrors = (): void => {};
 
 export type PreviewProps = {
   collapsed: boolean;
@@ -97,6 +100,7 @@ const PreviewFrame = () => {
     previewBridgeOriginRef,
   } = useAppContext();
   const { t } = useTranslation();
+  const showsComponentErrors = useFeatureFlag(FeatureFlag.PreviewComponentErrors);
   const checksum = useChecksum(shouldReloadPreview);
   const { isPending: isLayoutSetsPending } = useLayoutSetsQuery(org, app);
   const currentLayoutSet = useGetLayoutSetByName({ name: layoutSet, org, app });
@@ -121,7 +125,7 @@ const PreviewFrame = () => {
   useStudioBridge(
     previewIframeRef,
     session ? originOf(session.url) : undefined,
-    setPreviewComponentErrors,
+    showsComponentErrors ? setPreviewComponentErrors : ignoreComponentErrors,
     previewBridgeOriginRef,
   );
   // Each page in the frame reports the errors it finds and says when it is ready for changes, so what the page before

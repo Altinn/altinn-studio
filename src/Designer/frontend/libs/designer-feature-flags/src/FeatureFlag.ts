@@ -8,6 +8,7 @@ export enum FeatureFlag {
   CustomTemplates = 'customTemplates',
   NewCodeLists = 'newCodeLists',
   NextV9 = 'nextV9',
+  PreviewComponentErrors = 'previewComponentErrors',
   EnableAltinn2RolesPolicyEditor = 'enableAltinn2RolesPolicyEditor',
   ShouldOverrideAppLibCheck = 'shouldOverrideAppLibCheck',
 }
@@ -16,4 +17,5 @@ export const experimentalFeatureFlags: readonly FeatureFlag[] = [
   FeatureFlag.AddComponentModal,
   FeatureFlag.NewCodeLists,
   FeatureFlag.AppTemplateV9,
+  FeatureFlag.PreviewComponentErrors,
 ];

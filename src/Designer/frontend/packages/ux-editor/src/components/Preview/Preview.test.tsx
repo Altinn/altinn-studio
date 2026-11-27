@@ -9,6 +9,7 @@ import { appContextMock } from '../../testing/appContextMock';
 import { previewSessionPage } from 'app-shared/api/paths';
 import { app, layoutSet, org } from '@designer/testing/testids';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { FeatureFlag } from '@designer/feature-flags';
 
 describe('Preview', () => {
   afterEach(() => {
@@ -190,7 +191,7 @@ describe('Preview', () => {
   });
 
   it('keeps the component errors that the bridge in the frame reports', async () => {
-    render();
+    render({ featureFlags: [FeatureFlag.PreviewComponentErrors] });
     await waitForElementToBeRemoved(() =>
       screen.queryByText(textMock('preview.loading_preview_controller')),
     );
@@ -208,7 +209,7 @@ describe('Preview', () => {
   });
 
   it('forgets the component errors when a new page in the frame is ready', async () => {
-    render();
+    render({ featureFlags: [FeatureFlag.PreviewComponentErrors] });
     await waitForElementToBeRemoved(() =>
       screen.queryByText(textMock('preview.loading_preview_controller')),
     );
@@ -217,6 +218,22 @@ describe('Preview', () => {
     postFromFrame({ ...fromBridge, type: 'ready' });
 
     expect(appContextMock.setPreviewComponentErrors).toHaveBeenCalledWith(new Map());
+  });
+
+  it('leaves the component errors out of the editor unless the user has turned them on', async () => {
+    render();
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('preview.loading_preview_controller')),
+    );
+    vi.mocked(appContextMock.setPreviewComponentErrors).mockClear();
+
+    postFromFrame({
+      ...fromBridge,
+      type: 'componentErrors',
+      errors: { name: ['Must be boolean'] },
+    });
+
+    expect(appContextMock.setPreviewComponentErrors).not.toHaveBeenCalled();
   });
 
   it('sends changes to the bridge in the frame once its page is ready', async () => {
@@ -232,7 +249,7 @@ describe('Preview', () => {
   });
 
   it('ignores messages from other windows, from other origins, and of other kinds', async () => {
-    render();
+    render({ featureFlags: [FeatureFlag.PreviewComponentErrors] });
     await waitForElementToBeRemoved(() =>
       screen.queryByText(textMock('preview.loading_preview_controller')),
     );

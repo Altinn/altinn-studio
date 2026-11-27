@@ -59,7 +59,8 @@ mock user, the instances and the process are the same as for a v9 app.
 Each app's page runs a script of preview's, [studio-bridge.js](src/Altinn.Studio.Preview/AppApi/studio-bridge.js).
 Studio's page tells it when the app's layouts, page settings or texts change, and it has the frontend show the change
 without reloading the page, so the developer keeps their place in the form. On a v9 app's page it also tells Studio's
-page which components the frontend found errors in, and the UI editor shows the errors by the components. The script
+page which components the frontend found errors in. The UI editor shows them by the components to users who have
+turned on the feature under development "Vis feil fra forhåndsvisningen i Utforming" in their settings. The script
 needs nothing new from the frontends, so it works with each published version, and it is never part of a published
 app.
 
