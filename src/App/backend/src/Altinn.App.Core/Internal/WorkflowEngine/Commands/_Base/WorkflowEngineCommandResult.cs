@@ -13,12 +13,12 @@ internal sealed class SuccessfulWorkflowEngineCommandResult : WorkflowEngineComm
     public ProcessNextContinuation? ProcessNextContinuation { get; init; }
 
     /// <summary>
-    /// What the mailbox relay must do once this callback's data changes are saved and re-captured: enqueue a
+    /// What the service task relay must do once this callback's data changes are saved and re-captured: enqueue a
     /// receiver or the next item's workflow, or close the mailbox and start what comes after it. <c>null</c> on
     /// every callback that is not a service task step's. It rides the result rather than being acted on inside the
     /// command because the successor must start on the state this step <em>published</em>.
     /// </summary>
-    public MailboxContinuation? MailboxContinuation { get; init; }
+    public ServiceTaskContinuation? ServiceTaskContinuation { get; init; }
 }
 
 /// <summary>

@@ -183,7 +183,7 @@ public class ExecuteServiceTaskTests
         var success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.NotNull(success.ProcessNextContinuation);
         Assert.Null(success.ProcessNextContinuation.Action);
-        Assert.Null(success.MailboxContinuation);
+        Assert.Null(success.ServiceTaskContinuation);
     }
 
     [Fact]

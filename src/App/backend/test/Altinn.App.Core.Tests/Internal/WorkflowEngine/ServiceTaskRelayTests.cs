@@ -21,7 +21,7 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine;
 /// mailbox closes it, and every enqueue is a head keyed on the executing step. Every test here exists because the
 /// property it pins is one a wrong implementation would still compile with.
 /// </summary>
-public class MailboxRelayTests
+public class ServiceTaskRelayTests
 {
     private static readonly Guid _instanceGuid = new("2b3e9260-24d9-4c0a-8b93-ef2c9c7dcbde");
     private static readonly Guid _mailboxId = new("018f4e00-0000-7000-8000-0000000000aa");
@@ -142,7 +142,7 @@ public class MailboxRelayTests
     /// The relay, wired to the recorder. It is handed no service task: every hop enqueues the plan its result
     /// carried and resolves no pipeline.
     /// </summary>
-    private static MailboxRelay CreateRelay(RelayRecorder recorder)
+    private static ServiceTaskRelay CreateRelay(RelayRecorder recorder)
     {
         var processEngine = new Mock<IProcessEngine>(MockBehavior.Strict);
         processEngine
@@ -178,7 +178,7 @@ public class MailboxRelayTests
             )
             .Returns(Task.CompletedTask);
 
-        return new MailboxRelay(
+        return new ServiceTaskRelay(
             new RecordingEngineClient(recorder),
             recorder.Tokens,
             new ProcessStepOptionsResolver([]),
@@ -234,7 +234,7 @@ public class MailboxRelayTests
     private static ServiceTaskItem.ExternalStage External(ServiceTaskPipeline pipeline, int index) =>
         Assert.IsType<ServiceTaskItem.ExternalStage>(pipeline.Items[index]);
 
-    private static MailboxRelayRequest CreateRequest(Guid stepId, Guid? workflowId = null, string? action = null) =>
+    private static ServiceTaskRelayRequest CreateRequest(Guid stepId, Guid? workflowId = null, string? action = null) =>
         new()
         {
             AppId = new AppIdentifier("ttd", "test-app"),
@@ -272,10 +272,10 @@ public class MailboxRelayTests
     /// The hand-over an external stage's completed send makes: its receive workflow, parked on the mailbox its mint
     /// opened.
     /// </summary>
-    private static MailboxContinuation.ContinueAfterStage FirstReceiver() =>
+    private static ServiceTaskContinuation.ContinueAfterStage FirstReceiver() =>
         new(
             ServiceTaskType,
-            new MailboxHandover(
+            new ServiceTaskHandover(
                 ArchiveIndex,
                 WorkflowStepSet.PlanReceive(
                     ServiceTaskType,
@@ -287,31 +287,37 @@ public class MailboxRelayTests
         );
 
     /// <summary>The hand-over a completed stage makes: the next item's workflow, with nothing to close.</summary>
-    private static MailboxContinuation.ContinueAfterStage NextItem(ServiceTaskPipeline pipeline, int afterItemIndex) =>
+    private static ServiceTaskContinuation.ContinueAfterStage NextItem(
+        ServiceTaskPipeline pipeline,
+        int afterItemIndex
+    ) =>
         new(
             ServiceTaskType,
-            new MailboxHandover(afterItemIndex, WorkflowStepSet.PlanItem(ServiceTaskType, pipeline, afterItemIndex + 1))
+            new ServiceTaskHandover(
+                afterItemIndex,
+                WorkflowStepSet.PlanItem(ServiceTaskType, pipeline, afterItemIndex + 1)
+            )
         );
 
     /// <summary>
     /// The hand-over a reply handler done with its replies makes: close the stage's mailbox, then the next item's
     /// workflow.
     /// </summary>
-    private static MailboxContinuation.ConcludeAndContinue Continuing(
+    private static ServiceTaskContinuation.CloseAndContinue Continuing(
         ServiceTaskPipeline? pipeline = null,
         int afterItemIndex = ArchiveIndex
     ) =>
         new(
             _mailboxId,
             ServiceTaskType,
-            new MailboxHandover(
+            new ServiceTaskHandover(
                 afterItemIndex,
                 WorkflowStepSet.PlanItem(ServiceTaskType, pipeline ?? _archiveRecordJournal, afterItemIndex + 1)
             )
         );
 
     /// <summary>The archive's reply handler waiting for the reply after <paramref name="position"/>.</summary>
-    private static MailboxContinuation.AwaitNextMessage AwaitNext(long position) =>
+    private static ServiceTaskContinuation.AwaitNextMessage AwaitNext(long position) =>
         new(_mailboxId, ServiceTaskType, ArchiveIndex, position, _archiveOptions, ArchiveReplyStepName);
 
     private static List<string> StepOperationIds(WorkflowRequest workflow) =>
@@ -361,7 +367,7 @@ public class MailboxRelayTests
 
         await CreateRelay(recorder)
             .Continue(
-                new MailboxContinuation.Conclude(_mailboxId),
+                new ServiceTaskContinuation.CloseAndEndTask(_mailboxId),
                 CreateRequest(_stepId, workflowId, action: "reject"),
                 CancellationToken.None
             );
@@ -400,22 +406,22 @@ public class MailboxRelayTests
     {
         // Structural proof: the continuation type's constructor is private to itself, so the set is closed
         // at four.
-        Type[] members = typeof(MailboxContinuation)
+        Type[] members = typeof(ServiceTaskContinuation)
             .GetNestedTypes(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public)
-            .Where(t => typeof(MailboxContinuation).IsAssignableFrom(t))
+            .Where(t => typeof(ServiceTaskContinuation).IsAssignableFrom(t))
             .ToArray();
 
         Assert.Equal(4, members.Length);
-        Assert.Contains(typeof(MailboxContinuation.AwaitNextMessage), members);
-        Assert.Contains(typeof(MailboxContinuation.ContinueAfterStage), members);
-        Assert.Contains(typeof(MailboxContinuation.Conclude), members);
-        Assert.Contains(typeof(MailboxContinuation.ConcludeAndContinue), members);
+        Assert.Contains(typeof(ServiceTaskContinuation.AwaitNextMessage), members);
+        Assert.Contains(typeof(ServiceTaskContinuation.ContinueAfterStage), members);
+        Assert.Contains(typeof(ServiceTaskContinuation.CloseAndEndTask), members);
+        Assert.Contains(typeof(ServiceTaskContinuation.CloseAndContinue), members);
         Assert.All(members, member => Assert.True(member.IsSealed));
 
         // The record's synthesized copy constructor is excluded deliberately: it can only clone an instance
         // that already exists, so it adds no member to the set.
         Assert.All(
-            typeof(MailboxContinuation).GetConstructors(
+            typeof(ServiceTaskContinuation).GetConstructors(
                 System.Reflection.BindingFlags.Instance
                     | System.Reflection.BindingFlags.Public
                     | System.Reflection.BindingFlags.NonPublic
@@ -424,10 +430,10 @@ public class MailboxRelayTests
             {
                 System.Reflection.ParameterInfo[] parameters = constructor.GetParameters();
                 bool isCopyConstructor =
-                    parameters.Length == 1 && parameters[0].ParameterType == typeof(MailboxContinuation);
+                    parameters.Length == 1 && parameters[0].ParameterType == typeof(ServiceTaskContinuation);
                 Assert.True(
                     isCopyConstructor || constructor.IsPrivate,
-                    $"MailboxContinuation exposes a constructor a fifth answer could chain to: {constructor}"
+                    $"ServiceTaskContinuation exposes a constructor a fifth answer could chain to: {constructor}"
                 );
             }
         );
@@ -622,14 +628,14 @@ public class MailboxRelayTests
     // ---------------------------------------------------------------------------------------------
 
     /// <summary>A hop the relay runs, by the successor it enqueues.</summary>
-    private static MailboxContinuation Hop(string hop) =>
+    private static ServiceTaskContinuation Hop(string hop) =>
         hop switch
         {
             "receiver" => AwaitNext(position: 2),
             "first-receiver" => FirstReceiver(),
             "continuation" => Continuing(),
             "next-item" => NextItem(_archiveRecordJournal, RecordIndex),
-            "after-workflow" => new MailboxContinuation.Conclude(_mailboxId),
+            "after-workflow" => new ServiceTaskContinuation.CloseAndEndTask(_mailboxId),
             _ => throw new ArgumentOutOfRangeException(nameof(hop), hop, null),
         };
 
@@ -645,7 +651,7 @@ public class MailboxRelayTests
     public async Task EveryHop_KeysItsEnqueueOnTheExecutingStep(string hop)
     {
         var recorder = new RelayRecorder();
-        MailboxRelay relay = CreateRelay(recorder);
+        ServiceTaskRelay relay = CreateRelay(recorder);
         var otherStepId = Guid.NewGuid();
 
         await relay.Continue(Hop(hop), CreateRequest(_stepId), CancellationToken.None);
@@ -706,7 +712,7 @@ public class MailboxRelayTests
     {
         WorkflowCallbackStateCarry carry = OpenCarry();
 
-        WorkflowEngineCommandResult result = MailboxRelay.DecideStage(
+        WorkflowEngineCommandResult result = ServiceTaskRelay.DecideStage(
             byCompletingTheLastItem ? ServiceTaskResult.Completed() : ServiceTaskResult.EndTask(action),
             ServiceTaskType,
             _stepId,
@@ -718,7 +724,10 @@ public class MailboxRelayTests
         SuccessfulWorkflowEngineCommandResult success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.NotNull(success.ProcessNextContinuation);
         Assert.Equal(action, success.ProcessNextContinuation.Action);
-        Assert.Equal(_mailboxId, Assert.IsType<MailboxContinuation.Conclude>(success.MailboxContinuation).MailboxId);
+        Assert.Equal(
+            _mailboxId,
+            Assert.IsType<ServiceTaskContinuation.CloseAndEndTask>(success.ServiceTaskContinuation).MailboxId
+        );
         Assert.Null(carry.Mailboxes);
     }
 
@@ -779,7 +788,7 @@ public class MailboxRelayTests
         else if (result is SuccessfulWorkflowEngineCommandResult success)
         {
             Assert.NotNull(success.ProcessNextContinuation);
-            Assert.Null(success.MailboxContinuation);
+            Assert.Null(success.ServiceTaskContinuation);
         }
         else
         {
@@ -793,7 +802,7 @@ public class MailboxRelayTests
         ServiceTaskItem.ExternalStage journal = External(_archiveRecordJournal, JournalIndex);
         return decision switch
         {
-            "stage completed mid-pipeline" => MailboxRelay.DecideStage(
+            "stage completed mid-pipeline" => ServiceTaskRelay.DecideStage(
                 ServiceTaskResult.Completed(),
                 ServiceTaskType,
                 stepId,
@@ -801,7 +810,7 @@ public class MailboxRelayTests
                 RecordIndex,
                 _archiveRecordJournal
             ),
-            "stage completed on the last item" => MailboxRelay.DecideStage(
+            "stage completed on the last item" => ServiceTaskRelay.DecideStage(
                 ServiceTaskResult.Completed(),
                 ServiceTaskType,
                 stepId,
@@ -809,7 +818,7 @@ public class MailboxRelayTests
                 RecordIndex,
                 new PipelineBuilder.ServiceTask().Stage(RecordArchived).Stage(RecordArchived).ToPipeline()
             ),
-            "stage ended with a mailbox carried" => MailboxRelay.DecideStage(
+            "stage ended with a mailbox carried" => ServiceTaskRelay.DecideStage(
                 ServiceTaskResult.EndTask("reject"),
                 ServiceTaskType,
                 stepId,
@@ -817,7 +826,7 @@ public class MailboxRelayTests
                 RecordIndex,
                 _archiveRecordJournal
             ),
-            "stage completed the last item with a mailbox carried" => MailboxRelay.DecideStage(
+            "stage completed the last item with a mailbox carried" => ServiceTaskRelay.DecideStage(
                 ServiceTaskResult.Completed(),
                 ServiceTaskType,
                 stepId,
@@ -825,7 +834,7 @@ public class MailboxRelayTests
                 RecordIndex,
                 _archiveThenRecord
             ),
-            "stage ended with nothing carried" => MailboxRelay.DecideStage(
+            "stage ended with nothing carried" => ServiceTaskRelay.DecideStage(
                 ServiceTaskResult.EndTask("reject"),
                 ServiceTaskType,
                 stepId,
@@ -833,7 +842,7 @@ public class MailboxRelayTests
                 RecordIndex,
                 _archiveRecordJournal
             ),
-            "send completed" => MailboxRelay.DecideSend(
+            "send completed" => ServiceTaskRelay.DecideSend(
                 ServiceTaskResult.Completed(),
                 ServiceTaskType,
                 stepId,
@@ -842,7 +851,7 @@ public class MailboxRelayTests
                 archive,
                 ArchiveIndex
             ),
-            "send ended" => MailboxRelay.DecideSend(
+            "send ended" => ServiceTaskRelay.DecideSend(
                 ServiceTaskResult.EndTask(),
                 ServiceTaskType,
                 stepId,
@@ -851,7 +860,7 @@ public class MailboxRelayTests
                 archive,
                 ArchiveIndex
             ),
-            "send deferred" => MailboxRelay.DecideSend(
+            "send deferred" => ServiceTaskRelay.DecideSend(
                 ServiceTaskResult.Defer(TimeSpan.FromMinutes(1)),
                 ServiceTaskType,
                 stepId,
@@ -860,7 +869,7 @@ public class MailboxRelayTests
                 archive,
                 ArchiveIndex
             ),
-            "reply awaits the next" => MailboxRelay.DecideReply(
+            "reply awaits the next" => ServiceTaskRelay.DecideReply(
                 ServiceTaskReplyResult.AwaitNextReply(),
                 ServiceTaskType,
                 stepId,
@@ -870,7 +879,7 @@ public class MailboxRelayTests
                 ArchiveIndex,
                 _archiveRecordJournal
             ),
-            "reply completed mid-pipeline" => MailboxRelay.DecideReply(
+            "reply completed mid-pipeline" => ServiceTaskRelay.DecideReply(
                 ServiceTaskReplyResult.Completed(),
                 ServiceTaskType,
                 stepId,
@@ -880,7 +889,7 @@ public class MailboxRelayTests
                 ArchiveIndex,
                 _archiveRecordJournal
             ),
-            "reply completed on the last item" => MailboxRelay.DecideReply(
+            "reply completed on the last item" => ServiceTaskRelay.DecideReply(
                 ServiceTaskReplyResult.Completed(),
                 ServiceTaskType,
                 stepId,
@@ -890,7 +899,7 @@ public class MailboxRelayTests
                 JournalIndex,
                 _archiveRecordJournal
             ),
-            "reply ended" => MailboxRelay.DecideReply(
+            "reply ended" => ServiceTaskRelay.DecideReply(
                 ServiceTaskReplyResult.EndTask("reject"),
                 ServiceTaskType,
                 stepId,
@@ -900,7 +909,7 @@ public class MailboxRelayTests
                 ArchiveIndex,
                 _archiveRecordJournal
             ),
-            "reply failed permanently" => MailboxRelay.DecideReply(
+            "reply failed permanently" => ServiceTaskRelay.DecideReply(
                 ServiceTaskReplyResult.FailedPermanent("the archive rejected the record"),
                 ServiceTaskType,
                 stepId,
@@ -910,7 +919,7 @@ public class MailboxRelayTests
                 ArchiveIndex,
                 _archiveRecordJournal
             ),
-            "reply failed retryably" => MailboxRelay.DecideReply(
+            "reply failed retryably" => ServiceTaskRelay.DecideReply(
                 ServiceTaskReplyResult.FailedRetryable("the archive is down"),
                 ServiceTaskType,
                 stepId,

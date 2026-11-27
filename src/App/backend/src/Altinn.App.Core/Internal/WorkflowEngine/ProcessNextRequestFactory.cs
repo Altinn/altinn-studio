@@ -94,7 +94,7 @@ internal sealed class ProcessNextRequestFactory
     internal const string AuxiliaryOperationIdPrefix = "Process next auxiliary:";
 
     /// <summary>
-    /// OperationId prefix for a receive workflow — enqueued by <see cref="MailboxRelay"/>, never by this
+    /// OperationId prefix for a receive workflow — enqueued by <see cref="ServiceTaskRelay"/>, never by this
     /// factory; the constant lives here beside its siblings. A display name: the waits tell these workflows by
     /// their steps, not by this string.
     /// </summary>
@@ -102,7 +102,7 @@ internal sealed class ProcessNextRequestFactory
 
     /// <summary>
     /// OperationId prefix for the workflow of a service task's pipeline item after the first, followed by the task and
-    /// the item's index — enqueued by <see cref="MailboxRelay"/>, never by this factory. A display name, like the
+    /// the item's index — enqueued by <see cref="ServiceTaskRelay"/>, never by this factory. A display name, like the
     /// receive prefix above.
     /// </summary>
     internal const string ServiceTaskStageOperationIdPrefix = "Service task stage:";

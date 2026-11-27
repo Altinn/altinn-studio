@@ -73,7 +73,7 @@ public class WorkflowEnqueueRulesTests
         Assert.Equal(
             [
                 ("Altinn.App.Core/Internal/WorkflowEngine/Commands/EnqueueAuxiliaryWorkflows.cs", 1),
-                ("Altinn.App.Core/Internal/WorkflowEngine/MailboxRelay.cs", 2),
+                ("Altinn.App.Core/Internal/WorkflowEngine/ServiceTaskRelay.cs", 2),
                 ("Altinn.App.Core/Internal/WorkflowEngine/WorkflowEngineService.cs", 1),
             ],
             callers

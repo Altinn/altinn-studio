@@ -86,7 +86,7 @@ internal sealed class ExecuteServiceTask(
 
                 ServiceTaskItem.Stage when rendezvous is not null => MailboxReceiptOnStage(serviceTaskType, itemIndex),
 
-                ServiceTaskItem.Stage stage => MailboxRelay.DecideStage(
+                ServiceTaskItem.Stage stage => ServiceTaskRelay.DecideStage(
                     await stage.Work(serviceTaskContext),
                     serviceTaskType,
                     context.Payload.StepId,
@@ -150,7 +150,7 @@ internal sealed class ExecuteServiceTask(
         }
 
         ReplyAddress address = new() { Id = carried.Id, Deadline = carried.Deadline };
-        return MailboxRelay.DecideSend(
+        return ServiceTaskRelay.DecideSend(
             await stage.Send(serviceTaskContext, address),
             serviceTaskType,
             context.Payload.StepId,
@@ -225,7 +225,7 @@ internal sealed class ExecuteServiceTask(
             return NoReplyInTime(serviceTaskType, stage, stageIndex);
         }
 
-        return MailboxRelay.DecideReply(
+        return ServiceTaskRelay.DecideReply(
             result,
             serviceTaskType,
             context.Payload.StepId,
@@ -307,11 +307,11 @@ internal sealed class ExecuteServiceTask(
 
     /// <summary>
     /// Reason code for every failure a service task's own code reported, whichever step reported it. One
-    /// definition, shared with <see cref="MailboxRelay"/> — the code is operator-visible.
+    /// definition, shared with <see cref="ServiceTaskRelay"/> — the code is operator-visible.
     /// </summary>
     internal const string FailedReasonCode = "ServiceTaskFailedException";
 
-    /// <summary>The sentence such a failure is reported as, shared with <see cref="MailboxRelay"/>.</summary>
+    /// <summary>The sentence such a failure is reported as, shared with <see cref="ServiceTaskRelay"/>.</summary>
     internal static string FailedMessage(string serviceTaskType, string errorMessage) =>
         $"Service task '{serviceTaskType}' failed: {errorMessage}";
 }

@@ -248,9 +248,9 @@ public class WorkflowEngineCallbackController : ControllerBase
                 );
 
                 // Successors need the saved, signed state, including Storage-assigned IDs.
-                if (success.MailboxContinuation is { } continuation)
+                if (success.ServiceTaskContinuation is { } continuation)
                 {
-                    await RunMailboxRelay(
+                    await RunServiceTaskRelay(
                         continuation,
                         appId,
                         instanceId,
@@ -500,8 +500,8 @@ public class WorkflowEngineCallbackController : ControllerBase
         );
     }
 
-    private Task RunMailboxRelay(
-        MailboxContinuation continuation,
+    private Task RunServiceTaskRelay(
+        ServiceTaskContinuation continuation,
         AppIdentifier appId,
         InstanceIdentifier instanceId,
         AppCallbackPayload payload,
@@ -511,10 +511,10 @@ public class WorkflowEngineCallbackController : ControllerBase
         CancellationToken cancellationToken
     )
     {
-        var relay = _serviceProvider.GetRequiredService<MailboxRelay>();
+        var relay = _serviceProvider.GetRequiredService<ServiceTaskRelay>();
         return relay.Continue(
             continuation,
-            new MailboxRelayRequest
+            new ServiceTaskRelayRequest
             {
                 AppId = appId,
                 InstanceId = instanceId,
