@@ -41,11 +41,4 @@ internal static class PipelineApi
     public const string ServiceTaskReplyResult = "ServiceTaskReplyResult";
 
     public const string EndTask = "EndTask";
-
-    public const string RetryStrategy = "ProcessStepRetryStrategy";
-
-    /// <summary>
-    /// The only way to create a <see cref="RetryStrategy"/>, which the upgrade names for code that builds one by hand.
-    /// </summary>
-    public static readonly IReadOnlyList<string> RetryStrategyFactories = ["Exponential", "Linear", "Constant", "None"];
 }

@@ -23,7 +23,6 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
     - run again, it rewrites code written for an earlier v9 preview, such as `Finally` and `ConcludeOnReplies` to `Stage` and `ExternalStage`, and reports what it cannot rewrite
     - the `DefineStart`, `DefineEnd` or `DefineAbandon` it adds for v8 work takes `PipelineBuilder.Lifecycle`
 - `studioctl app upgrade v9` reports preview code that names `SuccessfulHandlerResult` or `FailedHandlerResult`, which are no longer public, and the factory to use instead. ([#22131](https://github.com/Altinn/altinn-studio/pull/22131))
-- `studioctl app upgrade v9` reports preview code that builds a `ProcessStepRetryStrategy` with `new` or copies one with `with`, and the factories to use instead. ([#22150](https://github.com/Altinn/altinn-studio/issues/22150))
 
 ### Fixed
 

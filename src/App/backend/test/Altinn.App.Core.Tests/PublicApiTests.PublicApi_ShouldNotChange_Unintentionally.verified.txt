@@ -2243,11 +2243,12 @@ namespace Altinn.App.Core.Features.Process
     }
     public sealed class ProcessStepRetryStrategy : System.IEquatable<Altinn.App.Core.Features.Process.ProcessStepRetryStrategy>
     {
-        public Altinn.App.Core.Features.Process.ProcessStepBackoffType BackoffType { get; }
-        public System.TimeSpan BaseInterval { get; }
-        public System.TimeSpan? MaxDelay { get; }
-        public System.TimeSpan? MaxDuration { get; }
-        public int? MaxRetries { get; }
+        public ProcessStepRetryStrategy() { }
+        public Altinn.App.Core.Features.Process.ProcessStepBackoffType BackoffType { get; init; }
+        public System.TimeSpan BaseInterval { get; init; }
+        public System.TimeSpan? MaxDelay { get; init; }
+        public System.TimeSpan? MaxDuration { get; init; }
+        public int? MaxRetries { get; init; }
         public static Altinn.App.Core.Features.Process.ProcessStepRetryStrategy Constant(System.TimeSpan interval, int? maxRetries = default, System.TimeSpan? maxDuration = default) { }
         public static Altinn.App.Core.Features.Process.ProcessStepRetryStrategy Exponential(System.TimeSpan baseInterval, int? maxRetries = default, System.TimeSpan? maxDelay = default, System.TimeSpan? maxDuration = default) { }
         public static Altinn.App.Core.Features.Process.ProcessStepRetryStrategy Linear(System.TimeSpan baseInterval, int? maxRetries = default, System.TimeSpan? maxDelay = default, System.TimeSpan? maxDuration = default) { }
