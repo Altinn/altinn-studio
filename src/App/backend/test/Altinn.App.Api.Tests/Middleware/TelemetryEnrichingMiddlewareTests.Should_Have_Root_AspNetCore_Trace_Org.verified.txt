@@ -30,6 +30,9 @@
           altinn.user.authentication.type: ServiceOwner
         },
         {
+          enduser.id: 405003309
+        },
+        {
           http.request.method: GET
         },
         {

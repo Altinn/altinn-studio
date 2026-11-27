@@ -392,6 +392,9 @@ public static class TelemetryActivityExtensions
             }
             case Authenticated.Org auth:
             {
+                // enduser.id is whoever the request acts for, in the ID that authenticated them: for an
+                // organization, its organization number, as Maskinporten has it.
+                activity.SetTag(Labels.UserId, auth.OrgNo);
                 activity.SetOrganizationNumber(auth.OrgNo);
                 activity.SetAuthenticationMethod(auth.AuthenticationMethod);
                 activity.SetAuthenticationLevel(auth.AuthenticationLevel);
@@ -399,6 +402,7 @@ public static class TelemetryActivityExtensions
             }
             case Authenticated.ServiceOwner auth:
             {
+                activity.SetTag(Labels.UserId, auth.OrgNo);
                 activity.SetOrganizationNumber(auth.OrgNo);
                 activity.SetOrganizationName(auth.Name);
                 activity.SetAuthenticationMethod(auth.AuthenticationMethod);
