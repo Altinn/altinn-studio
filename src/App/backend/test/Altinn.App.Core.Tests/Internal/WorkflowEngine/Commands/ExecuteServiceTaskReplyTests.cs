@@ -472,7 +472,6 @@ public class ExecuteServiceTaskReplyTests
             success.ServiceTaskContinuation
         );
         Assert.Equal(_mailboxId, continuing.MailboxId);
-        Assert.Equal("archiving", continuing.ServiceTaskType);
         Assert.Equal(StageIndex, continuing.Handover.AfterItemIndex);
         Assert.Null(continuing.Handover.Target);
         Assert.Equal([$"{ExecuteServiceTask.Key}: 1"], continuing.Handover.Steps.Select(step => step.OperationId));

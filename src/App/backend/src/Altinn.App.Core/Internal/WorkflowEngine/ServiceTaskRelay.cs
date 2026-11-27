@@ -95,7 +95,7 @@ internal sealed class ServiceTaskRelay
                 );
                 return new SuccessfulWorkflowEngineCommandResult
                 {
-                    ServiceTaskContinuation = new ServiceTaskContinuation.ContinueAfterStage(serviceTaskType, handover),
+                    ServiceTaskContinuation = new ServiceTaskContinuation.ContinueAfterStage(handover),
                 };
 
             case EndedServiceTaskResult ended:
@@ -186,7 +186,7 @@ internal sealed class ServiceTaskRelay
         {
             return new SuccessfulWorkflowEngineCommandResult
             {
-                ServiceTaskContinuation = new ServiceTaskContinuation.ContinueAfterStage(serviceTaskType, handover),
+                ServiceTaskContinuation = new ServiceTaskContinuation.ContinueAfterStage(handover),
             };
         }
 
@@ -195,11 +195,7 @@ internal sealed class ServiceTaskRelay
         carry.RecordMailboxClosed();
         return new SuccessfulWorkflowEngineCommandResult
         {
-            ServiceTaskContinuation = new ServiceTaskContinuation.CloseAndContinue(
-                mailboxId,
-                serviceTaskType,
-                handover
-            ),
+            ServiceTaskContinuation = new ServiceTaskContinuation.CloseAndContinue(mailboxId, handover),
         };
     }
 
@@ -304,9 +300,11 @@ internal sealed class ServiceTaskRelay
         switch (continuation)
         {
             case ServiceTaskContinuation.AwaitNextMessage awaitNext:
-                await EnqueueReceiver(
-                    awaitNext.MailboxId,
-                    awaitNext.ServiceTaskType,
+                await EnqueueSuccessor(
+                    ReceiveOperationId(
+                        request,
+                        "after message " + awaitNext.Position.ToString(CultureInfo.InvariantCulture)
+                    ),
                     [
                         WorkflowStepSet.CreateItemStep(
                             awaitNext.ServiceTaskType,
@@ -315,14 +313,14 @@ internal sealed class ServiceTaskRelay
                             awaitNext.HandlerStepName
                         ),
                     ],
-                    operationIdSuffix: "after message " + awaitNext.Position.ToString(CultureInfo.InvariantCulture),
+                    awaitNext.MailboxId,
                     request,
                     cancellationToken
                 );
                 return;
 
             case ServiceTaskContinuation.ContinueAfterStage afterStage:
-                await HandOver(afterStage.Handover, afterStage.ServiceTaskType, request, cancellationToken);
+                await HandOver(afterStage.Handover, request, cancellationToken);
                 return;
 
             case ServiceTaskContinuation.CloseAndEndTask conclude:
@@ -343,7 +341,7 @@ internal sealed class ServiceTaskRelay
                     continuing.MailboxId,
                     cancellationToken
                 );
-                await HandOver(continuing.Handover, continuing.ServiceTaskType, request, cancellationToken);
+                await HandOver(continuing.Handover, request, cancellationToken);
                 return;
 
             default:
@@ -360,53 +358,53 @@ internal sealed class ServiceTaskRelay
     /// </summary>
     private Task HandOver(
         ServiceTaskHandover handover,
-        string serviceTaskType,
         ServiceTaskRelayRequest request,
         CancellationToken cancellationToken
     ) =>
         handover.Target is { } target
-            ? EnqueueReceiver(
-                target.MailboxId,
-                serviceTaskType,
+            ? EnqueueSuccessor(
+                ReceiveOperationId(request, target.StageIndex.ToString(CultureInfo.InvariantCulture)),
                 handover.Steps,
-                operationIdSuffix: target.StageIndex.ToString(CultureInfo.InvariantCulture),
+                target.MailboxId,
                 request,
                 cancellationToken
             )
-            : EnqueueContinuation(serviceTaskType, handover, request, cancellationToken);
+            : EnqueueSuccessor(
+                // Named for the item it runs, as that item's ExecuteServiceTask step is.
+                $"{ProcessNextRequestFactory.ServiceTaskStageOperationIdPrefix} {CurrentTaskId(request)} · "
+                    + (handover.AfterItemIndex + 1).ToString(CultureInfo.InvariantCulture),
+                handover.Steps,
+                mailboxId: null,
+                request,
+                cancellationToken
+            );
 
     /// <summary>
-    /// One receive workflow, first receiver and successors alike: a single step naming the external stage by its
-    /// item index, parked on the stage's mailbox, enqueued as a head that depends on the current head —
-    /// the still-unsettled step running this relay — so the wait stays visible to the frontier and a
-    /// failed hop condemns everything downstream. Keyed on the bare executing step id, per the invariant on
-    /// this class.
+    /// The one workflow that follows the executing step: the steps a hop planned, parked on
+    /// <paramref name="mailboxId"/> when it is a receive workflow. It is enqueued as a head that depends on the
+    /// current head, the still-unsettled step running this relay, so the wait stays visible to the frontier and a
+    /// failed hop condemns everything downstream. Keyed on the bare executing step id, per the invariant on this
+    /// class, with a callback token minted at this hop.
     /// </summary>
-    private async Task EnqueueReceiver(
-        Guid mailboxId,
-        string serviceTaskType,
+    private async Task EnqueueSuccessor(
+        string operationId,
         IReadOnlyList<PlannedStep> steps,
-        string operationIdSuffix,
+        Guid? mailboxId,
         ServiceTaskRelayRequest request,
         CancellationToken cancellationToken
     )
     {
-        string? taskId = request.DataAccessor.Instance.Process?.CurrentTask?.ElementId;
-
-        List<StepRequest> receiveSteps = [.. steps.ToStepRequests(_stepOptionsResolver)];
-
-        var receiveWorkflow = new WorkflowRequest
+        var workflow = new WorkflowRequest
         {
-            OperationId = $"{ProcessNextRequestFactory.MailboxReceiveOperationIdPrefix} {taskId} · {operationIdSuffix}",
-            Steps = receiveSteps,
-            Mailbox = new MailboxReference { Id = mailboxId },
+            OperationId = operationId,
+            Steps = [.. steps.ToStepRequests(_stepOptionsResolver)],
+            Mailbox = mailboxId is { } id ? new MailboxReference { Id = id } : null,
             State = request.State,
             IsHead = true,
             DependsOnHeads = true,
         };
 
-        // Token minted at this hop; with the re-signed blob this binds each hop to current app code.
-        var receiveContext = new AppWorkflowContext
+        var context = new AppWorkflowContext
         {
             Actor = request.Payload.Actor,
             Org = request.AppId.Org,
@@ -416,15 +414,15 @@ internal sealed class ServiceTaskRelay
             CallbackToken = _callbackTokenGenerator.GenerateToken(
                 request.InstanceId.InstanceGuid,
                 request.Payload.Actor,
-                [receiveWorkflow]
+                [workflow]
             ),
         };
 
         var enqueueRequest = new WorkflowEnqueueRequest
         {
             Labels = CreateSuccessorLabels(request),
-            Context = JsonSerializer.SerializeToElement(receiveContext),
-            Workflows = [receiveWorkflow],
+            Context = JsonSerializer.SerializeToElement(context),
+            Workflows = [workflow],
         };
 
         await _workflowEngineClient.EnqueueWorkflows(
@@ -436,65 +434,11 @@ internal sealed class ServiceTaskRelay
         );
     }
 
-    /// <summary>
-    /// The workflow of the item composed after the one the deciding hop ran (a completed stage, or an external
-    /// stage done with its replies): the steps that hop planned, carried here whole and enqueued. This hop
-    /// resolves nothing about the pipeline: the steps are authoritative, and the only thing left to do to them is
-    /// resolve each step's options, which the resolver does from the step's own identity.
-    /// </summary>
-    private async Task EnqueueContinuation(
-        string serviceTaskType,
-        ServiceTaskHandover handover,
-        ServiceTaskRelayRequest request,
-        CancellationToken cancellationToken
-    )
-    {
-        string? taskId = request.DataAccessor.Instance.Process?.CurrentTask?.ElementId;
+    private static string ReceiveOperationId(ServiceTaskRelayRequest request, string suffix) =>
+        $"{ProcessNextRequestFactory.MailboxReceiveOperationIdPrefix} {CurrentTaskId(request)} · {suffix}";
 
-        List<StepRequest> steps = [.. handover.Steps.ToStepRequests(_stepOptionsResolver)];
-
-        var continuationWorkflow = new WorkflowRequest
-        {
-            // Named for the item it runs, as that item's ExecuteServiceTask step is.
-            OperationId =
-                $"{ProcessNextRequestFactory.ServiceTaskStageOperationIdPrefix} {taskId} · "
-                + (handover.AfterItemIndex + 1).ToString(CultureInfo.InvariantCulture),
-            Steps = steps,
-            State = request.State,
-            IsHead = true,
-            DependsOnHeads = true,
-        };
-
-        // Minted at this hop, exactly as a successor receiver's is.
-        var continuationContext = new AppWorkflowContext
-        {
-            Actor = request.Payload.Actor,
-            Org = request.AppId.Org,
-            App = request.AppId.App,
-            InstanceOwnerPartyId = request.InstanceId.InstanceOwnerPartyId,
-            InstanceGuid = request.InstanceId.InstanceGuid,
-            CallbackToken = _callbackTokenGenerator.GenerateToken(
-                request.InstanceId.InstanceGuid,
-                request.Payload.Actor,
-                [continuationWorkflow]
-            ),
-        };
-
-        var enqueueRequest = new WorkflowEnqueueRequest
-        {
-            Labels = CreateSuccessorLabels(request),
-            Context = JsonSerializer.SerializeToElement(continuationContext),
-            Workflows = [continuationWorkflow],
-        };
-
-        await _workflowEngineClient.EnqueueWorkflows(
-            ns: GetNamespace(request.AppId),
-            idempotencyKey: request.Payload.StepId.ToString(),
-            collectionKey: ProcessNextRequestFactory.CreateCollectionKey(request.InstanceId),
-            request: enqueueRequest,
-            cancellationToken: cancellationToken
-        );
-    }
+    private static string? CurrentTaskId(ServiceTaskRelayRequest request) =>
+        request.DataAccessor.Instance.Process?.CurrentTask?.ElementId;
 
     // Target labels let workflow status reads identify the successor's destination.
     private static Dictionary<string, string> CreateSuccessorLabels(ServiceTaskRelayRequest request) =>

@@ -68,14 +68,10 @@ internal abstract record ServiceTaskContinuation
     /// </summary>
     internal sealed record ContinueAfterStage : ServiceTaskContinuation
     {
-        public ContinueAfterStage(string serviceTaskType, ServiceTaskHandover handover)
+        public ContinueAfterStage(ServiceTaskHandover handover)
         {
-            ServiceTaskType = serviceTaskType;
             Handover = handover;
         }
-
-        /// <summary>The service task whose pipeline the hand-over belongs to.</summary>
-        public string ServiceTaskType { get; }
 
         /// <summary>What the pipeline runs next, decided and planned at the result this came from.</summary>
         public ServiceTaskHandover Handover { get; }
@@ -102,18 +98,14 @@ internal abstract record ServiceTaskContinuation
     /// </summary>
     internal sealed record CloseAndContinue : ServiceTaskContinuation
     {
-        public CloseAndContinue(Guid mailboxId, string serviceTaskType, ServiceTaskHandover handover)
+        public CloseAndContinue(Guid mailboxId, ServiceTaskHandover handover)
         {
             MailboxId = mailboxId;
-            ServiceTaskType = serviceTaskType;
             Handover = handover;
         }
 
         /// <summary>The stage's mailbox, closed before the next item starts.</summary>
         public Guid MailboxId { get; }
-
-        /// <summary>The service task whose pipeline the hand-over belongs to.</summary>
-        public string ServiceTaskType { get; }
 
         /// <summary>
         /// What the pipeline runs once the mailbox is closed, decided and planned at the result this continuation

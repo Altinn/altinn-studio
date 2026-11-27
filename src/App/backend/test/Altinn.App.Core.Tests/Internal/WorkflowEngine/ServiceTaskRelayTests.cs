@@ -274,7 +274,6 @@ public class ServiceTaskRelayTests
     /// </summary>
     private static ServiceTaskContinuation.ContinueAfterStage FirstReceiver() =>
         new(
-            ServiceTaskType,
             new ServiceTaskHandover(
                 ArchiveIndex,
                 WorkflowStepSet.PlanReceive(
@@ -292,7 +291,6 @@ public class ServiceTaskRelayTests
         int afterItemIndex
     ) =>
         new(
-            ServiceTaskType,
             new ServiceTaskHandover(
                 afterItemIndex,
                 WorkflowStepSet.PlanItem(ServiceTaskType, pipeline, afterItemIndex + 1)
@@ -309,7 +307,6 @@ public class ServiceTaskRelayTests
     ) =>
         new(
             _mailboxId,
-            ServiceTaskType,
             new ServiceTaskHandover(
                 afterItemIndex,
                 WorkflowStepSet.PlanItem(ServiceTaskType, pipeline ?? _archiveRecordJournal, afterItemIndex + 1)

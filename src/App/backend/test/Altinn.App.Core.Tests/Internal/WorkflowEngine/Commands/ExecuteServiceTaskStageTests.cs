@@ -154,7 +154,6 @@ public class ExecuteServiceTaskStageTests
         var success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.Null(success.ProcessNextContinuation);
         var continuing = Assert.IsType<ServiceTaskContinuation.ContinueAfterStage>(success.ServiceTaskContinuation);
-        Assert.Equal("shipping", continuing.ServiceTaskType);
         Assert.Equal(0, continuing.Handover.AfterItemIndex);
         Assert.Equal(
             [$"{ExecuteServiceTask.Key}: {LastIndex}"],

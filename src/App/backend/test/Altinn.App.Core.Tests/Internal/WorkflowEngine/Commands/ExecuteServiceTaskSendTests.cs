@@ -245,7 +245,6 @@ public class ExecuteServiceTaskSendTests
         Assert.Null(success.ProcessNextContinuation);
         ServiceTaskContinuation.ContinueAfterStage continuing =
             Assert.IsType<ServiceTaskContinuation.ContinueAfterStage>(success.ServiceTaskContinuation);
-        Assert.Equal("archiving", continuing.ServiceTaskType);
         Assert.Equal(SendStageIndex, continuing.Handover.AfterItemIndex);
 
         PlannedStep step = Assert.Single(continuing.Handover.Steps);
