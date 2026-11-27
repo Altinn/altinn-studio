@@ -8166,13 +8166,6 @@
         },
         "additionalProperties": false
       },
-      "ActionType": {
-        "enum": [
-          "ProcessAction",
-          "ServerAction"
-        ],
-        "type": "string"
-      },
       "Actor": {
         "type": "object",
         "properties": {
@@ -12094,7 +12087,11 @@
             "type": "boolean"
           },
           "type": {
-            "$ref": "#/components/schemas/ActionType"
+            "enum": [
+              "ProcessAction",
+              "ServerAction"
+            ],
+            "type": "string"
           }
         },
         "additionalProperties": false

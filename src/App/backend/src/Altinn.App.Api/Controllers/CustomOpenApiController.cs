@@ -3,12 +3,14 @@ using System.Net;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
+using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Models;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Layout.Components;
 using Altinn.App.Core.Models.Validation;
@@ -54,7 +56,11 @@ public class CustomOpenApiController : Controller
         _appMetadata = appMetadata;
         _processReader = processReader;
         _schemaGenerator = new SchemaGenerator(
-            new SchemaGeneratorOptions() { SupportNonNullableReferenceTypes = true },
+            new SchemaGeneratorOptions()
+            {
+                SupportNonNullableReferenceTypes = true,
+                CustomTypeMappings = { [typeof(ActionType)] = SwaggerFilterExtensions.ActionTypeSchema },
+            },
             dataContractResolver
         );
         _schemaRepository = new SchemaRepository();

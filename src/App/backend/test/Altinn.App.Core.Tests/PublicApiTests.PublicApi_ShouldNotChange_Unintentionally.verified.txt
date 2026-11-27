@@ -3331,7 +3331,6 @@ namespace Altinn.App.Core.Internal.Process.Authorization
 }
 namespace Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties
 {
-    [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
     public enum ActionType
     {
         [System.Xml.Serialization.XmlEnum("processAction")]

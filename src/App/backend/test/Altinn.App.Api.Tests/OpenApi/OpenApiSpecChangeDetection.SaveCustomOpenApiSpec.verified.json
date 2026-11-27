@@ -3403,13 +3403,6 @@
         },
         "additionalProperties": false
       },
-      "ActionType": {
-        "enum": [
-          "ProcessAction",
-          "ServerAction"
-        ],
-        "type": "string"
-      },
       "UserAction": {
         "required": [
           "id"
@@ -3423,7 +3416,11 @@
             "type": "boolean"
           },
           "type": {
-            "$ref": "#/components/schemas/ActionType"
+            "enum": [
+              "ProcessAction",
+              "ServerAction"
+            ],
+            "type": "string"
           }
         },
         "additionalProperties": false
