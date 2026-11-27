@@ -13,7 +13,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Fixed
 
 - PDFs of forms with large repeating groups are generated faster. A form with 936 rows of radio buttons and date pickers took 11 seconds to become a PDF, and now takes 5. ([#22148](https://github.com/Altinn/altinn-studio/pull/22148))
-- A retried eFormidling shipment is no longer sent without an attachment that failed to upload. When the app resumes a message that an earlier attempt created, it passes over only the files that attempt uploaded. Any other upload error fails the task, and the workflow engine tries again. ([#21909](https://github.com/Altinn/altinn-studio/issues/21909))
+- A retried eFormidling shipment is no longer sent without an attachment that failed to upload. When the app resumes a message that an earlier attempt created, it passes over only the files that attempt uploaded. Any other upload error fails the task, and the workflow engine tries again unless the integrasjonspunkt rejected the upload. ([#21909](https://github.com/Altinn/altinn-studio/issues/21909))
 
 ## [9.0.0-preview.15] - 2026-11-25
 
