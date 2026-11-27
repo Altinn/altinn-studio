@@ -36,6 +36,22 @@ internal static partial class SessionEndpoints
             );
         }
 
+        if (
+            request.Party switch
+            {
+                null or "person" => MockUser.PartyId,
+                "organization" => MockUser.OrganizationPartyId,
+                _ => (int?)null,
+            }
+            is not int partyId
+        )
+        {
+            return Results.Problem(
+                title: "The party is neither person nor organization.",
+                statusCode: StatusCodes.Status400BadRequest
+            );
+        }
+
         using AppFolder? folder = AppFolder.Open(options.Value.RepositoryRoot, workingCopy);
         if (folder is null)
         {
@@ -45,7 +61,7 @@ internal static partial class SessionEndpoints
             );
         }
 
-        SessionId sessionId = await sessionStore.Start(workingCopy, cancellationToken);
+        SessionId sessionId = await sessionStore.Start(workingCopy, partyId, cancellationToken);
         return Results.Ok(
             new StartSessionResponse(PreviewUrls.AppRoot(options.Value.PublicBaseUrl, sessionId, workingCopy))
         );
@@ -99,7 +115,7 @@ internal static partial class SessionEndpoints
                     app,
                     workingCopy.Org,
                     workingCopy.App,
-                    MockUser.PartyId,
+                    session.PartyId,
                     timeProvider.GetUtcNow(),
                     request.TaskId
                 ),
@@ -119,7 +135,10 @@ internal static partial class SessionEndpoints
 /// <param name="Developer">The developer, as Designer authenticated them.</param>
 /// <param name="Org">The app's service owner.</param>
 /// <param name="App">The app.</param>
-internal sealed record StartSessionRequest(string? Developer, string? Org, string? App);
+/// <param name="Party">
+/// Whom the user acts for: <c>person</c>, themself, which is the default, or <c>organization</c>.
+/// </param>
+internal sealed record StartSessionRequest(string? Developer, string? Org, string? App, string? Party = null);
 
 /// <summary>The session that was started.</summary>
 /// <param name="Url">The URL that opens the app in preview. It holds the session ID.</param>

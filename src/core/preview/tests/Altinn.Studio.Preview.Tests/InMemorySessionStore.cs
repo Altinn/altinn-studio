@@ -13,12 +13,15 @@ internal sealed class InMemorySessionStore : ISessionStore
     private readonly Lock _lock = new();
     private readonly Dictionary<SessionId, (PreviewSession Session, byte[] State)> _sessions = [];
 
-    public Task<SessionId> Start(WorkingCopy workingCopy, CancellationToken cancellationToken)
+    public Task<SessionId> Start(WorkingCopy workingCopy, int partyId, CancellationToken cancellationToken)
     {
         var sessionId = SessionId.New();
         lock (_lock)
         {
-            _sessions[sessionId] = (new PreviewSession(workingCopy, DateTimeOffset.UtcNow), Serialize(new MockState()));
+            _sessions[sessionId] = (
+                new PreviewSession(workingCopy, DateTimeOffset.UtcNow, partyId),
+                Serialize(new MockState())
+            );
         }
 
         return Task.FromResult(sessionId);

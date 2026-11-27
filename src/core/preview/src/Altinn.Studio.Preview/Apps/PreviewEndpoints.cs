@@ -73,7 +73,8 @@ internal static class PreviewEndpoints
                 session.Id,
                 session.Session.WorkingCopy,
                 options.Value.StudioOrigin,
-                context.Request.Query["lang"]
+                context.Request.Query["lang"],
+                session.Session.PartyId
             ),
             AppGeneration.V8 when string.IsNullOrEmpty(path) => V8IndexPage.Generate(
                 files,

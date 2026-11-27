@@ -12,14 +12,14 @@ namespace Altinn.Studio.Preview.AppApi;
 internal sealed record AppDefinition(
     ProcessDefinition? Process,
     IReadOnlyList<DataType> DataTypes,
-    Func<DataType, JsonObject>? NewFormData = null
+    Func<DataType, int, JsonObject>? NewFormData = null
 )
 {
     public static AppDefinition Read(AppFiles files) =>
         new(
             files.Process(),
             DataType.Of(files),
-            dataType => Prefill.Data(files.Prefill(dataType.Id), files.Schema(dataType.Id))
+            (dataType, partyId) => Prefill.Data(files.Prefill(dataType.Id), files.Schema(dataType.Id), partyId)
         );
 }
 
@@ -226,7 +226,8 @@ internal static class MockInstances
                 LastChangedBy = user,
             }
         );
-        instance.FormData[dataElementGuid] = app.NewFormData?.Invoke(dataType) ?? [];
+        int partyId = int.Parse(instance.Instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
+        instance.FormData[dataElementGuid] = app.NewFormData?.Invoke(dataType, partyId) ?? [];
     }
 }
 

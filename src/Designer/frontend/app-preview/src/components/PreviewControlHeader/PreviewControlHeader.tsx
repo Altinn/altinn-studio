@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { StudioSpinner, StudioSelect, StudioToggleGroup } from '@designer/components';
+import { usePreviewParty } from 'app-shared/hooks/usePreviewParty';
+import type { PreviewParty } from 'app-shared/types/api/PreviewSession';
 
 export type PreviewControlHeaderProps = {
   viewSize: 'desktop' | 'mobile';
@@ -21,6 +23,7 @@ export const PreviewControlHeader = ({
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: layoutSets, isPending: loadingLayoutSets } = useLayoutSetsQuery(org, app);
+  const { party, setParty } = usePreviewParty();
 
   const handleLayoutSetChange = (event: ChangeEvent<HTMLSelectElement>) => {
     handleChangeLayoutSet(event.target.value);
@@ -62,6 +65,20 @@ export const PreviewControlHeader = ({
           </StudioSelect>
         </div>
       )}
+      <div className={classes.layoutSetSelector}>
+        <StudioSelect
+          label={t('preview.test_as')}
+          onChange={(event: ChangeEvent<HTMLSelectElement>) =>
+            setParty(event.target.value as PreviewParty)
+          }
+          value={party}
+        >
+          <StudioSelect.Option value='person'>{t('preview.test_as_person')}</StudioSelect.Option>
+          <StudioSelect.Option value='organization'>
+            {t('preview.test_as_organization')}
+          </StudioSelect.Option>
+        </StudioSelect>
+      </div>
     </div>
   );
 };

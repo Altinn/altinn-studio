@@ -26,7 +26,8 @@ public class PreviewServiceClientTests : IDisposable
             .Given(Request.Create().WithPath("/sessions").UsingPost())
             .RespondWith(Response.Create().WithStatusCode(200).WithBodyAsJson(new { url = SessionUrl }));
 
-        Uri url = await Client().StartSession("developer", "ttd", "my-app", CancellationToken.None);
+        Uri url = await Client()
+            .StartSession("developer", "ttd", "my-app", PreviewParty.Person, CancellationToken.None);
 
         Assert.Equal(new Uri(SessionUrl), url);
         string body = Assert.Single(_server.LogEntries).RequestMessage.Body;
@@ -34,6 +35,7 @@ public class PreviewServiceClientTests : IDisposable
         Assert.Equal("developer", request.RootElement.GetProperty("developer").GetString());
         Assert.Equal("ttd", request.RootElement.GetProperty("org").GetString());
         Assert.Equal("my-app", request.RootElement.GetProperty("app").GetString());
+        Assert.Equal("person", request.RootElement.GetProperty("party").GetString());
     }
 
     [Fact]
@@ -43,7 +45,8 @@ public class PreviewServiceClientTests : IDisposable
             .Given(Request.Create().WithPath("/sessions").UsingPost())
             .RespondWith(Response.Create().WithStatusCode(404));
 
-        Uri url = await Client().StartSession("developer", "ttd", "my-app", CancellationToken.None);
+        Uri url = await Client()
+            .StartSession("developer", "ttd", "my-app", PreviewParty.Person, CancellationToken.None);
 
         Assert.Null(url);
     }
@@ -56,7 +59,7 @@ public class PreviewServiceClientTests : IDisposable
             .RespondWith(Response.Create().WithStatusCode(500));
 
         await Assert.ThrowsAsync<HttpRequestException>(() =>
-            Client().StartSession("developer", "ttd", "my-app", CancellationToken.None)
+            Client().StartSession("developer", "ttd", "my-app", PreviewParty.Person, CancellationToken.None)
         );
     }
 
@@ -66,7 +69,7 @@ public class PreviewServiceClientTests : IDisposable
         var client = new PreviewServiceClient(new HttpClient(), new PreviewServiceSettings());
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            client.StartSession("developer", "ttd", "my-app", CancellationToken.None)
+            client.StartSession("developer", "ttd", "my-app", PreviewParty.Person, CancellationToken.None)
         );
         Assert.Empty(_server.LogEntries.ToList());
     }

@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { StudioButton, StudioDropdown, StudioLinkButton } from '@designer/components';
 import {
   ArrowCirclepathIcon,
+  CheckmarkIcon,
   ExternalLinkIcon,
   MenuElipsisVerticalIcon,
   SidebarRightIcon,
@@ -10,6 +11,10 @@ import classes from './PreviewActions.module.css';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useSearchParams } from 'react-router-dom';
+import { usePreviewParty } from 'app-shared/hooks/usePreviewParty';
+import type { PreviewParty } from 'app-shared/types/api/PreviewSession';
+
+const parties: PreviewParty[] = ['person', 'organization'];
 
 export type PreviewActionsProps = {
   toggleTitle?: string;
@@ -26,6 +31,7 @@ export const PreviewActions = ({
   onStartOver,
 }: PreviewActionsProps) => {
   const { t } = useTranslation();
+  const { party: selectedParty, setParty } = usePreviewParty();
   const { org, app } = useStudioEnvironmentParams();
   const packagesRouter = new PackagesRouter({ org, app });
   const [searchParams] = useSearchParams();
@@ -69,6 +75,21 @@ export const PreviewActions = ({
                   {t('ux_editor.preview.start_over')}
                 </StudioDropdown.Button>
               </StudioDropdown.Item>
+            </StudioDropdown.List>
+            <StudioDropdown.Heading>{t('preview.test_as')}</StudioDropdown.Heading>
+            <StudioDropdown.List>
+              {parties.map((party) => (
+                <StudioDropdown.Item key={party}>
+                  <StudioDropdown.Button
+                    role='menuitemradio'
+                    aria-checked={party === selectedParty}
+                    icon={party === selectedParty ? <CheckmarkIcon aria-hidden /> : undefined}
+                    onClick={() => setParty(party)}
+                  >
+                    {t(`preview.test_as_${party}`)}
+                  </StudioDropdown.Button>
+                </StudioDropdown.Item>
+              ))}
             </StudioDropdown.List>
           </StudioDropdown>
         </div>

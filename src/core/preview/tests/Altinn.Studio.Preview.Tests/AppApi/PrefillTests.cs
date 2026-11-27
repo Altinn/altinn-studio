@@ -44,7 +44,8 @@ public sealed class PrefillTests
                 }
                 """
             ),
-            s_schema
+            s_schema,
+            MockUser.PartyId
         );
 
         Assert.Equal(
@@ -68,10 +69,30 @@ public sealed class PrefillTests
                 }
                 """
             ),
-            s_schema
+            s_schema,
+            MockUser.PartyId
         );
 
         Assert.Equal(name, (string?)data["Innsender-grp-123"]?["navn"]);
+    }
+
+    [Fact]
+    public void Data_CopiesTheOrganizationsData_ButNoPersons_ForTheOrganization()
+    {
+        JsonObject data = Prefill.Data(
+            JsonNode.Parse(
+                """
+                {
+                  "ER": { "Name": "Innsender-grp-123.navn" },
+                  "DSF": { "FirstName": "Innsender-grp-123.fornavn" }
+                }
+                """
+            ),
+            s_schema,
+            MockUser.OrganizationPartyId
+        );
+
+        Assert.Equal("""{"Innsender-grp-123":{"navn":"Testbedrift AS"}}""", data.ToJsonString());
     }
 
     [Fact]
@@ -87,7 +108,8 @@ public sealed class PrefillTests
                 }
                 """
             ),
-            s_schema
+            s_schema,
+            MockUser.PartyId
         );
 
         Assert.Equal("{}", data.ToJsonString());

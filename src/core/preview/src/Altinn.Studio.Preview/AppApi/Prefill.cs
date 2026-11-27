@@ -8,7 +8,8 @@ namespace Altinn.Studio.Preview.AppApi;
 /// The app library's prefill: a new form data element gets the data about the user and the party they act for that
 /// <c>models/{dataType}.prefill.json</c> names. Each section of the file maps fields of a source to paths in the data
 /// model: <c>UserProfile</c> the user's profile, <c>ER</c> the organization the party is, and <c>DSF</c> the person.
-/// The user is <see cref="MockUser"/>, who acts for themself, so <c>ER</c> has nothing, as in an app.
+/// The user is <see cref="MockUser"/>. As in an app, <c>ER</c> has nothing when they act for themself, and <c>DSF</c>
+/// nothing when they act for the organization.
 /// </summary>
 /// <remarks>
 /// The app copies into its C# model, whose property names are the data model's without dashes, in any case, and
@@ -18,7 +19,7 @@ namespace Altinn.Studio.Preview.AppApi;
 /// </remarks>
 internal static class Prefill
 {
-    public static JsonObject Data(JsonNode? configuration, JsonNode? schema)
+    public static JsonObject Data(JsonNode? configuration, JsonNode? schema, int partyId)
     {
         var data = new JsonObject();
         if (configuration is not JsonObject config)
@@ -31,8 +32,8 @@ internal static class Prefill
         (string Section, JsonObject? Source)[] sources =
         [
             ("UserProfile", MockUser.ProfileForPrefill()),
-            ("ER", null),
-            ("DSF", MockUser.PersonForPrefill()),
+            ("ER", MockUser.OrganizationForPrefill(partyId)),
+            ("DSF", MockUser.PersonForPrefill(partyId)),
         ];
         foreach ((string section, JsonObject? source) in sources)
         {

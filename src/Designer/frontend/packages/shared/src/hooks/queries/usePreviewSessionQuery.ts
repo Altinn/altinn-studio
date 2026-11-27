@@ -4,6 +4,7 @@ import type { UseQueryResult } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import type { PreviewSession } from 'app-shared/types/api/PreviewSession';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { usePreviewParty } from 'app-shared/hooks/usePreviewParty';
 
 /**
  * A session ends 30 minutes after the preview service's last request. A page that shows preview again after this
@@ -18,8 +19,9 @@ const SESSION_STALE_TIME = 25 * 60 * 1000;
 const HIDDEN_TIME_THAT_MAY_END_THE_SESSION = 20 * 60 * 1000;
 
 /**
- * The preview session of the app, started once for the page. The editors reload preview in the same session, as the
- * preview service's ADR has it, so it is a query, though starting a session is a POST.
+ * The preview session of the app, started once for the page and for each party the user in preview acts for. The
+ * editors reload preview in the same session, as the preview service's ADR has it, so it is a query, though starting
+ * a session is a POST.
  */
 export const usePreviewSessionQuery = (
   org: string,
@@ -27,6 +29,7 @@ export const usePreviewSessionQuery = (
 ): UseQueryResult<PreviewSession> => {
   const { startPreviewSession } = useServicesContext();
   const queryClient = useQueryClient();
+  const { party } = usePreviewParty();
 
   useEffect(() => {
     let hiddenAt: number | undefined;
@@ -45,8 +48,8 @@ export const usePreviewSessionQuery = (
   }, [queryClient, org, app]);
 
   return useQuery<PreviewSession>({
-    queryKey: [QueryKey.PreviewSession, org, app],
-    queryFn: () => startPreviewSession(org, app),
+    queryKey: [QueryKey.PreviewSession, org, app, party],
+    queryFn: () => startPreviewSession(org, app, party),
     staleTime: SESSION_STALE_TIME,
     gcTime: SESSION_STALE_TIME,
     refetchOnWindowFocus: false,
@@ -63,13 +66,14 @@ export const useReplaceEndedPreviewSession = (
   app: string,
 ): ((endedSessionUrl: string) => void) => {
   const queryClient = useQueryClient();
+  const { party } = usePreviewParty();
   return useCallback(
     (endedSessionUrl: string) => {
-      const queryKey = [QueryKey.PreviewSession, org, app];
+      const queryKey = [QueryKey.PreviewSession, org, app, party];
       if (queryClient.getQueryData<PreviewSession>(queryKey)?.url === endedSessionUrl) {
         queryClient.resetQueries({ queryKey });
       }
     },
-    [queryClient, org, app],
+    [queryClient, org, app, party],
   );
 };

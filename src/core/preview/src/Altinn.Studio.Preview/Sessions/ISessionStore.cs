@@ -8,8 +8,8 @@ namespace Altinn.Studio.Preview.Sessions;
 /// </summary>
 internal interface ISessionStore
 {
-    /// <summary>Starts a session for a working copy, with no state.</summary>
-    Task<SessionId> Start(WorkingCopy workingCopy, CancellationToken cancellationToken);
+    /// <summary>Starts a session for a working copy, acting for a party, with no state.</summary>
+    Task<SessionId> Start(WorkingCopy workingCopy, int partyId, CancellationToken cancellationToken);
 
     /// <summary>
     /// The session, or <c>null</c> when it has ended. Restarts the session's idle time, so every request to preview
