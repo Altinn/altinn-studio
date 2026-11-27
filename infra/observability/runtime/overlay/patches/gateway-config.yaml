@@ -69,9 +69,11 @@ spec:
       # running total again as one interval's increase. A new process loses its first
       # interval the same way. A series that comes back after another gateway has sent its
       # increases would have them counted again from the total kept here, so this gateway
-      # forgets a series after two minutes, and treats it as new if it comes back later.
-      # Rollouts don't send a series back, and the autoscaler waits five minutes to scale
-      # down. Two minutes is still two of interval/apps's points.
+      # forgets a series two to four minutes after its last point (the processor sweeps every
+      # max_staleness), and treats it as new if it comes back later. Rollouts don't send a
+      # series back, and the autoscaler waits five minutes to scale down, so only a gateway
+      # that leaves DNS and returns within that time can count an increase twice. Two minutes
+      # is still two of interval/apps's points.
       cumulative_to_delta/apps:
         initial_value: drop
         max_staleness: 2m
@@ -119,94 +121,6 @@ spec:
             statements:
               - delete_matching_keys(datapoint.attributes, ".*") where instrumentation_scope.name == "Altinn.Studio.Workload"
 
-      # Base's sampling, for our Application Insights, which Traefik's spans reach too. Only
-      # our traces go there: those with a span from our services, or a Traefik span on one of
-      # our routes, as when the service didn't answer. A request to our services is kept or
-      # dropped with its Traefik spans, and apps' requests stay out. This is decided per trace,
-      # since Traefik records a request in two spans, and only one of them has the path when
-      # the route strips its prefix, as kubernetes-wrapper's does. It runs before
-      # resource/route, which removes the route it reads.
-      tail_sampling/studio:
-        decision_wait: 40s
-        num_traces: 50000
-        decision_cache:
-          sampled_cache_size: 100000
-        policies:
-          - name: always-sample-attr
-            type: and
-            and:
-              and_sub_policy:
-                - &ours
-                  name: ours
-                  type: ottl_condition
-                  ottl_condition:
-                    error_mode: ignore
-                    span:
-                      - resource.attributes["altinn.telemetry.route"] != "ingress"
-                      - IsMatch(span.attributes["url.path"], "^/(runtime/gateway/|kuberneteswrapper(/|$$))")
-                - name: marked
-                  type: string_attribute
-                  string_attribute:
-                    key: altinn.studio.sampling
-                    values: [always]
-          - name: always-sample-marked
-            type: and
-            and:
-              and_sub_policy:
-                - *ours
-                - name: marked
-                  type: string_attribute
-                  string_attribute:
-                    key: altinn.sampling
-                    values: [always]
-          - name: errors
-            type: and
-            and:
-              and_sub_policy:
-                - *ours
-                - name: errors
-                  type: status_code
-                  status_code:
-                    status_codes: [ERROR]
-          - name: slow-traces
-            type: and
-            and:
-              and_sub_policy:
-                - *ours
-                - name: slow
-                  type: latency
-                  latency:
-                    threshold_ms: 1000
-          - name: kubernetes-wrapper-probabilistic
-            type: and
-            and:
-              and_sub_policy:
-                - *ours
-                - name: is-kubernetes-wrapper
-                  type: string_attribute
-                  string_attribute:
-                    key: service.name
-                    values: [kubernetes-wrapper]
-                - name: low-rate
-                  type: probabilistic
-                  probabilistic:
-                    sampling_percentage: 1
-          - name: probabilistic
-            type: and
-            and:
-              and_sub_policy:
-                - *ours
-                - name: not-kubernetes-wrapper
-                  type: string_attribute
-                  string_attribute:
-                    key: service.name
-                    values: [kubernetes-wrapper]
-                    invert_match: true
-                - name: default-rate
-                  type: probabilistic
-                  probabilistic:
-                    sampling_percentage: 10
-
     connectors:
       # Routes on the router's verdict. Only a router from before the apps pipeline sends
       # telemetry without one, while a rollout or a rollback mixes versions, and the default
@@ -216,17 +130,25 @@ spec:
       routing/traces:
         default_pipelines: [traces/studio, traces/victoria]
         table:
+          # Traefik's spans of requests to our services go where ours go, so those traces start
+          # at Traefik in our Application Insights too, and are sampled with the service's own
+          # spans. Traefik records a request as a server span with the path and a proxy span
+          # with the backend's URL. kubernetes-wrapper's route strips its prefix, so its proxy
+          # span shows only the wrapper's own API paths. A route of ours behind Traefik that
+          # isn't listed here reaches only Victoria.
+          - context: span
+            condition: resource.attributes["altinn.telemetry.route"] == "ingress" and (IsMatch(span.attributes["url.path"], "^/(runtime/gateway/api/v1|kuberneteswrapper)(/|$$)") or IsMatch(span.attributes["url.full"], "^[a-z]+://[^/]+/(runtime/gateway/api/v1|api/v1/(deployments|daemonsets))(/|$$)"))
+            pipelines: [traces/studio, traces/victoria]
           - condition: resource.attributes["altinn.telemetry.route"] == "studio"
             pipelines: [traces/studio, traces/victoria]
           - condition: resource.attributes["altinn.telemetry.route"] == "apps"
             pipelines: [traces/apps]
-          # Traefik's spans start the traces of requests through it. Victoria gets them all,
-          # and our Application Insights those of requests to our services
-          # (tail_sampling/studio). The platform's collector already sends its own sample of
-          # them to the service owner's Application Insights, so a copy from here would show
-          # twice there.
+          # The rest of Traefik's spans, mostly apps' requests, go only to Victoria, where the
+          # runtime ingress dashboard reads them. The platform's collector already sends its own
+          # sample of them to the service owner's Application Insights, so a copy from here
+          # would show twice there.
           - condition: resource.attributes["altinn.telemetry.route"] == "ingress"
-            pipelines: [traces/studio, traces/victoria]
+            pipelines: [traces/victoria]
       routing/metrics:
         default_pipelines: [metrics/studio]
         table:
@@ -317,7 +239,7 @@ spec:
           exporters: [routing/traces]
         traces/studio:
           receivers: [routing/traces]
-          processors: [transform/azuremonitor, transform/pdf3_expected_429_success, transform/azuremonitor_expected_404, tail_sampling/studio, resource/route, batch]
+          processors: [resource/route, transform/azuremonitor, transform/pdf3_expected_429_success, transform/azuremonitor_expected_404, tail_sampling, batch]
           exporters: [azure_monitor/studio]
         # Victoria receives every span of our services, and Traefik's, without the
         # Application Insights transforms, and samples them with its own
