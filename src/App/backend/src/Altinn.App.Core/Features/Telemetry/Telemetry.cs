@@ -122,142 +122,142 @@ public sealed partial class Telemetry : IDisposable
         /// <summary>
         /// Label for the party ID of the instance owner.
         /// </summary>
-        public static readonly string InstanceOwnerPartyId = "instance.owner.party.id";
+        public static readonly string InstanceOwnerPartyId = "altinn.instance.owner.party.id";
 
         /// <summary>
         /// Label for the guid that identifies the instance.
         /// </summary>
-        public static readonly string InstanceGuid = "instance.guid";
+        public static readonly string InstanceGuid = "altinn.instance.guid";
 
         /// <summary>
         /// Label for the guid that identifies the instance.
         /// </summary>
-        public static readonly string InstanceEventsCount = "instance.events.count";
+        public static readonly string InstanceEventsCount = "altinn.instance.events.count";
 
         /// <summary>
         /// Label for the guid that identifies the data.
         /// </summary>
-        public static readonly string DataGuid = "data.guid";
+        public static readonly string DataGuid = "altinn.data.guid";
 
         /// <summary>
         /// Label for the type of the data.
         /// </summary>
-        public static readonly string DataType = "data.type";
+        public static readonly string DataType = "altinn.data.type";
 
         /// <summary>
         /// Label for the ID of the task.
         /// </summary>
-        public static readonly string TaskId = "task.id";
+        public static readonly string TaskId = "altinn.process.task.id";
 
         /// <summary>
         /// Label for the name of the user.
         /// </summary>
-        public const string UserName = "user.name";
+        public const string UserName = "altinn.user.name";
 
         /// <summary>
         /// Label for the ID of the user.
         /// </summary>
-        public const string UserId = "user.id";
+        public const string UserId = "enduser.id";
 
         /// <summary>
         /// Label for the ID of the party.
         /// </summary>
-        public const string UserPartyId = "user.party.id";
+        public const string UserPartyId = "altinn.user.party.id";
 
         /// <summary>
         /// Label for the authentication method of the user.
         /// </summary>
-        public const string UserAuthenticationMethod = "user.authentication.method";
+        public const string UserAuthenticationMethod = "altinn.user.authentication.method";
 
         /// <summary>
         /// Label for the authentication level of the user.
         /// </summary>
-        public const string UserAuthenticationLevel = "user.authentication.level";
+        public const string UserAuthenticationLevel = "altinn.user.authentication.level";
 
         /// <summary>
         /// Label for the authentication type for the current client.
         /// </summary>
-        public const string UserAuthenticationType = "user.authentication.type";
+        public const string UserAuthenticationType = "altinn.user.authentication.type";
 
         /// <summary>
         /// Label for the authentication token issuer.
         /// </summary>
-        public const string UserAuthenticationTokenIssuer = "user.authentication.token.issuer";
+        public const string UserAuthenticationTokenIssuer = "altinn.user.authentication.token.issuer";
 
         /// <summary>
         /// Label for the authentication token isExchanged flag.
         /// </summary>
-        public const string UserAuthenticationTokenIsExchanged = "user.authentication.token.isExchanged";
+        public const string UserAuthenticationTokenIsExchanged = "altinn.user.authentication.token.is_exchanged";
 
         /// <summary>
         /// Label for the authentication token clientId claim.
         /// </summary>
-        public const string UserAuthenticationTokenClientId = "user.authentication.token.clientId";
+        public const string UserAuthenticationTokenClientId = "altinn.user.authentication.token.client_id";
 
         /// <summary>
         /// Label for the authentication token is issued from Altinn portal.
         /// </summary>
-        public const string UserAuthenticationInAltinnPortal = "user.authentication.inAltinnPortal";
+        public const string UserAuthenticationInAltinnPortal = "altinn.user.authentication.in_altinn_portal";
 
         /// <summary>
         /// Label for the organization name.
         /// </summary>
-        public const string OrganizationName = "organization.name";
+        public const string OrganizationName = "altinn.organization.name";
 
         /// <summary>
         /// Label for the organization number.
         /// </summary>
-        public const string OrganizationNumber = "organization.number";
+        public const string OrganizationNumber = "altinn.organization.number";
 
         /// <summary>
         /// Label for the ID of the system user.
         /// </summary>
-        public const string OrganizationSystemUserId = "organization.systemuser.id";
+        public const string OrganizationSystemUserId = "enduser.id";
 
         /// <summary>
         /// Label for the Correspondence ID.
         /// </summary>
-        public const string CorrespondenceId = "correspondence.id";
+        public const string CorrespondenceId = "altinn.correspondence.id";
 
         /// <summary>
         /// Label for the Fiks Message ID.
         /// </summary>
-        public const string FiksMessageId = "fiks.message.id";
+        public const string FiksMessageId = "altinn.fiks.message.id";
 
         /// <summary>
         /// Label for the Fiks Message type.
         /// </summary>
-        public const string FiksMessageType = "fiks.message.type";
+        public const string FiksMessageType = "altinn.fiks.message.type";
 
         /// <summary>
         /// Label for the Fiks Message sender account.
         /// </summary>
-        public const string FiksMessageSender = "fiks.message.sender";
+        public const string FiksMessageSender = "altinn.fiks.message.sender";
 
         /// <summary>
         /// Label for the Fiks Message recipient account.
         /// </summary>
-        public const string FiksMessageRecipient = "fiks.message.recipient";
+        public const string FiksMessageRecipient = "altinn.fiks.message.recipient";
 
         /// <summary>
         /// Label for the Fiks Message this was sent in reply to.
         /// </summary>
-        public const string FiksInReplyToMessage = "fiks.message.inReplyTo";
+        public const string FiksInReplyToMessage = "altinn.fiks.message.in_reply_to";
 
         /// <summary>
         /// Label for the Fiks Message senders internal reference.
         /// </summary>
-        public const string FiksSendersReference = "fiks.message.sendersReference";
+        public const string FiksSendersReference = "altinn.fiks.message.senders_reference";
 
         /// <summary>
         /// Label for the Fiks Message correlation id.
         /// </summary>
-        public const string FiksMessageCorrelationId = "fiks.message.correlationId";
+        public const string FiksMessageCorrelationId = "altinn.fiks.message.correlation_id";
 
         /// <summary>
         /// Label for notification senders reference.
         /// </summary>
-        public const string NotificationSendersReference = "notification.sendersReference";
+        public const string NotificationSendersReference = "altinn.notification.senders_reference";
     }
 
     internal static class InternalLabels
@@ -277,12 +277,16 @@ public sealed partial class Telemetry : IDisposable
         /// </summary>
         internal const string AppLibVersion = "altinn.app_lib.version";
 
-        internal const string NotificationOrderId = "notification.order.id";
+        internal const string NotificationOrderId = "altinn.notification.order.id";
+        internal const string NotificationType = "altinn.notification.type";
+
+        // Metric attributes keep the names v8 has, as the metric names do: dashboards and the collectors' metric
+        // allowlist read them for v8 and v9 apps alike. They are never span attributes.
         internal const string Result = "result";
         internal const string Type = "type";
-        internal const string AuthorizationAction = "authorization.action";
-        internal const string AuthorizerAction = "authorization.authorizer.action";
-        internal const string AuthorizerTaskId = "authorization.authorizer.task.id";
+        internal const string AuthorizationAction = "altinn.authorization.action";
+        internal const string AuthorizerAction = "altinn.authorization.authorizer.action";
+        internal const string AuthorizerTaskId = "altinn.authorization.authorizer.task.id";
 
         /// <summary>
         /// Set (to true, and otherwise absent) when a platform call was refused while the app acted
@@ -291,26 +295,26 @@ public sealed partial class Telemetry : IDisposable
         /// failed workflow in the engine's metrics, so this is the attribute that separates the two:
         /// it affects every instance of the app, and needs a policy change rather than a redrive.
         /// </summary>
-        internal const string ServiceOwnerAuthorizationDenied = "authorization.service_owner.denied";
-        internal const string ValidatorType = "validator.type";
-        internal const string ValidatorSource = "validator.source";
-        internal const string ValidatorRemoveHiddenData = "validator.remove_hidden_data";
-        internal const string ValidatorHasRelevantChanges = "validator.has_relevant_changes";
-        internal const string ValidatorChangedElementsIds = "validator.changed_elements_ids";
-        internal const string ValidatorIssueCount = "validation.issue_count";
-        internal const string ValidationTotalIssueCount = "validation.total_issue_count";
+        internal const string ServiceOwnerAuthorizationDenied = "altinn.authorization.service_owner.denied";
+        internal const string ValidatorType = "altinn.validator.type";
+        internal const string ValidatorSource = "altinn.validator.source";
+        internal const string ValidatorRemoveHiddenData = "altinn.validator.remove_hidden_data";
+        internal const string ValidatorHasRelevantChanges = "altinn.validator.has_relevant_changes";
+        internal const string ValidatorChangedElementsIds = "altinn.validator.changed_elements_ids";
+        internal const string ValidatorIssueCount = "altinn.validation.issue_count";
+        internal const string ValidationTotalIssueCount = "altinn.validation.total_issue_count";
 
-        internal const string ProcessErrorType = "process.error.type";
-        internal const string ProcessAction = "process.action";
-        internal const string ProcessServiceTaskType = "process.service.task.type";
-        internal const string ProcessCallbackCommand = "process.callback.command";
-        internal const string ProcessEventType = "process.event.type";
-        internal const string ProcessCurrentElement = "process.current.element";
+        internal const string ProcessErrorType = "altinn.process.error.type";
+        internal const string ProcessAction = "altinn.process.action";
+        internal const string ProcessServiceTaskType = "altinn.process.service_task.type";
+        internal const string ProcessCallbackCommand = "altinn.process.callback.command";
+        internal const string ProcessEventType = "altinn.process.event.type";
+        internal const string ProcessCurrentElement = "altinn.process.current.element";
 
-        internal const string ProblemType = "problem.type";
-        internal const string ProblemTitle = "problem.title";
-        internal const string ProblemStatus = "problem.status";
-        internal const string ProblemDetail = "problem.detail";
+        internal const string ProblemType = "altinn.problem.type";
+        internal const string ProblemTitle = "altinn.problem.title";
+        internal const string ProblemStatus = "altinn.problem.status";
+        internal const string ProblemDetail = "altinn.problem.detail";
     }
 
     private void InitMetricCounter(InitContext context, string name, Action<Counter<long>> init)

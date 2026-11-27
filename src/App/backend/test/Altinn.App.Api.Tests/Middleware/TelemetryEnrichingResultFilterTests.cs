@@ -39,8 +39,8 @@ public sealed class TelemetryEnrichingResultFilterTests
 
         new TelemetryEnrichingResultFilter().OnResultExecuted(executedContext);
 
-        activity.GetTagItem("problem.type").Should().Be("instance-processing");
-        activity.GetTagItem("problem.title").Should().Be("Instance mutation blocked.");
-        activity.GetTagItem("problem.status").Should().Be(StatusCodes.Status409Conflict);
+        activity.GetTagItem("altinn.problem.type").Should().Be("instance-processing");
+        activity.GetTagItem("altinn.problem.title").Should().Be("Instance mutation blocked.");
+        activity.GetTagItem("altinn.problem.status").Should().Be(StatusCodes.Status409Conflict);
     }
 }

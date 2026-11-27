@@ -6,6 +6,30 @@
       IdFormat: W3C,
       Tags: [
         {
+          altinn.user.authentication.in_altinn_portal: true
+        },
+        {
+          altinn.user.authentication.level: 4
+        },
+        {
+          altinn.user.authentication.method: BankID
+        },
+        {
+          altinn.user.authentication.token.is_exchanged: false
+        },
+        {
+          altinn.user.authentication.token.issuer: Altinn
+        },
+        {
+          altinn.user.authentication.type: User
+        },
+        {
+          altinn.user.party.id: Scrubbed
+        },
+        {
+          enduser.id: 10
+        },
+        {
           http.request.method: GET
         },
         {
@@ -31,30 +55,6 @@
         },
         {
           url.scheme: http
-        },
-        {
-          user.authentication.inAltinnPortal: true
-        },
-        {
-          user.authentication.level: 4
-        },
-        {
-          user.authentication.method: BankID
-        },
-        {
-          user.authentication.token.isExchanged: false
-        },
-        {
-          user.authentication.token.issuer: Altinn
-        },
-        {
-          user.authentication.type: User
-        },
-        {
-          user.id: 10
-        },
-        {
-          user.party.id: Scrubbed
         }
       ],
       HasParent: true
@@ -67,6 +67,15 @@
       Measurements: [
         {
           Tags: [
+            {
+              altinn.user.authentication.token.is_exchanged: false
+            },
+            {
+              altinn.user.authentication.token.issuer: Altinn
+            },
+            {
+              altinn.user.authentication.type: User
+            },
             {
               http.request.method: GET
             },
@@ -84,15 +93,6 @@
             },
             {
               url.scheme: http
-            },
-            {
-              user.authentication.token.isExchanged: false
-            },
-            {
-              user.authentication.token.issuer: Altinn
-            },
-            {
-              user.authentication.type: User
             }
           ]
         }

@@ -55,24 +55,24 @@ partial class Telemetry
         if (activity is null)
             return;
 
-        activity.SetTag("maskinporten.scopes", request.FormattedScopes);
-        activity.SetTag("maskinporten.client_id", clientId);
+        activity.SetTag("altinn.maskinporten.scopes", request.FormattedScopes);
+        activity.SetTag("altinn.maskinporten.client_id", clientId);
 
         if (request.ConsumerOrg is { } consumerOrg)
-            activity.SetTag("maskinporten.consumer_org", consumerOrg.Get(OrganizationNumberFormat.Local));
+            activity.SetTag("altinn.maskinporten.consumer_org", consumerOrg.Get(OrganizationNumberFormat.Local));
 
         if (request.Resource is { } resource)
-            activity.SetTag("maskinporten.resource", resource);
+            activity.SetTag("altinn.maskinporten.resource", resource);
 
         if (request.SystemUser is { } systemUser)
         {
             activity.SetTag(
-                "maskinporten.systemuser_org",
+                "altinn.maskinporten.system_user_org",
                 systemUser.Organization.Get(OrganizationNumberFormat.International)
             );
 
             if (systemUser.ExternalRef is { } externalRef)
-                activity.SetTag("maskinporten.systemuser_external_ref", externalRef);
+                activity.SetTag("altinn.maskinporten.system_user_external_ref", externalRef);
         }
     }
 

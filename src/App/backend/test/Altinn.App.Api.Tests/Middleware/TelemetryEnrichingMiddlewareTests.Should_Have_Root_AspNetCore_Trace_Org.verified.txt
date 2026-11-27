@@ -6,6 +6,30 @@
       IdFormat: W3C,
       Tags: [
         {
+          altinn.organization.name: tdd
+        },
+        {
+          altinn.organization.number: 405003309
+        },
+        {
+          altinn.user.authentication.level: 3
+        },
+        {
+          altinn.user.authentication.method: maskinporten
+        },
+        {
+          altinn.user.authentication.token.client_id: Guid_1
+        },
+        {
+          altinn.user.authentication.token.is_exchanged: true
+        },
+        {
+          altinn.user.authentication.token.issuer: Maskinporten
+        },
+        {
+          altinn.user.authentication.type: ServiceOwner
+        },
+        {
           http.request.method: GET
         },
         {
@@ -18,43 +42,19 @@
           network.protocol.version: 1.1
         },
         {
-          organization.name: tdd
-        },
-        {
-          organization.number: 405003309
-        },
-        {
           server.address: localhost
         },
         {
           server.port: 80
         },
         {
-          TestId: Guid_1
+          TestId: Guid_2
         },
         {
           url.path: /tdd/contributer-restriction/api/v1/applicationmetadata
         },
         {
           url.scheme: http
-        },
-        {
-          user.authentication.level: 3
-        },
-        {
-          user.authentication.method: maskinporten
-        },
-        {
-          user.authentication.token.clientId: Guid_2
-        },
-        {
-          user.authentication.token.isExchanged: true
-        },
-        {
-          user.authentication.token.issuer: Maskinporten
-        },
-        {
-          user.authentication.type: ServiceOwner
         }
       ],
       HasParent: false
@@ -68,6 +68,18 @@
         {
           Tags: [
             {
+              altinn.user.authentication.token.client_id: Guid_1
+            },
+            {
+              altinn.user.authentication.token.is_exchanged: true
+            },
+            {
+              altinn.user.authentication.token.issuer: Maskinporten
+            },
+            {
+              altinn.user.authentication.type: ServiceOwner
+            },
+            {
               http.request.method: GET
             },
             {
@@ -80,22 +92,10 @@
               network.protocol.version: 1.1
             },
             {
-              TestId: Guid_1
+              TestId: Guid_2
             },
             {
               url.scheme: http
-            },
-            {
-              user.authentication.token.clientId: Guid_2
-            },
-            {
-              user.authentication.token.isExchanged: true
-            },
-            {
-              user.authentication.token.issuer: Maskinporten
-            },
-            {
-              user.authentication.type: ServiceOwner
             }
           ]
         }

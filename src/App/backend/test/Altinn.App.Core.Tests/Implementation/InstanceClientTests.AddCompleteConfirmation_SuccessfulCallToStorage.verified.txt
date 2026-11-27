@@ -5,10 +5,10 @@
       IdFormat: W3C,
       Tags: [
         {
-          instance.guid: Guid_1
+          altinn.instance.guid: Guid_1
         },
         {
-          instance.owner.party.id: 1337
+          altinn.instance.owner.party.id: 1337
         }
       ],
       HasParent: false

@@ -5,10 +5,10 @@
       IdFormat: W3C,
       Tags: [
         {
-          task.id: Task_1
+          altinn.process.task.id: Task_1
         },
         {
-          validation.total_issue_count: 0
+          altinn.validation.total_issue_count: 0
         }
       ],
       Events: [

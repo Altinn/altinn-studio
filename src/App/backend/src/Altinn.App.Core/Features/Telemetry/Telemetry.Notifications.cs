@@ -66,7 +66,7 @@ partial class Telemetry
     internal Activity? StartNotificationOrderActivity(OrderType type)
     {
         var activity = ActivitySource.StartActivity("Notifications.Order");
-        activity?.SetTag(InternalLabels.Type, type.ToStringFast(useMetadataAttributes: true));
+        activity?.SetTag(InternalLabels.NotificationType, type.ToStringFast(useMetadataAttributes: true));
         return activity;
     }
 

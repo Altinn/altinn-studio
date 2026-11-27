@@ -5,7 +5,7 @@
       IdFormat: W3C,
       Tags: [
         {
-          instance.guid: Guid_1
+          altinn.instance.guid: Guid_1
         }
       ],
       HasParent: true
@@ -16,6 +16,42 @@
       IdFormat: W3C,
       Tags: [
         {
+          altinn.instance.owner.party.id: 500600
+        },
+        {
+          altinn.problem.status: 409
+        },
+        {
+          altinn.problem.title: Precondition in patch failed
+        },
+        {
+          altinn.problem.type: https://datatracker.ietf.org/doc/html/rfc6902/
+        },
+        {
+          altinn.user.authentication.in_altinn_portal: true
+        },
+        {
+          altinn.user.authentication.level: 2
+        },
+        {
+          altinn.user.authentication.method: BankID
+        },
+        {
+          altinn.user.authentication.token.is_exchanged: false
+        },
+        {
+          altinn.user.authentication.token.issuer: Altinn
+        },
+        {
+          altinn.user.authentication.type: User
+        },
+        {
+          altinn.user.party.id: 500600
+        },
+        {
+          enduser.id: 1337
+        },
+        {
           http.request.method: PATCH
         },
         {
@@ -25,19 +61,7 @@
           http.route: {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGuid:guid}
         },
         {
-          instance.owner.party.id: 500600
-        },
-        {
           network.protocol.version: 1.1
-        },
-        {
-          problem.status: 409
-        },
-        {
-          problem.title: Precondition in patch failed
-        },
-        {
-          problem.type: https://datatracker.ietf.org/doc/html/rfc6902/
         },
         {
           server.address: localhost
@@ -53,30 +77,6 @@
         },
         {
           url.scheme: http
-        },
-        {
-          user.authentication.inAltinnPortal: true
-        },
-        {
-          user.authentication.level: 2
-        },
-        {
-          user.authentication.method: BankID
-        },
-        {
-          user.authentication.token.isExchanged: false
-        },
-        {
-          user.authentication.token.issuer: Altinn
-        },
-        {
-          user.authentication.type: User
-        },
-        {
-          user.id: 1337
-        },
-        {
-          user.party.id: 500600
         }
       ],
       HasParent: false
@@ -86,7 +86,7 @@
       IdFormat: W3C,
       Tags: [
         {
-          Type: Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models.Skjema
+          altinn.data.model.type: Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models.Skjema
         }
       ],
       HasParent: true
@@ -99,6 +99,15 @@
       Measurements: [
         {
           Tags: [
+            {
+              altinn.user.authentication.token.is_exchanged: false
+            },
+            {
+              altinn.user.authentication.token.issuer: Altinn
+            },
+            {
+              altinn.user.authentication.type: User
+            },
             {
               http.request.method: PATCH
             },
@@ -116,15 +125,6 @@
             },
             {
               url.scheme: http
-            },
-            {
-              user.authentication.token.isExchanged: false
-            },
-            {
-              user.authentication.token.issuer: Altinn
-            },
-            {
-              user.authentication.type: User
             }
           ]
         }

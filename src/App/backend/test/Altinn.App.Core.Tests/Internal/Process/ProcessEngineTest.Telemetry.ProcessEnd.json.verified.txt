@@ -5,7 +5,7 @@
       IdFormat: W3C,
       Tags: [
         {
-          instance.guid: Guid_1
+          altinn.instance.guid: Guid_1
         }
       ],
       HasParent: true
@@ -15,10 +15,10 @@
       IdFormat: W3C,
       Tags: [
         {
-          instance.guid: Guid_1
+          altinn.instance.guid: Guid_1
         },
         {
-          process.event.type: process_EndTask
+          altinn.process.event.type: process_EndTask
         }
       ],
       HasParent: true
@@ -28,7 +28,7 @@
       IdFormat: W3C,
       Tags: [
         {
-          instance.guid: Guid_1
+          altinn.instance.guid: Guid_1
         }
       ],
       HasParent: true
@@ -39,7 +39,7 @@
       Status: Ok,
       Tags: [
         {
-          instance.guid: Guid_1
+          altinn.instance.guid: Guid_1
         }
       ],
       Events: [
@@ -63,7 +63,7 @@
       Status: Ok,
       Tags: [
         {
-          instance.guid: Guid_1
+          altinn.instance.guid: Guid_1
         }
       ],
       Events: [

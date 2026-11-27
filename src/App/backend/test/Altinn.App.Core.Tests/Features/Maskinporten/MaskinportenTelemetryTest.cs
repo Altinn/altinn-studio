@@ -50,12 +50,12 @@ public class MaskinportenTelemetryTest
         // Assert
         var captured = Assert.Single(sink.CapturedActivities);
         Assert.Equal(expectedName, captured.OperationName);
-        Assert.Equal("client-id", captured.GetTagItem("maskinporten.client_id"));
-        Assert.Equal("scope1 scope2", captured.GetTagItem("maskinporten.scopes"));
-        Assert.Equal("991825827", captured.GetTagItem("maskinporten.consumer_org"));
-        Assert.Equal("https://api.example.com", captured.GetTagItem("maskinporten.resource"));
-        Assert.Equal("0192:311169963", captured.GetTagItem("maskinporten.systemuser_org"));
-        Assert.Equal("systembruker-1", captured.GetTagItem("maskinporten.systemuser_external_ref"));
+        Assert.Equal("client-id", captured.GetTagItem("altinn.maskinporten.client_id"));
+        Assert.Equal("scope1 scope2", captured.GetTagItem("altinn.maskinporten.scopes"));
+        Assert.Equal("991825827", captured.GetTagItem("altinn.maskinporten.consumer_org"));
+        Assert.Equal("https://api.example.com", captured.GetTagItem("altinn.maskinporten.resource"));
+        Assert.Equal("0192:311169963", captured.GetTagItem("altinn.maskinporten.system_user_org"));
+        Assert.Equal("systembruker-1", captured.GetTagItem("altinn.maskinporten.system_user_external_ref"));
     }
 
     [Theory]
@@ -78,10 +78,10 @@ public class MaskinportenTelemetryTest
         // Assert
         var captured = Assert.Single(sink.CapturedActivities);
         Assert.Equal(expectedName, captured.OperationName);
-        Assert.Equal("scope1", captured.GetTagItem("maskinporten.scopes"));
-        Assert.Null(captured.GetTagItem("maskinporten.consumer_org"));
-        Assert.Null(captured.GetTagItem("maskinporten.resource"));
-        Assert.Null(captured.GetTagItem("maskinporten.systemuser_org"));
-        Assert.Null(captured.GetTagItem("maskinporten.systemuser_external_ref"));
+        Assert.Equal("scope1", captured.GetTagItem("altinn.maskinporten.scopes"));
+        Assert.Null(captured.GetTagItem("altinn.maskinporten.consumer_org"));
+        Assert.Null(captured.GetTagItem("altinn.maskinporten.resource"));
+        Assert.Null(captured.GetTagItem("altinn.maskinporten.system_user_org"));
+        Assert.Null(captured.GetTagItem("altinn.maskinporten.system_user_external_ref"));
     }
 }

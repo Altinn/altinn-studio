@@ -5,7 +5,7 @@
       IdFormat: W3C,
       Tags: [
         {
-          type: sms
+          altinn.notification.type: sms
         }
       ],
       HasParent: false

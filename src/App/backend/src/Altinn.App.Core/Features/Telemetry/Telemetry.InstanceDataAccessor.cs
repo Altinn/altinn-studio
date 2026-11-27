@@ -22,7 +22,7 @@ partial class Telemetry
     internal Activity? StartSaveChanges(DataElementChanges instance)
     {
         var activity = ActivitySource.StartActivity($"{Prefix}.SaveChanges");
-        activity?.AddTag("numberOfChangedDataElements", instance.AllChanges.Count);
+        activity?.AddTag("altinn.instance.changed_data_elements.count", instance.AllChanges.Count);
         return activity;
     }
 

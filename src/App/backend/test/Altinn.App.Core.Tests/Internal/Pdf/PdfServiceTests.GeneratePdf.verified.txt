@@ -5,10 +5,10 @@
       IdFormat: W3C,
       Tags: [
         {
-          instance.guid: Guid_1
+          altinn.instance.guid: Guid_1
         },
         {
-          task.id: Task_1
+          altinn.process.task.id: Task_1
         }
       ],
       HasParent: false

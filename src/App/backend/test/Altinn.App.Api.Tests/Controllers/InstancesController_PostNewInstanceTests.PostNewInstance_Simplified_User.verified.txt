@@ -6,6 +6,30 @@
       IdFormat: W3C,
       Tags: [
         {
+          altinn.user.authentication.in_altinn_portal: true
+        },
+        {
+          altinn.user.authentication.level: 2
+        },
+        {
+          altinn.user.authentication.method: BankID
+        },
+        {
+          altinn.user.authentication.token.is_exchanged: false
+        },
+        {
+          altinn.user.authentication.token.issuer: Altinn
+        },
+        {
+          altinn.user.authentication.type: User
+        },
+        {
+          altinn.user.party.id: 501337
+        },
+        {
+          enduser.id: 1337
+        },
+        {
           http.request.method: POST
         },
         {
@@ -29,30 +53,6 @@
         {Scrubbed},
         {
           url.scheme: http
-        },
-        {
-          user.authentication.inAltinnPortal: true
-        },
-        {
-          user.authentication.level: 2
-        },
-        {
-          user.authentication.method: BankID
-        },
-        {
-          user.authentication.token.isExchanged: false
-        },
-        {
-          user.authentication.token.issuer: Altinn
-        },
-        {
-          user.authentication.type: User
-        },
-        {
-          user.id: 1337
-        },
-        {
-          user.party.id: 501337
         }
       ],
       HasParent: false
@@ -63,6 +63,33 @@
       IdFormat: W3C,
       Tags: [
         {
+          altinn.instance.owner.party.id: 501337
+        },
+        {
+          altinn.user.authentication.in_altinn_portal: true
+        },
+        {
+          altinn.user.authentication.level: 2
+        },
+        {
+          altinn.user.authentication.method: BankID
+        },
+        {
+          altinn.user.authentication.token.is_exchanged: false
+        },
+        {
+          altinn.user.authentication.token.issuer: Altinn
+        },
+        {
+          altinn.user.authentication.type: User
+        },
+        {
+          altinn.user.party.id: 501337
+        },
+        {
+          enduser.id: 1337
+        },
+        {
           http.request.method: GET
         },
         {
@@ -70,9 +97,6 @@
         },
         {
           http.route: {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGuid:guid}
-        },
-        {
-          instance.owner.party.id: 501337
         },
         {
           network.protocol.version: 1.1
@@ -89,30 +113,6 @@
         {Scrubbed},
         {
           url.scheme: http
-        },
-        {
-          user.authentication.inAltinnPortal: true
-        },
-        {
-          user.authentication.level: 2
-        },
-        {
-          user.authentication.method: BankID
-        },
-        {
-          user.authentication.token.isExchanged: false
-        },
-        {
-          user.authentication.token.issuer: Altinn
-        },
-        {
-          user.authentication.type: User
-        },
-        {
-          user.id: 1337
-        },
-        {
-          user.party.id: 501337
         }
       ],
       HasParent: false
@@ -122,7 +122,7 @@
       IdFormat: W3C,
       Tags: [
         {
-          instance.owner.party.id: 501337
+          altinn.instance.owner.party.id: 501337
         }
       ],
       HasParent: true
@@ -133,10 +133,10 @@
       Status: Ok,
       Tags: [
         {
-          instance.guid: Guid_2
+          altinn.instance.guid: Guid_2
         },
         {
-          process.callback.command: AcquireProcessingStatus
+          altinn.process.callback.command: AcquireProcessingStatus
         }
       ],
       HasParent: true
@@ -147,10 +147,10 @@
       Status: Ok,
       Tags: [
         {
-          instance.guid: Guid_2
+          altinn.instance.guid: Guid_2
         },
         {
-          process.callback.command: CommitProcessState
+          altinn.process.callback.command: CommitProcessState
         }
       ],
       HasParent: true
@@ -161,10 +161,10 @@
       Status: Ok,
       Tags: [
         {
-          instance.guid: Guid_2
+          altinn.instance.guid: Guid_2
         },
         {
-          process.callback.command: CleanupGeneratedFromTask
+          altinn.process.callback.command: CleanupGeneratedFromTask
         }
       ],
       HasParent: true
@@ -175,10 +175,10 @@
       Status: Ok,
       Tags: [
         {
-          instance.guid: Guid_2
+          altinn.instance.guid: Guid_2
         },
         {
-          process.callback.command: CommonTaskInitialization
+          altinn.process.callback.command: CommonTaskInitialization
         }
       ],
       HasParent: true
@@ -189,10 +189,10 @@
       Status: Ok,
       Tags: [
         {
-          instance.guid: Guid_2
+          altinn.instance.guid: Guid_2
         },
         {
-          process.callback.command: ReleaseProcessingStatus
+          altinn.process.callback.command: ReleaseProcessingStatus
         }
       ],
       HasParent: true
@@ -202,7 +202,7 @@
       IdFormat: W3C,
       Tags: [
         {
-          process.event.type: process_EndTask
+          altinn.process.event.type: process_EndTask
         }
       ],
       HasParent: true
@@ -212,7 +212,7 @@
       IdFormat: W3C,
       Tags: [
         {
-          user.authentication.type: User
+          altinn.user.authentication.type: User
         }
       ],
       HasParent: true
@@ -222,7 +222,7 @@
       IdFormat: W3C,
       Tags: [
         {
-          user.authentication.type: User
+          altinn.user.authentication.type: User
         }
       ],
       HasParent: true
@@ -258,7 +258,7 @@
       IdFormat: W3C,
       Tags: [
         {
-          process.current.element: StartEvent_1
+          altinn.process.current.element: StartEvent_1
         }
       ],
       HasParent: true
@@ -358,7 +358,7 @@
       IdFormat: W3C,
       Tags: [
         {
-          Type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
+          altinn.data.model.type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
         }
       ],
       HasParent: true
@@ -368,7 +368,7 @@
       IdFormat: W3C,
       Tags: [
         {
-          Type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
+          altinn.data.model.type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
         }
       ],
       HasParent: true
@@ -378,7 +378,7 @@
       IdFormat: W3C,
       Tags: [
         {
-          Type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
+          altinn.data.model.type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
         }
       ],
       HasParent: true
@@ -388,7 +388,7 @@
       IdFormat: W3C,
       Tags: [
         {
-          Type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
+          altinn.data.model.type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
         }
       ],
       HasParent: true
@@ -398,7 +398,7 @@
       IdFormat: W3C,
       Tags: [
         {
-          Type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
+          altinn.data.model.type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
         }
       ],
       HasParent: true
@@ -408,7 +408,7 @@
       IdFormat: W3C,
       Tags: [
         {
-          Type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
+          altinn.data.model.type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
         }
       ],
       HasParent: true
@@ -418,7 +418,7 @@
       IdFormat: W3C,
       Tags: [
         {
-          Type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
+          altinn.data.model.type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
         }
       ],
       HasParent: true
@@ -428,7 +428,7 @@
       IdFormat: W3C,
       Tags: [
         {
-          Type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
+          altinn.data.model.type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
         }
       ],
       HasParent: true
@@ -441,6 +441,15 @@
       Measurements: [
         {
           Tags: [
+            {
+              altinn.user.authentication.token.is_exchanged: false
+            },
+            {
+              altinn.user.authentication.token.issuer: Altinn
+            },
+            {
+              altinn.user.authentication.type: User
+            },
             {
               http.request.method: GET
             },
@@ -458,20 +467,20 @@
             },
             {
               url.scheme: http
-            },
-            {
-              user.authentication.token.isExchanged: false
-            },
-            {
-              user.authentication.token.issuer: Altinn
-            },
-            {
-              user.authentication.type: User
             }
           ]
         },
         {
           Tags: [
+            {
+              altinn.user.authentication.token.is_exchanged: false
+            },
+            {
+              altinn.user.authentication.token.issuer: Altinn
+            },
+            {
+              altinn.user.authentication.type: User
+            },
             {
               http.request.method: POST
             },
@@ -489,15 +498,6 @@
             },
             {
               url.scheme: http
-            },
-            {
-              user.authentication.token.isExchanged: false
-            },
-            {
-              user.authentication.token.issuer: Altinn
-            },
-            {
-              user.authentication.type: User
             }
           ]
         }

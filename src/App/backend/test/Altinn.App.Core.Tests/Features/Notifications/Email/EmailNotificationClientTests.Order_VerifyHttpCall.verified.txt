@@ -5,7 +5,7 @@
       IdFormat: W3C,
       Tags: [
         {
-          type: email
+          altinn.notification.type: email
         }
       ],
       HasParent: false
