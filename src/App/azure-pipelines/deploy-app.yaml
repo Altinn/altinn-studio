@@ -3,9 +3,6 @@ variables:
   # Variables that are dynamically set in the pipeline
   ALTINN_HOST: ''
   RELEASE_NAME: ''
-  RG_NAME: ''
-  AI_INSTR_KEY: ''
-  AI_CONNECTION_STRING: ''
   SUBSCRIPTION_KEY: ''
 
   # Variables that should be set as secret variables in the pipeline
@@ -39,9 +36,6 @@ variables:
   NORMALIZED_ENVIRONMENT_VALUES: 'values.environment.normalized.yaml'
   MERGED_VALUES: 'values.merged.yaml'
   MASKINPORTEN_CR_FILE: 'maskinportenclient.yaml'
-
-  AI_SERVICE_CONNECTION_ID_TEST: '251ddc4d-a08f-4577-adfa-b2b8d3b9e2ed'
-  AI_SERVICE_CONNECTION_ID_PROD: 'b6869e6f-2ae7-4876-acf5-90800d281180'
 
   GITOPS_ORGANIZATION: 'als'
   GITOPS_REPO_SUFFIX: '-gitops'
@@ -304,7 +298,7 @@ steps:
       failOnStderr: false
 
   - task: Bash@3
-    displayName: Set environment variables (ALTINN_HOST, RG_NAME) based on APP_ENVIRONMENT
+    displayName: Set environment variables (ALTINN_HOST) based on APP_ENVIRONMENT
     condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'))
     inputs:
       targetType: inline
@@ -319,88 +313,7 @@ steps:
         else
             echo "##vso[task.setvariable variable=ALTINN_HOST;]$AT_HOST"
         fi
-
-        # Set RG_NAME based on environment
-        echo "##vso[task.setvariable variable=RG_NAME;]altinnapps-$APP_OWNER-$APP_ENVIRONMENT-rg"
-
-        if [ "$APP_ENVIRONMENT" == "production" ]; then
-            echo "##vso[task.setvariable variable=RG_NAME;]altinnapps-$APP_OWNER-prod-rg"
-        fi
       failOnStderr: true
-
-  - task: Bash@3
-    displayName: Generate PowerShell script for Application Insights
-    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'))
-    inputs:
-      targetType: inline
-      script: |
-        # Create the PowerShell script in the agent's working directory
-        cat << 'EOF' > $(Agent.BuildDirectory)/get-app-insights.ps1
-        # Determine environment-specific values
-        if ("$(APP_ENVIRONMENT)" -eq "production") {
-            $subscriptionName = "Altinn-$(APP_OWNER)-Prod"
-            $monitorRG = "monitor-$(APP_OWNER)-prod-rg"
-            $aiName = "$(APP_OWNER)-prod-ai"
-        } else {
-            $subscriptionName = "Altinn-$(APP_OWNER)-Test"
-            $monitorRG = "monitor-$(APP_OWNER)-$(APP_ENVIRONMENT)-rg"
-            $aiName = "$(APP_OWNER)-$(APP_ENVIRONMENT)-ai"
-        }
-
-        # Select the correct subscription
-        Write-Host "Selecting subscription: $subscriptionName"
-        Select-AzSubscription -Subscription $subscriptionName
-
-        $altinnappsRG = "$(RG_NAME)"
-
-        # Check if the monitor resource group exists
-        $rgExists = Get-AzResourceGroup -Name $monitorRG -ErrorAction SilentlyContinue
-
-        # Determine which resource group to use
-        if ($rgExists) {
-            $resourceGroupName = $monitorRG
-        } else {
-            $resourceGroupName = $altinnappsRG
-        }
-
-        Write-Host "Using resource group for Application Insights: $resourceGroupName"
-
-        # Use the resource's connection string so exporters send directly to its regional endpoint.
-        $appInsights = Get-AzApplicationInsights -ResourceGroupName $resourceGroupName -Name $aiName -ErrorAction Stop
-        $ai_instr_key = $appInsights.InstrumentationKey
-        $ai_connection_string = $appInsights.ConnectionString
-        if ([string]::IsNullOrWhiteSpace($ai_connection_string)) {
-            throw "Application Insights '$aiName' in resource group '$resourceGroupName' has no connection string."
-        }
-
-        # Keep the instrumentation key for apps using older telemetry configuration.
-        Write-Host "##vso[task.setvariable variable=AI_INSTR_KEY;]$ai_instr_key"
-        Write-Host "##vso[task.setvariable variable=AI_CONNECTION_STRING;]$ai_connection_string"
-        EOF
-
-        echo "PowerShell script generated successfully"
-
-  - task: AzurePowerShell@5
-    displayName: Get Application Insights configuration (Production)
-    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), eq(variables['APP_ENVIRONMENT'], 'production'))
-    inputs:
-      ConnectedServiceNameARM: $(AI_SERVICE_CONNECTION_ID_PROD)
-      ScriptType: FilePath
-      ScriptPath: '$(Agent.BuildDirectory)/get-app-insights.ps1'
-      azurePowerShellVersion: 'LatestVersion'
-      pwsh: true
-      TargetAzurePs: LatestVersion
-
-  - task: AzurePowerShell@5
-    displayName: Get Application Insights configuration (Non-Production)
-    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), ne(variables['APP_ENVIRONMENT'], 'production'))
-    inputs:
-      ConnectedServiceNameARM: $(AI_SERVICE_CONNECTION_ID_TEST)
-      ScriptType: FilePath
-      ScriptPath: '$(Agent.BuildDirectory)/get-app-insights.ps1'
-      azurePowerShellVersion: 'LatestVersion'
-      pwsh: true
-      TargetAzurePs: LatestVersion
 
   - task: AzurePowerShell@5
     displayName: Ensure API management subscription key - Test
@@ -656,15 +569,17 @@ steps:
                 name: apps-runtime-common-config-env
             - secretRef:
                 name: apps-runtime-common-secrets-env
+            # The service owner's Application Insights, which the operator provides in the cluster
+            # (src/Runtime/operator/internal/controller/secretsync). Optional, so that a cluster without it still
+            # starts the app, without telemetry.
+            - secretRef:
+                name: apps-runtime-telemetry-env
+                optional: true
           environment:
             - name: PlatformSettings__SubscriptionKey
               value: ${SUBSCRIPTION_KEY}
             - name: AppSettings__AppInsightsRoleName
               value: ${APP_REPO}
-            - name: ApplicationInsights__InstrumentationKey
-              value: ${AI_INSTR_KEY}
-            - name: ApplicationInsights__ConnectionString
-              value: "${AI_CONNECTION_STRING}"
             - name: AppSettings__AppVersion
               value: "${TAGNAME}"
         podAnnotations:
