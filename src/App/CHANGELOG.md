@@ -13,6 +13,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Added
 
 - Build check `ALTINNAPP0704` reports a process task method named after an `IProcessTask` member that it does not implement, such as `DefineStart(PipelineBuilder.ServiceTask pipeline)`, which would never run. ([#22104](https://github.com/Altinn/altinn-studio/pull/22104))
+- A unit test that builds a `StageContext` can set its `ExecutionReferenceTime`. ([#22150](https://github.com/Altinn/altinn-studio/issues/22150))
 
 ### Changed
 

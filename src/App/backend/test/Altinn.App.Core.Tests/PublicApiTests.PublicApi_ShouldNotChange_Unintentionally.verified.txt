@@ -2321,7 +2321,7 @@ namespace Altinn.App.Core.Features.Process
         public StageContext() { }
         public Altinn.App.Core.Features.Process.StageAttempt Attempt { get; init; }
         public System.Threading.CancellationToken CancellationToken { get; init; }
-        public System.DateTimeOffset ExecutionReferenceTime { get; }
+        public System.DateTimeOffset ExecutionReferenceTime { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
         public required System.Guid StepId { get; init; }
         public Altinn.App.Core.Features.Process.StageWait Wait { get; init; }
