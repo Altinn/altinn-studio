@@ -43,6 +43,33 @@ public sealed class ProcessDefinitionTests
         </bpmn:definitions>
         """;
 
+    /// <summary>
+    /// A data task with actions: one the process moves with, and two of the app's own, though the app library reads
+    /// the type only from the attribute without the namespace prefix.
+    /// </summary>
+    internal const string WithActions = """
+        <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:altinn="http://altinn.no/process">
+          <bpmn:process id="Process_1">
+            <bpmn:startEvent id="StartEvent_1" />
+            <bpmn:task id="Task_1">
+              <bpmn:extensionElements>
+                <altinn:taskExtension>
+                  <altinn:taskType>data</altinn:taskType>
+                  <altinn:actions>
+                    <altinn:action>reject</altinn:action>
+                    <altinn:action type="serverAction">fill</altinn:action>
+                    <altinn:action altinn:type="serverAction">lookup</altinn:action>
+                  </altinn:actions>
+                </altinn:taskExtension>
+              </bpmn:extensionElements>
+            </bpmn:task>
+            <bpmn:endEvent id="EndEvent_1" />
+            <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="Task_1" />
+            <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_1" targetRef="EndEvent_1" />
+          </bpmn:process>
+        </bpmn:definitions>
+        """;
+
     [Fact]
     public void Tasks_HaveTheirTypes_InTheOrderTheDefinitionListsThem()
     {
@@ -116,6 +143,22 @@ public sealed class ProcessDefinitionTests
         ProcessDefinition process = Parse(ReturnsToTheTask);
 
         Assert.Equal("Task_1", process.Next("Task_1")?.Task?.ElementId);
+    }
+
+    [Fact]
+    public void Actions_AreRead_AsTheAppLibraryReadsThem()
+    {
+        ProcessDefinition process = Parse(WithActions);
+
+        Assert.Equal(
+            [
+                new TaskAction("reject", TaskActionType.ProcessAction),
+                new TaskAction("fill", TaskActionType.ServerAction),
+                new TaskAction("lookup", TaskActionType.ProcessAction),
+            ],
+            process.Actions("Task_1")
+        );
+        Assert.Empty(process.Actions("TaskTheProcessLacks"));
     }
 
     internal static ProcessDefinition Parse(string bpmn) =>

@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using System.Xml.Linq;
 
 namespace Altinn.Studio.Preview.AppApi;
@@ -15,6 +16,7 @@ internal sealed class ProcessDefinition
 #pragma warning restore S5332
 
     private readonly Dictionary<string, ProcessTaskDefinition> _tasks;
+    private readonly Dictionary<string, IReadOnlyList<TaskAction>> _actions;
     private readonly HashSet<string> _endEvents;
     private readonly Dictionary<string, string> _defaultFlows;
     private readonly Dictionary<string, (string Source, string Target)> _flows;
@@ -23,13 +25,18 @@ internal sealed class ProcessDefinition
     private ProcessDefinition(XElement process)
     {
         List<XElement> elements = [.. process.Elements()];
-        Tasks =
-        [
-            .. elements
-                .Where(element => element.Name.LocalName is "task" or "userTask" or "serviceTask")
-                .Select(ToTask)
-                .OfType<ProcessTaskDefinition>(),
-        ];
+        List<ProcessTaskDefinition> tasks = [];
+        _actions = new Dictionary<string, IReadOnlyList<TaskAction>>(StringComparer.Ordinal);
+        foreach (XElement element in elements.Where(e => e.Name.LocalName is "task" or "userTask" or "serviceTask"))
+        {
+            if (ToTask(element) is { } task)
+            {
+                tasks.Add(task);
+                _actions[task.ElementId] = ToActions(element);
+            }
+        }
+
+        Tasks = tasks;
         _tasks = Tasks.ToDictionary(task => task.ElementId, StringComparer.Ordinal);
         StartEvent = elements.Where(element => element.Name.LocalName == "startEvent").Select(Id).FirstOrDefault();
         _endEvents = [.. elements.Where(element => element.Name.LocalName == "endEvent").Select(Id).OfType<string>()];
@@ -69,6 +76,9 @@ internal sealed class ProcessDefinition
         bpmn.Root?.Element(s_bpmn + "process") is { } process ? new ProcessDefinition(process) : null;
 
     public ProcessTaskDefinition? Task(string elementId) => _tasks.GetValueOrDefault(elementId);
+
+    /// <summary>What the task lets the user do besides reading and writing, such as confirming or signing.</summary>
+    public IReadOnlyList<TaskAction> Actions(string elementId) => _actions.GetValueOrDefault(elementId) ?? [];
 
     /// <summary>The first task of a new instance, or <c>null</c> when the start event leads to none.</summary>
     public ProcessStep? First() => StartEvent is null ? null : Next(StartEvent);
@@ -113,16 +123,15 @@ internal sealed class ProcessDefinition
 
     private static string? Id(XElement element) => (string?)element.Attribute("id");
 
+    private static XElement? TaskExtension(XElement element) =>
+        element.Element(s_bpmn + "extensionElements")?.Element(s_altinn + "taskExtension");
+
     private static ProcessTaskDefinition? ToTask(XElement element)
     {
         string? id = Id(element);
         // Newer apps put the task type in the extension elements, older ones in an attribute.
         string? taskType =
-            element
-                .Element(s_bpmn + "extensionElements")
-                ?.Element(s_altinn + "taskExtension")
-                ?.Element(s_altinn + "taskType")
-                ?.Value
+            TaskExtension(element)?.Element(s_altinn + "taskType")?.Value
             ?? (string?)element.Attribute(s_altinn + "tasktype");
         if (id is null || taskType is null)
         {
@@ -132,6 +141,20 @@ internal sealed class ProcessDefinition
         string elementType = element.Name.LocalName == "serviceTask" ? "ServiceTask" : "Task";
         return new ProcessTaskDefinition(id, (string?)element.Attribute("name") ?? id, taskType.Trim(), elementType);
     }
+
+    // As the app library reads them: the type from an attribute without the namespace prefix, and the ID and the type
+    // exactly as written.
+    private static IReadOnlyList<TaskAction> ToActions(XElement task) =>
+        [
+            .. (TaskExtension(task)?.Element(s_altinn + "actions")?.Elements(s_altinn + "action") ?? []).Select(
+                action => new TaskAction(
+                    action.Value,
+                    (string?)action.Attribute("type") == "serverAction"
+                        ? TaskActionType.ServerAction
+                        : TaskActionType.ProcessAction
+                )
+            ),
+        ];
 }
 
 /// <summary>A task in the process definition.</summary>
@@ -142,6 +165,20 @@ internal sealed class ProcessDefinition
 internal sealed record ProcessTaskDefinition(string ElementId, string Name, string AltinnTaskType, string ElementType)
 {
     public bool IsServiceTask => ElementType == "ServiceTask";
+}
+
+/// <summary>Something a task lets the user do.</summary>
+/// <param name="Id">The action, such as <c>confirm</c>, or the ID of the app's own action.</param>
+/// <param name="Type">
+/// Whether the frontend asks the process to move with it, or asks the app to run the app's code for it.
+/// </param>
+internal sealed record TaskAction(string Id, TaskActionType Type);
+
+[JsonConverter(typeof(JsonStringEnumConverter<TaskActionType>))]
+internal enum TaskActionType
+{
+    ProcessAction,
+    ServerAction,
 }
 
 /// <summary>Where the process goes next: a task, or an end event.</summary>

@@ -34,6 +34,7 @@ internal static partial class AppApiEndpoints
         app.MapGet(Instance + "/bootstrap-form/{uiFolder}", GetFormBootstrap);
         app.MapPatch(Instance + "/data", PatchFormData);
         app.MapPut(Instance + "/process/next", MoveProcessNext);
+        MapWhatPreviewDoesNotDo(app);
         MapWhatOnlyTheV8FrontendCalls(app);
         return app;
     }
