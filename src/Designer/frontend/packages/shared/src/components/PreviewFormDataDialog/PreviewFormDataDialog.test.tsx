@@ -67,6 +67,46 @@ describe('PreviewFormDataDialog', () => {
     expect(screen.getByRole('button', { name: textMock('general.save') })).toBeDisabled();
   });
 
+  it('reads the data again each time it opens, as the form in preview changes it', async () => {
+    const readPreviewFormData = vi
+      .fn()
+      .mockResolvedValueOnce(formData)
+      .mockResolvedValueOnce({
+        dataElements: [{ id: 'element', dataType: 'model', data: { name: 'Ola' } }],
+      });
+    const { rerender } = renderDialog({ readPreviewFormData });
+    await screen.findByRole('textbox', {
+      name: textMock('ux_editor.preview.form_data.data', { dataType: 'model' }),
+    });
+
+    rerender(dialog({ readPreviewFormData, open: false }));
+    rerender(dialog({ readPreviewFormData, open: true }));
+
+    const data = await screen.findByRole('textbox', {
+      name: textMock('ux_editor.preview.form_data.data', { dataType: 'model' }),
+    });
+    expect(JSON.parse((data as HTMLTextAreaElement).value)).toEqual({ name: 'Ola' });
+    expect(readPreviewFormData).toHaveBeenCalledTimes(2);
+  });
+
+  it('forgets a failed save when the developer edits the data', async () => {
+    const user = userEvent.setup();
+    renderDialog({ updatePreviewFormData: vi.fn().mockRejectedValue(new Error('Failed')) });
+    const data = await screen.findByRole('textbox', {
+      name: textMock('ux_editor.preview.form_data.data', { dataType: 'model' }),
+    });
+    await user.click(screen.getByRole('button', { name: textMock('general.save') }));
+    expect(
+      await screen.findByText(textMock('ux_editor.preview.form_data.save_failed')),
+    ).toBeInTheDocument();
+
+    await user.type(data, ' ');
+
+    expect(
+      screen.queryByText(textMock('ux_editor.preview.form_data.save_failed')),
+    ).not.toBeInTheDocument();
+  });
+
   it('reads nothing while it is closed', () => {
     const readPreviewFormData = vi.fn().mockResolvedValue(formData);
     renderDialog({ readPreviewFormData, open: false });
@@ -77,32 +117,38 @@ describe('PreviewFormDataDialog', () => {
 
 type RenderArgs = {
   readPreviewFormData?: () => Promise<PreviewFormData>;
-  updatePreviewFormData?: () => Promise<void>;
+  updatePreviewFormData?: () => Promise<unknown>;
   onSaved?: () => void;
   open?: boolean;
 };
 
-const renderDialog = ({
+const dialog = ({
   readPreviewFormData = vi.fn().mockResolvedValue(formData),
   updatePreviewFormData = vi.fn().mockResolvedValue(undefined),
   onSaved = vi.fn(),
   open = true,
-}: RenderArgs = {}) =>
-  render(
-    <ServicesContextProvider
-      {...queriesMock}
-      readPreviewFormData={readPreviewFormData}
-      updatePreviewFormData={updatePreviewFormData}
-      client={createQueryClientMock()}
-    >
-      <PreviewFormDataDialog
-        org={org}
-        app={app}
-        sessionUrl={sessionUrl}
-        instanceId={instanceId}
-        open={open}
-        onClose={vi.fn()}
-        onSaved={onSaved}
-      />
-    </ServicesContextProvider>,
-  );
+}: RenderArgs = {}) => (
+  <ServicesContextProvider
+    {...queriesMock}
+    readPreviewFormData={readPreviewFormData}
+    updatePreviewFormData={updatePreviewFormData}
+    client={queryClient}
+  >
+    <PreviewFormDataDialog
+      org={org}
+      app={app}
+      sessionUrl={sessionUrl}
+      instanceId={instanceId}
+      open={open}
+      onClose={vi.fn()}
+      onSaved={onSaved}
+    />
+  </ServicesContextProvider>
+);
+
+let queryClient = createQueryClientMock();
+
+const renderDialog = (args: RenderArgs = {}) => {
+  queryClient = createQueryClientMock();
+  return render(dialog(args));
+};

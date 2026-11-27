@@ -42,13 +42,6 @@ export const PreviewFormDataDialog = ({
 }: PreviewFormDataDialogProps): ReactElement => {
   const { t } = useTranslation();
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const { data, isPending, isError } = usePreviewFormDataQuery(
-    org,
-    app,
-    sessionUrl,
-    instanceId,
-    open,
-  );
 
   useEffect(() => {
     if (open) dialogRef.current?.showModal();
@@ -62,25 +55,53 @@ export const PreviewFormDataDialog = ({
         <StudioParagraph>{t('ux_editor.preview.form_data.description')}</StudioParagraph>
       </StudioDialog.Block>
       <StudioDialog.Block>
-        {!open ? null : isPending ? (
-          <StudioSpinner aria-hidden spinnerTitle={t('general.loading')} />
-        ) : isError ? (
-          <StudioValidationMessage>{t('general.fetch_error_message')}</StudioValidationMessage>
-        ) : data.dataElements.length === 0 ? (
-          <StudioParagraph>{t('ux_editor.preview.form_data.none')}</StudioParagraph>
-        ) : (
-          <FormDataEditor
+        {open && (
+          <FormData
             org={org}
             app={app}
             sessionUrl={sessionUrl}
             instanceId={instanceId}
-            dataElements={data.dataElements}
             onCancel={onClose}
             onSaved={onSaved}
           />
         )}
       </StudioDialog.Block>
     </StudioDialog>
+  );
+};
+
+type FormDataProps = Omit<FormDataEditorProps, 'dataElements'>;
+
+// Only an open dialog reads the data, and it shows the data once it has read it since it opened, since the form in
+// preview may have changed it.
+const FormData = ({ org, app, sessionUrl, instanceId, onCancel, onSaved }: FormDataProps) => {
+  const { t } = useTranslation();
+  const { data, isPending, isFetchedAfterMount, isError } = usePreviewFormDataQuery(
+    org,
+    app,
+    sessionUrl,
+    instanceId,
+  );
+
+  if (isPending || !isFetchedAfterMount) {
+    return <StudioSpinner aria-hidden spinnerTitle={t('general.loading')} />;
+  }
+  if (isError) {
+    return <StudioValidationMessage>{t('general.fetch_error_message')}</StudioValidationMessage>;
+  }
+  if (data.dataElements.length === 0) {
+    return <StudioParagraph>{t('ux_editor.preview.form_data.none')}</StudioParagraph>;
+  }
+  return (
+    <FormDataEditor
+      org={org}
+      app={app}
+      sessionUrl={sessionUrl}
+      instanceId={instanceId}
+      dataElements={data.dataElements}
+      onCancel={onCancel}
+      onSaved={onSaved}
+    />
   );
 };
 
@@ -113,6 +134,7 @@ const FormDataEditor = ({
     mutate: save,
     isPending: isSaving,
     isError: saveFailed,
+    reset: forgetSaveError,
   } = useUpdatePreviewFormDataMutation(org, app, sessionUrl, instanceId);
 
   const handleSave = (): void => {
@@ -140,9 +162,10 @@ const FormDataEditor = ({
         rows={16}
         spellCheck={false}
         value={text}
-        onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
-          setTexts({ ...texts, [element.id]: event.target.value })
-        }
+        onChange={(event: ChangeEvent<HTMLTextAreaElement>) => {
+          forgetSaveError();
+          setTexts({ ...texts, [element.id]: event.target.value });
+        }}
         error={data ? false : t('ux_editor.preview.form_data.not_an_object')}
       />
       {saveFailed && (
