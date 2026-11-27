@@ -319,9 +319,10 @@ section.
   where the collectors may not read pods, the deployment sets the pod's metadata in `OTEL_RESOURCE_ATTRIBUTES`
   instead, as pdf3's does.
 - The router drops logs below WARN, apps' too.
-- In a runtime cluster, the router tells apps from our services by the namespace of the pod that sent the telemetry,
-  never by what the sender says about itself. It drops telemetry from any other pod, so nothing reaches our
-  workspaces by default.
+- In a runtime cluster, the router tells apps from our services by the namespace of the pod whose `k8s.pod.uid` the
+  telemetry carries. It ignores the namespace and route a sender sets, but it trusts the UID, so a sender that knows
+  another pod's UID can pass as that pod. It drops telemetry from any other pod, so nothing reaches our workspaces by
+  default.
 - The router drops the `http.client.*` data points of a service's own exports to the router.
 - The gateway keeps only the metrics in its allowlist: our own (`altinn.*`), and the semantic conventions'
   namespaces that our services emit, such as `http.*`, `signalr.server.*`, `cicd.*` and the language runtimes'

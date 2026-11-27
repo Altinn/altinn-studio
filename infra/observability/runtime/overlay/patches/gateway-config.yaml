@@ -67,10 +67,14 @@ spec:
       # point of a series. After a gateway joins or leaves, a series can move to a gateway
       # that hasn't seen it, which drops the first point it sees, rather than send the whole
       # running total again as one interval's increase. A new process loses its first
-      # interval the same way.
+      # interval the same way. A series that comes back after another gateway has sent its
+      # increases would have them counted again from the total kept here, so this gateway
+      # forgets a series after two minutes, and treats it as new if it comes back later.
+      # Rollouts don't send a series back, and the autoscaler waits five minutes to scale
+      # down. Two minutes is still two of interval/apps's points.
       cumulative_to_delta/apps:
         initial_value: drop
-        max_staleness: 15m
+        max_staleness: 2m
       # The apps' metrics we keep in Victoria, chosen by the meter that made them, since only
       # the app libraries' own meters have attributes we know. The router keeps apps'
       # instrumentation scope for this (transform/drop in base/router.yaml). Metrics from the

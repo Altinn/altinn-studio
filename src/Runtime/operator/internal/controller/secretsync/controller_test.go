@@ -1113,6 +1113,41 @@ func TestReconciler_AfterSyncGetsTheDestination(t *testing.T) {
 	g.Expect(calls[1]).To(BeNil())
 }
 
+func TestReconciler_AfterSyncRunsWhenTheSyncFails(t *testing.T) {
+	g := NewWithT(t)
+
+	// The destination already holds a value AfterSync may not have finished with, and the source no longer builds.
+	var calls []*corev1.Secret
+	mapping := SecretSyncMapping{
+		SourceName:      "source-secret",
+		SourceNamespace: "source-ns",
+		DestName:        "dest-secret",
+		DestNamespace:   "dest-ns",
+		BuildData: func(_ context.Context, _ client.Client, _ map[string][]byte) (map[string][]byte, error) {
+			return nil, errTransformFailed
+		},
+		AfterSync: func(_ context.Context, _ client.Client, dest *corev1.Secret) error {
+			calls = append(calls, dest)
+			return nil
+		},
+	}
+	source := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{Name: mapping.SourceName, Namespace: mapping.SourceNamespace},
+	}
+	dest := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{Name: mapping.DestName, Namespace: mapping.DestNamespace},
+		Data:       map[string][]byte{"key": []byte("written")},
+	}
+	h := newTestHarness(t, []SecretSyncMapping{mapping}, source, dest)
+
+	_, err := h.reconciler.Reconcile(h.ctx(), reconcile.Request{
+		NamespacedName: client.ObjectKey{Name: source.Name, Namespace: source.Namespace},
+	})
+	g.Expect(err).To(MatchError(errTransformFailed))
+	g.Expect(calls).To(HaveLen(1))
+	g.Expect(calls[0].Data).To(Equal(dest.Data))
+}
+
 func gatewayCollector(podAnnotations map[string]any) *unstructured.Unstructured {
 	spec := map[string]any{"mode": "deployment"}
 	if podAnnotations != nil {

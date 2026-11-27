@@ -22,8 +22,8 @@ var errGrafanaCRHasNoExternalSpec = errors.New("grafana CR has no external spec"
 // The destination gets the source's labels and annotations, unless OwnMetadata is set. Either way the operator
 // labels it as its own.
 //
-// AfterSync runs after each successful sync with the destination, or with nil once it is deleted, for what has to
-// follow a change, such as restarting the pods that read it.
+// AfterSync runs after each sync, even a failed one, with the destination as it is, or nil when it doesn't exist, for
+// what has to follow a change, such as restarting the pods that read it. It does nothing when nothing changed.
 type SecretSyncMapping struct {
 	BuildOutput     func(ctx context.Context, k8sClient client.Client, data map[string][]byte) ([]byte, error)
 	BuildData       func(ctx context.Context, k8sClient client.Client, data map[string][]byte) (map[string][]byte, error)

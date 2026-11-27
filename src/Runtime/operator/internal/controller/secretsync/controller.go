@@ -85,8 +85,10 @@ func (r *SecretSyncReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		} else {
 			_, err = r.reconcileFromDest(ctx, span, mapping)
 		}
-		if err == nil && mapping.AfterSync != nil {
-			err = r.afterSync(ctx, span, mapping)
+		// Also after a failed sync: AfterSync sees the destination as it is, so a retry completes it even once the
+		// source no longer builds.
+		if mapping.AfterSync != nil {
+			err = errors.Join(err, r.afterSync(ctx, span, mapping))
 		}
 		syncErr = errors.Join(syncErr, err)
 	}
