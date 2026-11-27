@@ -217,7 +217,7 @@ test('reject environment names containing path separators', (t) => {
   assert.match(result.stdout, /Invalid environment name/);
 });
 
-test('pod annotations name the Studio deploy that runs', (t) => {
+function generateOverrides(t) {
   const overridesStep = pipeline.steps.find(
     (step) => step.displayName === 'Generate overrides file.',
   );
@@ -244,12 +244,34 @@ test('pod annotations name the Studio deploy that runs', (t) => {
   });
   assert.equal(result.status, 0, result.stdout + result.stderr);
 
-  const overrides = JSON.parse(
+  return JSON.parse(
     execFileSync('yq', ['-o=json', '.', join(artifact, pipeline.variables.OVERRIDES_FILE)]),
   );
+}
+
+test('pod annotations name the Studio deploy that runs', (t) => {
+  const overrides = generateOverrides(t);
   assert.deepEqual(overrides.podAnnotations, {
     'altinn.studio/deployment-id': '42',
     'altinn.studio/build-id': '1234',
     'altinn.studio/source-environment': 'prod',
   });
+});
+
+test('apps read Application Insights from the cluster, not from the deploy', (t) => {
+  const { image } = generateOverrides(t);
+  assert.deepEqual(image.envFrom, [
+    { configMapRef: { name: 'apps-runtime-common-config-env' } },
+    { secretRef: { name: 'apps-runtime-common-secrets-env' } },
+    { secretRef: { name: 'apps-runtime-telemetry-env', optional: true } },
+  ]);
+  // An inline variable would win over the Secret.
+  assert.deepEqual(
+    image.environment.map((variable) => variable.name),
+    [
+      'PlatformSettings__SubscriptionKey',
+      'AppSettings__AppInsightsRoleName',
+      'AppSettings__AppVersion',
+    ],
+  );
 });
