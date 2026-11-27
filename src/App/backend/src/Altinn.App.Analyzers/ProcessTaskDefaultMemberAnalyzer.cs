@@ -5,36 +5,15 @@ namespace Altinn.App.Analyzers;
 
 /// <summary>
 /// Reports a method on a process task that is named after one of <c>IProcessTask</c>'s default-implemented members
-/// (<c>DefineStart</c>, <c>DefineEnd</c>, <c>DefineAbandon</c>, <c>ValidateConfiguration</c>) but neither implements
-/// it nor is called anywhere in the app, such as <c>DefineStart(PipelineBuilder.ServiceTask pipeline)</c> in a service
-/// task. Because the member has a default, the task still compiles, and the default runs in place of the method.
+/// but neither implements it nor is called anywhere in the app, such as <c>DefineStart(PipelineBuilder.ServiceTask
+/// pipeline)</c> in a service task. The task still compiles, and the default runs in place of the method.
 /// </summary>
 /// <remarks>
-/// <para>
-/// <strong>Calibration, per <see cref="IncompleteBuilderAnalyzer"/>'s doctrine:</strong> this is Error severity, so
-/// a false positive breaks an app's build, and only the provable case is reported. Whether the member is
-/// implemented is the compiler's own interface mapping (<c>FindImplementationForInterfaceMember</c>), so the rule
-/// fires only when that mapping lands on an interface's default rather than on a method of the task or one of its
-/// base classes. Once the task implements a member, every other method of that name is an overload the author may
-/// want, and is not reported. Nor is a method whose signature was chosen elsewhere: an override, whose base method
-/// is reported instead when it is a task's own, or an implementation of another interface's member of that name.
-/// </para>
-/// <para>
-/// A task that inherits the interface from a base class keeps that class's mapping, so its own method is reported
-/// even with the right signature, and the message says to list the interface.
-/// </para>
-/// <para>
-/// A method that code anywhere in the app invokes or passes as a delegate runs, so it is a helper of that name
-/// rather than a mistake, and is not reported. That holds even when the caller is itself never called: whether code
-/// runs is beyond what an analyzer can prove, and an uncalled private method is the unused-member diagnostics' to
-/// report. Calls are looked for in the whole compilation, generated code included, so a base class's helper that a
-/// derived task calls counts too, and the rule reports only once the whole compilation is analyzed. A method declared
-/// in generated code is not reported.
-/// </para>
-/// <para>
-/// The members are read from the interface: every instance method of <c>IProcessTask</c> with a body, so a default
-/// member added later is covered without a change here.
-/// </para>
+/// The rule is an error, so it reports only what it can prove: the compiler maps the member to the interface's
+/// default, the method is not an override or another interface's member, and no code in the compilation calls it or
+/// passes it as a delegate. A task that inherits the interface from a base class keeps that class's mapping, so the
+/// message also says to list the interface. The members are read from the interface, so a default added later is
+/// covered.
 /// </remarks>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class ProcessTaskDefaultMemberAnalyzer : DiagnosticAnalyzer

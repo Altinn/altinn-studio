@@ -8,11 +8,10 @@ using Microsoft.CodeAnalysis.CSharp;
 namespace Studioctl.Tests.Upgrade.v8Tov9;
 
 /// <summary>
-/// Covers moving pipelines written for an earlier v9 preview to the current API. Each fixture compiles against a
-/// stand-in of the preview's API and, once migrated, against a stand-in of the current one, where <c>Finally</c>,
-/// <c>HandleReplies</c>, <c>ConcludeOnReplies</c>, <c>Build</c>, the mailbox types and the exchange results no longer
-/// exist. Most cases run both with a semantic model (the app compiled against the preview) and without, which is how
-/// the upgrade sees an app already on v9.
+/// Covers moving pipelines written for an earlier v9 preview to the current API. Each fixture is scanned without a
+/// compilation, as the upgrade sees an app already on v9, and once migrated compiles against a stand-in of the current
+/// API, where <c>Finally</c>, <c>HandleReplies</c>, <c>ConcludeOnReplies</c>, <c>Build</c>, the mailbox types and the
+/// exchange results no longer exist.
 /// </summary>
 public sealed partial class PreviewPipelineMigrationTests : IDisposable
 {
@@ -31,163 +30,6 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         using Altinn.App.Core.Features.Process;
         using Altinn.App.Core.Internal.Process.ProcessTasks;
         using Altinn.Platform.Storage.Interface.Models;
-        """;
-
-    private const string PreviewApi = """
-                public abstract record StageExchangeResult
-                {
-                    public static StageAwaitNextReplyResult AwaitNextReply() => new();
-                }
-
-                public sealed record StageAwaitNextReplyResult : StageExchangeResult;
-
-                public abstract record StageResult : StageExchangeResult
-                {
-                    public static StageResult Completed() => new CompletedStageResult();
-
-                    public static StageResult FailedPermanent(string errorMessage) => new CompletedStageResult();
-                }
-
-                public sealed record CompletedStageResult : StageResult;
-
-                public abstract record ServiceTaskExchangeResult
-                {
-                    public static ServiceTaskAwaitNextReplyResult AwaitNextReply() => new();
-                }
-
-                public sealed record ServiceTaskAwaitNextReplyResult : ServiceTaskExchangeResult;
-
-                public abstract record ServiceTaskResult : ServiceTaskExchangeResult
-                {
-                    public static SuccessfulServiceTaskResult Success(string? action = null) => new() { Action = action };
-
-                    public static FailedServiceTaskResult FailedPermanent(string errorMessage) => new();
-
-                    public static DeferredServiceTaskResult Defer(TimeSpan delay, string? reason = null) => new();
-                }
-
-                public sealed record SuccessfulServiceTaskResult : ServiceTaskResult
-                {
-                    public string? Action { get; init; }
-                }
-
-                public sealed record FailedServiceTaskResult : ServiceTaskResult;
-
-                public sealed record DeferredServiceTaskResult : ServiceTaskResult;
-
-                public abstract record ServiceTaskOpeningStageResult
-                {
-                    public static ServiceTaskOpeningStageResult Completed() => new SentResult();
-
-                    public static ServiceTaskOpeningStageResult FailedPermanent(string errorMessage) => new SentResult();
-
-                    public static ServiceTaskOpeningStageResult Conclude(ServiceTaskResult result) => new SentResult();
-                }
-
-                public sealed record SentResult : ServiceTaskOpeningStageResult;
-
-                public sealed record ServiceTaskMailbox
-                {
-                    public Guid Id { get; init; }
-
-                    public DateTimeOffset Deadline { get; init; }
-                }
-
-                public enum MailboxClosedReason
-                {
-                    Request,
-                    Deadline,
-                }
-
-                public sealed record MailboxOptions
-                {
-                    public required TimeSpan Timeout { get; init; }
-                }
-
-                public sealed class MailboxHandle { }
-
-                public sealed class ServiceTaskPipeline { }
-
-                public sealed class ProcessTaskPipeline { }
-
-                public sealed class PipelineBuilder
-                {
-                    public PipelineBuilder Stage(Func<StageContext, Task<StageResult>> work, ProcessStepOptions? options = null) =>
-                        this;
-
-                    public PipelineBuilder Stage(
-                        Func<StageContext, ServiceTaskMailbox, Task<ServiceTaskOpeningStageResult>> work,
-                        MailboxOptions mailbox,
-                        out MailboxHandle handle,
-                        ProcessStepOptions? options = null
-                    )
-                    {
-                        handle = new MailboxHandle();
-                        return this;
-                    }
-
-                    public PipelineBuilder HandleReplies(
-                        MailboxHandle handle,
-                        Func<StageContext, ServiceTaskReply, Task<StageExchangeResult>> onMessage,
-                        Func<StageContext, MailboxClosedReason, Task<StageResult>> onClosed,
-                        ProcessStepOptions? options = null
-                    ) => this;
-
-                    public ProcessTaskPipeline Build() => new();
-
-                    public ServiceTaskPipeline Finally(
-                        Func<StageContext, Task<ServiceTaskResult>> work,
-                        ProcessStepOptions? options = null
-                    ) => new();
-
-                    public ServiceTaskPipeline ConcludeOnReplies(
-                        MailboxHandle handle,
-                        Func<StageContext, ServiceTaskReply, Task<ServiceTaskExchangeResult>> onMessage,
-                        Func<StageContext, MailboxClosedReason, Task<ServiceTaskResult>> onClosed,
-                        ProcessStepOptions? options = null
-                    ) => new();
-                }
-
-                public interface IServiceTask : IProcessTask
-                {
-                    ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline);
-                }
-
-                public enum ServiceTaskReplyForwardOutcome
-                {
-                    Unroutable,
-                    MailboxFull,
-                }
-
-                public sealed class ServiceTaskReplyForwardException(
-                    ServiceTaskReplyForwardOutcome outcome,
-                    Guid mailboxId,
-                    string message
-                ) : Exception(message)
-                {
-                    public ServiceTaskReplyForwardOutcome Outcome { get; } = outcome;
-
-                    public Guid MailboxId { get; } = mailboxId;
-                }
-
-                public interface IServiceTaskReplyForwarder
-                {
-                    Task ForwardReply(Guid mailboxId, string serviceTaskType, string payload, string idempotencyKey);
-                }
-
-                public abstract record HandlerResult
-                {
-                    public static SuccessfulHandlerResult Success() => new();
-
-                    public static FailedHandlerResult FailedPermanent(string errorMessage) => new() { ErrorMessage = errorMessage };
-                }
-
-                public sealed record SuccessfulHandlerResult : HandlerResult;
-
-                public sealed record FailedHandlerResult : HandlerResult
-                {
-                    public string ErrorMessage { get; init; } = "";
-                }
         """;
 
     /// <summary>
@@ -365,74 +207,52 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         """;
 
     /// <summary>
-    /// The pipeline surface of the App library in the preview's shape or the current one.
+    /// The pipeline surface of the App library's current API.
     /// </summary>
-    private static string SdkStub(bool current)
-    {
-        var (api, lifecycleMembers) = current
-            ? (
-                CurrentApi,
-                """
-                        void DefineStart(PipelineBuilder.Lifecycle pipeline) { }
-                        void DefineEnd(PipelineBuilder.Lifecycle pipeline) { }
-                        void DefineAbandon(PipelineBuilder.Lifecycle pipeline) { }
-                """
-            )
-            : (
-                PreviewApi,
-                """
-                        ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) => pipeline.Build();
-                        ProcessTaskPipeline DefineEnd(PipelineBuilder pipeline) => pipeline.Build();
-                        ProcessTaskPipeline DefineAbandon(PipelineBuilder pipeline) => pipeline.Build();
-                """
-            );
-        return $$"""
-            #nullable enable
-            using System;
-            using System.Threading.Tasks;
-            using Altinn.App.Core.Features.Process;
-            using Altinn.App.Core.Internal.Process.ProcessTasks;
+    private const string SdkStub = $$"""
+        #nullable enable
+        using System;
+        using System.Threading.Tasks;
+        using Altinn.App.Core.Features.Process;
+        using Altinn.App.Core.Internal.Process.ProcessTasks;
 
-            namespace Altinn.Platform.Storage.Interface.Models
+        namespace Altinn.Platform.Storage.Interface.Models
+        {
+            public class Instance { }
+        }
+
+        namespace Altinn.App.Core.Features.Process
+        {
+            public sealed class StageContext { }
+
+            public sealed record ServiceTaskReply
             {
-                public class Instance { }
+                public string Payload { get; init; } = "";
             }
 
-            namespace Altinn.App.Core.Features.Process
+            public sealed record ProcessStepOptions
             {
-                public sealed class StageContext { }
-
-                public sealed record ServiceTaskReply
-                {
-                    public string Payload { get; init; } = "";
-                }
-
-                public sealed record ProcessStepOptions
-                {
-                    public TimeSpan? WaitBudget { get; init; }
-                }
-
-            {{api}}
+                public TimeSpan? WaitBudget { get; init; }
             }
 
-            namespace Altinn.App.Core.Internal.Process.ProcessTasks
+        {{CurrentApi}}
+        }
+
+        namespace Altinn.App.Core.Internal.Process.ProcessTasks
+        {
+            public interface IProcessTask
             {
-                public interface IProcessTask
-                {
-                    string Type { get; }
+                string Type { get; }
 
-            {{lifecycleMembers}}
-                }
+                void DefineStart(PipelineBuilder.Lifecycle pipeline) { }
+                void DefineEnd(PipelineBuilder.Lifecycle pipeline) { }
+                void DefineAbandon(PipelineBuilder.Lifecycle pipeline) { }
             }
-            """;
-    }
-
-    private static readonly Lazy<MetadataReference> _previewSdk = new(static () =>
-        SemanticScannerFactory.EmitStubAssembly("Altinn.App.Core", SdkStub(current: false))
-    );
+        }
+        """;
 
     private static readonly Lazy<MetadataReference> _currentSdk = new(static () =>
-        SemanticScannerFactory.EmitStubAssembly("Altinn.App.Core", SdkStub(current: true))
+        SemanticScannerFactory.EmitStubAssembly("Altinn.App.Core", SdkStub)
     );
 
     /// <summary>
@@ -473,11 +293,8 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
                 Task.FromResult<ServiceTaskResult>(ServiceTaskResult.FailedPermanent("No answer."));
         """;
 
-    private CSharpSourceScanner Scanner(bool semantic, MetadataReference? sdk = null) =>
-        semantic ? SemanticScannerFactory.CreateScanner(AppFolder, sdk ?? _previewSdk.Value) : new(AppFolder);
-
-    private MigrationResult Migrate(bool semantic, MetadataReference? sdk = null) =>
-        new PreviewPipelineMigration(Scanner(semantic, sdk)).Migrate(TestContext.Current.CancellationToken);
+    private MigrationResult Migrate() =>
+        new PreviewPipelineMigration(new CSharpSourceScanner(AppFolder)).Migrate(TestContext.Current.CancellationToken);
 
     private static IReadOnlyList<string> Oks(MigrationResult result) =>
         [.. result.Messages.Where(static m => m.Status == UpgradeMessageStatus.Ok).Select(static m => m.Text)];
@@ -526,22 +343,20 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
     /// <summary>
     /// Migrates the fixture, which must be reported and left as it is, and returns the to-dos.
     /// </summary>
-    private async Task<IReadOnlyList<string>> ReportedAndUnchanged(bool semantic, string fixture)
+    private async Task<IReadOnlyList<string>> ReportedAndUnchanged(string fixture)
     {
         var task = Write("logic/UnplacedTasks.cs", fixture);
         var original = await File.ReadAllTextAsync(task, TestContext.Current.CancellationToken);
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         Assert.Empty(Oks(result));
         Assert.Equal(original, await File.ReadAllTextAsync(task, TestContext.Current.CancellationToken));
         return result.Todos;
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task ServiceTasks_TakeTheServiceTaskBuilder_AndReturnNothing(bool semantic)
+    [Fact]
+    public async Task ServiceTasks_TakeTheServiceTaskBuilder_AndReturnNothing()
     {
         var tasks = Write(
             "logic/ServiceTasks.cs",
@@ -587,7 +402,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             """
         );
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         Assert.Empty(result.Todos);
         Assert.Empty(result.Warnings);
@@ -625,10 +440,8 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         );
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task LifecycleMethods_TakeTheLifecycleBuilder_AndReturnNothing(bool semantic)
+    [Fact]
+    public async Task LifecycleMethods_TakeTheLifecycleBuilder_AndReturnNothing()
     {
         var tasks = Write(
             "logic/LifecycleTasks.cs",
@@ -680,7 +493,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             """
         );
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         Assert.Empty(result.Todos);
         Assert.Empty(result.Warnings);
@@ -724,10 +537,8 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         Assert.DoesNotContain("Build()", migrated);
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task StatementCompositions_AndHelpers_TakeTheVariantTheyCompose(bool semantic)
+    [Fact]
+    public async Task StatementCompositions_AndHelpers_TakeTheVariantTheyCompose()
     {
         var task = Write(
             "logic/StatementTask.cs",
@@ -763,7 +574,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             """
         );
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         Assert.Empty(result.Todos);
         Assert.Empty(result.Warnings);
@@ -796,10 +607,8 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         );
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task FinallyOnAnotherReceiver_IsLeftAlone(bool semantic)
+    [Fact]
+    public async Task FinallyOnAnotherReceiver_IsLeftAlone()
     {
         var task = Write(
             "logic/CleanupTask.cs",
@@ -836,7 +645,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             """
         );
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         Assert.Empty(result.Todos);
         Assert.Single(Oks(result));
@@ -850,10 +659,8 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         Assert.Contains("    private Task<StageResult> Archive(StageContext context)", migrated);
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task HelperForBothKinds_AndAFieldOfTheBuilder_AreReported(bool semantic)
+    [Fact]
+    public async Task HelperForBothKinds_AndAFieldOfTheBuilder_AreReported()
     {
         var task = Write(
             "logic/SharedTask.cs",
@@ -879,7 +686,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             """
         );
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         Assert.Empty(result.Warnings);
         Assert.Equal(2, Oks(result).Count);
@@ -947,7 +754,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             }
             """
         );
-        var scanner = Scanner(semantic: false);
+        var scanner = new CSharpSourceScanner(AppFolder);
 
         var result = new PreviewPipelineMigration(scanner).Migrate(TestContext.Current.CancellationToken);
         var lifecycle = new ProcessTaskLifecycleMigration(scanner).Migrate(TestContext.Current.CancellationToken);
@@ -977,10 +784,8 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         Assert.DoesNotContain("ProcessTaskPipeline", migrated);
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task PreprocessorDirectives_AroundTheRemovedBuild_AreKept(bool semantic)
+    [Fact]
+    public async Task PreprocessorDirectives_AroundTheRemovedBuild_AreKept()
     {
         // The upgrade parses with no symbols defined, so a DEBUG-only stage is disabled text, held as trivia of the
         // return or the Build() that the migration removes.
@@ -1023,7 +828,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             """
         );
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         Assert.Empty(result.Todos);
         var migrated = await File.ReadAllTextAsync(task, TestContext.Current.CancellationToken);
@@ -1062,7 +867,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             """.Replace("public protected", "protected", StringComparison.Ordinal)
         );
 
-        var result = Migrate(semantic: false);
+        var result = Migrate();
 
         Assert.Contains(Oks(result), ok => ok.Contains("HelperTask.DefineExecute takes a PipelineBuilder.ServiceTask"));
         var migrated = await ReadMigrated(task);
@@ -1071,10 +876,8 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         AssertCompilesAgainstCurrent();
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public void BuilderAsATypeArgument_IsReported(bool semantic)
+    [Fact]
+    public void BuilderAsATypeArgument_IsReported()
     {
         Write(
             "logic/ConfigurableTask.cs",
@@ -1092,7 +895,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             """
         );
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         // Neither rewritten nor reported, it fails to compile against the current API with no to-do pointing at it.
         Assert.Contains(
@@ -1101,10 +904,8 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         );
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public void HelpersOfOneName_InDifferentTasks_TakeTheirOwnTasksVariant(bool semantic)
+    [Fact]
+    public void HelpersOfOneName_InDifferentTasks_TakeTheirOwnTasksVariant()
     {
         Write(
             "logic/TwoTasks.cs",
@@ -1133,17 +934,15 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             """
         );
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         // Each Compose, and each Archive, is part of one task's pipeline only.
         Assert.Empty(result.Todos);
         AssertCompilesAgainstCurrent();
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public void ThrowingPlaceholderStage_Compiles(bool semantic)
+    [Fact]
+    public void ThrowingPlaceholderStage_Compiles()
     {
         Write(
             "logic/PlaceholderTask.cs",
@@ -1160,17 +959,15 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             """
         );
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         // The service task builder has one Stage, so work without a result type of its own fits it.
         Assert.Empty(result.Todos);
         AssertCompilesAgainstCurrent();
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task DirectiveInAReturnOfTheBuilderAlone_IsReported_AndCommentsOfARemovedBuildStay(bool semantic)
+    [Fact]
+    public async Task DirectiveInAReturnOfTheBuilderAlone_IsReported_AndCommentsOfARemovedBuildStay()
     {
         // Without DEBUG the first return is the builder alone, which is removed; with DEBUG it composes a stage, which
         // must stay. No rewrite holds in both, so it is reported.
@@ -1201,7 +998,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             """
         );
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         Assert.StartsWith(
             Path.Combine("logic", "DebugTask.cs")
@@ -1219,10 +1016,8 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         );
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task ExtensionHelper_OfALifecyclePhase_TakesTheLifecycleBuilder(bool semantic)
+    [Fact]
+    public async Task ExtensionHelper_OfALifecyclePhase_TakesTheLifecycleBuilder()
     {
         var task = Write(
             "logic/AuditTask.cs",
@@ -1242,7 +1037,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             """
         );
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         Assert.Empty(result.Todos);
         Assert.Equal(2, Oks(result).Count);
@@ -1264,7 +1059,6 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         // SharedStages, LibraryTaskBase and the WithArchive extension come from a library the upgrade cannot see, and
         // a field is set elsewhere, so whether the receiver of Finally is the builder cannot be told.
         var todos = await ReportedAndUnchanged(
-            semantic: false,
             $$"""
             public class StaticTask : IServiceTask
             {
@@ -1316,12 +1110,10 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         );
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task HelperOnAnInstance_TakesItsCallersVariant_WithASemanticModel(bool semantic)
+    [Fact]
+    public void HelperOnAnInstance_IsNotFollowed_AndBothMethodsAreReported()
     {
-        var task = Write(
+        Write(
             "logic/InstanceTask.cs",
             $$"""
             public class Stages
@@ -1342,34 +1134,22 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             """
         );
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
-        if (semantic)
-        {
-            Assert.Empty(result.Todos);
-            AssertCompilesAgainstCurrent();
-            Assert.Contains("        new Stages().WithArchive(pipeline).Stage(Done);\n", await ReadMigrated(task));
-        }
-        else
-        {
-            // Without one, the call on an instance is not followed: neither method is rewritten.
-            Assert.Empty(Oks(result));
-            Assert.Collection(
-                result.Todos,
-                helper =>
-                    Assert.Contains("Stages.WithArchive takes or returns a PipelineBuilder, and nothing shows", helper),
-                execute => Assert.Contains("InstanceTask.DefineExecute has Finally at line 17 on something", execute)
-            );
-        }
+        // The call on an instance is not followed: neither method is rewritten.
+        Assert.Empty(Oks(result));
+        Assert.Collection(
+            result.Todos,
+            helper =>
+                Assert.Contains("Stages.WithArchive takes or returns a PipelineBuilder, and nothing shows", helper),
+            execute => Assert.Contains("InstanceTask.DefineExecute has Finally at line 17 on something", execute)
+        );
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task OldApiTheRulesCannotPlace_IsReported_NotDone(bool semantic)
+    [Fact]
+    public async Task OldApiTheRulesCannotPlace_IsReported_NotDone()
     {
         var todos = await ReportedAndUnchanged(
-            semantic,
             $$"""
             public class ConditionalTask : IServiceTask
             {
@@ -1432,10 +1212,8 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         );
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task DocReferences_ToTheRemovedApi_BecomeCodeSpans(bool semantic)
+    [Fact]
+    public async Task DocReferences_ToTheRemovedApi_BecomeCodeSpans()
     {
         var task = Write(
             "logic/DocumentedTask.cs",
@@ -1458,7 +1236,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             """
         );
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         Assert.Empty(result.Todos);
         Assert.Contains(
@@ -1497,13 +1275,11 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
                 )
             );
         Assert.DoesNotContain(diagnosed.GetDiagnostics(ct), static d => d.Id is "CS1574" or "CS0419" or "CS1580");
-        Assert.Empty(Migrate(semantic: false).Messages);
+        Assert.Empty(Migrate().Messages);
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task TriviaInAndAfterARemovedBuild_Stays(bool semantic)
+    [Fact]
+    public async Task TriviaInAndAfterARemovedBuild_Stays()
     {
         var task = Write(
             "logic/QuietTask.cs",
@@ -1539,7 +1315,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             """
         );
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         // Without DEBUG the expression body is the builder alone, which becomes an empty body; with DEBUG it composes.
         Assert.Contains(
@@ -1555,10 +1331,8 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         );
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public void FinallyAsAMethodGroup_IsReported(bool semantic)
+    [Fact]
+    public void FinallyAsAMethodGroup_IsReported()
     {
         // pipeline.Finally is not called here, only named, and the current builder has no Finally to name.
         Write(
@@ -1580,7 +1354,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             """
         );
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         Assert.Empty(Oks(result));
         Assert.Contains("Finally at line 13 as a method group", Assert.Single(result.Todos));
@@ -1622,7 +1396,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
                 + closing
         );
 
-        var result = Migrate(semantic: false);
+        var result = Migrate();
 
         Assert.Empty(result.Todos);
         Assert.Contains("=> WithArchive(pipeline).Stage(Done);", await ReadMigrated(task));
@@ -1674,17 +1448,15 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             _app.Write("logic/GlobalUsings.cs", "global using static MyApp.Stages.CommonStages;\n");
         }
 
-        var result = Migrate(semantic: false);
+        var result = Migrate();
 
         Assert.Empty(result.Todos);
         Assert.Contains("=> WithArchive(pipeline).Stage(Done);", await ReadMigrated(task));
         AssertCompilesAgainstCurrent();
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task CallOnALocalNamedLikeAType_DoesNotReachThatTypesHelper(bool semantic)
+    [Fact]
+    public async Task CallOnALocalNamedLikeAType_DoesNotReachThatTypesHelper()
     {
         // Audit.Log on the local is Recorder.Log, so the helper Audit.Log is part of DefineEnd's lifecycle phase only.
         var task = Write(
@@ -1719,7 +1491,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             """
         );
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         Assert.Empty(result.Todos);
         Assert.Contains(
@@ -1730,16 +1502,10 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
     }
 
     [Theory]
-    [InlineData("nameof(pipeline.ConcludeOnReplies)", true)]
-    [InlineData("nameof(pipeline.ConcludeOnReplies)", false)]
-    [InlineData("nameof(PipelineBuilder.Build)", true)]
-    [InlineData("nameof(PipelineBuilder.Build)", false)]
-    [InlineData("nameof(Report.Build)", true)]
-    [InlineData("nameof(Report.Build)", false)]
-    public async Task MethodGroupOfTheBuilder_IsReported_NotDone_AndOfAnotherType_IsLeftAlone(
-        string named,
-        bool semantic
-    )
+    [InlineData("nameof(pipeline.ConcludeOnReplies)")]
+    [InlineData("nameof(PipelineBuilder.Build)")]
+    [InlineData("nameof(Report.Build)")]
+    public async Task MethodGroupOfTheBuilder_IsReported_NotDone_AndOfAnotherType_IsLeftAlone(string named)
     {
         var task = Write(
             "logic/NamingTask.cs",
@@ -1765,7 +1531,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         );
         var original = await File.ReadAllTextAsync(task, TestContext.Current.CancellationToken);
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         if (named.Contains("Report", StringComparison.Ordinal))
         {
@@ -1790,7 +1556,6 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         // Wrap is not one of the app's pipeline methods, so what it returns cannot be told, but it is handed the
         // builder Prepared returns.
         var todos = await ReportedAndUnchanged(
-            semantic: false,
             $$"""
             public class WrappedTask : IServiceTask
             {
@@ -1815,10 +1580,8 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         );
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task MailboxPairInOneChain_BecomesOneExternalStage_LaidOutAsTheSendWas(bool semantic)
+    [Fact]
+    public async Task MailboxPairInOneChain_BecomesOneExternalStage_LaidOutAsTheSendWas()
     {
         var task = Write(
             "logic/ArchiveTask.cs",
@@ -1846,7 +1609,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             """
         );
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         Assert.Empty(result.Todos);
         AssertCompilesAgainstCurrent();
@@ -1866,10 +1629,8 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         );
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task MailboxPairAcrossTwoStatements_BecomesOneExternalStage_WhereTheSendWas(bool semantic)
+    [Fact]
+    public async Task MailboxPairAcrossTwoStatements_BecomesOneExternalStage_WhereTheSendWas()
     {
         var task = Write(
             "logic/SplitTasks.cs",
@@ -1907,7 +1668,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             """
         );
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         Assert.Empty(result.Todos);
         AssertCompilesAgainstCurrent();
@@ -1932,10 +1693,8 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         );
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task Timeout_ComesFromMailboxOptionsWrittenInTheSend_AndAHeldValueIsReported(bool semantic)
+    [Fact]
+    public async Task Timeout_ComesFromMailboxOptionsWrittenInTheSend_AndAHeldValueIsReported()
     {
         var task = Write(
             "logic/TimeoutTasks.cs",
@@ -1964,7 +1723,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             """
         );
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         Assert.Contains(
             "        pipeline.ExternalStage(Send, OnAnswer, timeout: TimeSpan.FromHours(6), onTimeout: OnTimeout);\n",
@@ -1989,10 +1748,8 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         );
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task OnClosed_ThatIgnoresItsReason_BecomesOnTimeout_AsAMethodGroupOrALambda(bool semantic)
+    [Fact]
+    public async Task OnClosed_ThatIgnoresItsReason_BecomesOnTimeout_AsAMethodGroupOrALambda()
     {
         var task = Write(
             "logic/TimeoutTasks.cs",
@@ -2020,7 +1777,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             """
         );
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         Assert.Empty(result.Todos);
         AssertCompilesAgainstCurrent();
@@ -2043,10 +1800,8 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         );
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task OnClosed_ThatUsesItsReason_IsReported_AsTheMethodOrTheComposition(bool semantic)
+    [Fact]
+    public async Task OnClosed_ThatUsesItsReason_IsReported_AsTheMethodOrTheComposition()
     {
         var task = Write(
             "logic/ReasonTasks.cs",
@@ -2084,7 +1839,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             }
             """
         );
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         var migrated = await ReadMigrated(task);
         // The composition is rewritten, and the method that cannot lose its reason is reported and left as it is.
@@ -2131,10 +1886,8 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         );
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task Options_GivenOnceOrAlike_AreKept_AndOptionsThatDiffer_AreReported(bool semantic)
+    [Fact]
+    public async Task Options_GivenOnceOrAlike_AreKept_AndOptionsThatDiffer_AreReported()
     {
         const string options = """
                 private static readonly ProcessStepOptions Patient = new() { WaitBudget = TimeSpan.FromMinutes(5) };
@@ -2184,7 +1937,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             """
         );
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         var migrated = await ReadMigrated(task);
         Assert.Contains(
@@ -2207,10 +1960,8 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         Assert.Equal(40, LineOf("public class DifferingTask") + 4);
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task HandlerThatDoesNotDirectlyFollowItsSend_IsReported_NotDone(bool semantic)
+    [Fact]
+    public async Task HandlerThatDoesNotDirectlyFollowItsSend_IsReported_NotDone()
     {
         var task = Write(
             "logic/OrderTasks.cs",
@@ -2267,7 +2018,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         );
         var original = await File.ReadAllTextAsync(task, TestContext.Current.CancellationToken);
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         var todos = result.Todos.Where(static todo => todo.Contains(".DefineExecute has", StringComparison.Ordinal));
         var migrated = await ReadMigrated(task);
@@ -2296,10 +2047,8 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         );
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task CommentThatOneExternalStageHasNoPlaceFor_IsReported_NotDone(bool semantic)
+    [Fact]
+    public async Task CommentThatOneExternalStageHasNoPlaceFor_IsReported_NotDone()
     {
         var task = Write(
             "logic/CommentedTask.cs",
@@ -2322,7 +2071,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         );
         var original = await File.ReadAllTextAsync(task, TestContext.Current.CancellationToken);
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         Assert.Contains(
             result.Todos,
@@ -2336,10 +2085,8 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         Assert.Equal(Compositions(original), Compositions(await ReadMigrated(task)));
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task HandleThatGoesAnywhereElse_IsReported_NotDone(bool semantic)
+    [Fact]
+    public async Task HandleThatGoesAnywhereElse_IsReported_NotDone()
     {
         var task = Write(
             "logic/HandleTasks.cs",
@@ -2395,7 +2142,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
 
         var original = await File.ReadAllTextAsync(task, TestContext.Current.CancellationToken);
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         Assert.Equal(Compositions(original), Compositions(await ReadMigrated(task)));
         var pipelines = result.Todos.Where(static todo =>
@@ -2413,12 +2160,8 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         );
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task ResultTypesAndFactories_OfEachKindOfStep_AreTheCurrentOnes_AndLifecycleStagesKeepTheirs(
-        bool semantic
-    )
+    [Fact]
+    public async Task ResultTypesAndFactories_OfEachKindOfStep_AreTheCurrentOnes_AndLifecycleStagesKeepTheirs()
     {
         var task = Write(
             "logic/ResultsTask.cs",
@@ -2483,7 +2226,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             """
         );
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         Assert.Empty(result.Todos);
         AssertCompilesAgainstCurrent();
@@ -2547,10 +2290,8 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         );
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task LambdaSteps_GetTheirKindsResultTypes(bool semantic)
+    [Fact]
+    public async Task LambdaSteps_GetTheirKindsResultTypes()
     {
         var task = Write(
             "logic/LambdaStages.cs",
@@ -2583,7 +2324,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             """
         );
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         Assert.Empty(result.Todos);
         AssertCompilesAgainstCurrent();
@@ -2609,10 +2350,8 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         );
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task StepMethod_UsedElsewhereOrByALifecycleStage_IsReported_AndTheCompositionRewritten(bool semantic)
+    [Fact]
+    public async Task StepMethod_UsedElsewhereOrByALifecycleStage_IsReported_AndTheCompositionRewritten()
     {
         var task = Write(
             "logic/SharedStages.cs",
@@ -2655,7 +2394,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             """
         );
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         var migrated = await ReadMigrated(task);
         Assert.Contains(
@@ -2686,10 +2425,8 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         );
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task RenamedTypesAndMembers_AreRenamedWhereverTheyStand(bool semantic)
+    [Fact]
+    public async Task RenamedTypesAndMembers_AreRenamedWhereverTheyStand()
     {
         var endpoint = Write(
             "logic/ReplyEndpoint.cs",
@@ -2719,7 +2456,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             """
         );
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         Assert.Empty(result.Todos);
         Assert.Equal(
@@ -2739,10 +2476,8 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         Assert.Contains("ServiceTaskResult.EndTask(\"published\")", migrated);
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task ForwardReplyOfTheAppsOwn_KeepsItsMailboxIdArgument(bool semantic)
+    [Fact]
+    public async Task ForwardReplyOfTheAppsOwn_KeepsItsMailboxIdArgument()
     {
         var relay = Write(
             "logic/Relay.cs",
@@ -2757,17 +2492,15 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         );
         var original = await File.ReadAllTextAsync(relay, TestContext.Current.CancellationToken);
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         Assert.Empty(Oks(result));
         Assert.Equal(original, await File.ReadAllTextAsync(relay, TestContext.Current.CancellationToken));
         AssertCompilesAgainstCurrent();
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public void MailboxIdOfTheAppsOwnType_BesideTheForwardException_IsNotReported(bool semantic)
+    [Fact]
+    public void MailboxIdOfTheAppsOwnType_BesideTheForwardException_IsNotReported()
     {
         Write(
             "logic/Relay.cs",
@@ -2788,17 +2521,15 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             """
         );
 
-        var first = Migrate(semantic);
-        var again = Migrate(semantic);
+        var first = Migrate();
+        var again = Migrate();
 
         Assert.Empty(first.Messages);
         Assert.Empty(again.Messages);
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public void SuccessHeldAsItsOwnType_IsReportedOrStillCompiles(bool semantic)
+    [Fact]
+    public void SuccessHeldAsItsOwnType_IsReportedOrStillCompiles()
     {
         Write(
             "logic/HeldTask.cs",
@@ -2819,7 +2550,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             """
         );
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         var errors = SemanticScannerFactory.CompileErrors(AppFolder, _currentSdk.Value);
         Assert.True(
@@ -2828,10 +2559,8 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         );
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task SuccessHeldAsItsOwnType_IsReportedAtItsLine_AndPassedOnAsTheBase_IsRenamed(bool semantic)
+    [Fact]
+    public async Task SuccessHeldAsItsOwnType_IsReportedAtItsLine_AndPassedOnAsTheBase_IsRenamed()
     {
         var task = Write(
             "logic/HeldTask.cs",
@@ -2854,7 +2583,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             """
         );
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         var file = Path.Combine("logic", "HeldTask.cs");
         Assert.Equal(
@@ -2874,10 +2603,8 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         Assert.Contains("Task.FromResult<ServiceTaskResult>(ServiceTaskResult.EndTask(\"accept\"))", migrated);
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task ResultCasesNamedInCode_AreReportedAtTheirLines_AndLeftAsTheyAre(bool semantic)
+    [Fact]
+    public async Task ResultCasesNamedInCode_AreReportedAtTheirLines_AndLeftAsTheyAre()
     {
         var task = Write(
             "logic/NamedResults.cs",
@@ -2898,7 +2625,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             """
         );
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         var file = Path.Combine("logic", "NamedResults.cs");
         const string ended =
@@ -2924,10 +2651,8 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         Assert.Contains("result is StageAwaitNextReplyResult;", migrated);
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task HandlerResultCasesNamedInCode_AreReportedAtTheirLines_AndTheFactoriesAreLeft(bool semantic)
+    [Fact]
+    public async Task HandlerResultCasesNamedInCode_AreReportedAtTheirLines_AndTheFactoriesAreLeft()
     {
         var handler = Write(
             "logic/EndingHandler.cs",
@@ -2943,7 +2668,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             """
         );
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         var file = Path.Combine("logic", "EndingHandler.cs");
         Assert.Equal(
@@ -2960,10 +2685,8 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         Assert.Contains("public static HandlerResult Ok() => HandlerResult.Success();", migrated);
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task MailboxIdInAPropertyPattern_OnTheForwardException_IsRenamed(bool semantic)
+    [Fact]
+    public async Task MailboxIdInAPropertyPattern_OnTheForwardException_IsRenamed()
     {
         var relay = Write(
             "logic/Relay.cs",
@@ -2994,7 +2717,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             """
         );
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         Assert.Empty(result.Todos);
         AssertCompilesAgainstCurrent();
@@ -3006,12 +2729,10 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         );
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task ForwardExceptionAndForwarder_TheUpgradeCannotPlaceWithoutACompilation_AreReported(bool semantic)
+    [Fact]
+    public void ForwardExceptionAndForwarder_TheUpgradeCannotPlaceWithoutACompilation_AreReported()
     {
-        var relay = Write(
+        Write(
             "logic/Relay.cs",
             """
             public static class Relay
@@ -3027,17 +2748,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             """
         );
 
-        var result = Migrate(semantic);
-
-        if (semantic)
-        {
-            Assert.Empty(result.Todos);
-            AssertCompilesAgainstCurrent();
-            var migrated = await ReadMigrated(relay);
-            Assert.Contains("Forwarder().ForwardReply(replyAddressId: id,", migrated);
-            Assert.Contains("Failure() is { ReplyAddressId: var id } ? id : Failure().ReplyAddressId;", migrated);
-            return;
-        }
+        var result = Migrate();
 
         var file = Path.Combine("logic", "Relay.cs");
         Assert.Empty(Oks(result));
@@ -3050,10 +2761,8 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         );
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task StepMethod_ThatSharesItsSignature_IsReported_AndLeftAsItIs(bool semantic)
+    [Fact]
+    public async Task StepMethod_ThatSharesItsSignature_IsReported_AndLeftAsItIs()
     {
         var task = Write(
             "logic/ArchiveTasks.cs",
@@ -3093,7 +2802,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             """
         );
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         var file = Path.Combine("logic", "ArchiveTasks.cs");
         Assert.Contains(
@@ -3119,14 +2828,9 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
     }
 
     [Theory]
-    [InlineData(true, "partial")]
-    [InlineData(false, "partial")]
-    [InlineData(true, "inherited")]
-    [InlineData(false, "inherited")]
-    public void StepMethod_ThatImplementsAnInterfaceNotOnItsOwnDeclaration_IsReportedOrStillCompiles(
-        bool semantic,
-        string how
-    )
+    [InlineData("partial")]
+    [InlineData("inherited")]
+    public void StepMethod_ThatImplementsAnInterfaceNotOnItsOwnDeclaration_IsReportedOrStillCompiles(string how)
     {
         // The interface reaches the step method's type through another part of a partial class, or through an
         // interface that the type's own base list names. Rewriting the method alone breaks the implementation.
@@ -3171,7 +2875,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
                 """
         );
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         bool reported = result.Todos.Any(static todo => todo.Contains("ArchiveTask.Archive", StringComparison.Ordinal));
         if (!reported)
@@ -3181,10 +2885,8 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         }
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public void PreviewApiLeftAnywhere_IsReportedWithItsFileAndLine(bool semantic)
+    [Fact]
+    public void PreviewApiLeftAnywhere_IsReportedWithItsFileAndLine()
     {
         Write(
             "logic/Mailboxes.cs",
@@ -3206,7 +2908,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             """
         );
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         var file = Path.Combine("logic", "Mailboxes.cs");
         Assert.Empty(Oks(result));
@@ -3226,10 +2928,8 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         );
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task RenamedApiInDisabledCode_IsReported_AndTheMethodItIsInLeftAsItIs(bool semantic)
+    [Fact]
+    public async Task RenamedApiInDisabledCode_IsReported_AndTheMethodItIsInLeftAsItIs()
     {
         var task = Write(
             "logic/DisabledTask.cs",
@@ -3257,7 +2957,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         );
         var original = await File.ReadAllTextAsync(task, TestContext.Current.CancellationToken);
 
-        var result = Migrate(semantic);
+        var result = Migrate();
 
         var file = Path.Combine("logic", "DisabledTask.cs");
         Assert.Empty(Oks(result));
@@ -3325,7 +3025,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             }
             """
         );
-        var first = Migrate(semantic: false);
+        var first = Migrate();
         var once = await ReadMigrated(task);
         Assert.Contains(
             first.Todos,
@@ -3337,7 +3037,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
                 todo.Contains("ReasonTask.OnAnswerToo is a reply handler and is also used at", StringComparison.Ordinal)
         );
 
-        var again = Migrate(semantic: false);
+        var again = Migrate();
 
         Assert.Empty(Oks(again));
         Assert.Equal(once, await ReadMigrated(task));
@@ -3395,7 +3095,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
                 """
             ),
         };
-        var first = Migrate(semantic: false);
+        var first = Migrate();
         Assert.Empty(first.Todos);
         Assert.NotEmpty(Oks(first));
         var once = await Task.WhenAll(files.Select(ReadMigrated));
@@ -3406,16 +3106,14 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             once[0]
         );
 
-        var again = Migrate(semantic: false);
+        var again = Migrate();
 
         Assert.Empty(again.Messages);
         Assert.Equal(once, await Task.WhenAll(files.Select(ReadMigrated)));
 
-        // With a semantic model of the migrated app, without the stub, which stops the build.
+        // Without the stub, which stops the build.
         File.Delete(files[1]);
         AssertCompilesAgainstCurrent();
-        Assert.Empty(Migrate(semantic: true, _currentSdk.Value).Messages);
-        Assert.Equal(once[0], await ReadMigrated(files[0]));
     }
 
     /// <summary>

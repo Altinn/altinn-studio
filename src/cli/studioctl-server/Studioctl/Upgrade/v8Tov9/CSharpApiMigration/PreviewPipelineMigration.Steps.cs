@@ -220,7 +220,7 @@ internal sealed partial class PreviewPipelineMigration
                     case AnonymousFunctionExpressionSyntax lambda:
                         if (role.CanChange)
                         {
-                            rewriter.Steps[lambda] = new StepRewriter(role, names, composition.Model);
+                            rewriter.Steps[lambda] = new StepRewriter(role, names);
                         }
 
                         foreach (var call in ReturnedCalls(lambda))
@@ -360,7 +360,7 @@ internal sealed partial class PreviewPipelineMigration
                     continue;
                 }
 
-                var rewriter = new StepRewriter(role, names, target.File.SemanticModel);
+                var rewriter = new StepRewriter(role, names);
                 if (target.IsLocal)
                 {
                     _localOwners[target].Steps[target.Declaration] = rewriter;
@@ -539,7 +539,7 @@ internal sealed partial class PreviewPipelineMigration
 
         private bool Changes(StepFunction target, StepRole role) =>
             role.CanChange
-            && !new StepRewriter(role, names, target.File.SemanticModel)
+            && !new StepRewriter(role, names)
                 .Rewrite(target.Declaration)
                 .IsEquivalentTo(target.Declaration, topLevel: false);
 
@@ -696,7 +696,7 @@ internal sealed partial class PreviewPipelineMigration
     /// Rewrites one function passed as a step: renames its role's result types where they name the Altinn ones,
     /// unwraps <c>Conclude(result)</c> in a send, and drops an <c>onClosed</c>'s reason.
     /// </summary>
-    private sealed class StepRewriter(StepRole role, TypeNames names, SemanticModel? model) : CSharpSyntaxRewriter
+    private sealed class StepRewriter(StepRole role, TypeNames names) : CSharpSyntaxRewriter
     {
         public SyntaxNode Rewrite(SyntaxNode function)
         {
@@ -708,7 +708,7 @@ internal sealed partial class PreviewPipelineMigration
         public override SyntaxNode? VisitIdentifierName(IdentifierNameSyntax node) =>
             role.Renames.TryGetValue(node.Identifier.ValueText, out var renamed)
             && IsTypeReference(node)
-            && names.IsAltinn(node, model)
+            && names.IsAltinn(node)
                 ? node.WithIdentifier(SyntaxFactory.Identifier(renamed).WithTriviaFrom(node.Identifier))
                 : base.VisitIdentifierName(node);
 
@@ -725,7 +725,7 @@ internal sealed partial class PreviewPipelineMigration
                         },
                         ArgumentList.Arguments: [{ RefKindKeyword.RawKind: (int)SyntaxKind.None } result],
                     }
-                && NamesAltinnType(receiver, PreviewApi.ServiceTaskOpeningStageResult, names, model)
+                && NamesAltinnType(receiver, PreviewApi.ServiceTaskOpeningStageResult, names)
             )
             {
                 return (Visit(result.Expression) ?? result.Expression).WithTriviaFrom(node);

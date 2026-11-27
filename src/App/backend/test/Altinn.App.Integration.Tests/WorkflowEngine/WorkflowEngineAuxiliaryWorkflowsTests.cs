@@ -100,7 +100,7 @@ public class WorkflowEngineAuxiliaryWorkflowsTests(ITestOutputHelper output, App
             Assert.Equal("Completed", acquireWorkflow.OverallStatus);
             Assert.Equal("AcquireProcessingStatus", Assert.Single(acquireWorkflow.Steps).OperationId);
             Assert.DoesNotContain(serviceTaskPrimary.Steps, s => s.OperationId == "AcquireProcessingStatus");
-            // A simple IServiceTask's pipeline is its conclusion and nothing else, so its one step names item 0.
+            // A simple IServiceTask's pipeline is one stage, so its one step names item 0.
             EngineStep executeServiceTaskStep = Assert.Single(
                 serviceTaskPrimary.Steps,
                 s => s.OperationId == "ExecuteServiceTask: 0"

@@ -11,12 +11,8 @@ public abstract record ServiceTaskReplyResult
     /// and has nothing to give a subtype it does not know.
     /// </summary>
     /// <remarks>
-    /// No test can hold this property (<c>Altinn.App.Core.Tests</c> is an <c>InternalsVisibleTo</c> friend);
-    /// the committed public-API approval file is what notices a widening, and <em>only in CI</em> — AutoVerify
-    /// rewrites it silently on a developer machine. Read that file's diff by hand if you touch the
-    /// accessibility of this constructor or its siblings'. The record copy-constructor stays reachable
-    /// (C# forbids narrowing it), so a test per result mapper pins that an unknown result converges as a
-    /// permanent failure instead of throwing into a retry ladder.
+    /// Only the public API approval file notices a widening, and only in CI. The record copy constructor stays
+    /// reachable, so each result mapper fails an unknown result permanently.
     /// </remarks>
     private protected ServiceTaskReplyResult() { }
 
