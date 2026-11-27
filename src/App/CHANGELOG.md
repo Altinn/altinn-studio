@@ -10,9 +10,32 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- `activity.KeepTrace()` marks a span so that the runtime's collectors keep its whole trace, for rare work where each case matters. ([#19775](https://github.com/Altinn/altinn-studio/issues/19775))
+
+### Changed
+
+- Breaking: Apps export telemetry only over OpenTelemetry (OTLP), to the collector in `OTEL_EXPORTER_OTLP_ENDPOINT`, which the runtime and studioctl set. Without it, the app exports nothing. Telemetry still reaches the service owner's Application Insights, through the runtime's collectors. ([#19775](https://github.com/Altinn/altinn-studio/issues/19775))
+- Breaking: Span, log and resource attributes have `altinn.` names, such as `altinn.instance.guid`, `altinn.process.task.id` and `enduser.id`, and so do the `Telemetry.Labels` constants. Update queries and alerts that use the old names. ([#19775](https://github.com/Altinn/altinn-studio/issues/19775))
+- Breaking: Apps keep every trace, and the runtime's collectors sample. `OTEL_TRACES_SAMPLER` and a sampler set in `RegisterCustomAppServices` no longer apply. ([#19775](https://github.com/Altinn/altinn-studio/issues/19775))
+- Breaking: The library's metrics come from the meter `Altinn.App` and have `altinn.app_lib.` names, such as `altinn.app_lib.instances.created`. A failure is in `error.type` instead of `result`. v8 apps keep the old names, so queries should read both. ([#19775](https://github.com/Altinn/altinn-studio/issues/19775))
+- `http.server.request.duration` no longer counts health probes, and no longer has the token's client ID. ([#19775](https://github.com/Altinn/altinn-studio/issues/19775))
+- ASP.NET Core's own log records reach the collector only from Warning. The console still gets them all. ([#19775](https://github.com/Altinn/altinn-studio/issues/19775))
+- In Application Insights, v9 apps' telemetry differs from v8's: ([#19775](https://github.com/Altinn/altinn-studio/issues/19775))
+  - logs below Warning are not kept by default
+  - request counts are those of the kept traces: count with metrics
+  - request names start with `/`, as in `POST /{org}/{app}/instances`
+  - the role name stays the app's name
+
 ### Fixed
 
+- A request's span carries the instance's `altinn.instance.guid`, so searching traces by instance also finds the request that worked on it. ([#19775](https://github.com/Altinn/altinn-studio/issues/19775))
 - PDFs of forms with large repeating groups are generated faster. A form with 936 rows of radio buttons and date pickers took 11 seconds to become a PDF, and now takes 5. ([#22148](https://github.com/Altinn/altinn-studio/pull/22148))
+
+### Removed
+
+- Breaking: The Application Insights SDK is removed, with `AppSettings:UseOpenTelemetry`, `AppSettings:UseOpenTelemetryCollector`, the `ApplicationInsights` settings, `IdentityTelemetryFilter` and `HealthTelemetryFilter`. Record telemetry with `ILogger`, `ActivitySource` or `Meter`, and write a telemetry processor as an OpenTelemetry processor. `studioctl app upgrade v9` removes the settings and reports the code. ([#19775](https://github.com/Altinn/altinn-studio/issues/19775))
 
 ## [9.0.0-preview.15] - 2026-11-25
 
