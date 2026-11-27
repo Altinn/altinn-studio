@@ -39,6 +39,7 @@ public class StorageClientInterceptor : HttpMessageHandler
     private ConcurrentDictionary<string, Instance> _instances = new();
     private ConcurrentDictionary<Guid, byte[]> _data = new();
     private ConcurrentDictionary<Guid, string> _dataBlobVersions = new();
+    private ConcurrentDictionary<(Guid DataId, string BlobVersionId), byte[]> _blobVersionContents = new();
     private ConcurrentDictionary<Guid, int> _dataContentVersions = new();
     private ConcurrentDictionary<string, int> _instanceVersions = new();
     private ConcurrentDictionary<string, int> _processStateVersions = new();
@@ -96,6 +97,7 @@ public class StorageClientInterceptor : HttpMessageHandler
             {
                 dataElement.BlobVersionId = EnsureDataBlobVersionId(dataId);
             }
+            RetainCurrentBlobVersion(dataId);
         }
         _instances[instance.Id.ToLowerInvariant()] = instance;
     }
@@ -133,6 +135,7 @@ public class StorageClientInterceptor : HttpMessageHandler
         {
             EnsureDataBlobVersionId(dataId);
         }
+        RetainCurrentBlobVersion(dataId);
     }
 
     public void AddDataRawWithoutBlobVersion(Guid dataId, byte[] data)
@@ -163,6 +166,22 @@ public class StorageClientInterceptor : HttpMessageHandler
         {
             _dataContentVersions[dataId] = version;
         }
+        RetainCurrentBlobVersion(dataId);
+    }
+
+    /// <summary>
+    /// Removes the blob versions that no data element has as its current one, as Storage's cleanup does once a
+    /// detached version is older than its retention.
+    /// </summary>
+    public void CleanUpDetachedBlobVersions()
+    {
+        foreach ((Guid DataId, string BlobVersionId) key in _blobVersionContents.Keys)
+        {
+            if (!_dataBlobVersions.TryGetValue(key.DataId, out string? current) || current != key.BlobVersionId)
+            {
+                _blobVersionContents.TryRemove(key, out _);
+            }
+        }
     }
 
     public DataElement AddData(Instance instance, string dataType, string contentType, byte[] data)
@@ -181,6 +200,7 @@ public class StorageClientInterceptor : HttpMessageHandler
         {
             dataElement.BlobVersionId = EnsureDataBlobVersionId(dataId);
         }
+        RetainCurrentBlobVersion(dataId);
         return dataElement;
     }
 
@@ -199,6 +219,14 @@ public class StorageClientInterceptor : HttpMessageHandler
                 GetInstanceResponse(partyId, instanceGuid),
             ("GET", { } path) when TryParseDataUrl(path, out int partyId, out Guid instanceGuid, out Guid dataId) =>
                 GetData(partyId, instanceGuid, dataId, request),
+            ("GET", { } path)
+                when TryParseBlobVersionUrl(
+                    path,
+                    out int partyId,
+                    out Guid instanceGuid,
+                    out Guid dataId,
+                    out string blobVersionId
+                ) => GetBlobVersion(partyId, instanceGuid, dataId, blobVersionId),
             ("POST", { } path) when TryParseDataPostUrl(path, out int partyId, out Guid instanceGuid) => PostData(
                 partyId,
                 instanceGuid,
@@ -285,6 +313,7 @@ public class StorageClientInterceptor : HttpMessageHandler
         _data[dataId] = dataContent;
         string blobVersionId = BumpDataBlobVersionId(dataId);
         dataElement.BlobVersionId = blobVersionId;
+        RetainCurrentBlobVersion(dataId);
 
         var dataElementJson = System.Text.Json.JsonSerializer.Serialize(dataElement);
         HttpResponseMessage response = AddVersionHeaders(
@@ -332,6 +361,14 @@ public class StorageClientInterceptor : HttpMessageHandler
         _data.TryRemove(dataId, out _);
         _dataBlobVersions.TryRemove(dataId, out _);
         _dataContentVersions.TryRemove(dataId, out _);
+        // Storage keeps a deleted element's blob versions only when an aggregate mutation deleted it.
+        foreach ((Guid DataId, string BlobVersionId) key in _blobVersionContents.Keys)
+        {
+            if (key.DataId == dataId)
+            {
+                _blobVersionContents.TryRemove(key, out _);
+            }
+        }
         return AddVersionHeaders(new HttpResponseMessage(HttpStatusCode.OK), instanceOwnerPartyId, instanceGuid);
     }
 
@@ -400,6 +437,71 @@ public class StorageClientInterceptor : HttpMessageHandler
         instanceGuid = Guid.Empty;
         dataId = Guid.Empty;
         return false;
+    }
+
+    private static bool TryParseBlobVersionUrl(
+        string[] pathSegments,
+        out int instanceOwnerPartyId,
+        out Guid instanceGuid,
+        out Guid dataId,
+        out string blobVersionId
+    )
+    {
+        if (
+            pathSegments
+                is [
+                    "storage",
+                    "api",
+                    "v1",
+                    "instances",
+                    var partyIdStr,
+                    var instanceGuidStr,
+                    "data",
+                    var dataIdStr,
+                    "versions",
+                    var blobVersionIdStr,
+                ]
+            && int.TryParse(partyIdStr, out instanceOwnerPartyId)
+            && Guid.TryParse(instanceGuidStr, out instanceGuid)
+            && Guid.TryParse(dataIdStr, out dataId)
+        )
+        {
+            blobVersionId = blobVersionIdStr;
+            return true;
+        }
+
+        instanceOwnerPartyId = 0;
+        instanceGuid = Guid.Empty;
+        dataId = Guid.Empty;
+        blobVersionId = "";
+        return false;
+    }
+
+    private HttpResponseMessage GetBlobVersion(int partyId, Guid instanceGuid, Guid dataId, string blobVersionId)
+    {
+        if (!_instances.ContainsKey($"{partyId}/{instanceGuid}"))
+        {
+            return new HttpResponseMessage(HttpStatusCode.NotFound)
+            {
+                Content = new StringContent($"Instance with id {instanceGuid} not found"),
+            };
+        }
+
+        if (!_blobVersionContents.TryGetValue((dataId, blobVersionId), out byte[]? content))
+        {
+            return new HttpResponseMessage(HttpStatusCode.NotFound)
+            {
+                Content = new StringContent($"Unable to find blob version {blobVersionId} of data element {dataId}."),
+            };
+        }
+
+        return new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new ByteArrayContent(content)
+            {
+                Headers = { ContentType = new MediaTypeHeaderValue("application/octet-stream") },
+            },
+        };
     }
 
     private HttpResponseMessage GetData(int partyId, Guid instanceGuid, Guid dataId, HttpRequestMessage request)
@@ -619,6 +721,7 @@ public class StorageClientInterceptor : HttpMessageHandler
             instance.Data.Add(dataElement);
             _data[dataId] = part.Bytes;
             dataElement.BlobVersionId = BumpDataBlobVersionId(dataId);
+            RetainCurrentBlobVersion(dataId);
         }
 
         foreach (StorageInstanceMutationUpdateDataElement update in mutation.UpdateDataElements)
@@ -633,6 +736,7 @@ public class StorageClientInterceptor : HttpMessageHandler
             _data[update.DataElementId] = part.Bytes;
 
             dataElement.BlobVersionId = BumpDataBlobVersionId(update.DataElementId);
+            RetainCurrentBlobVersion(update.DataElementId);
 
             if (update.Metadata is not null)
             {
@@ -1532,6 +1636,17 @@ public class StorageClientInterceptor : HttpMessageHandler
             processStateVersion.ToString(System.Globalization.CultureInfo.InvariantCulture)
         );
         return response;
+    }
+
+    private void RetainCurrentBlobVersion(Guid dataId)
+    {
+        if (
+            _data.TryGetValue(dataId, out byte[]? content)
+            && _dataBlobVersions.TryGetValue(dataId, out string? blobVersionId)
+        )
+        {
+            _blobVersionContents[(dataId, blobVersionId)] = content;
+        }
     }
 
     private string BumpDataBlobVersionId(Guid dataId)

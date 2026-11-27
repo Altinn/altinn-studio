@@ -268,6 +268,51 @@ public sealed class InstanceDataUnitOfWorkTests
                 .Single(setup.DataMutator.Instance.Data, dataElement => dataElement.Id == setup.DataElement.Id)
                 .BlobVersionId
         );
+        Assert.DoesNotContain(
+            setup.Services.Storage.RequestsResponses,
+            request => request.RequestUrl?.AbsolutePath.Contains("/versions/", StringComparison.Ordinal) == true
+        );
+    }
+
+    [Fact]
+    public async Task GetPersistedBinaryData_ReadingCapturedBlobVersions_WhenContentWasReplaced_ReturnsTheVersionItLists()
+    {
+        byte[] capturedBytes = "content"u8.ToArray();
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
+            capturedBytes,
+            blobVersionId: BlobVersion(1),
+            forWorkflowCallback: true
+        );
+        setup.Services.Storage.AddDataRaw(Guid.Parse(setup.DataElement.Id), "replaced"u8.ToArray(), BlobVersion(2));
+
+        ReadOnlyMemory<byte> bytes = await setup.DataMutator.GetPersistedBinaryData(setup.DataElement);
+
+        Assert.True(bytes.Span.SequenceEqual(capturedBytes));
+    }
+
+    [Fact]
+    public async Task GetPersistedBinaryData_ReadingCapturedBlobVersions_ReadsByBlobVersionAlsoWhenContentIsUnchanged()
+    {
+        byte[] capturedBytes = "content"u8.ToArray();
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
+            capturedBytes,
+            blobVersionId: BlobVersion(1),
+            forWorkflowCallback: true
+        );
+
+        ReadOnlyMemory<byte> bytes = await setup.DataMutator.GetPersistedBinaryData(setup.DataElement);
+
+        Assert.True(bytes.Span.SequenceEqual(capturedBytes));
+        Assert.Contains(
+            setup.Services.Storage.RequestsResponses,
+            request =>
+                request.RequestMethod == HttpMethod.Get
+                && request.RequestUrl?.AbsolutePath.Contains("/versions/", StringComparison.Ordinal) == true
+        );
+        Assert.DoesNotContain(
+            setup.Services.Storage.RequestsResponses,
+            request => request.RequestMethod == HttpMethod.Get && request.RequestHeaders.IfMatch.Count > 0
+        );
     }
 
     [Fact]
@@ -1379,8 +1424,12 @@ public sealed class InstanceDataUnitOfWorkTests
         );
         Assert.Equal("Task_1", update.GeneratedFromTask);
         Assert.Equal([referencedElement], update.Refs);
-        Assert.True(setup.DataMutator.TryGetCachedBinaryData(setup.DataElement, out ReadOnlyMemory<byte> cached));
-        Assert.True(cached.Span.SequenceEqual(updatedBytes));
+        ReadOnlyMemory<byte> readAfterSave = await setup.DataMutator.GetBinaryData(setup.DataElement);
+        Assert.True(readAfterSave.Span.SequenceEqual(updatedBytes));
+        Assert.Single(
+            setup.Services.Storage.RequestsResponses,
+            request => request.RequestMethod == HttpMethod.Get && request.RequestHeaders.IfMatch.Count > 0
+        );
     }
 
     [Theory]
@@ -3879,7 +3928,8 @@ public sealed class InstanceDataUnitOfWorkTests
             string? blobVersionId = null,
             bool lastBlobVersionIdEmpty = false,
             bool withoutBlobVersion = false,
-            Action<Instance>? configureInstance = null
+            Action<Instance>? configureInstance = null,
+            bool forWorkflowCallback = false
         )
         {
             var services = new MockedServiceCollection();
@@ -3981,8 +4031,12 @@ public sealed class InstanceDataUnitOfWorkTests
                     storageVersionMetadata.ProcessStateVersion ?? 1
                 );
             }
-            InstanceDataUnitOfWork dataMutator = initializer
-                .Init(instanceCopy, storageVersionMetadata ?? StorageVersionMetadata.Empty, taskId, language: null)
+            StorageVersionMetadata versions = storageVersionMetadata ?? StorageVersionMetadata.Empty;
+            InstanceDataUnitOfWork dataMutator = (
+                forWorkflowCallback
+                    ? initializer.InitForWorkflowCallback(instanceCopy, versions, taskId, language: null)
+                    : initializer.Init(instanceCopy, versions, taskId, language: null)
+            )
                 .GetAwaiter()
                 .GetResult();
 
