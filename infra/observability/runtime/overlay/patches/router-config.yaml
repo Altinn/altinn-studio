@@ -87,10 +87,7 @@ spec:
 
     # Apps' telemetry, and Traefik's, which is mostly apps' traffic, gets exporters and
     # queues of its own, so a flood from apps fills only its own queue and our telemetry still
-    # reaches the gateway. They send to the gateway's port 4319, which only a gateway that
-    # knows the routes opens (otlp/apps in gateway-config.yaml). While a rollout or a rollback
-    # mixes versions, apps' telemetry waits in this queue for one, rather than reach an older
-    # gateway that would send it to our workspace.
+    # reaches the gateway.
     connectors:
       routing/traces:
         default_pipelines: [traces/unrouted]
@@ -115,7 +112,7 @@ spec:
             pipelines: [logs/studio]
 
     exporters:
-      load_balancing/traces:
+      load_balancing/traces: &load_balancing
         routing_key: traceID
         # Queue and retry here, not per gateway, so a retried export picks its gateway from the
         # current ring instead of being dropped with a gateway that has left it.
@@ -143,143 +140,14 @@ spec:
           dns:
             hostname: otel-gateway-collector-headless.runtime-obs.svc.cluster.local
             port: '4317'
-      load_balancing/logs:
-        routing_key: traceID
-        # Same settings as load_balancing/traces.
-        timeout: 10s
-        retry_on_failure:
-          enabled: true
-          initial_interval: 5s
-          randomization_factor: 0.5
-          multiplier: 1.5
-          max_interval: 30s
-          max_elapsed_time: 300s
-        sending_queue:
-          enabled: true
-          sizer: bytes
-          queue_size: 8388608
-        protocol:
-          otlp:
-            tls:
-              insecure: true
-            retry_on_failure:
-              enabled: false
-            sending_queue:
-              enabled: false
-        resolver:
-          dns:
-            hostname: otel-gateway-collector-headless.runtime-obs.svc.cluster.local
-            port: '4317'
-      load_balancing/metrics:
+      load_balancing/logs: *load_balancing
+      load_balancing/metrics: &load_balancing_metrics
+        <<: *load_balancing
         # Metrics carry no trace ID; each resource's series stay on one gateway.
         routing_key: resource
-        # Same settings as load_balancing/traces.
-        timeout: 10s
-        retry_on_failure:
-          enabled: true
-          initial_interval: 5s
-          randomization_factor: 0.5
-          multiplier: 1.5
-          max_interval: 30s
-          max_elapsed_time: 300s
-        sending_queue:
-          enabled: true
-          sizer: bytes
-          queue_size: 8388608
-        protocol:
-          otlp:
-            tls:
-              insecure: true
-            retry_on_failure:
-              enabled: false
-            sending_queue:
-              enabled: false
-        resolver:
-          dns:
-            hostname: otel-gateway-collector-headless.runtime-obs.svc.cluster.local
-            port: '4317'
-
-      load_balancing/apps_traces:
-        routing_key: traceID
-        # Same settings as load_balancing/traces.
-        timeout: 10s
-        retry_on_failure:
-          enabled: true
-          initial_interval: 5s
-          randomization_factor: 0.5
-          multiplier: 1.5
-          max_interval: 30s
-          max_elapsed_time: 300s
-        sending_queue:
-          enabled: true
-          sizer: bytes
-          queue_size: 8388608
-        protocol:
-          otlp:
-            tls:
-              insecure: true
-            retry_on_failure:
-              enabled: false
-            sending_queue:
-              enabled: false
-        resolver:
-          dns:
-            hostname: otel-gateway-collector-headless.runtime-obs.svc.cluster.local
-            port: '4319'
-      load_balancing/apps_logs:
-        routing_key: traceID
-        # Same settings as load_balancing/traces.
-        timeout: 10s
-        retry_on_failure:
-          enabled: true
-          initial_interval: 5s
-          randomization_factor: 0.5
-          multiplier: 1.5
-          max_interval: 30s
-          max_elapsed_time: 300s
-        sending_queue:
-          enabled: true
-          sizer: bytes
-          queue_size: 8388608
-        protocol:
-          otlp:
-            tls:
-              insecure: true
-            retry_on_failure:
-              enabled: false
-            sending_queue:
-              enabled: false
-        resolver:
-          dns:
-            hostname: otel-gateway-collector-headless.runtime-obs.svc.cluster.local
-            port: '4319'
-      load_balancing/apps_metrics:
-        routing_key: resource
-        # Same settings as load_balancing/traces.
-        timeout: 10s
-        retry_on_failure:
-          enabled: true
-          initial_interval: 5s
-          randomization_factor: 0.5
-          multiplier: 1.5
-          max_interval: 30s
-          max_elapsed_time: 300s
-        sending_queue:
-          enabled: true
-          sizer: bytes
-          queue_size: 8388608
-        protocol:
-          otlp:
-            tls:
-              insecure: true
-            retry_on_failure:
-              enabled: false
-            sending_queue:
-              enabled: false
-        resolver:
-          dns:
-            hostname: otel-gateway-collector-headless.runtime-obs.svc.cluster.local
-            port: '4319'
+      load_balancing/apps_traces: *load_balancing
+      load_balancing/apps_logs: *load_balancing
+      load_balancing/apps_metrics: *load_balancing_metrics
       nop: {}
 
     service:

@@ -303,8 +303,8 @@ usernames, may be on spans and logs. Their values grow with use, so they never g
 - Record a URL without its query string, fragment and user info. When a URL's path can carry a secret or a national
   identity number, record its route template instead, or redact it.
 - To describe a payload, record its size, type or count, not its content.
-- The service that emits telemetry is responsible for keeping these out of it. The pipeline redacts only query
-  strings in apps' and Traefik's spans and logs, since Traefik records each URL as it came.
+- The service that emits telemetry is responsible for keeping these out of it. In a runtime cluster, the
+  gateway also removes query strings from URLs, since Traefik records each URL as it came.
 
 ## The pipeline's contract
 
