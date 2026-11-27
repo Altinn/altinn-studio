@@ -15,6 +15,7 @@ import {
 import { mutationResult } from 'src/core/queries/mutationResult';
 import { isDataPostError } from 'src/features/attachments/isDataPostError';
 import { type PendingAttachmentMutation } from 'src/features/attachments/tools';
+import { FormStore } from 'src/features/form/FormContext';
 import { useLaxInstanceId, useOptimisticallyRemoveDataElement } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { backendValidationIssueGroupListToObject } from 'src/features/validation';
@@ -34,6 +35,8 @@ export interface AttachmentUploadVariables {
 interface AttachmentRemoveVariables {
   nodeId: string;
   dataElementId: string;
+  /** Runs after the data element is deleted, while the form data is still locked. */
+  onRemoved?: () => void;
 }
 
 interface AttachmentUpdateVariables {
@@ -87,17 +90,28 @@ export const AttachmentMutations = {
     const instanceId = useLaxInstanceId();
     const language = useCurrentLanguage();
     const optimisticallyRemoveDataElement = useOptimisticallyRemoveDataElement();
+    // Deleting a data element changes the instance, so it must not run at the same time as a form data save. The
+    // backend would reject whichever of them finishes last, as the instance changed since it was read. The lock is
+    // taken inside the mutation, so the removal counts as pending attachment work while it waits for the lock.
+    const lock = FormStore.data.useLocking('__attachment__remove__');
 
     const mutation = useMutation({
       mutationKey: attachmentMutationKeys.remove(),
-      mutationFn: ({ dataElementId }: AttachmentRemoveVariables) => {
+      mutationFn: async ({ dataElementId, onRemoved }: AttachmentRemoveVariables) => {
         if (!instanceId) {
           throw new Error('Missing instanceId, cannot remove attachment');
         }
-        return doAttachmentRemove(instanceId, dataElementId, language);
+        const { unlock } = await lock();
+        try {
+          const result = await doAttachmentRemove(instanceId, dataElementId, language);
+          optimisticallyRemoveDataElement(dataElementId);
+          onRemoved?.();
+          return result;
+        } finally {
+          unlock();
+        }
       },
       onError: (error: HttpError) => window.logError('Failed to delete attachment:\n', error),
-      onSuccess: (_data, { dataElementId }) => optimisticallyRemoveDataElement(dataElementId),
     });
     return mutationResult(mutation);
   },
