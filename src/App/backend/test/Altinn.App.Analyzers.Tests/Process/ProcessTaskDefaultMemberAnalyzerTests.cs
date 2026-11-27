@@ -557,6 +557,42 @@ public class ProcessTaskDefaultMemberAnalyzerTests
     }
 
     [Fact]
+    public async Task A_Generic_Base_Class_Helper_Of_The_Name_That_A_Derived_Task_Calls_Is_Not_Reported()
+    {
+        // The derived task calls the helper on ArchiveTaskBase<string>, while the helper is declared on
+        // ArchiveTaskBase<TSettings>: the call counts for the declaration.
+        var diagnostics = await Analyze(
+            Usings
+                + """
+                public abstract class ArchiveTaskBase<TSettings> : IServiceTask
+                {
+                    public abstract string Type { get; }
+
+                    public abstract void DefineExecute(PipelineBuilder.ServiceTask pipeline);
+
+                    protected void DefineEnd(PipelineBuilder.Lifecycle pipeline, TSettings settings) =>
+                        pipeline.Stage(Revoke);
+
+                    private static Task<StageResult> Revoke(StageContext context) =>
+                        throw new System.NotImplementedException();
+                }
+
+                public sealed class ArchiveTask : ArchiveTaskBase<string>, IServiceTask
+                {
+                    public override string Type => "archive";
+
+                    public override void DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
+                        throw new System.NotImplementedException();
+
+                    public void DefineEnd(PipelineBuilder.Lifecycle pipeline) => DefineEnd(pipeline, "archive");
+                }
+                """
+        );
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
     public async Task A_Helper_Of_The_Name_That_Another_Class_Of_The_App_Calls_Is_Not_Reported()
     {
         // The app checks the task's settings at startup with the task's helper, so the helper runs.
