@@ -267,10 +267,12 @@ configuration in a library that does not know it.
   Azure Monitor exporter and the settings that chose between them.
 - The exporter's settings are startup values, in the standard `OTEL_*` environment variables, as
   [observability.md](../observability.md#setting-up-a-service) asks of every service: the endpoint, the protocol, the
-  metric export interval and the pod's UID in `OTEL_RESOURCE_ATTRIBUTES`. The runtime cluster sets them for a
+  metric export interval, the app's name in `OTEL_SERVICE_NAME`, and in `OTEL_RESOURCE_ATTRIBUTES` the pod's UID,
+  `altinn.service_owner`, `altinn.app`, `service.version` and the runtime version. The runtime cluster sets them for a
   deployed app, from `infra/runtime/apps-config`, and studioctl for a local run. Without an endpoint, the app exports
   nothing, as in a local run without a collector.
-- The libraries set no `OTEL_*` values in code, not even for Development.
+- The libraries set no `OTEL_*` values in code, not even for Development, and no resource attributes of their own:
+  the app's identity comes from the runtime, the same for every kind of app and every SDK.
 - In a runtime cluster, the endpoint is the collectors' router in `runtime-obs`,
   `http://otel-router.runtime-obs.svc.cluster.local:4317`, over gRPC, the OTLP exporter's default protocol. The
   collectors are shared with our own services, with a pipeline of their own for apps:
@@ -289,6 +291,14 @@ configuration in a library that does not know it.
   [observability.md](../observability.md#which-signal-for-what) says.
 - An app that needs more chooses other levels in [`deployment/app.yaml`](#deploymentappyaml). Code can keep a single
   trace, or a single log record below the app's level, by setting `altinn.sampling` to `always` on it.
+- What we watch for every app comes from what any app reports, not from a library of ours, so it holds for every kind
+  of app:
+  - traffic, errors and latency from `http.server.request.duration`, which any SDK's HTTP instrumentation emits
+  - starts, restarts and deploys from `altinn.workload.start_time`, which every process reports, as our services do
+- What a kind of app's libraries know beyond that, such as a form app's instances and processes, they report under
+  fixed meter and activity source names of their own, never the app's name. The collectors tell them apart from the
+  service owner's own telemetry by those names. The service owner's own metrics and spans go only to the service
+  owner's Application Insights, under any names they choose.
 
 ### `deployment/app.yaml`
 
