@@ -24,8 +24,7 @@ public abstract record ServiceTaskResult : ServiceTaskReplyResult
     /// <param name="action">
     /// Optional process action that picks the next flow (e.g. "reject"). When null, the default flow is used.
     /// </param>
-    public static new ServiceTaskResult EndTask(string? action = null) =>
-        new EndedServiceTaskResult { Action = action };
+    public static new ServiceTaskResult EndTask(string? action = null) => new EndedServiceTaskResult(action);
 
     /// <summary>
     /// The step ran without error, but the outcome it awaits has not arrived yet: run it again after
@@ -40,7 +39,7 @@ public abstract record ServiceTaskResult : ServiceTaskReplyResult
     public static new ServiceTaskResult Defer(TimeSpan delay, string? reason = null)
     {
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(delay, TimeSpan.Zero);
-        return new DeferredServiceTaskResult { Delay = delay, Reason = reason };
+        return new DeferredServiceTaskResult(delay, reason);
     }
 
     /// <summary>
@@ -51,7 +50,7 @@ public abstract record ServiceTaskResult : ServiceTaskReplyResult
     public static new ServiceTaskResult FailedRetryable(string errorMessage)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
-        return new FailedServiceTaskResult { ErrorMessage = errorMessage, Kind = FailureKind.Retryable };
+        return new FailedServiceTaskResult(errorMessage, FailureKind.Retryable);
     }
 
     /// <summary>
@@ -62,59 +61,78 @@ public abstract record ServiceTaskResult : ServiceTaskReplyResult
     public static new ServiceTaskResult FailedPermanent(string errorMessage)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
-        return new FailedServiceTaskResult { ErrorMessage = errorMessage, Kind = FailureKind.Permanent };
+        return new FailedServiceTaskResult(errorMessage, FailureKind.Permanent);
     }
 }
 
 /// <summary>
 /// A service task step that is done. Created via <see cref="ServiceTaskResult.Completed"/>.
 /// </summary>
-internal sealed record CompletedServiceTaskResult : ServiceTaskResult
+public sealed record CompletedServiceTaskResult : ServiceTaskResult
 {
     internal static readonly CompletedServiceTaskResult Instance = new();
+
+    private CompletedServiceTaskResult() { }
 }
 
 /// <summary>
 /// A service task step that ends the task. Created via <see cref="ServiceTaskResult.EndTask"/>.
 /// </summary>
-internal sealed record EndedServiceTaskResult : ServiceTaskResult
+public sealed record EndedServiceTaskResult : ServiceTaskResult
 {
+    internal EndedServiceTaskResult(string? action)
+    {
+        Action = action;
+    }
+
     /// <summary>
     /// Optional process action that picks the next flow (e.g. "reject"). When null, the default flow is used.
     /// </summary>
-    public string? Action { get; init; }
+    public string? Action { get; }
 }
 
 /// <summary>
 /// A service task step that ran without error but is still waiting for an external outcome.
 /// Created via <see cref="ServiceTaskResult.Defer"/>.
 /// </summary>
-internal sealed record DeferredServiceTaskResult : ServiceTaskResult
+public sealed record DeferredServiceTaskResult : ServiceTaskResult
 {
+    internal DeferredServiceTaskResult(TimeSpan delay, string? reason)
+    {
+        Delay = delay;
+        Reason = reason;
+    }
+
     /// <summary>
     /// How long to wait before running the step again.
     /// </summary>
-    public required TimeSpan Delay { get; init; }
+    public TimeSpan Delay { get; }
 
     /// <summary>
     /// Optional description of what is being waited for.
     /// </summary>
-    public string? Reason { get; init; }
+    public string? Reason { get; }
 }
 
 /// <summary>
 /// A failed service task step. Created via <see cref="ServiceTaskResult.FailedRetryable"/> or
 /// <see cref="ServiceTaskResult.FailedPermanent"/>.
 /// </summary>
-internal sealed record FailedServiceTaskResult : ServiceTaskResult
+public sealed record FailedServiceTaskResult : ServiceTaskResult
 {
+    internal FailedServiceTaskResult(string errorMessage, FailureKind kind)
+    {
+        ErrorMessage = errorMessage;
+        Kind = kind;
+    }
+
     /// <summary>
     /// Human-readable error message describing the failure.
     /// </summary>
-    public required string ErrorMessage { get; init; }
+    public string ErrorMessage { get; }
 
     /// <summary>
-    /// Whether the failure is retryable or permanent.
+    /// Whether the step runs again.
     /// </summary>
-    internal FailureKind Kind { get; init; }
+    public FailureKind Kind { get; }
 }

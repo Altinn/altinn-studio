@@ -119,11 +119,19 @@ internal sealed partial class PreviewPipelineMigration
             ["StageAwaitNextReplyResult"] =
                 "A reply handler returns ServiceTaskReplyResult.AwaitNextReply(), and results compare by value, as in "
                 + "result == ServiceTaskReplyResult.AwaitNextReply()",
+        };
+
+        /// <summary>
+        /// The previews' result types that the current API keeps, but creates only through its factories, which
+        /// return the base type, and what to write where code creates or holds one.
+        /// </summary>
+        public static readonly Dictionary<string, string> CreatedByFactories = new(StringComparer.Ordinal)
+        {
             ["FailedServiceTaskResult"] =
-                $"Create the result with {PipelineApi.ServiceTaskResult}.FailedPermanent or FailedRetryable, and "
-                + "compare results by value",
+                $"Create it with {PipelineApi.ServiceTaskResult}.FailedPermanent or FailedRetryable, and hold it as "
+                + PipelineApi.ServiceTaskResult,
             ["DeferredServiceTaskResult"] =
-                $"Create the result with {PipelineApi.ServiceTaskResult}.Defer, and compare results by value",
+                $"Create it with {PipelineApi.ServiceTaskResult}.Defer, and hold it as {PipelineApi.ServiceTaskResult}",
         };
 
         private static readonly string _types = Words(RemovedTypes.Keys.Concat(RenamedTypes.Keys));
@@ -213,6 +221,23 @@ internal sealed partial class PreviewPipelineMigration
             NameColonSyntax or NameEqualsSyntax or AliasQualifiedNameSyntax => false,
             _ => true,
         };
+
+    /// <summary>
+    /// Whether the type name stands in a type test (<c>is</c>, <c>as</c>, a cast, <c>typeof</c>, a pattern or a type
+    /// argument), where a type that only its factories create still compiles.
+    /// </summary>
+    private static bool InTypeTest(IdentifierNameSyntax name)
+    {
+        SyntaxNode type = name.Parent is QualifiedNameSyntax qualified && qualified.Right == name ? qualified : name;
+        return type.Parent switch
+        {
+            BinaryExpressionSyntax binary => binary.Right == type
+                && binary.Kind() is SyntaxKind.IsExpression or SyntaxKind.AsExpression,
+            CastExpressionSyntax cast => cast.Type == type,
+            TypeOfExpressionSyntax or TypeArgumentListSyntax or PatternSyntax => true,
+            _ => false,
+        };
+    }
 
     /// <summary>
     /// Whether the expression names the Altinn type <paramref name="typeName"/>, bare or qualified with its namespace.
@@ -756,6 +781,20 @@ internal sealed partial class PreviewPipelineMigration
             if (PreviewApi.RemovedTypes.ContainsKey(name) && IsTypeReference(identifier) && names.IsAltinn(identifier))
             {
                 found.Add((file.GetLine(identifier), PreviewApi.WhatBecameOf(name)));
+            }
+            else if (
+                PreviewApi.CreatedByFactories.TryGetValue(name, out var instead)
+                && IsTypeReference(identifier)
+                && !InTypeTest(identifier)
+                && names.IsAltinn(identifier)
+            )
+            {
+                found.Add(
+                    (
+                        file.GetLine(identifier),
+                        $"if this creates or holds a {name}, it has no public constructor now. {instead}."
+                    )
+                );
             }
         }
 

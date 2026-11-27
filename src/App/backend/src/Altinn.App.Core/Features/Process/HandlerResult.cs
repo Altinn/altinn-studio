@@ -58,19 +58,3 @@ public sealed record FailedHandlerResult : HandlerResult
     /// </summary>
     internal FailureKind Kind { get; init; }
 }
-
-/// <summary>
-/// Classifies how a failed handler or service task result should be handled by the workflow engine.
-/// </summary>
-internal enum FailureKind
-{
-    /// <summary>
-    /// The failure is transient. The workflow engine will retry the step with backoff.
-    /// </summary>
-    Retryable,
-
-    /// <summary>
-    /// The failure is permanent. The workflow engine will stop retrying and mark the step as failed.
-    /// </summary>
-    Permanent,
-}

@@ -51,7 +51,10 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
                     public static StageResult FailedPermanent(string errorMessage) => new CompletedStageResult();
                 }
 
-                internal sealed record CompletedStageResult : StageResult;
+                public sealed record CompletedStageResult : StageResult
+                {
+                    internal CompletedStageResult() { }
+                }
 
                 public abstract record ServiceTaskReplyResult
                 {
@@ -73,7 +76,10 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
                         ServiceTaskResult.FailedPermanent(errorMessage);
                 }
 
-                internal sealed record ServiceTaskAwaitNextReplyResult : ServiceTaskReplyResult;
+                public sealed record ServiceTaskAwaitNextReplyResult : ServiceTaskReplyResult
+                {
+                    internal ServiceTaskAwaitNextReplyResult() { }
+                }
 
                 public abstract record ServiceTaskResult : ServiceTaskReplyResult
                 {
@@ -81,37 +87,44 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
 
                     public static new ServiceTaskResult Completed() => new CompletedServiceTaskResult();
 
-                    public static new ServiceTaskResult EndTask(string? action = null) =>
-                        new EndedServiceTaskResult { Action = action };
+                    public static new ServiceTaskResult EndTask(string? action = null) => new EndedServiceTaskResult(action);
 
                     public static new ServiceTaskResult Defer(TimeSpan delay, string? reason = null) =>
-                        new DeferredServiceTaskResult { Delay = delay, Reason = reason };
+                        new DeferredServiceTaskResult(delay, reason);
 
                     public static new ServiceTaskResult FailedRetryable(string errorMessage) =>
-                        new FailedServiceTaskResult { ErrorMessage = errorMessage };
+                        new FailedServiceTaskResult(errorMessage);
 
                     public static new ServiceTaskResult FailedPermanent(string errorMessage) =>
-                        new FailedServiceTaskResult { ErrorMessage = errorMessage };
+                        new FailedServiceTaskResult(errorMessage);
                 }
 
-                internal sealed record CompletedServiceTaskResult : ServiceTaskResult;
-
-                internal sealed record EndedServiceTaskResult : ServiceTaskResult
+                public sealed record CompletedServiceTaskResult : ServiceTaskResult
                 {
-                    public string? Action { get; init; }
+                    internal CompletedServiceTaskResult() { }
                 }
 
-                internal sealed record DeferredServiceTaskResult : ServiceTaskResult
+                public sealed record EndedServiceTaskResult : ServiceTaskResult
                 {
-                    public required TimeSpan Delay { get; init; }
+                    internal EndedServiceTaskResult(string? action) => Action = action;
 
-                    public string? Reason { get; init; }
+                    public string? Action { get; }
                 }
 
-                internal sealed record FailedServiceTaskResult : ServiceTaskResult
+                public sealed record DeferredServiceTaskResult : ServiceTaskResult
                 {
+                    internal DeferredServiceTaskResult(TimeSpan delay, string? reason) => (Delay, Reason) = (delay, reason);
 
-                    public required string ErrorMessage { get; init; }
+                    public TimeSpan Delay { get; }
+
+                    public string? Reason { get; }
+                }
+
+                public sealed record FailedServiceTaskResult : ServiceTaskResult
+                {
+                    internal FailedServiceTaskResult(string errorMessage) => ErrorMessage = errorMessage;
+
+                    public string ErrorMessage { get; }
                 }
 
                 public sealed record ReplyAddress
@@ -2607,7 +2620,15 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
 
                 public static bool Failed(ServiceTaskResult result) => result is FailedServiceTaskResult;
 
-                public static bool Deferred(ServiceTaskResult result) => result is DeferredServiceTaskResult;
+                public static bool Deferred(ServiceTaskResult result) => result is DeferredServiceTaskResult { Reason: null };
+
+                public static ServiceTaskResult Later() => new DeferredServiceTaskResult { Delay = TimeSpan.FromMinutes(1) };
+
+                public static string Message(ServiceTaskResult result)
+                {
+                    FailedServiceTaskResult failed = ServiceTaskResult.FailedPermanent("No archive");
+                    return failed.ErrorMessage;
+                }
             }
             """
         );
@@ -2625,10 +2646,11 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
                 $"{file}:13: StageAwaitNextReplyResult was removed. A reply handler returns "
                     + "ServiceTaskReplyResult.AwaitNextReply(), and results compare by value, as in "
                     + "result == ServiceTaskReplyResult.AwaitNextReply().",
-                $"{file}:15: FailedServiceTaskResult was removed. Create the result with "
-                    + "ServiceTaskResult.FailedPermanent or FailedRetryable, and compare results by value.",
-                $"{file}:17: DeferredServiceTaskResult was removed. Create the result with ServiceTaskResult.Defer, "
-                    + "and compare results by value.",
+                $"{file}:19: if this creates or holds a DeferredServiceTaskResult, it has no public constructor now. "
+                    + "Create it with ServiceTaskResult.Defer, and hold it as ServiceTaskResult.",
+                $"{file}:23: if this creates or holds a FailedServiceTaskResult, it has no public constructor now. "
+                    + "Create it with ServiceTaskResult.FailedPermanent or FailedRetryable, and hold it as "
+                    + "ServiceTaskResult.",
             ],
             result.Todos
         );
@@ -2636,6 +2658,11 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         Assert.Contains("=> new SuccessfulServiceTaskResult { Action = \"reject\" };", migrated);
         Assert.Contains("result is SuccessfulServiceTaskResult { Action: \"reject\" };", migrated);
         Assert.Contains("result is StageAwaitNextReplyResult;", migrated);
+        Assert.Contains("result is FailedServiceTaskResult;", migrated);
+        Assert.Contains(
+            "FailedServiceTaskResult failed = ServiceTaskResult.FailedPermanent(\"No archive\");",
+            migrated
+        );
     }
 
     [Fact]
