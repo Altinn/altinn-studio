@@ -101,7 +101,13 @@ A step that runs again after its save was committed gets the state its first att
 elements as they were before the save, so an element the step deleted or replaced is no longer in Storage as the state
 lists it. When Storage answers a read with 404 or 412, the callback reads the blob version that the state lists, which
 Storage serves to the service owner. The step then reads what its first attempt read, and its save reaches the replay.
-Storage keeps a deleted or replaced version for seven days, and the engine retries a step for a day by default.
+
+Every callback reads this way, not only a step that runs again: it reads the versions its state lists for as long as
+Storage has them. If something else replaced the element, the callback's save is refused as stale, so it cannot
+overwrite that change.
+
+Storage keeps a deleted or replaced version for seven days, and the record it replays a committed save from for 48
+hours by default. The engine retries a step for a day by default, which is inside both limits.
 
 - Storage allows standalone data value patches and read status updates while the instance is processing, without
   changing its versions. A patch changes only the keys it sends, so writers that need more than last-writer-wins own
@@ -292,9 +298,11 @@ app does not guard against it. Names would not help either, since a redeploy can
 - A retried step that reads a binary data element again, after the lost attempt deleted or replaced it, depends on
   Storage still having the version the state lists. See [saving to Storage](#saving-to-storage). Once Storage has
   cleaned the version up, the read fails: a 409 for replaced content, and a 500 that the engine retries for a deleted
-  element. A workflow resumed more than seven days after the lost attempt meets this. The callback state also carries
-  the bytes of signee-state elements the unit of work already holds (`WorkflowCallbackState.BinaryData`), which
-  signing's delegate and notify stages rewrite, so those stages read their input from the state.
+  element. A workflow resumed more than seven days after the lost attempt meets this. One resumed more than 48 hours
+  after it reads the version, but Storage no longer replays the committed save and refuses the new one as stale, which
+  the callback answers with a 422. The callback state also carries the bytes of signee-state elements the unit of work
+  already holds (`WorkflowCallbackState.BinaryData`), which signing's delegate and notify stages rewrite, so those
+  stages read their input from the state.
 - An ended process reports `idle` without asking the engine, and `process/resume` refuses it with a 409. A failure
   after the commit of the final transition therefore shows only in the failure alert, and an operator resumes the
   workflow with the engine's [resume API](../../../Runtime/workflow-engine/docs/technical-guide.md#resume).
