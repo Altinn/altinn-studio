@@ -288,7 +288,7 @@ configuration in a library that does not know it.
   are for following a unit of work, and logs for what someone needs to act on, as
   [observability.md](../observability.md#which-signal-for-what) says.
 - An app that needs more chooses other levels in [`deployment/app.yaml`](#deploymentappyaml). Code can keep a single
-  trace, or a single log record below the app's level, by setting `altinn.studio.sampling` to `always` on it.
+  trace, or a single log record below the app's level, by setting `altinn.sampling` to `always` on it.
 
 ### `deployment/app.yaml`
 
