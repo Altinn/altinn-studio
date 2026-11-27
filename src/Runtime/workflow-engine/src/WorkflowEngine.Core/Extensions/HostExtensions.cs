@@ -96,7 +96,7 @@ internal static class HostExtensions
 
                 // The read paths a transition exercises: the workflow-with-steps include graph, the
                 // collection read the app's ProcessNext wait polls, the list endpoint, and the
-                // status rollup the metrics collector uses.
+                // incomplete count that backpressure runs on.
                 await repo.GetWorkflow(Guid.Empty, WarmUpNamespace, cancellationToken);
                 await repo.GetCollection(WarmUpCollectionKey, WarmUpNamespace, cancellationToken);
                 await repo.QueryWorkflows(
@@ -105,7 +105,7 @@ internal static class HostExtensions
                     namespaceFilter: WarmUpNamespace,
                     cancellationToken: cancellationToken
                 );
-                await repo.CountWorkflowsByStatus(cancellationToken);
+                await repo.CountIncompleteWorkflowsByStatus(cancellationToken);
 
                 logger.WarmUpCompleted(Stopwatch.GetElapsedTime(started).TotalMilliseconds);
             }

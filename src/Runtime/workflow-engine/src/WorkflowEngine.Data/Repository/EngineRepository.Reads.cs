@@ -729,8 +729,89 @@ internal sealed partial class EngineRepository
         }
     }
 
+    /// <summary>
+    /// Reads only the incomplete statuses, so its cost follows the incomplete workflows and not the finished ones that
+    /// fill the table: the enqueued rows for the scheduled split, and the rest from their index alone once vacuumed.
+    /// </summary>
+    /// <remarks>
+    /// Both branches share the statement's snapshot, so the scheduled workflows are always a part of the enqueued.
+    /// </remarks>
+    internal const string IncompleteWorkflowCountsSql = $"""
+        SELECT status, false AS scheduled, COUNT(*)::int
+        FROM engine.workflows
+        WHERE status IN ({PersistentItemStatusMap.IncompleteExceptEnqueuedSqlList})
+        GROUP BY status
+        UNION ALL
+        SELECT {PersistentItemStatusMap.EnqueuedSqlLiteral} AS status,
+               COALESCE(start_at > @now, false) AS scheduled, COUNT(*)::int
+        FROM engine.workflows
+        WHERE status = {PersistentItemStatusMap.EnqueuedSqlLiteral}
+        GROUP BY scheduled
+        """;
+
     /// <inheritdoc/>
-    public async Task<WorkflowStatusCounts> CountWorkflowsByStatus(CancellationToken cancellationToken = default)
+    public async Task<IncompleteWorkflowCounts> CountIncompleteWorkflowsByStatus(
+        CancellationToken cancellationToken = default
+    )
+    {
+        using var activity = Metrics.Source.StartActivity("EngineRepository.CountIncompleteWorkflowsByStatus");
+        activity?.DontRecord();
+        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        try
+        {
+            logger.CountingWorkflows("incomplete (grouped)");
+
+            await using var cmd = dataSource.CreateCommand(IncompleteWorkflowCountsSql);
+            cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", timeProvider.GetUtcNow()));
+
+            var byStatus = new Dictionary<PersistentItemStatus, int>();
+            var scheduled = 0;
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+            {
+#pragma warning disable CA1849, S6966 // Synchronous GetFieldValue is intentional - data is already buffered after ReadAsync
+                var status = (PersistentItemStatus)reader.GetInt32(0);
+                var count = reader.GetInt32(2);
+                byStatus[status] = byStatus.GetValueOrDefault(status) + count;
+                if (reader.GetBoolean(1))
+                    scheduled += count;
+#pragma warning restore CA1849, S6966
+            }
+
+            logger.SuccessfullyFetchedWorkflows(byStatus.Values.Sum());
+
+            return new IncompleteWorkflowCounts(byStatus, scheduled);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            logger.FailedToFetchWorkflows(ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Reads every workflow the database retains, so its cost follows the table.
+    /// </summary>
+    /// <remarks>
+    /// No status filter: one that matches the finished statuses also matches the partial index on <c>updated_at</c>,
+    /// which the planner can pick and then visit the heap for every row.
+    /// </remarks>
+    internal const string WorkflowCountsByStatusSql = """
+        SELECT status, COUNT(*)::int
+        FROM engine.workflows
+        GROUP BY status
+        """;
+
+    /// <inheritdoc/>
+    public async Task<IReadOnlyDictionary<PersistentItemStatus, int>> CountWorkflowsByStatus(
+        CancellationToken cancellationToken = default
+    )
     {
         using var activity = Metrics.Source.StartActivity("EngineRepository.CountWorkflowsByStatus");
         activity?.DontRecord();
@@ -740,23 +821,20 @@ internal sealed partial class EngineRepository
         {
             logger.CountingWorkflows("all (grouped)");
 
-            await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+            await using var cmd = dataSource.CreateCommand(WorkflowCountsByStatusSql);
 
-            var counts = await context
-                .Workflows.GroupBy(wf => wf.Status)
-                .Select(g => new { Status = g.Key, Count = g.Count() })
-                .ToListAsync(cancellationToken);
+            var byStatus = new Dictionary<PersistentItemStatus, int>();
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+            {
+#pragma warning disable CA1849, S6966 // Synchronous GetFieldValue is intentional - data is already buffered after ReadAsync
+                byStatus[(PersistentItemStatus)reader.GetInt32(0)] = reader.GetInt32(1);
+#pragma warning restore CA1849, S6966
+            }
 
-            var scheduled = await context.Workflows.CountAsync(
-                wf => wf.Status == PersistentItemStatus.Enqueued && wf.StartAt > DateTime.UtcNow,
-                cancellationToken
-            );
+            logger.SuccessfullyFetchedWorkflows(byStatus.Values.Sum());
 
-            var byStatus = counts.ToDictionary(x => x.Status, x => x.Count);
-
-            logger.SuccessfullyFetchedWorkflows(counts.Sum(x => x.Count));
-
-            return new WorkflowStatusCounts(byStatus, scheduled);
+            return byStatus;
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -782,8 +860,7 @@ internal sealed partial class EngineRepository
     internal const string IncompleteAndFailedWorkflowCountsSql = $"""
         SELECT namespace, status, false AS scheduled, COUNT(*)::int
         FROM engine.workflows
-        WHERE status IN ({PersistentItemStatusMap.IncompleteSqlList})
-          AND status <> {PersistentItemStatusMap.EnqueuedSqlLiteral}
+        WHERE status IN ({PersistentItemStatusMap.IncompleteExceptEnqueuedSqlList})
         GROUP BY namespace, status
         UNION ALL
         SELECT namespace, status, false AS scheduled, COUNT(*)::int

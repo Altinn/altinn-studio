@@ -155,8 +155,8 @@ public class MetricsCollectorTests
         var settings = Settings(sweepInterval);
         var repository = new Mock<IEngineRepository>(MockBehavior.Strict);
         repository
-            .Setup(r => r.CountWorkflowsByStatus(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new WorkflowStatusCounts(new Dictionary<PersistentItemStatus, int>(), 0));
+            .Setup(r => r.CountIncompleteWorkflowsByStatus(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new IncompleteWorkflowCounts(new Dictionary<PersistentItemStatus, int>(), 0));
 
         var asked = new TaskCompletionSource<(DateTimeOffset, int)>(TaskCreationOptions.RunContinuationsAsynchronously);
         repository
@@ -202,7 +202,7 @@ public class MetricsCollectorTests
         var repository = new Mock<IEngineRepository>(MockBehavior.Strict);
         var reading = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         repository
-            .Setup(r => r.CountWorkflowsByStatus(It.IsAny<CancellationToken>()))
+            .Setup(r => r.CountIncompleteWorkflowsByStatus(It.IsAny<CancellationToken>()))
             .Returns<CancellationToken>(async ct =>
             {
                 reading.TrySetResult();
@@ -257,7 +257,7 @@ public class MetricsCollectorTests
         var repository = new Mock<IEngineRepository>(MockBehavior.Strict);
         var reading = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         repository
-            .Setup(r => r.CountWorkflowsByStatus(It.IsAny<CancellationToken>()))
+            .Setup(r => r.CountIncompleteWorkflowsByStatus(It.IsAny<CancellationToken>()))
             .Callback(reading.SetResult)
             .ThrowsAsync(new TimeoutException("database unreachable"));
 
@@ -310,10 +310,10 @@ public class MetricsCollectorTests
         var settings = Settings(TimeSpan.FromMinutes(5));
         var repository = new Mock<IEngineRepository>(MockBehavior.Strict);
         repository
-            .Setup(r => r.CountWorkflowsByStatus(It.IsAny<CancellationToken>()))
+            .Setup(r => r.CountIncompleteWorkflowsByStatus(It.IsAny<CancellationToken>()))
             .ReturnsAsync(
-                new WorkflowStatusCounts(
-                    new Dictionary<PersistentItemStatus, int> { [PersistentItemStatus.Failed] = 23 },
+                new IncompleteWorkflowCounts(
+                    new Dictionary<PersistentItemStatus, int> { [PersistentItemStatus.Processing] = 23 },
                     0
                 )
             );
@@ -341,7 +341,63 @@ public class MetricsCollectorTests
         await collector.StopAsync(TestContext.Current.CancellationToken);
         meters.RecordObservableInstruments();
 
-        Assert.Equal(23, Assert.Single(meters.Values("altinn.workflow_engine.workflow.failed")));
+        Assert.Equal(23, Assert.Single(meters.Values("altinn.workflow_engine.workflow.active")));
+    }
+
+    [Fact]
+    public async Task TheIncompleteCount_FeedsTheIncompleteAndInboxGauges_AndTheCountsBackpressureRunsOn()
+    {
+        var settings = Settings(TimeSpan.FromMinutes(5));
+        var repository = new Mock<IEngineRepository>(MockBehavior.Strict);
+        repository
+            .Setup(r => r.CountIncompleteWorkflowsByStatus(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                new IncompleteWorkflowCounts(
+                    new Dictionary<PersistentItemStatus, int>
+                    {
+                        [PersistentItemStatus.Enqueued] = 5,
+                        [PersistentItemStatus.Processing] = 3,
+                        [PersistentItemStatus.Requeued] = 2,
+                        [PersistentItemStatus.Waiting] = 4,
+                        [PersistentItemStatus.Held] = 1,
+                    },
+                    Scheduled: 2
+                )
+            );
+        var asked = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        repository
+            .Setup(r =>
+                r.CountOverdueOpenMailboxes(It.IsAny<DateTimeOffset>(), It.IsAny<int>(), It.IsAny<CancellationToken>())
+            )
+            .Callback(asked.SetResult)
+            .ReturnsAsync(0);
+        var engineStatus = new Mock<IEngineStatus>();
+
+        using var limiter = new ConcurrencyLimiter(5, 5, 5);
+        using var collector = CreateCollector(
+            settings,
+            repository.Object,
+            engineStatus.Object,
+            limiter,
+            CreateBuffers(settings)
+        );
+        using var meters = new MeterCollector();
+
+        await collector.StartAsync(TestContext.Current.CancellationToken);
+        await asked.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+        await collector.StopAsync(TestContext.Current.CancellationToken);
+        meters.RecordObservableInstruments();
+
+        string[] gauges =
+        [
+            "altinn.workflow_engine.workflow.active",
+            "altinn.workflow_engine.workflow.scheduled",
+            "altinn.workflow_engine.workflow.waiting",
+            "altinn.workflow_engine.slot.inbox.used",
+            "altinn.workflow_engine.slot.inbox.available",
+        ];
+        Assert.Equal([15, 2, 4, 15, 85], gauges.Select(gauge => Assert.Single(meters.Values(gauge))));
+        engineStatus.Verify(e => e.UpdateActiveWorkflowCounts(15, 2), Times.Once);
     }
 
     [Fact]

@@ -14,6 +14,7 @@ internal static class Defaults
         MaxLabels = 50,
         MetricsCollectionInterval = TimeSpan.FromSeconds(5),
         WorkflowCountCollectionInterval = TimeSpan.FromSeconds(15),
+        FinishedWorkflowCountCollectionInterval = TimeSpan.FromMinutes(1),
         DefaultStepCommandTimeout = TimeSpan.FromSeconds(100),
         MaxStepCommandTimeout = TimeSpan.FromHours(2),
         DefaultStepWaitBudget = TimeSpan.FromDays(1),
