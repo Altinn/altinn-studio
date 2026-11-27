@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Altinn.Studio.Preview/Altinn.Studio.Preview.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Altinn.Studio.Preview.Tests/Altinn.Studio.Preview.Tests.csproj" />
+  </Folder>
+</Solution>

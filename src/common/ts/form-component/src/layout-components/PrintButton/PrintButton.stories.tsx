@@ -1,3 +1,4 @@
+import { withComponentGrid } from '@app/form-component/layout-components/common/storybook';
 import { fn } from 'storybook/test';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
@@ -15,6 +16,7 @@ export const PRINT_BUTTON_PROP_CATEGORIES = {
 const meta = {
   title: 'LayoutComponents/PrintButton',
   component: PrintButton,
+  decorators: [withComponentGrid],
   excludeStories: ['PRINT_BUTTON_PROP_CATEGORIES'],
   parameters: {
     layout: 'padded',

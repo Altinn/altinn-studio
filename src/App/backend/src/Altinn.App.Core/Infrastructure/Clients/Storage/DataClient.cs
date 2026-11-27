@@ -427,6 +427,50 @@ internal sealed class DataClient : IDataClient, IDataClientWithStorageMetadata, 
     }
 
     /// <inheritdoc />
+    async Task<byte[]?> IDataClientWithStorageMetadata.GetBlobVersionBytes(
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        Guid dataId,
+        string blobVersionId,
+        StorageAuthenticationMethod? authenticationMethod,
+        CancellationToken cancellationToken
+    )
+    {
+        using var cts = cancellationToken.WithTimeout(_httpOperationTimeout);
+        using var activity = _telemetry?.StartGetBinaryDataActivity(instanceGuid, dataId);
+        string apiUrl =
+            $"instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataId}/versions/{Uri.EscapeDataString(blobVersionId)}";
+
+        JwtToken token = await _authenticationTokenResolver.GetAccessToken(
+            authenticationMethod ?? _defaultAuthenticationMethod,
+            cancellationToken: cts.Token
+        );
+
+#pragma warning disable S7044 // URLs are constructed from platform configuration, not user input
+        using HttpRequestMessage request = new(HttpMethod.Get, apiUrl);
+#pragma warning restore S7044
+        request.Headers.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
+
+        using HttpResponseMessage response = await _client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseContentRead,
+            cts.Token
+        );
+
+        if (response.IsSuccessStatusCode)
+        {
+            return await response.Content.ReadAsByteArrayAsync(cts.Token);
+        }
+
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+
+        throw await PlatformHttpException.Create(response, cts.Token);
+    }
+
+    /// <inheritdoc />
     public async Task<List<AttachmentList>> GetBinaryDataList(
         int instanceOwnerPartyId,
         Guid instanceGuid,

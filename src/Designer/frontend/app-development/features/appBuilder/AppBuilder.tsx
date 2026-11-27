@@ -6,6 +6,7 @@ import { StudioPageSpinner } from '@designer/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { useAppBuilderAvailability } from './useAppBuilderAvailability';
+import { AppBuilderFeedback } from './AppBuilderFeedback';
 
 export default function AppBuilder(): ReactElement {
   const { t } = useTranslation();
@@ -15,5 +16,10 @@ export default function AppBuilder(): ReactElement {
   if (isPending) return <StudioPageSpinner spinnerTitle={t('general.loading')} />;
   if (!isAvailable) return <Navigate to={`../${RoutePaths.UIEditor}`} replace />;
 
-  return <AppBuilderEditor org={org} app={app} />;
+  return (
+    <>
+      <AppBuilderEditor org={org} app={app} />
+      <AppBuilderFeedback />
+    </>
+  );
 }

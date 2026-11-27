@@ -2,6 +2,10 @@
 package manifests
 
 import (
+	"maps"
+	"slices"
+	"strings"
+
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -21,7 +25,8 @@ const (
 	// GrafanaAdminPassword is the local Grafana's admin password, which the MCP server uses.
 	GrafanaAdminPassword = "admin"
 
-	grafanaDashboardsPath = "/var/lib/grafana/dashboards"
+	// GrafanaDashboardsPath is where Grafana mounts the dashboards, which its file provider reads.
+	GrafanaDashboardsPath = "/var/lib/grafana/dashboards"
 	grafanaPort           = 3000
 	grafanaMCPPort        = 8000
 	grafanaMCPHealthPort  = 8001
@@ -53,17 +58,31 @@ type GrafanaCABundle struct {
 // fixture's ingress listens on every host interface, so both are reached with
 // kubectl port-forward, which listens on localhost.
 func BuildGrafana(content GrafanaContent, caBundle *GrafanaCABundle) []runtime.Object {
-	return []runtime.Object{
+	objects := []runtime.Object{
 		buildGrafanaNamespace(),
 		buildGrafanaConfigMap("grafana-provisioning", map[string]string{
 			"datasources.yaml": content.Datasources,
 			"dashboards.yaml":  content.DashboardProviders,
 		}),
-		buildGrafanaConfigMap("grafana-dashboards", content.Dashboards),
-		buildGrafanaDeployment(content.Digest, caBundle),
+	}
+	// A ConfigMap holds at most 1 MiB, which the dashboards together outgrow, so each gets its own.
+	dashboardConfigMaps := make([]string, 0, len(content.Dashboards))
+	for _, file := range slices.Sorted(maps.Keys(content.Dashboards)) {
+		name := DashboardConfigMapName(file)
+		dashboardConfigMaps = append(dashboardConfigMaps, name)
+		objects = append(objects, buildGrafanaConfigMap(name, map[string]string{file: content.Dashboards[file]}))
+	}
+	return append(objects,
+		buildGrafanaDeployment(content.Digest, dashboardConfigMaps, caBundle),
 		buildGrafanaService(),
 		buildGrafanaMCPDeployment(),
-	}
+	)
+}
+
+// DashboardConfigMapName names the ConfigMap that holds the dashboard file, after the file, so a dashboard keeps its
+// ConfigMap when others are added or removed.
+func DashboardConfigMapName(file string) string {
+	return "grafana-dashboard-" + strings.TrimSuffix(file, ".json")
 }
 
 func buildGrafanaNamespace() *corev1.Namespace {
@@ -81,7 +100,7 @@ func buildGrafanaConfigMap(name string, data map[string]string) *corev1.ConfigMa
 	}
 }
 
-func buildGrafanaDeployment(digest string, caBundle *GrafanaCABundle) *appsv1.Deployment {
+func buildGrafanaDeployment(digest string, dashboardConfigMaps []string, caBundle *GrafanaCABundle) *appsv1.Deployment {
 	container := corev1.Container{
 		Name:            "grafana",
 		Image:           GrafanaImage,
@@ -112,7 +131,7 @@ func buildGrafanaDeployment(digest string, caBundle *GrafanaCABundle) *appsv1.De
 				SubPath:   "dashboards.yaml",
 				ReadOnly:  true,
 			},
-			{Name: "dashboards", MountPath: grafanaDashboardsPath, ReadOnly: true},
+			{Name: "dashboards", MountPath: GrafanaDashboardsPath, ReadOnly: true},
 		},
 		ReadinessProbe: &corev1.Probe{
 			ProbeHandler: corev1.ProbeHandler{
@@ -124,7 +143,7 @@ func buildGrafanaDeployment(digest string, caBundle *GrafanaCABundle) *appsv1.De
 	}
 	volumes := []corev1.Volume{
 		configMapVolume("provisioning", "grafana-provisioning"),
-		configMapVolume("dashboards", "grafana-dashboards"),
+		projectedConfigMapsVolume("dashboards", dashboardConfigMaps),
 	}
 	if caBundle != nil {
 		container.Env = append(container.Env, caBundle.Env...)
@@ -223,6 +242,19 @@ func configMapVolume(name, configMap string) corev1.Volume {
 				LocalObjectReference: corev1.LocalObjectReference{Name: configMap},
 			},
 		},
+	}
+}
+
+func projectedConfigMapsVolume(name string, configMaps []string) corev1.Volume {
+	sources := make([]corev1.VolumeProjection, 0, len(configMaps))
+	for _, configMap := range configMaps {
+		sources = append(sources, corev1.VolumeProjection{
+			ConfigMap: &corev1.ConfigMapProjection{LocalObjectReference: corev1.LocalObjectReference{Name: configMap}},
+		})
+	}
+	return corev1.Volume{
+		Name:         name,
+		VolumeSource: corev1.VolumeSource{Projected: &corev1.ProjectedVolumeSource{Sources: sources}},
 	}
 }
 

@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Altinn.Studio.Fleet</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Altinn.Studio.Fleet.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" />
+  </ItemGroup>
+
+  <!-- The api-usage analysis. MSBuild is compile-only, as Directory.Build.props says. -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Build.Locator" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../../../common/dotnet/Altinn.Studio.Common/Altinn.Studio.Common.csproj" />
+  </ItemGroup>
+</Project>

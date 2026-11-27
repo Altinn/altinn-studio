@@ -21,6 +21,13 @@ export function RunOptionsEffects() {
   const selector = useRef<ReturnType<typeof createOptionsEffectNodeSelector>>(undefined);
   selector.current ??= createOptionsEffectNodeSelector();
   const nodes = FormStore.raw.useMemoSelector(selector.current);
+  const isReadOnly = FormStore.useIsReadOnly();
+
+  if (isReadOnly) {
+    // The effects only update form data, which a read-only form (such as a PDF) never writes. Skipping them avoids
+    // fetching, filtering and sorting options for every row of every repeating group.
+    return null;
+  }
 
   return (
     <>

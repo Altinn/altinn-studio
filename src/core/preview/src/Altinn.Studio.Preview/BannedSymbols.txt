@@ -1,0 +1,27 @@
+# A session must read only its own working copy. Files/AppFolder.cs is the only code that opens files, through the
+# working copy's open directory, so these APIs, which open files by path, fail the build everywhere else. Read a file
+# with AppFolder.OpenRead, and parse it from the stream, such as with XDocument.Load(Stream).
+T:System.IO.File;Read files through AppFolder, which keeps a session inside its working copy
+T:System.IO.FileInfo;Read files through AppFolder, which keeps a session inside its working copy
+T:System.IO.Directory;List directories through AppFolder, which keeps a session inside its working copy
+T:System.IO.DirectoryInfo;List directories through AppFolder, which keeps a session inside its working copy
+T:System.IO.FileStream;Read files through AppFolder, which keeps a session inside its working copy
+M:System.IO.StreamReader.#ctor(System.String);Read files through AppFolder, which keeps a session inside its working copy
+M:System.IO.StreamReader.#ctor(System.String,System.Boolean);Read files through AppFolder, which keeps a session inside its working copy
+M:System.IO.StreamReader.#ctor(System.String,System.Text.Encoding);Read files through AppFolder, which keeps a session inside its working copy
+M:System.IO.StreamReader.#ctor(System.String,System.Text.Encoding,System.Boolean);Read files through AppFolder, which keeps a session inside its working copy
+M:System.IO.StreamReader.#ctor(System.String,System.Text.Encoding,System.Boolean,System.Int32);Read files through AppFolder, which keeps a session inside its working copy
+M:System.IO.StreamReader.#ctor(System.String,System.IO.FileStreamOptions);Read files through AppFolder, which keeps a session inside its working copy
+M:System.IO.StreamReader.#ctor(System.String,System.Text.Encoding,System.Boolean,System.IO.FileStreamOptions);Read files through AppFolder, which keeps a session inside its working copy
+M:System.Xml.Linq.XDocument.Load(System.String);Read files through AppFolder and load the stream
+M:System.Xml.Linq.XDocument.Load(System.String,System.Xml.Linq.LoadOptions);Read files through AppFolder and load the stream
+M:System.Xml.Linq.XElement.Load(System.String);Read files through AppFolder and load the stream
+M:System.Xml.Linq.XElement.Load(System.String,System.Xml.Linq.LoadOptions);Read files through AppFolder and load the stream
+M:System.Xml.XmlDocument.Load(System.String);Read files through AppFolder and load the stream
+M:System.Xml.XmlReader.Create(System.String);Read files through AppFolder and read the stream
+M:System.Xml.XmlReader.Create(System.String,System.Xml.XmlReaderSettings);Read files through AppFolder and read the stream
+M:System.Xml.XmlReader.Create(System.String,System.Xml.XmlReaderSettings,System.Xml.XmlParserContext);Read files through AppFolder and read the stream
+T:Microsoft.Extensions.FileProviders.PhysicalFileProvider;Serve files through AppFolder, which keeps a session inside its working copy
+M:Microsoft.AspNetCore.Http.Results.File(System.String,System.String,System.String,System.Nullable{System.DateTimeOffset},Microsoft.Net.Http.Headers.EntityTagHeaderValue,System.Boolean);Serve a stream from AppFolder.OpenRead
+M:Microsoft.AspNetCore.Http.TypedResults.PhysicalFile(System.String,System.String,System.String,System.Nullable{System.DateTimeOffset},Microsoft.Net.Http.Headers.EntityTagHeaderValue,System.Boolean);Serve a stream from AppFolder.OpenRead
+M:Microsoft.AspNetCore.Http.TypedResults.VirtualFile(System.String,System.String,System.String,System.Nullable{System.DateTimeOffset},Microsoft.Net.Http.Headers.EntityTagHeaderValue,System.Boolean);Serve a stream from AppFolder.OpenRead

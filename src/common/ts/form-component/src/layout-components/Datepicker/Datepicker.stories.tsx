@@ -1,3 +1,4 @@
+import { withComponentGrid } from '@app/form-component/layout-components/common/storybook';
 import { useArgs } from 'storybook/preview-api';
 import { fn } from 'storybook/test';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
@@ -37,6 +38,7 @@ export const DATEPICKER_PROP_CATEGORIES = {
 const meta = {
   title: 'LayoutComponents/Datepicker',
   component: Datepicker,
+  decorators: [withComponentGrid],
   // DATEPICKER_PROP_CATEGORIES is a docs helper, not a story — keep CSF from rendering it as one.
   excludeStories: ['DATEPICKER_PROP_CATEGORIES'],
   parameters: {

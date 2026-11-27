@@ -1,0 +1,32 @@
+# The preview service; see src/core/preview/README.md. deploy-studio-preview.yaml pushes its manifests with a tag for
+# each environment, and each environment's overlay sets its host names.
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: altinn-preview-repo
+  namespace: default
+spec:
+  interval: 5m
+  provider: azure
+  ref:
+    tag: ${ENVIRONMENT}
+  timeout: 5m
+  url: oci://altinntjenestercontainerregistry.azurecr.io/altinn-studio/configs/preview-repo
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: altinn-preview
+  namespace: default
+spec:
+  targetNamespace: default
+  interval: 5m
+  retryInterval: 5m
+  timeout: 2m
+  prune: true
+  wait: true
+  path: ./${ENVIRONMENT}
+  sourceRef:
+    kind: OCIRepository
+    name: altinn-preview-repo
+    namespace: default

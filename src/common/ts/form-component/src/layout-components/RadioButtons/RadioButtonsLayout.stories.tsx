@@ -1,3 +1,4 @@
+import { withComponentGrid } from '@app/form-component/layout-components/common/storybook';
 import { StaticLanguageTranslatorProvider } from '@app/form-component/test/StaticLanguageTranslatorProvider';
 import { useArgs } from 'storybook/preview-api';
 import { fn } from 'storybook/test';
@@ -59,6 +60,7 @@ const meta = {
         <Story />
       </StaticLanguageTranslatorProvider>
     ),
+    withComponentGrid,
   ],
   argTypes: {
     layout: {

@@ -1,3 +1,4 @@
+import { withComponentGrid } from '@app/form-component/layout-components/common/storybook';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
@@ -24,6 +25,7 @@ const exampleSummary = {
 const meta = {
   title: 'LayoutComponents/InstanceInformation',
   component: InstanceInformation,
+  decorators: [withComponentGrid],
   excludeStories: ['INSTANCE_INFORMATION_PROP_CATEGORIES'],
   parameters: {
     layout: 'padded',
