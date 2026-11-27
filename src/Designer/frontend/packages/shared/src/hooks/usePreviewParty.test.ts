@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, waitFor } from '@testing-library/react';
 import { renderHookWithProviders } from '../mocks/renderHookWithProviders';
 import { usePreviewParty } from './usePreviewParty';
@@ -37,5 +37,19 @@ describe('usePreviewParty', () => {
 
     await waitFor(() => expect(result.current.party).toBe('organization'));
     expect(localStorage.getItem('previewParty')).toBe('"organization"');
+  });
+
+  it('uses the choice on this page when the browser cannot store it', async () => {
+    const { result } = renderHookWithProviders(() => usePreviewParty());
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new DOMException('Full', 'QuotaExceededError');
+    });
+
+    act(() => {
+      expect(() => result.current.setParty('organization')).toThrow();
+    });
+
+    await waitFor(() => expect(result.current.party).toBe('organization'));
+    vi.restoreAllMocks();
   });
 });

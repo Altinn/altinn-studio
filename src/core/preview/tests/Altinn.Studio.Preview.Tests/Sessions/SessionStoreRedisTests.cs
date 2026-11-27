@@ -1,3 +1,4 @@
+using System.Globalization;
 using Altinn.Studio.Preview.AppApi;
 using Altinn.Studio.Preview.Files;
 using Altinn.Studio.Preview.Sessions;
@@ -63,11 +64,12 @@ public sealed class SessionStoreRedisTests : IAsyncLifetime
     public async Task FindAndRenew_TakesTheUsersOwnParty_ForASessionStartedWithoutOne()
     {
         SessionId sessionId = await Store().Start(MyApp(), MockUser.PartyId, TestContext.Current.CancellationToken);
+        string startedAt = DateTimeOffset.UtcNow.ToString("O", CultureInfo.InvariantCulture);
         await Database()
             .HashSetAsync(
                 Key(sessionId),
                 "session",
-                """{"developer":"developer","org":"ttd","app":"my-app","startedAt":"2026-11-27T10:00:00+00:00"}"""
+                $$"""{"developer":"developer","org":"ttd","app":"my-app","startedAt":"{{startedAt}}"}"""
             );
 
         PreviewSession? session = await Store().FindAndRenew(sessionId, TestContext.Current.CancellationToken);

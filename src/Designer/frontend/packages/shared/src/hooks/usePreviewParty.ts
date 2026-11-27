@@ -30,8 +30,9 @@ export const usePreviewParty = (): UsePreviewPartyResult => {
   });
   const setParty = useCallback(
     (newParty: PreviewParty): void => {
-      typedLocalStorage.setItem(storageKey, newParty);
+      // The choice applies before it is stored, so a browser that can't store it still uses it on this page.
       queryClient.setQueryData([QueryKey.PreviewParty], newParty);
+      typedLocalStorage.setItem(storageKey, newParty);
     },
     [queryClient],
   );
