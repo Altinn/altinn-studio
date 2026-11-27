@@ -134,7 +134,8 @@ public static class ServiceCollectionExtensions
         services.AddHybridCache();
 
         services.TryAddTransient<IUserTokenProvider, UserTokenProvider>();
-        services.TryAddTransient<IAccessTokenGenerator, AccessTokenGenerator>();
+        services.TryAddTransient<AccessTokenGenerator>();
+        services.TryAddTransient<IAccessTokenGenerator, PlatformAccessTokenGenerator>();
         services.TryAddTransient<IApplicationLanguage, Internal.Language.ApplicationLanguage>();
         services.TryAddTransient<IAuthorizationService, AuthorizationService>();
         services.AddTransient<InstanceDataUnitOfWorkInitializer>();
