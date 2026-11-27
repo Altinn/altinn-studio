@@ -2144,6 +2144,42 @@ namespace Altinn.App.Core.Features.Payment.Processors.Nets
 }
 namespace Altinn.App.Core.Features.Process
 {
+    public sealed class CompletedServiceTaskResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.CompletedServiceTaskResult> { }
+    public sealed class CompletedStageResult : Altinn.App.Core.Features.Process.StageResult, System.IEquatable<Altinn.App.Core.Features.Process.CompletedStageResult> { }
+    public sealed class DeferredServiceTaskResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.DeferredServiceTaskResult>
+    {
+        public System.TimeSpan Delay { get; }
+        public string? Reason { get; }
+    }
+    public sealed class DeferredStageResult : Altinn.App.Core.Features.Process.StageResult, System.IEquatable<Altinn.App.Core.Features.Process.DeferredStageResult>
+    {
+        public System.TimeSpan Delay { get; }
+        public string? Reason { get; }
+    }
+    public sealed class EndedServiceTaskResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.EndedServiceTaskResult>
+    {
+        public string? Action { get; }
+    }
+    public sealed class FailedHandlerResult : Altinn.App.Core.Features.Process.HandlerResult, System.IEquatable<Altinn.App.Core.Features.Process.FailedHandlerResult>
+    {
+        public string ErrorMessage { get; }
+        public Altinn.App.Core.Features.Process.FailureKind Kind { get; }
+    }
+    public sealed class FailedServiceTaskResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.FailedServiceTaskResult>
+    {
+        public string ErrorMessage { get; }
+        public Altinn.App.Core.Features.Process.FailureKind Kind { get; }
+    }
+    public sealed class FailedStageResult : Altinn.App.Core.Features.Process.StageResult, System.IEquatable<Altinn.App.Core.Features.Process.FailedStageResult>
+    {
+        public string ErrorMessage { get; }
+        public Altinn.App.Core.Features.Process.FailureKind Kind { get; }
+    }
+    public enum FailureKind
+    {
+        Retryable = 0,
+        Permanent = 1,
+    }
     public abstract class HandlerResult : System.IEquatable<Altinn.App.Core.Features.Process.HandlerResult>
     {
         public static Altinn.App.Core.Features.Process.HandlerResult FailedPermanent(string errorMessage) { }
@@ -2267,6 +2303,7 @@ namespace Altinn.App.Core.Features.Process
         public required System.DateTimeOffset Deadline { get; init; }
         public required System.Guid Id { get; init; }
     }
+    public sealed class ServiceTaskAwaitNextReplyResult : Altinn.App.Core.Features.Process.ServiceTaskReplyResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskAwaitNextReplyResult> { }
     public sealed class ServiceTaskReply : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskReply>
     {
         public ServiceTaskReply() { }
@@ -2343,6 +2380,7 @@ namespace Altinn.App.Core.Features.Process
         public System.TimeSpan? Remaining { get; }
         public System.DateTimeOffset? StartedAt { get; init; }
     }
+    public sealed class SuccessfulHandlerResult : Altinn.App.Core.Features.Process.HandlerResult, System.IEquatable<Altinn.App.Core.Features.Process.SuccessfulHandlerResult> { }
 }
 namespace Altinn.App.Core.Features.Redirect
 {

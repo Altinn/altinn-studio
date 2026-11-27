@@ -63,11 +63,56 @@ public abstract record StageResult
     }
 }
 
-internal sealed record CompletedStageResult : StageResult
+/// <summary>
+/// A completed stage. Created via <see cref="StageResult.Completed"/>.
+/// </summary>
+public sealed record CompletedStageResult : StageResult
 {
     internal static readonly CompletedStageResult Instance = new();
+
+    private CompletedStageResult() { }
 }
 
-internal sealed record DeferredStageResult(TimeSpan Delay, string? Reason) : StageResult;
+/// <summary>
+/// A stage that ran without error but is still waiting for an outcome. Created via <see cref="StageResult.Defer"/>.
+/// </summary>
+public sealed record DeferredStageResult : StageResult
+{
+    internal DeferredStageResult(TimeSpan delay, string? reason)
+    {
+        Delay = delay;
+        Reason = reason;
+    }
 
-internal sealed record FailedStageResult(string ErrorMessage, FailureKind Kind) : StageResult;
+    /// <summary>
+    /// How long to wait before running the stage again.
+    /// </summary>
+    public TimeSpan Delay { get; }
+
+    /// <summary>
+    /// Optional description of what is being waited for.
+    /// </summary>
+    public string? Reason { get; }
+}
+
+/// <summary>
+/// A failed stage. Created via <see cref="StageResult.FailedRetryable"/> or <see cref="StageResult.FailedPermanent"/>.
+/// </summary>
+public sealed record FailedStageResult : StageResult
+{
+    internal FailedStageResult(string errorMessage, FailureKind kind)
+    {
+        ErrorMessage = errorMessage;
+        Kind = kind;
+    }
+
+    /// <summary>
+    /// Human-readable error message describing the failure.
+    /// </summary>
+    public string ErrorMessage { get; }
+
+    /// <summary>
+    /// Whether the stage runs again.
+    /// </summary>
+    public FailureKind Kind { get; }
+}
