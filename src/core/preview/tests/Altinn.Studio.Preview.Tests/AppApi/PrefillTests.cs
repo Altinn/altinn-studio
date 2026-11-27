@@ -96,6 +96,25 @@ public sealed class PrefillTests
     }
 
     [Fact]
+    public void Data_FollowsReferences_IntoListsOfSchemas()
+    {
+        JsonObject data = Prefill.Data(
+            JsonNode.Parse("""{ "DSF": { "FirstName": "fornavn" } }"""),
+            JsonNode.Parse(
+                """
+                {
+                  "$ref": "#/allOf/0",
+                  "allOf": [{ "properties": { "fornavn": { "type": "string" } } }]
+                }
+                """
+            ),
+            MockUser.PartyId
+        );
+
+        Assert.Equal("""{"fornavn":"Test"}""", data.ToJsonString());
+    }
+
+    [Fact]
     public void Data_LeavesOut_WhatTheAppCantCopy()
     {
         JsonObject data = Prefill.Data(
@@ -104,7 +123,7 @@ public sealed class PrefillTests
                 {
                   "ER": { "Name": "Innsender-grp-123.navn" },
                   "DSF": { "Unknown": "Innsender-grp-123.navn", "Name": "Innsender-grp-123.etternavn", "FirstName": "mobil" },
-                  "UserProfile": { "party.name": "Innsender-grp-123.fornavn" }
+                  "UserProfile": { "party.name": "Innsender-grp-123.fornavn", "PartyId": "Innsender-grp-123" }
                 }
                 """
             ),

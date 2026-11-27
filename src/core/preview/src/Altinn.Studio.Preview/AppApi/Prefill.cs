@@ -186,9 +186,17 @@ internal static class Prefill
         JsonNode? current = root;
         foreach (string segment in reference[2..].Split('/'))
         {
-            current = current?[
-                segment.Replace("~1", "/", StringComparison.Ordinal).Replace("~0", "~", StringComparison.Ordinal)
-            ];
+            string name = segment
+                .Replace("~1", "/", StringComparison.Ordinal)
+                .Replace("~0", "~", StringComparison.Ordinal);
+            current = current switch
+            {
+                JsonObject node => node[name],
+                JsonArray items
+                    when int.TryParse(name, NumberStyles.None, CultureInfo.InvariantCulture, out int index)
+                        && index < items.Count => items[index],
+                _ => null,
+            };
         }
 
         return current as JsonObject;
@@ -246,6 +254,12 @@ internal static class Prefill
                 ),
                 _ => (false, null),
             };
+        }
+
+        // A field that holds an object or a list can't take a single value.
+        if (types.Contains("object") || types.Contains("array"))
+        {
+            return (false, null);
         }
 
         return (true, scalar.DeepClone());
