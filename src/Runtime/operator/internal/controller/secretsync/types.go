@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"altinn.studio/operator/internal/grafanaapi"
@@ -20,9 +21,13 @@ var errGrafanaCRHasNoExternalSpec = errors.New("grafana CR has no external spec"
 //
 // The destination gets the source's labels and annotations, unless OwnMetadata is set. Either way the operator
 // labels it as its own.
+//
+// AfterSync runs after each sync, even a failed one, with the destination as it is, or nil when it doesn't exist, for
+// what has to follow a change, such as restarting the pods that read it. It does nothing when nothing changed.
 type SecretSyncMapping struct {
 	BuildOutput     func(ctx context.Context, k8sClient client.Client, data map[string][]byte) ([]byte, error)
 	BuildData       func(ctx context.Context, k8sClient client.Client, data map[string][]byte) (map[string][]byte, error)
+	AfterSync       func(ctx context.Context, k8sClient client.Client, dest *corev1.Secret) error
 	ClearOutput     func() []byte
 	SourceName      string
 	SourceNamespace string
@@ -90,6 +95,28 @@ func DefaultMappings() []SecretSyncMapping {
 					"ApplicationInsights__ConnectionString":   []byte(cs.value),
 					"ApplicationInsights__InstrumentationKey": []byte(cs.instrumentationKey),
 				}, nil
+			},
+		},
+		{
+			// The runtime collectors' gateway sends v9 apps' telemetry there, and reads it from its own namespace
+			// (infra/observability/runtime/overlay/patches/gateway-secrets.yaml). The exporter refuses to start on
+			// a value it can't parse, and with it our own pipelines, so this copy is normalized as the v8 one is.
+			SourceNamespace: appInsightsSourceNamespace,
+			SourceName:      appInsightsSourceName,
+			DestNamespace:   "runtime-obs",
+			DestName:        "apps-azure-monitor-secret",
+			CanDeleteDest:   true,
+			OwnMetadata:     true,
+			// The gateway reads it into an environment variable, so a gateway that started before the copy
+			// existed, or with an older value, needs new pods.
+			AfterSync: rollGateway,
+			// An invalid value fails the sync, so the destination keeps the last valid one.
+			BuildData: func(_ context.Context, _ client.Client, data map[string][]byte) (map[string][]byte, error) {
+				cs, err := parseConnectionString(data[appInsightsSourceKey])
+				if err != nil {
+					return nil, err
+				}
+				return map[string][]byte{"connection-string": []byte(cs.value)}, nil
 			},
 		},
 	}

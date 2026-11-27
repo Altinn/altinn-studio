@@ -27,6 +27,11 @@ browsers.
   stores it in the cluster's Application Insights and Azure Monitor Workspace. It finds each service's pod by
   `k8s.pod.uid`, so without it the telemetry looks like the router's.
 
+In a runtime cluster, v9 apps export to the same router. Their telemetry belongs to the service owner, so the gateway
+sends it to the service owner's Application Insights and not to our workspaces. Apps have exporters and queues of
+their own, so a slow Application Insights doesn't hold up our telemetry. They share each collector's memory with our
+services, though, so a flood from apps can make a collector refuse ours too.
+
 [infra/observability](../infra/observability) configures the collectors.
 [The pipeline's contract](#the-pipelines-contract) below lists what they do to a service's telemetry.
 
@@ -210,6 +215,7 @@ its current names. Our own `altinn.` names are only for what the conventions don
 | Runtime environment an operation targets   | `altinn.environment`             | Span, metric and log attribute in services outside the runtime, such as Designer deploying to `tt02`                    | Yes                                              |
 | Repository type                            | `altinn.repo_type`               | Span, metric and log attribute wherever work concerns a Studio repository                                               | Yes                                              |
 | App library version                        | `altinn.app_lib.version`         | Resource in v9 apps. Missing means v8                                                                                   | Yes                                              |
+| App runtime version                        | `altinn.app_runtime.version`     | Resource in v9 apps, set by the runtime. The version of the app's contract with the runtime, not of a library           | Yes                                              |
 | Process task type                          | `altinn.process.task.type`       | Span, metric and log attribute                                                                                          | Yes                                              |
 | Process task                               | `altinn.process.task.id`         | Span and log attribute. Metric attribute within an app                                                                  | Within an app only                               |
 | Instance                                   | `altinn.instance.guid`           | Span and log attribute, on both sides of linked work                                                                    | No                                               |
@@ -297,7 +303,8 @@ usernames, may be on spans and logs. Their values grow with use, so they never g
 - Record a URL without its query string, fragment and user info. When a URL's path can carry a secret or a national
   identity number, record its route template instead, or redact it.
 - To describe a payload, record its size, type or count, not its content.
-- The service that emits telemetry is responsible for keeping these out of it. The pipeline doesn't redact.
+- The service that emits telemetry is responsible for keeping these out of it. In a runtime cluster, the
+  gateway also removes query strings from URLs, since Traefik records each URL as it came.
 
 ## The pipeline's contract
 
@@ -311,7 +318,11 @@ section.
 - The router adds the pod's Kubernetes metadata to the resource. It finds the pod by `k8s.pod.uid`. In DIS Core,
   where the collectors may not read pods, the deployment sets the pod's metadata in `OTEL_RESOURCE_ATTRIBUTES`
   instead, as pdf3's does.
-- The router drops logs below WARN.
+- The router drops logs below WARN, apps' too.
+- In a runtime cluster, the router tells apps from our services by the namespace of the pod whose `k8s.pod.uid` the
+  telemetry carries. It ignores the namespace and route a sender sets, but it trusts the UID, so a sender that knows
+  another pod's UID can pass as that pod. It drops telemetry from any other pod, so nothing reaches our workspaces by
+  default.
 - The router drops the `http.client.*` data points of a service's own exports to the router.
 - The gateway keeps only the metrics in its allowlist: our own (`altinn.*`), and the semantic conventions'
   namespaces that our services emit, such as `http.*`, `signalr.server.*`, `cicd.*` and the language runtimes'
@@ -319,6 +330,17 @@ section.
   it adds per process.
 - The gateway samples traces, as [Sampling](#sampling) describes. A service sets `altinn.sampling` only to mark a
   trace to be kept.
+- The gateway samples apps' traces as it samples ours. Application Insights gets no sample rate, so its request
+  counts are those of the kept traces.
+- The gateway sends Application Insights one value per app series a minute, however often the app exports, for
+  running totals and gauges, which apps export by default.
+- Of apps' metrics, VictoriaMetrics gets only the app libraries' own, the start time and the request duration, with
+  attributes that identify no person or instance. Metrics an app defines itself go only to the service owner's
+  Application Insights. The [gateway's configuration](../infra/observability/runtime/overlay/patches/gateway-config.yaml)
+  lists them.
+- Traefik's spans start the traces of requests through it. Those of requests to our services go where our traces
+  go, sampled with them. The rest go only to VictoriaTraces, and the platform's collector sends its own sample of
+  them to the service owner's Application Insights.
 
 The pipeline doesn't derive metrics from spans. A service emits the metrics it needs itself.
 

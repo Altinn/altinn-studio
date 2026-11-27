@@ -13,6 +13,7 @@ import (
 	"go.uber.org/zap/zaptest/observer"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -30,6 +31,21 @@ import (
 var errTransformFailed = errors.New("transform failed")
 
 func newFakeK8sClient(initObjs ...client.Object) client.Client {
+	scheme := newFakeScheme()
+	// OpenTelemetryCollector, which the operator handles as unstructured, like a cluster with the OpenTelemetry
+	// Operator.
+	scheme.AddKnownTypeWithName(collectorGVK, &unstructured.Unstructured{})
+	scheme.AddKnownTypeWithName(
+		collectorGVK.GroupVersion().WithKind(collectorGVK.Kind+"List"),
+		&unstructured.UnstructuredList{},
+	)
+	return fake.NewClientBuilder().
+		WithScheme(scheme).
+		WithObjects(initObjs...).
+		Build()
+}
+
+func newFakeScheme() *k8sruntime.Scheme {
 	scheme := k8sruntime.NewScheme()
 	for _, add := range []func(*k8sruntime.Scheme) error{
 		corev1.AddToScheme,
@@ -39,10 +55,7 @@ func newFakeK8sClient(initObjs ...client.Object) client.Client {
 			panic(err)
 		}
 	}
-	return fake.NewClientBuilder().
-		WithScheme(scheme).
-		WithObjects(initObjs...).
-		Build()
+	return scheme
 }
 
 type testHarness struct {
@@ -53,8 +66,12 @@ type testHarness struct {
 
 func newTestHarness(t *testing.T, mappings []SecretSyncMapping, initObjs ...client.Object) *testHarness {
 	t.Helper()
+	return newTestHarnessWithClient(t, mappings, newFakeK8sClient(initObjs...))
+}
 
-	k8sClient := newFakeK8sClient(initObjs...)
+func newTestHarnessWithClient(t *testing.T, mappings []SecretSyncMapping, k8sClient client.Client) *testHarness {
+	t.Helper()
+
 	clock := opclock.NewFakeClock()
 
 	rt, err := internal.NewRuntime(
@@ -1004,6 +1021,247 @@ func TestReconciler_DefaultMapping_V8AppsTelemetryEnvSourceDeleted(t *testing.T)
 
 	_, err := h.getSecret(mapping.DestName, mapping.DestNamespace)
 	g.Expect(err).To(HaveOccurred())
+}
+
+func TestReconciler_DefaultMapping_CollectorsConnectionString(t *testing.T) {
+	g := NewWithT(t)
+
+	h := newTestHarness(t, DefaultMappings(), appInsightsSource(" "+testConnectionString+";\n"))
+	h.reconcile(t, appInsightsSourceName, appInsightsSourceNamespace)
+
+	dest, err := h.getSecret("apps-azure-monitor-secret", "runtime-obs")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(dest.Data).To(Equal(map[string][]byte{"connection-string": []byte(testConnectionString)}))
+	g.Expect(dest.Labels).To(Equal(map[string]string{"app.kubernetes.io/managed-by": "altinn-studio-operator"}))
+
+	// The same source also gives v8 apps theirs.
+	_, err = h.getSecret("apps-runtime-telemetry-env", "default")
+	g.Expect(err).NotTo(HaveOccurred())
+}
+
+func TestReconciler_DefaultMapping_CollectorsConnectionStringKeepsLastValid(t *testing.T) {
+	g := NewWithT(t)
+
+	mapping := defaultMapping(t, "apps-azure-monitor-secret")
+	last := map[string][]byte{"connection-string": []byte("InstrumentationKey=last-valid")}
+	destSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{Name: mapping.DestName, Namespace: mapping.DestNamespace},
+		Data:       last,
+	}
+
+	h := newTestHarness(t, DefaultMappings(), appInsightsSource(testConnectionString+";garbage"), destSecret)
+	_, err := h.reconciler.Reconcile(h.ctx(), reconcile.Request{
+		NamespacedName: client.ObjectKey{Name: appInsightsSourceName, Namespace: appInsightsSourceNamespace},
+	})
+	g.Expect(err).To(MatchError(errInvalidConnectionString))
+
+	dest, err := h.getSecret(mapping.DestName, mapping.DestNamespace)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(dest.Data).To(Equal(last))
+}
+
+func TestReconciler_DefaultMapping_CollectorsConnectionStringSourceDeleted(t *testing.T) {
+	g := NewWithT(t)
+
+	mapping := defaultMapping(t, "apps-azure-monitor-secret")
+	destSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{Name: mapping.DestName, Namespace: mapping.DestNamespace},
+		Data:       map[string][]byte{"connection-string": []byte("old")},
+	}
+
+	h := newTestHarness(t, DefaultMappings(), destSecret)
+	h.reconcile(t, appInsightsSourceName, appInsightsSourceNamespace)
+
+	_, err := h.getSecret(mapping.DestName, mapping.DestNamespace)
+	g.Expect(err).To(HaveOccurred())
+}
+
+func TestReconciler_AfterSyncGetsTheDestination(t *testing.T) {
+	g := NewWithT(t)
+
+	var calls []*corev1.Secret
+	afterErr := errTransformFailed
+	mapping := SecretSyncMapping{
+		SourceName:      "source-secret",
+		SourceNamespace: "source-ns",
+		DestName:        "dest-secret",
+		DestNamespace:   "dest-ns",
+		CanDeleteDest:   true,
+		AfterSync: func(_ context.Context, _ client.Client, dest *corev1.Secret) error {
+			calls = append(calls, dest)
+			return afterErr
+		},
+	}
+	source := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{Name: mapping.SourceName, Namespace: mapping.SourceNamespace},
+		Data:       map[string][]byte{"key": []byte("value")},
+	}
+	h := newTestHarness(t, []SecretSyncMapping{mapping}, source)
+	request := reconcile.Request{NamespacedName: client.ObjectKey{Name: source.Name, Namespace: source.Namespace}}
+
+	// Its error fails the reconcile, so the controller retries it.
+	_, err := h.reconciler.Reconcile(h.ctx(), request)
+	g.Expect(err).To(MatchError(errTransformFailed))
+	g.Expect(calls).To(HaveLen(1))
+	g.Expect(calls[0].Data).To(Equal(source.Data))
+
+	// Once the source and with it the destination are gone, it gets nil.
+	afterErr = nil
+	g.Expect(h.k8sClient.Delete(h.ctx(), source)).To(Succeed())
+	h.reconcile(t, source.Name, source.Namespace)
+	g.Expect(calls).To(HaveLen(2))
+	g.Expect(calls[1]).To(BeNil())
+}
+
+func TestReconciler_AfterSyncRunsWhenTheSyncFails(t *testing.T) {
+	g := NewWithT(t)
+
+	// The destination already holds a value AfterSync may not have finished with, and the source no longer builds.
+	var calls []*corev1.Secret
+	mapping := SecretSyncMapping{
+		SourceName:      "source-secret",
+		SourceNamespace: "source-ns",
+		DestName:        "dest-secret",
+		DestNamespace:   "dest-ns",
+		BuildData: func(_ context.Context, _ client.Client, _ map[string][]byte) (map[string][]byte, error) {
+			return nil, errTransformFailed
+		},
+		AfterSync: func(_ context.Context, _ client.Client, dest *corev1.Secret) error {
+			calls = append(calls, dest)
+			return nil
+		},
+	}
+	source := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{Name: mapping.SourceName, Namespace: mapping.SourceNamespace},
+	}
+	dest := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{Name: mapping.DestName, Namespace: mapping.DestNamespace},
+		Data:       map[string][]byte{"key": []byte("written")},
+	}
+	h := newTestHarness(t, []SecretSyncMapping{mapping}, source, dest)
+
+	_, err := h.reconciler.Reconcile(h.ctx(), reconcile.Request{
+		NamespacedName: client.ObjectKey{Name: source.Name, Namespace: source.Namespace},
+	})
+	g.Expect(err).To(MatchError(errTransformFailed))
+	g.Expect(calls).To(HaveLen(1))
+	g.Expect(calls[0].Data).To(Equal(dest.Data))
+}
+
+func gatewayCollector(podAnnotations map[string]any) *unstructured.Unstructured {
+	spec := map[string]any{"mode": "deployment"}
+	if podAnnotations != nil {
+		spec["podAnnotations"] = podAnnotations
+	}
+	collector := &unstructured.Unstructured{Object: map[string]any{"spec": spec}}
+	collector.SetGroupVersionKind(collectorGVK)
+	collector.SetName("otel-gateway")
+	collector.SetNamespace("runtime-obs")
+	return collector
+}
+
+func (h *testHarness) gatewayPodAnnotations(t *testing.T) (map[string]string, string) {
+	t.Helper()
+	collector := &unstructured.Unstructured{}
+	collector.SetGroupVersionKind(collectorGVK)
+	key := client.ObjectKey{Name: "otel-gateway", Namespace: "runtime-obs"}
+	if err := h.k8sClient.Get(h.ctx(), key, collector); err != nil {
+		t.Fatalf("get collector: %v", err)
+	}
+	annotations, _, err := unstructured.NestedStringMap(collector.Object, "spec", "podAnnotations")
+	if err != nil {
+		t.Fatalf("read pod annotations: %v", err)
+	}
+	return annotations, collector.GetResourceVersion()
+}
+
+func TestReconciler_DefaultMapping_CollectorsConnectionStringRollsTheGateway(t *testing.T) {
+	g := NewWithT(t)
+
+	// Flux's annotations on the collector stay.
+	collector := gatewayCollector(map[string]any{"linkerd.io/inject": "enabled"})
+	h := newTestHarness(t, DefaultMappings(), appInsightsSource(testConnectionString), collector)
+	h.reconcile(t, appInsightsSourceName, appInsightsSourceNamespace)
+
+	annotations, version := h.gatewayPodAnnotations(t)
+	want := hashData(map[string][]byte{"connection-string": []byte(testConnectionString)})
+	g.Expect(annotations).To(Equal(map[string]string{
+		"linkerd.io/inject":      "enabled",
+		gatewayRolloutAnnotation: want,
+	}))
+
+	// Nothing changed, so the collector isn't touched, and its pods don't roll.
+	h.reconcile(t, appInsightsSourceName, appInsightsSourceNamespace)
+	h.reconcile(t, "apps-azure-monitor-secret", "runtime-obs")
+	_, again := h.gatewayPodAnnotations(t)
+	g.Expect(again).To(Equal(version))
+
+	// A new connection string rolls them again.
+	source := appInsightsSource(
+		strings.Replace(testConnectionString, testInstrumentationKey, "00000000-0000-0000-0000-000000000002", 1),
+	)
+	g.Expect(h.k8sClient.Update(h.ctx(), source)).To(Succeed())
+	h.reconcile(t, appInsightsSourceName, appInsightsSourceNamespace)
+	annotations, _ = h.gatewayPodAnnotations(t)
+	g.Expect(annotations[gatewayRolloutAnnotation]).NotTo(BeEmpty())
+	g.Expect(annotations[gatewayRolloutAnnotation]).NotTo(Equal(want))
+
+	// So does its removal, back to the placeholder.
+	g.Expect(h.k8sClient.Delete(h.ctx(), source)).To(Succeed())
+	h.reconcile(t, appInsightsSourceName, appInsightsSourceNamespace)
+	annotations, _ = h.gatewayPodAnnotations(t)
+	g.Expect(annotations).To(Equal(map[string]string{
+		"linkerd.io/inject":      "enabled",
+		gatewayRolloutAnnotation: gatewayRolloutAbsent,
+	}))
+}
+
+func TestReconciler_DefaultMapping_CollectorsConnectionStringNeverThere(t *testing.T) {
+	g := NewWithT(t)
+
+	// A cluster without the source: the gateway has the placeholder already, so its pods stay.
+	h := newTestHarness(t, DefaultMappings(), gatewayCollector(nil))
+	_, version := h.gatewayPodAnnotations(t)
+	h.reconcile(t, appInsightsSourceName, appInsightsSourceNamespace)
+
+	annotations, again := h.gatewayPodAnnotations(t)
+	g.Expect(annotations).To(BeEmpty())
+	g.Expect(again).To(Equal(version))
+}
+
+func TestReconciler_DefaultMapping_CollectorsConnectionStringInvalidKeepsThePods(t *testing.T) {
+	g := NewWithT(t)
+
+	h := newTestHarness(t, DefaultMappings(), appInsightsSource(testConnectionString), gatewayCollector(nil))
+	h.reconcile(t, appInsightsSourceName, appInsightsSourceNamespace)
+	_, version := h.gatewayPodAnnotations(t)
+
+	g.Expect(h.k8sClient.Update(h.ctx(), appInsightsSource(testConnectionString+";garbage"))).To(Succeed())
+	_, err := h.reconciler.Reconcile(h.ctx(), reconcile.Request{
+		NamespacedName: client.ObjectKey{Name: appInsightsSourceName, Namespace: appInsightsSourceNamespace},
+	})
+	g.Expect(err).To(MatchError(errInvalidConnectionString))
+	_, again := h.gatewayPodAnnotations(t)
+	g.Expect(again).To(Equal(version))
+}
+
+func TestReconciler_DefaultMapping_CollectorsConnectionStringWithoutAGateway(t *testing.T) {
+	g := NewWithT(t)
+
+	// A cluster without the collector, and one without the OpenTelemetry Operator's CRD.
+	for _, k8sClient := range []client.Client{
+		newFakeK8sClient(appInsightsSource(testConnectionString)),
+		fake.NewClientBuilder().
+			WithScheme(newFakeScheme()).
+			WithObjects(appInsightsSource(testConnectionString)).
+			Build(),
+	} {
+		h := newTestHarnessWithClient(t, DefaultMappings(), k8sClient)
+		h.reconcile(t, appInsightsSourceName, appInsightsSourceNamespace)
+
+		_, err := h.getSecret("apps-azure-monitor-secret", "runtime-obs")
+		g.Expect(err).NotTo(HaveOccurred())
+	}
 }
 
 func TestParseConnectionString(t *testing.T) {

@@ -18,6 +18,11 @@ patches:
       kind: OpenTelemetryCollector
       name: otel-gateway
   - path: patches/gateway-victoria-volumes.yaml
+  - path: patches/autoscaler.yaml
+    target:
+      group: opentelemetry.io
+      version: v1beta1
+      kind: OpenTelemetryCollector
   # Rename cluster-scoped resources to avoid conflicts with other deployments
   - target:
       group: rbac.authorization.k8s.io

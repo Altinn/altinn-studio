@@ -22,30 +22,173 @@ spec:
           on_rebound: true
           directory: /var/lib/otelcol/victoria-queue
 
+    processors:
+      # The router's verdict on where a resource's telemetry goes (transform/route in
+      # router-config.yaml), removed once routing/* has used it.
+      resource/route:
+        attributes:
+          - key: altinn.telemetry.route
+            action: delete
+      # Query strings never go in telemetry. The .NET instrumentation replaces their values
+      # with "Redacted", but Traefik's spans carry them as they came, and an app's own
+      # instrumentation may too, so every span and log record loses them in the URL
+      # attributes, before routing, and so before Victoria and transform/azuremonitor, which
+      # builds http.target and http.url from these. Free text, such as a log message, is the
+      # service's to keep clean.
+      transform/query_strings:
+        error_mode: ignore
+        trace_statements:
+          - context: span
+            statements:
+              - delete_key(span.attributes, "url.query")
+              - replace_pattern(span.attributes["url.full"], "\\?.*$", "")
+              - replace_pattern(span.attributes["url.original"], "\\?.*$", "")
+              - replace_pattern(span.attributes["http.url"], "\\?.*$", "")
+              - replace_pattern(span.attributes["http.target"], "\\?.*$", "")
+        log_statements:
+          - context: log
+            statements:
+              - delete_key(log.attributes, "url.query")
+              - replace_pattern(log.attributes["url.full"], "\\?.*$", "")
+              - replace_pattern(log.attributes["url.original"], "\\?.*$", "")
+              - replace_pattern(log.attributes["http.url"], "\\?.*$", "")
+              - replace_pattern(log.attributes["http.target"], "\\?.*$", "")
+              # ASP.NET Core's own records carry the query string here, and in the message.
+              - delete_key(log.attributes, "QueryString")
+      # Apps export every 15 s, as our services do, so Victoria gets their metrics as it gets
+      # ours. Application Insights gets the latest value of each series once a minute instead,
+      # as many points as it gets from v8 apps. A running total's latest value carries every
+      # increase before it, so no count is lost. Running totals and gauges only: the processor
+      # passes per-interval values on as they come, which apps don't export by default.
+      interval/apps:
+        interval: 60s
+      # Application Insights adds up per-interval values, and apps export running totals.
+      # The router sends each resource's metrics to one gateway, so this gateway sees every
+      # point of a series. After a gateway joins or leaves, a series can move to a gateway
+      # that hasn't seen it, which drops the first point it sees, rather than send the whole
+      # running total again as one interval's increase. A new process loses its first
+      # interval the same way. A series that comes back after another gateway has sent its
+      # increases would have them counted again from the total kept here, so this gateway
+      # forgets a series two to four minutes after its last point (the processor sweeps every
+      # max_staleness), and treats it as new if it comes back later. Rollouts don't send a
+      # series back, and the autoscaler waits five minutes to scale down, so only a gateway
+      # that leaves DNS and returns within that time can count an increase twice. Two minutes
+      # is still two of interval/apps's points.
+      cumulative_to_delta/apps:
+        initial_value: drop
+        max_staleness: 2m
+      # The apps' metrics we keep in Victoria, chosen by the meter that made them, since only
+      # the app libraries' own meters have attributes we know. The router keeps apps'
+      # instrumentation scope for this (transform/drop in base/router.yaml). Metrics from the
+      # app's own meter, named after the app, go to Application Insights only.
+      #   Altinn.App                    the app libraries' own metrics, about 50 series per
+      #                                 process
+      #   Altinn.Studio.Workload        altinn.workload.start_time, one series per process
+      #   Microsoft.AspNetCore.Hosting  http.server.request.duration, about 200 series per
+      #                                 process after transform/apps_metrics below
+      filter/apps_metrics_allowlist:
+        error_mode: ignore
+        metrics:
+          metric:
+            # transform/apps_metrics can't add up a summary's points, which would keep all their
+            # attributes. The meters below make none.
+            - 'metric.type == METRIC_DATA_TYPE_SUMMARY'
+            - 'not (instrumentation_scope.name == "Altinn.App" or (instrumentation_scope.name == "Altinn.Studio.Workload" and metric.name == "altinn.workload.start_time") or (instrumentation_scope.name == "Microsoft.AspNetCore.Hosting" and metric.name == "http.server.request.duration"))'
+      # Keeps only attributes with few values that identify no person or instance, whatever
+      # the app adds. On the resource, which an app can extend through
+      # OTEL_RESOURCE_ATTRIBUTES or in code, the service, the pod and what the runtime and the
+      # router set. On the instrumentation scope, only its name. On points, the library's
+      # attributes, and the request's method and status: the route alone would be about 1400
+      # series per process, an error type can be any exception's type, and the
+      # authentication attributes the library adds aren't needed here. Adding up the points
+      # that differed only in the removed attributes keeps the running totals right. Their
+      # values aren't checked: only an app that publishes under the library's meter on purpose
+      # could put others there.
+      transform/apps_metrics:
+        error_mode: ignore
+        metric_statements:
+          - context: resource
+            statements:
+              - keep_matching_keys(resource.attributes, "^(service\\.(name|version|instance\\.id)|k8s\\.(cluster|namespace|node|pod|deployment)\\.name|k8s\\.pod\\.uid|deployment\\.environment\\.name|altinn\\.(service_owner|app|app_lib\\.version|app_runtime\\.version))$")
+          - context: metric
+            statements:
+              - delete_matching_keys(instrumentation_scope.attributes, ".*")
+              - set(instrumentation_scope.version, "")
+              - aggregate_on_attributes("sum", ["error.type", "altinn.notification.type", "altinn.maskinporten.token.cached"]) where instrumentation_scope.name == "Altinn.App"
+              - aggregate_on_attributes("sum", ["http.request.method", "http.response.status_code"]) where instrumentation_scope.name == "Microsoft.AspNetCore.Hosting"
+          # The start time has one point per process and no attributes of its own.
+          - context: datapoint
+            statements:
+              - delete_matching_keys(datapoint.attributes, ".*") where instrumentation_scope.name == "Altinn.Studio.Workload"
+
     connectors:
+      # Routes on the router's verdict. Only a router from before the apps pipeline sends
+      # telemetry without one, while a rollout or a rollback mixes versions, and the default
+      # sends it where that router's telemetry went. Remove the defaults once every ring runs
+      # this router. Until then apps must not export to the router, since an older gateway
+      # sends everything to our workspace.
       routing/traces:
-        default_pipelines: [traces/control_plane]
+        default_pipelines: [traces/studio, traces/victoria]
         table:
-          - condition: HasPrefix(attributes["service.name"], "pdf3-")
-            pipelines: [traces/data_plane]
+          # Traefik's spans of requests to our services go where ours go, so those traces start
+          # at Traefik in our Application Insights too, and are sampled with the service's own
+          # spans. Traefik records a request as a server span with the path and a proxy span
+          # with the backend's URL. Our routes are under /runtime/, which no app's /{org}/{app}
+          # can be, apart from kubernetes-wrapper's, whose route strips its prefix, so its
+          # proxy span shows only the wrapper's own API paths.
+          - context: span
+            condition: resource.attributes["altinn.telemetry.route"] == "ingress" and (IsMatch(span.attributes["url.path"], "^/(runtime|kuberneteswrapper)(/|$$)") or IsMatch(span.attributes["url.full"], "^[a-z]+://[^/]+/(runtime|api/v1/(deployments|daemonsets))(/|$$)"))
+            pipelines: [traces/studio, traces/victoria]
+          - condition: resource.attributes["altinn.telemetry.route"] == "studio"
+            pipelines: [traces/studio, traces/victoria]
+          - condition: resource.attributes["altinn.telemetry.route"] == "apps"
+            pipelines: [traces/apps]
+          # The rest of Traefik's spans, mostly apps' requests, go only to Victoria, where the
+          # runtime ingress dashboard reads them. The platform's collector already sends its own
+          # sample of them to the service owner's Application Insights, so a copy from here
+          # would show twice there.
+          - condition: resource.attributes["altinn.telemetry.route"] == "ingress"
+            pipelines: [traces/victoria]
       routing/metrics:
-        default_pipelines: [metrics/control_plane]
+        default_pipelines: [metrics/studio]
         table:
-          - condition: HasPrefix(attributes["service.name"], "pdf3-")
-            pipelines: [metrics/data_plane]
+          - condition: resource.attributes["altinn.telemetry.route"] == "studio" or resource.attributes["altinn.telemetry.route"] == "ingress"
+            pipelines: [metrics/studio]
+          - condition: resource.attributes["altinn.telemetry.route"] == "apps"
+            pipelines: [metrics/apps, metrics/apps_victoria]
       routing/logs:
-        default_pipelines: [logs/control_plane]
+        default_pipelines: [logs/studio, logs/victoria]
         table:
-          - condition: HasPrefix(attributes["service.name"], "pdf3-")
-            pipelines: [logs/data_plane]
+          - condition: resource.attributes["altinn.telemetry.route"] == "studio"
+            pipelines: [logs/studio, logs/victoria]
+          - condition: resource.attributes["altinn.telemetry.route"] == "apps"
+            pipelines: [logs/apps]
+          - condition: resource.attributes["altinn.telemetry.route"] == "ingress"
+            pipelines: [logs/victoria]
 
     exporters:
-      azure_monitor/control_plane:
+      # Our Application Insights, for our services' traces and logs.
+      azure_monitor/studio:
         spaneventsenabled: true
-        connection_string: $${env:CONTROL_PLANE_CONNECTION_STRING}
-      azure_monitor/data_plane:
+        connection_string: $${env:STUDIO_CONNECTION_STRING}
+      # The service owner's Application Insights, which the platform provides in the cluster
+      # and the operator copies into this namespace (secretsync). Without the Secret the
+      # Collector would not start, and nor would our own pipelines, so a placeholder that
+      # fails every export stands in, and the queue below drops what it can't hold. The
+      # Collector reads the variable when it starts, so when the Secret appears, changes or
+      # goes, the operator changes a pod annotation on this collector and the OpenTelemetry
+      # Operator rolls its pods.
+      # Not APPLICATIONINSIGHTS_CONNECTION_STRING: the exporter prefers that variable over
+      # its configuration, for every azure_monitor exporter in the process.
+      azure_monitor/apps:
+        connection_string: $${env:APPS_CONNECTION_STRING:-InstrumentationKey=00000000-0000-0000-0000-000000000000;IngestionEndpoint=https://apps-connection-string-missing.invalid/}
         spaneventsenabled: true
-        connection_string: $${env:DATA_PLANE_CONNECTION_STRING}
+        # Logged exceptions become exceptions, as the .NET exporter makes them.
+        exception_events_enabled: true
+        sending_queue:
+          enabled: true
+          sizer: bytes
+          queue_size: 33554432 # 32 MiB serialized, several times that in memory
       # The Victoria backend in Studio prod, through its public endpoint.
       otlp_http/victoria:
         endpoint: https://altinn.studio/internal/observability/otlp
@@ -69,55 +212,85 @@ spec:
           storage: file_storage/victoria
           sizer: bytes
           queue_size: 268435456
+      # Apps' metrics for Victoria, with a queue of their own in memory. They are running
+      # totals, so a point lost to a full queue is made up by the next.
+      otlp_http/apps_victoria:
+        endpoint: https://altinn.studio/internal/observability/otlp
+        auth:
+          authenticator: bearertokenauth/victoria
+        http2_read_idle_timeout: 10s
+        http2_ping_timeout: 10s
+        sending_queue:
+          enabled: true
+          sizer: bytes
+          queue_size: 16777216
 
     service:
       # The list replaces base's, so it repeats health_check, which the probes need.
       extensions: [health_check, bearertokenauth/victoria, file_storage/victoria]
       pipelines:
+        # The gateway's pipelines start at traces/in, metrics/in and logs/in, the only ones fed
+        # by the receiver, so memory_limiter refuses data there, before it is copied into
+        # several pipelines. A refusal deeper in, after some of the copies had gone on, would
+        # make the router send them again.
         traces/in:
           receivers: [otlp]
+          processors: [memory_limiter, transform/query_strings]
           exporters: [routing/traces]
-        traces/control_plane:
+        traces/studio:
           receivers: [routing/traces]
-          processors: [transform/azuremonitor, transform/pdf3_expected_429_success, transform/azuremonitor_expected_404, tail_sampling, batch]
-          exporters: [azure_monitor/control_plane]
-        traces/data_plane:
-          receivers: [routing/traces]
-          processors: [transform/azuremonitor, transform/pdf3_expected_429_success, transform/azuremonitor_expected_404, tail_sampling, batch]
-          exporters: [azure_monitor/data_plane]
-        # Victoria receives every span once, from both planes, without the Application
-        # Insights transforms, and samples them with its own tail_sampling instance. The
-        # pipelines keep the same traces only while no sampling policy reads an attribute
-        # those transforms change.
+          processors: [resource/route, transform/azuremonitor, transform/pdf3_expected_429_success, transform/azuremonitor_expected_404, tail_sampling, batch]
+          exporters: [azure_monitor/studio]
+        # Victoria receives every span of our services, and Traefik's, without the
+        # Application Insights transforms, and samples them with its own
+        # tail_sampling instance. The pipelines keep the same traces only while no sampling
+        # policy reads an attribute those transforms change.
         traces/victoria:
-          receivers: [otlp]
-          processors: [tail_sampling, batch]
+          receivers: [routing/traces]
+          processors: [resource/route, tail_sampling, batch]
           exporters: [otlp_http/victoria]
+        # Apps' traces go only to the service owner's Application Insights, sampled as ours
+        # are, by base's tail_sampling, which also keeps a trace marked altinn.studio.sampling.
+        # The Application Insights exporter sets no sample rate, so request counts there are
+        # those of the kept traces. Per-app levels from deployment/app.yaml (#21792) would come
+        # as a label on the app's Deployment that the router's k8s_attributes reads, and a
+        # policy here for each level.
+        traces/apps:
+          receivers: [routing/traces]
+          processors: [resource/route, transform/azuremonitor, transform/azuremonitor_expected_404, tail_sampling, batch]
+          exporters: [azure_monitor/apps]
         metrics/in:
           receivers: [otlp]
+          processors: [memory_limiter]
           exporters: [routing/metrics]
-        # Metrics go to Victoria only, not to Application Insights. Each point takes one of
-        # the two planes, so none is sent twice.
-        metrics/control_plane:
+        # Our metrics go to Victoria only, not to Application Insights.
+        metrics/studio:
           receivers: [routing/metrics]
-          processors: [filter/metrics_allowlist, batch]
+          processors: [resource/route, filter/metrics_allowlist, batch]
           exporters: [otlp_http/victoria]
-        metrics/data_plane:
+        # Apps' metrics go to the service owner's Application Insights, all of them, as the
+        # .NET exporter sends them today, and an allowlist of them to Victoria.
+        metrics/apps:
           receivers: [routing/metrics]
-          processors: [filter/metrics_allowlist, batch]
-          exporters: [otlp_http/victoria]
+          processors: [resource/route, interval/apps, cumulative_to_delta/apps, batch]
+          exporters: [azure_monitor/apps]
+        metrics/apps_victoria:
+          receivers: [routing/metrics]
+          processors: [resource/route, filter/apps_metrics_allowlist, transform/apps_metrics, batch]
+          exporters: [otlp_http/apps_victoria]
         logs/in:
           receivers: [otlp]
+          processors: [memory_limiter, transform/query_strings]
           exporters: [routing/logs]
-        logs/control_plane:
+        logs/studio:
           receivers: [routing/logs]
-          processors: [batch]
-          exporters: [azure_monitor/control_plane]
-        logs/data_plane:
-          receivers: [routing/logs]
-          processors: [batch]
-          exporters: [azure_monitor/data_plane]
+          processors: [resource/route, batch]
+          exporters: [azure_monitor/studio]
         logs/victoria:
-          receivers: [otlp]
-          processors: [batch]
+          receivers: [routing/logs]
+          processors: [resource/route, batch]
           exporters: [otlp_http/victoria]
+        logs/apps:
+          receivers: [routing/logs]
+          processors: [resource/route, batch]
+          exporters: [azure_monitor/apps]

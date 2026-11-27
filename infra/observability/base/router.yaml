@@ -60,6 +60,16 @@ spec:
           http:
             endpoint: 0.0.0.0:4318
     processors:
+      # Refuses new data while the Collector's memory is near the container's limit, so senders
+      # retry later instead of the pod being OOM-killed with everything it holds. Percentages of
+      # the container's limit: refuse above 70% (the limit less the spike allowance), and force a
+      # garbage collection above 85%.
+      # One per process: whichever pipeline fills the memory, every pipeline that uses it refuses.
+      # Put it first in each pipeline that starts at a receiver.
+      memory_limiter:
+        check_interval: 1s
+        limit_percentage: 85
+        spike_limit_percentage: 15
       # Processor definitions sourced from https://github.com/dis-way/gitops-manifests/blob/1b96cf749be6e5cedfbfc09eb6caf3bd72bfb4c0/oci/otel-collector/base/collector.yaml to keep parity with existing collector behavior.
       resource_detection/aks:
         detectors: [aks]
@@ -112,6 +122,9 @@ spec:
         metrics:
           datapoint:
             - 'IsMatch(metric.name, "^http\\.client\\.") and IsMatch(datapoint.attributes["server.address"], "^otel-router\\.(runtime-obs|observability|product-studio-obs)\\.svc\\.cluster\\.local$")'
+      # Apps keep their instrumentation scope, which tells the app libraries' telemetry from the
+      # service owner's own (the gateway's apps pipelines in the runtime overlay). Only the
+      # runtime router sets altinn.telemetry.route, before this processor.
       transform/drop:
         metric_statements:
           - context: datapoint
@@ -120,8 +133,8 @@ spec:
               - delete_key(resource.attributes, "process.command_args")
               - delete_key(datapoint.attributes, "instrumentationlibrary.name")
               - delete_key(resource.attributes, "instrumentationlibrary.name")
-              - set(instrumentation_scope.name, "")
-              - set(instrumentation_scope.version, "")
+              - set(instrumentation_scope.name, "") where resource.attributes["altinn.telemetry.route"] != "apps"
+              - set(instrumentation_scope.version, "") where resource.attributes["altinn.telemetry.route"] != "apps"
               - delete_key(datapoint.attributes, "network.peer.port")
               - delete_key(resource.attributes, "network.peer.port")
               - delete_key(datapoint.attributes, "network.protocol.version")
@@ -157,8 +170,8 @@ spec:
               - delete_key(resource.attributes, "process.command_args")
               - delete_key(span.attributes, "instrumentationlibrary.name")
               - delete_key(resource.attributes, "instrumentationlibrary.name")
-              - set(instrumentation_scope.name, "")
-              - set(instrumentation_scope.version, "")
+              - set(instrumentation_scope.name, "") where resource.attributes["altinn.telemetry.route"] != "apps"
+              - set(instrumentation_scope.version, "") where resource.attributes["altinn.telemetry.route"] != "apps"
               - delete_key(span.attributes, "network.peer.port")
               - delete_key(resource.attributes, "network.peer.port")
               - delete_key(span.attributes, "network.protocol.version")
@@ -193,8 +206,8 @@ spec:
               - delete_key(resource.attributes, "process.command_args")
               - delete_key(spanevent.attributes, "instrumentationlibrary.name")
               - delete_key(resource.attributes, "instrumentationlibrary.name")
-              - set(instrumentation_scope.name, "")
-              - set(instrumentation_scope.version, "")
+              - set(instrumentation_scope.name, "") where resource.attributes["altinn.telemetry.route"] != "apps"
+              - set(instrumentation_scope.version, "") where resource.attributes["altinn.telemetry.route"] != "apps"
               - delete_key(spanevent.attributes, "network.peer.port")
               - delete_key(resource.attributes, "network.peer.port")
               - delete_key(spanevent.attributes, "network.protocol.version")
@@ -230,8 +243,8 @@ spec:
               - delete_key(resource.attributes, "process.command_args")
               - delete_key(log.attributes, "instrumentationlibrary.name")
               - delete_key(resource.attributes, "instrumentationlibrary.name")
-              - set(instrumentation_scope.name, "")
-              - set(instrumentation_scope.version, "")
+              - set(instrumentation_scope.name, "") where resource.attributes["altinn.telemetry.route"] != "apps"
+              - set(instrumentation_scope.version, "") where resource.attributes["altinn.telemetry.route"] != "apps"
               - delete_key(log.attributes, "network.peer.port")
               - delete_key(resource.attributes, "network.peer.port")
               - delete_key(log.attributes, "network.protocol.version")

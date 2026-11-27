@@ -62,6 +62,16 @@ spec:
           http:
             endpoint: 0.0.0.0:4318
     processors:
+      # Refuses new data while the Collector's memory is near the container's limit, so senders
+      # retry later instead of the pod being OOM-killed with everything it holds. Percentages of
+      # the container's limit: refuse above 70% (the limit less the spike allowance), and force a
+      # garbage collection above 85%.
+      # One per process: whichever pipeline fills the memory, every pipeline that uses it refuses.
+      # Put it first in each pipeline that starts at a receiver.
+      memory_limiter:
+        check_interval: 1s
+        limit_percentage: 85
+        spike_limit_percentage: 15
       # Processor definitions sourced from https://github.com/dis-way/gitops-manifests/blob/1b96cf749be6e5cedfbfc09eb6caf3bd72bfb4c0/oci/otel-collector/base/collector.yaml to keep parity with existing collector behavior.
       transform/azuremonitor:
         error_mode: ignore
@@ -121,6 +131,13 @@ spec:
               # few dozen series per cluster, out of the about 160 the Collectors produce.
               - '^otelcol_exporter_(queue_size|queue_capacity|(sent|send_failed|enqueue_failed)_(spans|metric_points|log_records))$'
               - '^otelcol_loadbalancer_num_backends$'
+              # What each receiver accepted and refused, where a refusal is mostly memory_limiter,
+              # and what each filter processor dropped, by its name, such as filter/unrouted.
+              # A few series per Collector.
+              - '^otelcol_receiver_(accepted|refused)_(spans|metric_points|log_records)$'
+              # The filter processor names them with a dot, as in
+              # otelcol_processor_filter_spans.filtered, which Prometheus shows as an underscore.
+              - '^otelcol_processor_filter_(spans|datapoints|logs)\.filtered$'
       tail_sampling:
         decision_wait: 40s
         num_traces: 50000
@@ -132,6 +149,13 @@ spec:
             type: string_attribute
             string_attribute:
               key: altinn.studio.sampling
+              values: [always]
+          # The name docs/observability.md gives the marker, which has no studio segment. The
+          # shared setups still set the one above; v9 apps set this one.
+          - name: always-sample-marked
+            type: string_attribute
+            string_attribute:
+              key: altinn.sampling
               values: [always]
           - name: errors
             type: status_code

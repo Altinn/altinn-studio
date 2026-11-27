@@ -85,6 +85,11 @@ func (r *SecretSyncReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		} else {
 			_, err = r.reconcileFromDest(ctx, span, mapping)
 		}
+		// Also after a failed sync: AfterSync sees the destination as it is, so a retry completes it even once the
+		// source no longer builds.
+		if mapping.AfterSync != nil {
+			err = errors.Join(err, r.afterSync(ctx, span, mapping))
+		}
 		syncErr = errors.Join(syncErr, err)
 	}
 	return ctrl.Result{}, syncErr
@@ -282,6 +287,25 @@ func (r *SecretSyncReconciler) clearDestination(
 		"namespace", destKey.Namespace,
 	)
 	return ctrl.Result{}, nil
+}
+
+// afterSync runs the mapping's AfterSync with the destination as the client sees it. The client reads from its cache,
+// which may not have this reconcile's write yet; the write's own watch event reconciles again and sees it.
+func (r *SecretSyncReconciler) afterSync(ctx context.Context, span trace.Span, mapping SecretSyncMapping) error {
+	destKey := client.ObjectKey{Name: mapping.DestName, Namespace: mapping.DestNamespace}
+	dest := &corev1.Secret{}
+	err := r.k8sClient.Get(ctx, destKey, dest)
+	if apierrors.IsNotFound(err) {
+		dest = nil
+	} else if err != nil {
+		commontelemetry.SetError(span, "get_destination_secret", err)
+		return fmt.Errorf("get destination secret after sync: %w", err)
+	}
+	if err := mapping.AfterSync(ctx, r.k8sClient, dest); err != nil {
+		commontelemetry.SetError(span, "after_sync", err)
+		return fmt.Errorf("after sync of %s: %w", destKey, err)
+	}
+	return nil
 }
 
 // findMappings returns the mappings that read the secret, and the mapping that writes it.
