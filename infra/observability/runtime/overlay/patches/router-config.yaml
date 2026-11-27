@@ -87,7 +87,10 @@ spec:
 
     # Apps' telemetry, and Traefik's, which is mostly apps' traffic, gets exporters and
     # queues of its own, so a flood from apps fills only its own queue and our telemetry still
-    # reaches the gateway.
+    # reaches the gateway. They send to the gateway's port 4319, which only a gateway that
+    # knows the routes opens (otlp/apps in gateway-config.yaml). While a rollout or a rollback
+    # mixes versions, apps' telemetry waits in this queue for one, rather than reach an older
+    # gateway that would send it to our workspace.
     connectors:
       routing/traces:
         default_pipelines: [traces/unrouted]
@@ -222,7 +225,7 @@ spec:
         resolver:
           dns:
             hostname: otel-gateway-collector-headless.runtime-obs.svc.cluster.local
-            port: '4317'
+            port: '4319'
       load_balancing/apps_logs:
         routing_key: traceID
         # Same settings as load_balancing/traces.
@@ -249,7 +252,7 @@ spec:
         resolver:
           dns:
             hostname: otel-gateway-collector-headless.runtime-obs.svc.cluster.local
-            port: '4317'
+            port: '4319'
       load_balancing/apps_metrics:
         routing_key: resource
         # Same settings as load_balancing/traces.
@@ -276,7 +279,7 @@ spec:
         resolver:
           dns:
             hostname: otel-gateway-collector-headless.runtime-obs.svc.cluster.local
-            port: '4317'
+            port: '4319'
       nop: {}
 
     service:

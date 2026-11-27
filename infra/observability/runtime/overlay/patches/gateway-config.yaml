@@ -22,7 +22,24 @@ spec:
           on_rebound: true
           directory: /var/lib/otelcol/victoria-queue
 
+    receivers:
+      # Apps' telemetry from the router, on a port of its own, so a router never sends it to
+      # a gateway from before the apps pipeline, which would send it to our workspace
+      # (load_balancing/apps_* in router-config.yaml).
+      otlp/apps:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4319
     processors:
+      # Drops what reaches the gateway without a destination (routing/*).
+      filter/unrouted:
+        error_mode: ignore
+        traces:
+          span: ['true']
+        metrics:
+          metric: ['true']
+        logs:
+          log_record: ['true']
       # The router's verdict on where a resource's telemetry goes (transform/route in
       # router-config.yaml), removed once routing/* has used it.
       resource/route:
@@ -97,11 +114,15 @@ spec:
             - 'instrumentation_scope.name == "Altinn.App" and datapoint.attributes["error.type"] != nil and not IsMatch(datapoint.attributes["error.type"], "^(_OTHER|cancelled)$")'
             - 'instrumentation_scope.name == "Altinn.App" and datapoint.attributes["altinn.notification.type"] != nil and not IsMatch(datapoint.attributes["altinn.notification.type"], "^(sms|email|future)$")'
             - 'instrumentation_scope.name == "Altinn.App" and datapoint.attributes["altinn.maskinporten.token.cached"] != nil and datapoint.attributes["altinn.maskinporten.token.cached"] != true and datapoint.attributes["altinn.maskinporten.token.cached"] != false'
+            # ASP.NET Core reports a method it doesn't know as _OTHER.
+            - 'instrumentation_scope.name == "Microsoft.AspNetCore.Hosting" and not IsMatch(datapoint.attributes["http.request.method"], "^(GET|HEAD|POST|PUT|DELETE|CONNECT|OPTIONS|TRACE|PATCH|_OTHER)$")'
+            - 'instrumentation_scope.name == "Microsoft.AspNetCore.Hosting" and datapoint.attributes["http.response.status_code"] != nil and (datapoint.attributes["http.response.status_code"] < 100 or datapoint.attributes["http.response.status_code"] > 599)'
       # Keeps only attributes with few values that identify no person or instance, whatever
       # the app adds. On the resource, which an app can extend through
       # OTEL_RESOURCE_ATTRIBUTES or in code, the service, the pod and what the runtime and the
-      # router set. On points, the library's attributes, and the request's method, status
-      # and error type: the route alone would be about 1400 series per process, and the
+      # router set. On the instrumentation scope, only its name. On points, the library's
+      # attributes, and the request's method and status: the route alone would be about 1400
+      # series per process, an error type can be any exception's type, and the
       # authentication attributes the library adds aren't needed here. Adding up the points
       # that differed only in the removed attributes keeps the running totals right.
       transform/apps_metrics:
@@ -112,8 +133,10 @@ spec:
               - keep_matching_keys(resource.attributes, "^(service\\.(name|version|instance\\.id)|k8s\\.(cluster|namespace|node|pod|deployment)\\.name|k8s\\.pod\\.uid|deployment\\.environment\\.name|altinn\\.(service_owner|app|app_lib\\.version|app_runtime\\.version))$")
           - context: metric
             statements:
+              - delete_matching_keys(instrumentation_scope.attributes, ".*")
+              - set(instrumentation_scope.version, "")
               - aggregate_on_attributes("sum", ["error.type", "altinn.notification.type", "altinn.maskinporten.token.cached"]) where instrumentation_scope.name == "Altinn.App"
-              - aggregate_on_attributes("sum", ["http.request.method", "http.response.status_code", "error.type"]) where instrumentation_scope.name == "Microsoft.AspNetCore.Hosting"
+              - aggregate_on_attributes("sum", ["http.request.method", "http.response.status_code"]) where instrumentation_scope.name == "Microsoft.AspNetCore.Hosting"
           # The start time has one point per process and no attributes of its own.
           - context: datapoint
             statements:
@@ -121,13 +144,16 @@ spec:
 
     connectors:
       # Routes on the router's verdict. Only a router from before the apps pipeline sends
-      # telemetry without one, during the rollout that brings this gateway, and only for our
-      # services, since apps don't export through it yet. It keeps that router's routes: pdf3
-      # to the data plane and the rest to the control plane. Remove the default and the nil
-      # rules once every ring runs this router, so that nothing without a route goes anywhere.
+      # telemetry without one, while a rollout or a rollback mixes versions. It keeps that
+      # router's routes for our services, pdf3 to the data plane and the rest to the control
+      # plane, and drops what came from apps' namespace, which the NetworkPolicy now admits
+      # to every router. Remove the default and the nil rules once every ring runs this
+      # router, so that nothing without a route goes anywhere.
       routing/traces:
         default_pipelines: [traces/control_plane, traces/victoria]
         table:
+          - condition: resource.attributes["altinn.telemetry.route"] == nil and resource.attributes["k8s.namespace.name"] == "default" and resource.attributes["k8s.deployment.name"] != "kuberneteswrapper-kubernetes-api-wrapper"
+            pipelines: [traces/unrouted]
           - condition: resource.attributes["altinn.telemetry.route"] == nil and HasPrefix(resource.attributes["service.name"], "pdf3-")
             pipelines: [traces/data_plane, traces/victoria]
           - condition: resource.attributes["altinn.telemetry.route"] == "app"
@@ -145,6 +171,8 @@ spec:
       routing/metrics:
         default_pipelines: [metrics/control_plane]
         table:
+          - condition: resource.attributes["altinn.telemetry.route"] == nil and resource.attributes["k8s.namespace.name"] == "default" and resource.attributes["k8s.deployment.name"] != "kuberneteswrapper-kubernetes-api-wrapper"
+            pipelines: [metrics/unrouted]
           - condition: resource.attributes["altinn.telemetry.route"] == nil and HasPrefix(resource.attributes["service.name"], "pdf3-")
             pipelines: [metrics/data_plane]
           - condition: resource.attributes["altinn.telemetry.route"] == "app"
@@ -158,6 +186,8 @@ spec:
       routing/logs:
         default_pipelines: [logs/control_plane, logs/victoria]
         table:
+          - condition: resource.attributes["altinn.telemetry.route"] == nil and resource.attributes["k8s.namespace.name"] == "default" and resource.attributes["k8s.deployment.name"] != "kuberneteswrapper-kubernetes-api-wrapper"
+            pipelines: [logs/unrouted]
           - condition: resource.attributes["altinn.telemetry.route"] == nil and HasPrefix(resource.attributes["service.name"], "pdf3-")
             pipelines: [logs/data_plane, logs/victoria]
           - condition: resource.attributes["altinn.telemetry.route"] == "app"
@@ -170,6 +200,7 @@ spec:
             pipelines: [logs/control_plane, logs/victoria]
 
     exporters:
+      nop: {}
       azure_monitor/control_plane:
         spaneventsenabled: true
         connection_string: $${env:CONTROL_PLANE_CONNECTION_STRING}
@@ -237,7 +268,7 @@ spec:
         # several pipelines. A refusal deeper in, after some of the copies had gone on, would
         # make the router send them again.
         traces/in:
-          receivers: [otlp]
+          receivers: [otlp, otlp/apps]
           processors: [memory_limiter, transform/apps_privacy]
           exporters: [routing/traces]
         traces/control_plane:
@@ -267,7 +298,7 @@ spec:
           processors: [resource/route, transform/azuremonitor, transform/azuremonitor_expected_404, tail_sampling, batch]
           exporters: [azure_monitor/apps]
         metrics/in:
-          receivers: [otlp]
+          receivers: [otlp, otlp/apps]
           processors: [memory_limiter]
           exporters: [routing/metrics]
         # Our metrics go to Victoria only, not to Application Insights. Each point takes one of
@@ -291,7 +322,7 @@ spec:
           processors: [resource/route, filter/apps_metrics_allowlist, filter/apps_metrics_shape, transform/apps_metrics, batch]
           exporters: [otlp_http/apps_victoria]
         logs/in:
-          receivers: [otlp]
+          receivers: [otlp, otlp/apps]
           processors: [memory_limiter, transform/apps_privacy]
           exporters: [routing/logs]
         logs/control_plane:
@@ -310,3 +341,15 @@ spec:
           receivers: [routing/logs]
           processors: [resource/route, batch]
           exporters: [azure_monitor/apps]
+        traces/unrouted:
+          receivers: [routing/traces]
+          processors: [filter/unrouted]
+          exporters: [nop]
+        metrics/unrouted:
+          receivers: [routing/metrics]
+          processors: [filter/unrouted]
+          exporters: [nop]
+        logs/unrouted:
+          receivers: [routing/logs]
+          processors: [filter/unrouted]
+          exporters: [nop]

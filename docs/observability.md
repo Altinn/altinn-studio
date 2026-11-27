@@ -330,7 +330,9 @@ section.
 - The router drops logs below WARN, from apps too.
 - In a runtime cluster, the router finds the pod only by `k8s.pod.uid`, and replaces any `k8s.namespace.name` and
   `k8s.deployment.name` a service sets. It drops telemetry from a pod it can't find, and from a namespace other than
-  ours, `default` and `traefik`. It keeps apps' instrumentation scope, and clears ours.
+  ours, `default` and `traefik`. It keeps apps' instrumentation scope, and clears ours. It sends apps' telemetry to
+  the gateway on a port of its own, which only a gateway with the apps pipeline opens, so a rollout or a rollback that
+  mixes versions can't send it to our workspace.
 - The router drops the `http.client.*` data points of a service's own exports to the router.
 - The gateway keeps only the metrics in its allowlist: our own (`altinn.*`), and the semantic conventions'
   namespaces that our services emit, such as `http.*`, `signalr.server.*`, `cicd.*` and the language runtimes'
@@ -348,7 +350,7 @@ section.
   attributes and values:
   - the app libraries' own, from the `Altinn.App` meter
   - `altinn.workload.start_time`, from `Altinn.Studio.Workload`
-  - `http.server.request.duration`, from ASP.NET Core's `Microsoft.AspNetCore.Hosting`, by method, status and error type
+  - `http.server.request.duration`, from ASP.NET Core's `Microsoft.AspNetCore.Hosting`, by method and status
 
   Of the resource attributes, it keeps those that name the service, the pod, the service owner and the versions.
   Metrics from the app's own meter, named after the app, go only to the service owner's Application Insights.
