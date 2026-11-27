@@ -531,9 +531,10 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     }
 
     /// <summary>
-    /// Makes a read of a binary element that Storage has since deleted or replaced return the blob version this unit
-    /// of work lists for it. A workflow step that runs again after its save was committed then reads what its first
-    /// attempt read, and its save reaches Storage's replay.
+    /// Makes a read of a binary element return the blob version this unit of work lists for it, also after Storage has
+    /// deleted or replaced the element. A workflow step that runs again after its save was committed then reads what
+    /// its first attempt read, and its save reaches Storage's replay. When Storage does not have the version, the
+    /// element is read as it is now.
     /// </summary>
     internal void ReadCapturedBlobVersions() => _readsCapturedBlobVersions = true;
 
@@ -1620,6 +1621,22 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     {
         string? expectedBlobVersionId = GetDataElementBlobVersionId(dataElementIdentifier);
         StorageAuthenticationMethod authenticationMethod = GetAuthenticationMethod(dataElementIdentifier);
+        if (
+            _readsCapturedBlobVersions
+            && expectedBlobVersionId is not null
+            && await _dataClient.GetBlobVersionBytes(
+                _instanceOwnerPartyId,
+                _instanceGuid,
+                dataElementIdentifier.Guid,
+                expectedBlobVersionId,
+                authenticationMethod
+            )
+                is { } capturedBytes
+        )
+        {
+            return capturedBytes;
+        }
+
         try
         {
             return await _dataClient.GetDataBytesWithExpectedBlobVersionId(
@@ -1632,32 +1649,10 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         }
         catch (PlatformHttpException exception)
             when (expectedBlobVersionId is not null
-                && exception.Response.StatusCode
-                    is System.Net.HttpStatusCode.PreconditionFailed
-                        or System.Net.HttpStatusCode.NotFound
+                && exception.Response.StatusCode == System.Net.HttpStatusCode.PreconditionFailed
             )
         {
-            if (
-                _readsCapturedBlobVersions
-                && await _dataClient.GetBlobVersionBytes(
-                    _instanceOwnerPartyId,
-                    _instanceGuid,
-                    dataElementIdentifier.Guid,
-                    expectedBlobVersionId,
-                    authenticationMethod
-                )
-                    is { } capturedBytes
-            )
-            {
-                return capturedBytes;
-            }
-
-            if (exception.Response.StatusCode == System.Net.HttpStatusCode.PreconditionFailed)
-            {
-                throw new DataElementContentConflictException(Instance.Id, dataElementIdentifier.Guid, exception);
-            }
-
-            throw;
+            throw new DataElementContentConflictException(Instance.Id, dataElementIdentifier.Guid, exception);
         }
     }
 

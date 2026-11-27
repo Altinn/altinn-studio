@@ -372,17 +372,17 @@ public class WorkflowCallbackStateTests
         StorageAuthenticationMethod? capturedAuthenticationMethod = null;
         metadataClientMock
             .Setup(x =>
-                x.GetDataBytesWithExpectedBlobVersionId(
+                x.GetBlobVersionBytes(
                     instanceOwnerPartyId,
                     instanceGuid,
                     attachmentGuid,
-                    It.IsAny<StorageAuthenticationMethod?>(),
                     attachmentDataElement.BlobVersionId,
+                    It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .Callback<int, Guid, Guid, StorageAuthenticationMethod?, string?, CancellationToken>(
-                (_, _, _, authenticationMethod, _, _) => capturedAuthenticationMethod = authenticationMethod
+            .Callback<int, Guid, Guid, string, StorageAuthenticationMethod?, CancellationToken>(
+                (_, _, _, _, authenticationMethod, _) => capturedAuthenticationMethod = authenticationMethod
             )
             .ReturnsAsync(attachmentBytes);
         InstanceDataUnitOfWorkInitializer initializer = CreateUnitOfWorkInitializer(
@@ -434,27 +434,23 @@ public class WorkflowCallbackStateTests
         Assert.Equal(StorageAuthenticationMethod.ServiceOwner(), capturedAuthenticationMethod);
         metadataClientMock.Verify(
             x =>
-                x.GetDataBytesWithExpectedBlobVersionId(
+                x.GetBlobVersionBytes(
                     instanceOwnerPartyId,
                     instanceGuid,
                     attachmentGuid,
+                    attachmentDataElement.BlobVersionId!,
                     StorageAuthenticationMethod.ServiceOwner(),
-                    attachmentDataElement.BlobVersionId,
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once
         );
     }
 
-    [Theory]
-    [InlineData(HttpStatusCode.NotFound)]
-    [InlineData(HttpStatusCode.PreconditionFailed)]
-    public async Task RestoreState_WhenStorageNoLongerServesAnElementAsCaptured_ReadsTheCapturedBlobVersionAsServiceOwner(
-        HttpStatusCode currentReadStatus
-    )
+    [Fact]
+    public async Task RestoreState_ReadsAnElementByTheBlobVersionTheStateListsWithoutReadingItAsItIsNow()
     {
         byte[] capturedBytes = [1, 2, 3];
-        RestoredAttachment restored = await RestoreStateWithAttachment(currentReadStatus, capturedBytes);
+        RestoredAttachment restored = await RestoreStateWithAttachment(HttpStatusCode.NotFound, capturedBytes);
 
         ReadOnlyMemory<byte> bytes = await restored.UnitOfWork.GetBinaryData(restored.Attachment);
 
@@ -467,6 +463,45 @@ public class WorkflowCallbackStateTests
                     Guid.Parse(restored.Attachment.Id),
                     restored.Attachment.BlobVersionId,
                     StorageAuthenticationMethod.ServiceOwner(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+        restored.DataClient.Verify(
+            x =>
+                x.GetDataBytesWithExpectedBlobVersionId(
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    public async Task RestoreState_WhenStorageDoesNotHaveTheBlobVersion_ReadsTheElementAsItIsNow()
+    {
+        byte[] currentBytes = [4, 5, 6];
+        RestoredAttachment restored = await RestoreStateWithAttachment(
+            currentReadStatus: null,
+            capturedBytes: null,
+            currentBytes
+        );
+
+        ReadOnlyMemory<byte> bytes = await restored.UnitOfWork.GetBinaryData(restored.Attachment);
+
+        Assert.True(bytes.Span.SequenceEqual(currentBytes));
+        restored.DataClient.Verify(
+            x =>
+                x.GetDataBytesWithExpectedBlobVersionId(
+                    restored.InstanceOwnerPartyId,
+                    restored.InstanceGuid,
+                    Guid.Parse(restored.Attachment.Id),
+                    StorageAuthenticationMethod.ServiceOwner(),
+                    restored.Attachment.BlobVersionId,
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once
@@ -510,8 +545,9 @@ public class WorkflowCallbackStateTests
     );
 
     private static async Task<RestoredAttachment> RestoreStateWithAttachment(
-        HttpStatusCode currentReadStatus,
-        byte[]? capturedBytes
+        HttpStatusCode? currentReadStatus,
+        byte[]? capturedBytes,
+        byte[]? currentBytes = null
     )
     {
         const int instanceOwnerPartyId = 1337;
@@ -557,21 +593,24 @@ public class WorkflowCallbackStateTests
             .Returns(new ApplicationMetadata("ttd/test-app") { DataTypes = [attachmentDataType] });
         var dataClientMock = new Mock<IDataClient>(MockBehavior.Strict);
         Mock<IDataClientWithStorageMetadata> metadataClientMock = dataClientMock.As<IDataClientWithStorageMetadata>();
-        PlatformHttpException currentReadFailure = await PlatformHttpException.Create(
-            new HttpResponseMessage(currentReadStatus)
-        );
-        metadataClientMock
-            .Setup(x =>
-                x.GetDataBytesWithExpectedBlobVersionId(
-                    instanceOwnerPartyId,
-                    instanceGuid,
-                    attachmentGuid,
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    attachment.BlobVersionId,
-                    It.IsAny<CancellationToken>()
-                )
+        var currentRead = metadataClientMock.Setup(x =>
+            x.GetDataBytesWithExpectedBlobVersionId(
+                instanceOwnerPartyId,
+                instanceGuid,
+                attachmentGuid,
+                It.IsAny<StorageAuthenticationMethod?>(),
+                attachment.BlobVersionId,
+                It.IsAny<CancellationToken>()
             )
-            .ThrowsAsync(currentReadFailure);
+        );
+        if (currentReadStatus is { } status)
+        {
+            currentRead.ThrowsAsync(await PlatformHttpException.Create(new HttpResponseMessage(status)));
+        }
+        else
+        {
+            currentRead.ReturnsAsync(currentBytes ?? []);
+        }
         metadataClientMock
             .Setup(x =>
                 x.GetBlobVersionBytes(

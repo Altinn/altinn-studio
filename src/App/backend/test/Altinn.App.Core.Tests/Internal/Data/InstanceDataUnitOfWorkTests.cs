@@ -288,6 +288,28 @@ public sealed class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
+    public async Task GetPersistedBinaryData_ReadingCapturedBlobVersions_ReadsByBlobVersionAlsoWhenContentIsUnchanged()
+    {
+        byte[] capturedBytes = "content"u8.ToArray();
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(capturedBytes, blobVersionId: BlobVersion(1));
+        setup.DataMutator.ReadCapturedBlobVersions();
+
+        ReadOnlyMemory<byte> bytes = await setup.DataMutator.GetPersistedBinaryData(setup.DataElement);
+
+        Assert.True(bytes.Span.SequenceEqual(capturedBytes));
+        Assert.Contains(
+            setup.Services.Storage.RequestsResponses,
+            request =>
+                request.RequestMethod == HttpMethod.Get
+                && request.RequestUrl?.AbsolutePath.Contains("/versions/", StringComparison.Ordinal) == true
+        );
+        Assert.DoesNotContain(
+            setup.Services.Storage.RequestsResponses,
+            request => request.RequestMethod == HttpMethod.Get && request.RequestHeaders.IfMatch.Count > 0
+        );
+    }
+
+    [Fact]
     public async Task SaveChanges_PersistsUpdatedBinaryDataToStorage()
     {
         byte[] initialBytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");

@@ -97,14 +97,14 @@ produce different bytes. On a replay the app rebuilds its state from Storage and
 attempt wins. A callback with nothing to save skips Storage, which is safe because the same incoming state leads to
 the same decision.
 
-A step that runs again after its save was committed gets the state its first attempt got. That state lists the data
+A callback reads a binary element by the blob version its state lists, which Storage serves to the service owner. A
+step that runs again after its save was committed gets the state its first attempt got. That state lists the data
 elements as they were before the save, so an element the step deleted or replaced is no longer in Storage as the state
-lists it. When Storage answers a read with 404 or 412, the callback reads the blob version that the state lists, which
-Storage serves to the service owner. The step then reads what its first attempt read, and its save reaches the replay.
+lists it. The step still reads what its first attempt read, and its save reaches the replay.
 
-Every callback reads this way, not only a step that runs again: it reads the versions its state lists for as long as
-Storage has them. If something else replaced the element, the callback's save is refused as stale, so it cannot
-overwrite that change.
+Every callback reads this way, not only a step that runs again. If something else replaced the element, the callback's
+save is refused as stale, so it cannot overwrite that change. When Storage does not have the version, the callback
+reads the element as it is now and fails if its content has changed.
 
 Storage keeps a deleted or replaced version for seven days, and the record it replays a committed save from for 48
 hours by default. The engine retries a step for a day by default, which is inside both limits.
