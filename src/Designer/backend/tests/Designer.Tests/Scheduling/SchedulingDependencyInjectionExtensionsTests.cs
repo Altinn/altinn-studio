@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Quartz;
+using Quartz.Impl;
 using Xunit;
 
 namespace Designer.Tests.Scheduling;
@@ -86,6 +87,28 @@ public class SchedulingDependencyInjectionExtensionsTests
             .Value.Triggers.Single(trigger => trigger.Key.Name == RepositoryCleanupJobConstants.TriggerName);
 
         Assert.InRange(trigger.StartTimeUtc, earliestExpectedStart, DateTimeOffset.UtcNow);
+    }
+
+    [Fact]
+    public void AddQuartzJobScheduling_PersistentSchedulingAutoGeneratesInstanceId()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(
+                new Dictionary<string, string>
+                {
+                    [$"{nameof(SchedulingSettings)}:{nameof(SchedulingSettings.UsePersistentScheduling)}"] = "true",
+                    [$"{nameof(SchedulingSettings)}:{nameof(SchedulingSettings.AddHostedService)}"] = "false",
+                    [$"{nameof(PostgreSQLSettings)}:{nameof(PostgreSQLSettings.ConnectionString)}"] = "Host=localhost",
+                }
+            )
+            .Build();
+        var services = new ServiceCollection();
+        services.AddQuartzJobScheduling(configuration);
+        using ServiceProvider serviceProvider = services.BuildServiceProvider();
+
+        QuartzOptions options = serviceProvider.GetRequiredService<IOptions<QuartzOptions>>().Value;
+
+        Assert.Equal(StdSchedulerFactory.AutoGenerateInstanceId, options.SchedulerId);
     }
 
     [Theory]
