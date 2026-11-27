@@ -210,8 +210,10 @@ spec:
       # The service owner's Application Insights, which the platform provides in the cluster
       # and the operator copies into this namespace (secretsync). Without the Secret the
       # Collector would not start, and nor would our own pipelines, so a placeholder that
-      # fails every export stands in, and the queue below drops what it can't hold. A gateway
-      # that started before the Secret existed keeps the placeholder until it restarts.
+      # fails every export stands in, and the queue below drops what it can't hold. The
+      # Collector reads the variable when it starts, so when the Secret appears, changes or
+      # goes, the operator changes a pod annotation on this collector and the OpenTelemetry
+      # Operator rolls its pods.
       # Not APPLICATIONINSIGHTS_CONNECTION_STRING: the exporter prefers that variable over
       # its configuration, for every azure_monitor exporter in the process.
       azure_monitor/apps:

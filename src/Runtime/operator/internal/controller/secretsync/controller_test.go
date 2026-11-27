@@ -13,6 +13,7 @@ import (
 	"go.uber.org/zap/zaptest/observer"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -30,6 +31,21 @@ import (
 var errTransformFailed = errors.New("transform failed")
 
 func newFakeK8sClient(initObjs ...client.Object) client.Client {
+	scheme := newFakeScheme()
+	// OpenTelemetryCollector, which the operator handles as unstructured, like a cluster with the OpenTelemetry
+	// Operator.
+	scheme.AddKnownTypeWithName(collectorGVK, &unstructured.Unstructured{})
+	scheme.AddKnownTypeWithName(
+		collectorGVK.GroupVersion().WithKind(collectorGVK.Kind+"List"),
+		&unstructured.UnstructuredList{},
+	)
+	return fake.NewClientBuilder().
+		WithScheme(scheme).
+		WithObjects(initObjs...).
+		Build()
+}
+
+func newFakeScheme() *k8sruntime.Scheme {
 	scheme := k8sruntime.NewScheme()
 	for _, add := range []func(*k8sruntime.Scheme) error{
 		corev1.AddToScheme,
@@ -39,10 +55,7 @@ func newFakeK8sClient(initObjs ...client.Object) client.Client {
 			panic(err)
 		}
 	}
-	return fake.NewClientBuilder().
-		WithScheme(scheme).
-		WithObjects(initObjs...).
-		Build()
+	return scheme
 }
 
 type testHarness struct {
@@ -53,8 +66,12 @@ type testHarness struct {
 
 func newTestHarness(t *testing.T, mappings []SecretSyncMapping, initObjs ...client.Object) *testHarness {
 	t.Helper()
+	return newTestHarnessWithClient(t, mappings, newFakeK8sClient(initObjs...))
+}
 
-	k8sClient := newFakeK8sClient(initObjs...)
+func newTestHarnessWithClient(t *testing.T, mappings []SecretSyncMapping, k8sClient client.Client) *testHarness {
+	t.Helper()
+
 	clock := opclock.NewFakeClock()
 
 	rt, err := internal.NewRuntime(
@@ -1057,6 +1074,124 @@ func TestReconciler_DefaultMapping_CollectorsConnectionStringSourceDeleted(t *te
 
 	_, err := h.getSecret(mapping.DestName, mapping.DestNamespace)
 	g.Expect(err).To(HaveOccurred())
+}
+
+func gatewayCollector(podAnnotations map[string]any) *unstructured.Unstructured {
+	spec := map[string]any{"mode": "deployment"}
+	if podAnnotations != nil {
+		spec["podAnnotations"] = podAnnotations
+	}
+	collector := &unstructured.Unstructured{Object: map[string]any{"spec": spec}}
+	collector.SetGroupVersionKind(collectorGVK)
+	collector.SetName("otel-gateway")
+	collector.SetNamespace("runtime-obs")
+	return collector
+}
+
+func (h *testHarness) gatewayPodAnnotations(t *testing.T) (map[string]string, string) {
+	t.Helper()
+	collector := &unstructured.Unstructured{}
+	collector.SetGroupVersionKind(collectorGVK)
+	key := client.ObjectKey{Name: "otel-gateway", Namespace: "runtime-obs"}
+	if err := h.k8sClient.Get(h.ctx(), key, collector); err != nil {
+		t.Fatalf("get collector: %v", err)
+	}
+	annotations, _, err := unstructured.NestedStringMap(collector.Object, "spec", "podAnnotations")
+	if err != nil {
+		t.Fatalf("read pod annotations: %v", err)
+	}
+	return annotations, collector.GetResourceVersion()
+}
+
+const gatewayRolloutAnnotation = "secretsync.altinn.studio/apps-azure-monitor-secret"
+
+func TestReconciler_DefaultMapping_CollectorsConnectionStringRollsTheGateway(t *testing.T) {
+	g := NewWithT(t)
+
+	// Flux's annotations on the collector stay.
+	collector := gatewayCollector(map[string]any{"linkerd.io/inject": "enabled"})
+	h := newTestHarness(t, DefaultMappings(), appInsightsSource(testConnectionString), collector)
+	h.reconcile(t, appInsightsSourceName, appInsightsSourceNamespace)
+
+	annotations, version := h.gatewayPodAnnotations(t)
+	want := hashData(map[string][]byte{"connection-string": []byte(testConnectionString)})
+	g.Expect(annotations).To(Equal(map[string]string{
+		"linkerd.io/inject":      "enabled",
+		gatewayRolloutAnnotation: want,
+	}))
+
+	// Nothing changed, so the collector isn't touched, and its pods don't roll.
+	h.reconcile(t, appInsightsSourceName, appInsightsSourceNamespace)
+	h.reconcile(t, "apps-azure-monitor-secret", "runtime-obs")
+	_, again := h.gatewayPodAnnotations(t)
+	g.Expect(again).To(Equal(version))
+
+	// A new connection string rolls them again.
+	source := appInsightsSource(
+		strings.Replace(testConnectionString, testInstrumentationKey, "00000000-0000-0000-0000-000000000002", 1),
+	)
+	g.Expect(h.k8sClient.Update(h.ctx(), source)).To(Succeed())
+	h.reconcile(t, appInsightsSourceName, appInsightsSourceNamespace)
+	annotations, _ = h.gatewayPodAnnotations(t)
+	g.Expect(annotations[gatewayRolloutAnnotation]).NotTo(BeEmpty())
+	g.Expect(annotations[gatewayRolloutAnnotation]).NotTo(Equal(want))
+
+	// So does its removal, back to the placeholder.
+	g.Expect(h.k8sClient.Delete(h.ctx(), source)).To(Succeed())
+	h.reconcile(t, appInsightsSourceName, appInsightsSourceNamespace)
+	annotations, _ = h.gatewayPodAnnotations(t)
+	g.Expect(annotations).To(Equal(map[string]string{
+		"linkerd.io/inject":      "enabled",
+		gatewayRolloutAnnotation: rolloutAbsent,
+	}))
+}
+
+func TestReconciler_DefaultMapping_CollectorsConnectionStringNeverThere(t *testing.T) {
+	g := NewWithT(t)
+
+	// A cluster without the source: the gateway has the placeholder already, so its pods stay.
+	h := newTestHarness(t, DefaultMappings(), gatewayCollector(nil))
+	_, version := h.gatewayPodAnnotations(t)
+	h.reconcile(t, appInsightsSourceName, appInsightsSourceNamespace)
+
+	annotations, again := h.gatewayPodAnnotations(t)
+	g.Expect(annotations).To(BeEmpty())
+	g.Expect(again).To(Equal(version))
+}
+
+func TestReconciler_DefaultMapping_CollectorsConnectionStringInvalidKeepsThePods(t *testing.T) {
+	g := NewWithT(t)
+
+	h := newTestHarness(t, DefaultMappings(), appInsightsSource(testConnectionString), gatewayCollector(nil))
+	h.reconcile(t, appInsightsSourceName, appInsightsSourceNamespace)
+	_, version := h.gatewayPodAnnotations(t)
+
+	g.Expect(h.k8sClient.Update(h.ctx(), appInsightsSource(testConnectionString+";garbage"))).To(Succeed())
+	_, err := h.reconciler.Reconcile(h.ctx(), reconcile.Request{
+		NamespacedName: client.ObjectKey{Name: appInsightsSourceName, Namespace: appInsightsSourceNamespace},
+	})
+	g.Expect(err).To(MatchError(errInvalidConnectionString))
+	_, again := h.gatewayPodAnnotations(t)
+	g.Expect(again).To(Equal(version))
+}
+
+func TestReconciler_DefaultMapping_CollectorsConnectionStringWithoutAGateway(t *testing.T) {
+	g := NewWithT(t)
+
+	// A cluster without the collector, and one without the OpenTelemetry Operator's CRD.
+	for _, k8sClient := range []client.Client{
+		newFakeK8sClient(appInsightsSource(testConnectionString)),
+		fake.NewClientBuilder().
+			WithScheme(newFakeScheme()).
+			WithObjects(appInsightsSource(testConnectionString)).
+			Build(),
+	} {
+		h := newTestHarnessWithClient(t, DefaultMappings(), k8sClient)
+		h.reconcile(t, appInsightsSourceName, appInsightsSourceNamespace)
+
+		_, err := h.getSecret("apps-azure-monitor-secret", "runtime-obs")
+		g.Expect(err).NotTo(HaveOccurred())
+	}
 }
 
 func TestParseConnectionString(t *testing.T) {

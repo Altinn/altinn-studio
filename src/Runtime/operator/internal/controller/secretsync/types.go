@@ -20,17 +20,22 @@ var errGrafanaCRHasNoExternalSpec = errors.New("grafana CR has no external spec"
 //
 // The destination gets the source's labels and annotations, unless OwnMetadata is set. Either way the operator
 // labels it as its own.
+//
+// RolloutCollector names an OpenTelemetryCollector in DestNamespace whose pods read the destination when they start,
+// as environment variables do. The operator keeps a hash of the destination's data in the collector's pod
+// annotations, so the OpenTelemetry Operator rolls the pods when the destination changes, appears or goes.
 type SecretSyncMapping struct {
-	BuildOutput     func(ctx context.Context, k8sClient client.Client, data map[string][]byte) ([]byte, error)
-	BuildData       func(ctx context.Context, k8sClient client.Client, data map[string][]byte) (map[string][]byte, error)
-	ClearOutput     func() []byte
-	SourceName      string
-	SourceNamespace string
-	DestName        string
-	DestNamespace   string
-	DestKey         string
-	CanDeleteDest   bool
-	OwnMetadata     bool
+	BuildOutput      func(ctx context.Context, k8sClient client.Client, data map[string][]byte) ([]byte, error)
+	BuildData        func(ctx context.Context, k8sClient client.Client, data map[string][]byte) (map[string][]byte, error)
+	ClearOutput      func() []byte
+	SourceName       string
+	SourceNamespace  string
+	DestName         string
+	DestNamespace    string
+	DestKey          string
+	RolloutCollector string
+	CanDeleteDest    bool
+	OwnMetadata      bool
 }
 
 // DefaultMappings returns the default secret sync mappings.
@@ -102,6 +107,9 @@ func DefaultMappings() []SecretSyncMapping {
 			DestName:        "apps-azure-monitor-secret",
 			CanDeleteDest:   true,
 			OwnMetadata:     true,
+			// The gateway reads it into an environment variable, so a gateway that started before the copy
+			// existed, or with an older value, needs new pods.
+			RolloutCollector: "otel-gateway",
 			// An invalid value fails the sync, so the destination keeps the last valid one.
 			BuildData: func(_ context.Context, _ client.Client, data map[string][]byte) (map[string][]byte, error) {
 				cs, err := parseConnectionString(data[appInsightsSourceKey])

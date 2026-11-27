@@ -85,6 +85,9 @@ func (r *SecretSyncReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		} else {
 			_, err = r.reconcileFromDest(ctx, span, mapping)
 		}
+		if err == nil && mapping.RolloutCollector != "" {
+			err = r.rolloutCollector(ctx, span, mapping)
+		}
 		syncErr = errors.Join(syncErr, err)
 	}
 	return ctrl.Result{}, syncErr
