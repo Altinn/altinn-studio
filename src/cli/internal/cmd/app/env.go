@@ -16,9 +16,17 @@ type appEnv struct {
 	values map[string]string
 }
 
+// Local runs keep every trace and export metrics often, so that the monitoring stack shows a request soon after it
+// is made. The app libraries set none of these themselves: the runtime sets them for a deployed app.
+const (
+	otelTracesSampler        = "always_on"
+	otelMetricExportInterval = "10000"
+	otelMetricExportTimeout  = "8000"
+)
+
 // newAppRunEnv builds the environment an app is started with. secretsDir is required - every run is given a
 // secrets directory, and the caller has created it by now; keysDir is set only where studioctl decides where
-// the data-protection keys go.
+// the data-protection keys go; otlpEndpoint only when a local collector runs.
 func newAppRunEnv(
 	current []string,
 	kestrelURL string,
@@ -26,10 +34,24 @@ func newAppRunEnv(
 	appFrontendAssetBaseUrl string,
 	secretsDir string,
 	keysDir string,
+	otlpEndpoint string,
 ) []string {
 	env := newAppEnv(current)
 	env.addRunDefaults(kestrelURL, topology, appFrontendAssetBaseUrl, secretsDir, keysDir)
+	env.addTelemetryDefaults(otlpEndpoint)
 	return env.entries()
+}
+
+// addTelemetryDefaults sets the OpenTelemetry SDK's standard variables. The app exports only when it is given an
+// endpoint, so without a local collector it exports nothing. A value in the developer's shell wins, as for the other
+// defaults.
+func (e appEnv) addTelemetryDefaults(otlpEndpoint string) {
+	e.setDefault("OTEL_TRACES_SAMPLER", otelTracesSampler)
+	e.setDefault("OTEL_METRIC_EXPORT_INTERVAL", otelMetricExportInterval)
+	e.setDefault("OTEL_METRIC_EXPORT_TIMEOUT", otelMetricExportTimeout)
+	if otlpEndpoint != "" {
+		e.setDefault("OTEL_EXPORTER_OTLP_ENDPOINT", otlpEndpoint)
+	}
 }
 
 func newAppEnv(current []string) appEnv {
@@ -82,7 +104,6 @@ func (e appEnv) addRunDefaults(
 	e.setDefault("AppSettings__OpenIdWellKnownEndpoint", endpoints.platform+"/authentication/api/v1/openid/")
 	e.setDefault("GeneralSettings__ExternalAppBaseUrl", topology.AppBaseURL())
 	e.setDefault("GeneralSettings__HostName", topology.AppHostName())
-	e.setDefault("OTEL_EXPORTER_OTLP_ENDPOINT", topology.OTelURL())
 	e.setDefault("PlatformSettings__ApiStorageEndpoint", endpoints.platform+"/storage/api/v1/")
 	e.setDefault("PlatformSettings__ApiRegisterEndpoint", endpoints.platform+"/register/api/v1/")
 	e.setDefault("PlatformSettings__ApiProfileEndpoint", endpoints.platform+"/profile/api/v1/")

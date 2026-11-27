@@ -362,11 +362,15 @@ func (c *RunCommand) runTarget(
 	if err != nil {
 		return fmt.Errorf("read localtest port: %w", err)
 	}
+	otlpEndpoint, err := envlocaltest.RecordedOTLPEndpoint(c.cfg)
+	if err != nil {
+		return fmt.Errorf("read localtest monitoring: %w", err)
+	}
 	switch flags.mode {
 	case runModeProcess:
-		return c.runDotnet(ctx, target, dotnetArgs, topology, flags)
+		return c.runDotnet(ctx, target, dotnetArgs, topology, otlpEndpoint, flags)
 	case runModeContainer:
-		return c.runDocker(ctx, target, dotnetArgs, topology, flags)
+		return c.runDocker(ctx, target, dotnetArgs, topology, otlpEndpoint, flags)
 	default:
 		return fmt.Errorf("%w: %s", ErrUnsupportedRuntime, flags.mode)
 	}
@@ -384,6 +388,7 @@ func (c *RunCommand) runDotnet(
 	target appsvc.RunTarget,
 	args []string,
 	topology envtopology.Local,
+	otlpEndpoint string,
 	flags runFlags,
 ) error {
 	appPath := target.Detection.AppRoot
@@ -396,6 +401,7 @@ func (c *RunCommand) runDotnet(
 		appsvc.DotnetRunOptions{
 			RandomHostPort:          flags.randomHostPort,
 			AppFrontendAssetBaseUrl: runAppFrontendAssetBaseUrl(topology, flags),
+			OTLPEndpoint:            otlpEndpoint,
 		},
 	)
 	if specErr != nil {
@@ -1333,23 +1339,33 @@ func (p *containerRunProgress) emit(
 	})
 }
 
+func dockerRunOptions(topology envtopology.Local, otlpEndpoint string, flags runFlags) appsvc.DockerRunOptions {
+	return appsvc.DockerRunOptions{
+		ImageTag:                flags.imageTag,
+		RandomHostPort:          flags.randomHostPort,
+		AppFrontendAssetBaseUrl: runAppFrontendAssetBaseUrl(topology, flags),
+		OTLPEndpoint:            otlpEndpoint,
+	}
+}
+
 func (c *RunCommand) runDocker(
 	ctx context.Context,
 	target appsvc.RunTarget,
 	args []string,
 	topology envtopology.Local,
+	otlpEndpoint string,
 	flags runFlags,
 ) error {
 	result := target.Detection
-	spec, specErr := c.service.BuildDockerRunSpec(result, args, topology, appsvc.DockerRunOptions{
-		ImageTag:                flags.imageTag,
-		RandomHostPort:          flags.randomHostPort,
-		AppFrontendAssetBaseUrl: runAppFrontendAssetBaseUrl(topology, flags),
-	})
+	spec, specErr := c.service.BuildDockerRunSpec(
+		result,
+		args,
+		topology,
+		dockerRunOptions(topology, otlpEndpoint, flags),
+	)
 	if specErr != nil {
 		return fmt.Errorf("build docker run spec: %w", specErr)
 	}
-
 	if err := validateDockerRunImageFlags(flags); err != nil {
 		return err
 	}

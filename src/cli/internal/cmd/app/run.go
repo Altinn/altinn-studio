@@ -54,7 +54,9 @@ type DotnetRunSpec struct {
 // DotnetRunOptions contains native run-specific app options.
 type DotnetRunOptions struct {
 	AppFrontendAssetBaseUrl string
-	RandomHostPort          bool
+	// OTLPEndpoint is the local collector's endpoint, empty when none runs.
+	OTLPEndpoint   string
+	RandomHostPort bool
 }
 
 // DockerRunSpec contains container execution details for `studioctl app run --mode container`.
@@ -68,7 +70,9 @@ type DockerRunSpec struct {
 type DockerRunOptions struct {
 	ImageTag                string
 	AppFrontendAssetBaseUrl string
-	RandomHostPort          bool
+	// OTLPEndpoint is the local collector's endpoint, empty when none runs.
+	OTLPEndpoint   string
+	RandomHostPort bool
 }
 
 // RunTarget describes the app resolved for the app run command.
@@ -140,7 +144,15 @@ func (s *Service) BuildDotnetRunSpec(
 		AppArgs:        args,
 		BuildArgs:      []string{"build", projectPath},
 		TargetPathArgs: []string{"msbuild", projectPath, "-getProperty:TargetPath"},
-		Env:            newAppRunEnv(env, baseURL, topology, opts.AppFrontendAssetBaseUrl, secretsDir, ""),
+		Env: newAppRunEnv(
+			env,
+			baseURL,
+			topology,
+			opts.AppFrontendAssetBaseUrl,
+			secretsDir,
+			"",
+			opts.OTLPEndpoint,
+		),
 	}, nil
 }
 
@@ -277,6 +289,7 @@ func (s *Service) BuildDockerRunSpec(
 				opts.AppFrontendAssetBaseUrl,
 				appsecrets.ContainerDir,
 				keysDirEnv,
+				opts.OTLPEndpoint,
 			),
 			Command: args,
 			CapAdd:  nil,

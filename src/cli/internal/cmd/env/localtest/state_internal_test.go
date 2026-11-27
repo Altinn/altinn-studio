@@ -97,3 +97,39 @@ func TestRemoveStateForgetsTheRecordedPort(t *testing.T) {
 		t.Fatalf("ReadState() = %+v, %t, %v, want no record", state, found, err)
 	}
 }
+
+func TestRecordedOTLPEndpointIsTheCollectorOnlyWithMonitoring(t *testing.T) {
+	t.Parallel()
+
+	for _, tt := range []struct {
+		name  string
+		state *State
+		want  string
+	}{
+		{name: "no record", state: nil, want: ""},
+		{name: "without monitoring", state: &State{PublicPort: 0, Monitoring: false}, want: ""},
+		{
+			name:  "with monitoring",
+			state: &State{PublicPort: 0, Monitoring: true},
+			want:  envtopology.NewLocal(envtopology.DefaultIngressPortString()).OTelURL(),
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			cfg := &config.Config{DataDir: t.TempDir()}
+			if tt.state != nil {
+				if err := WriteState(cfg, *tt.state); err != nil {
+					t.Fatalf("WriteState() error = %v", err)
+				}
+			}
+
+			got, err := RecordedOTLPEndpoint(cfg)
+			if err != nil {
+				t.Fatalf("RecordedOTLPEndpoint() error = %v", err)
+			}
+			if got != tt.want {
+				t.Fatalf("RecordedOTLPEndpoint() = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}

@@ -51,7 +51,7 @@ func TestBuildDockerRunSpec_AddsDockerLocaltestEnv(t *testing.T) {
 	spec, err := testRunService(t).BuildDockerRunSpec(repocontext.Detection{
 		AppRoot:   appPath,
 		InAppRepo: true,
-	}, nil, defaultTopology(), appsvc.DockerRunOptions{})
+	}, nil, defaultTopology(), appsvc.DockerRunOptions{OTLPEndpoint: defaultTopology().OTelURL()})
 	if err != nil {
 		t.Fatalf("BuildDockerRunSpec() error = %v", err)
 	}
@@ -61,11 +61,82 @@ func TestBuildDockerRunSpec_AddsDockerLocaltestEnv(t *testing.T) {
 		"GeneralSettings__ExternalAppBaseUrl=http://local.altinn.cloud:8000/{org}/{app}/",
 		"GeneralSettings__HostName=local.altinn.cloud",
 		"OTEL_EXPORTER_OTLP_ENDPOINT=http://otel.local.altinn.cloud:4317",
+		"OTEL_TRACES_SAMPLER=always_on",
+		"OTEL_METRIC_EXPORT_INTERVAL=10000",
+		"OTEL_METRIC_EXPORT_TIMEOUT=8000",
 		"PlatformSettings__ApiStorageEndpoint=http://local.altinn.cloud:8000/storage/api/v1/",
 		"PlatformSettings__ApiPdf2Endpoint=http://pdf.local.altinn.cloud:8000/pdf",
 		"PlatformSettings__ApiWorkflowEngineEndpoint=http://workflow-engine.local.altinn.cloud:8000/api/v1/",
 		"PlatformFrontendSettings__ArbeidsflateInboxUrl=http://local.altinn.cloud:8000/",
 		"PlatformFrontendSettings__LogoutUrl=http://local.altinn.cloud:8000/",
+	})
+}
+
+// The app libraries set no OTEL_* values themselves, so a local run gets them from studioctl: every trace, metrics
+// every 10 s, and the collector only when the environment runs one, since an app given no endpoint exports nothing.
+func TestBuildDotnetRunSpec_SetsTheOpenTelemetrySettings(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name         string
+		otlpEndpoint string
+	}{
+		{name: "with a collector", otlpEndpoint: "http://otel.local.altinn.cloud:4317"},
+		{name: "without a collector", otlpEndpoint: ""},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			appPath := t.TempDir()
+			writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
+			writeAppProject(t, appPath)
+			spec, err := testRunService(t).BuildDotnetRunSpec(
+				t.Context(),
+				appPath,
+				nil,
+				nil,
+				defaultTopology(),
+				appsvc.DotnetRunOptions{OTLPEndpoint: tc.otlpEndpoint},
+			)
+			if err != nil {
+				t.Fatalf("BuildDotnetRunSpec() error = %v", err)
+			}
+
+			assertEnvContainsAll(t, spec.Env, []string{
+				"OTEL_TRACES_SAMPLER=always_on",
+				"OTEL_METRIC_EXPORT_INTERVAL=10000",
+				"OTEL_METRIC_EXPORT_TIMEOUT=8000",
+			})
+			if tc.otlpEndpoint == "" {
+				assertEnvMissing(t, spec.Env, "OTEL_EXPORTER_OTLP_ENDPOINT")
+			} else {
+				assertEnvContainsAll(t, spec.Env, []string{"OTEL_EXPORTER_OTLP_ENDPOINT=" + tc.otlpEndpoint})
+			}
+		})
+	}
+}
+
+// A developer's own OpenTelemetry settings win over studioctl's, as for every other default.
+func TestBuildDotnetRunSpec_KeepsTheShellsOpenTelemetrySettings(t *testing.T) {
+	t.Parallel()
+
+	appPath := t.TempDir()
+	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
+	writeAppProject(t, appPath)
+	spec, err := testRunService(t).BuildDotnetRunSpec(
+		t.Context(),
+		appPath,
+		nil,
+		[]string{"OTEL_EXPORTER_OTLP_ENDPOINT=http://collector.example:4317", "OTEL_METRIC_EXPORT_INTERVAL=1000"},
+		defaultTopology(),
+		appsvc.DotnetRunOptions{OTLPEndpoint: "http://otel.local.altinn.cloud:4317"},
+	)
+	if err != nil {
+		t.Fatalf("BuildDotnetRunSpec() error = %v", err)
+	}
+
+	assertEnvContainsAll(t, spec.Env, []string{
+		"OTEL_EXPORTER_OTLP_ENDPOINT=http://collector.example:4317",
+		"OTEL_METRIC_EXPORT_INTERVAL=1000",
 	})
 }
 

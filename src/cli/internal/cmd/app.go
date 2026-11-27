@@ -315,6 +315,10 @@ func (c *AppCommand) runEnv(ctx context.Context, args []string) error {
 	if err != nil {
 		return fmt.Errorf("read localtest port: %w", err)
 	}
+	otlpEndpoint, err := envlocaltest.RecordedOTLPEndpoint(c.cfg)
+	if err != nil {
+		return fmt.Errorf("read localtest monitoring: %w", err)
+	}
 	spec, err := c.service.BuildDotnetRunSpec(
 		ctx,
 		result.AppRoot,
@@ -323,6 +327,7 @@ func (c *AppCommand) runEnv(ctx context.Context, args []string) error {
 		topology,
 		appsvc.DotnetRunOptions{
 			AppFrontendAssetBaseUrl: appEnvFrontendAssetBaseURL(topology, flags),
+			OTLPEndpoint:            otlpEndpoint,
 			RandomHostPort:          flags.randomHostPort,
 		},
 	)

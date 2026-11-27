@@ -24,6 +24,9 @@ const (
 type State struct {
 	// PublicPort is the host port localtest serves the environment on (env up --port). Zero is the default.
 	PublicPort int `json:"publicPort,omitempty"`
+	// Monitoring is whether env up started the monitoring stack (env up --monitoring), whose collector apps export
+	// their telemetry to.
+	Monitoring bool `json:"monitoring,omitempty"`
 }
 
 // Topology is the environment's public URLs at the recorded port.
@@ -32,6 +35,25 @@ func (s State) Topology() envtopology.Local {
 		return envtopology.NewLocal(envtopology.DefaultIngressPortString())
 	}
 	return envtopology.NewLocal(strconv.Itoa(s.PublicPort))
+}
+
+// OTLPEndpoint is the OTLP endpoint of the environment's collector, or empty when the environment runs without
+// one. An app given no endpoint exports nothing.
+func (s State) OTLPEndpoint() string {
+	if !s.Monitoring {
+		return ""
+	}
+	return s.Topology().OTelURL()
+}
+
+// RecordedOTLPEndpoint is the OTLP endpoint of the collector the environment was last started with, or empty when it
+// was started without monitoring, or there is no record.
+func RecordedOTLPEndpoint(cfg *config.Config) (string, error) {
+	state, _, err := ReadState(cfg)
+	if err != nil {
+		return "", err
+	}
+	return state.OTLPEndpoint(), nil
 }
 
 // RecordedTopology is the environment's public URLs at the port it was last started with, or at the default port.
@@ -47,7 +69,7 @@ func RecordedTopology(cfg *config.Config) (envtopology.Local, error) {
 func ReadState(cfg *config.Config) (State, bool, error) {
 	data, err := os.ReadFile(statePath(cfg))
 	if errors.Is(err, os.ErrNotExist) {
-		return State{PublicPort: 0}, false, nil
+		return State{PublicPort: 0, Monitoring: false}, false, nil
 	}
 	if err != nil {
 		return State{}, false, fmt.Errorf("read localtest state: %w", err)
@@ -92,11 +114,11 @@ func RemoveState(cfg *config.Config) error {
 func startState(port int, recorded State, hasRecord bool) State {
 	switch {
 	case port != 0:
-		return State{PublicPort: port}
+		return State{PublicPort: port, Monitoring: false}
 	case hasRecord:
 		return recorded
 	default:
-		return State{PublicPort: 0}
+		return State{PublicPort: 0, Monitoring: false}
 	}
 }
 
