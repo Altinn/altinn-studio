@@ -1145,13 +1145,15 @@ public sealed partial class ProcessEngineTest
     }
 
     [Theory]
-    [InlineData(false, ProcessNextState.Retrying)]
-    [InlineData(true, ProcessNextState.ResumeRequired)]
+    [InlineData(false, nameof(ProcessNextState.Retrying))]
+    [InlineData(true, nameof(ProcessNextState.ResumeRequired))]
     public async Task Next_on_processing_instance_answers_with_the_current_task_workflow_state(
         bool workflowFailed,
-        ProcessNextState expectedState
+        string expectedStateName
     )
     {
+        // A public test method cannot take the internal enum, so the cases name its values.
+        ProcessNextState expectedState = Enum.Parse<ProcessNextState>(expectedStateName);
         await using var fixture = Fixture.Create();
         fixture
             .Mock<IWorkflowEngineService>()

@@ -18,7 +18,7 @@ internal sealed class JsonCamelCaseEnumConverter : JsonStringEnumConverter
 /// The stage an instance/process reached when workflow initialization failed. Part of the wire contract.
 /// </summary>
 [JsonConverter(typeof(JsonCamelCaseEnumConverter))]
-public enum WorkflowInitializationState
+internal enum WorkflowInitializationState
 {
     /// <summary>
     /// The workflow engine rejected the submitted workflow.
@@ -40,7 +40,7 @@ public enum WorkflowInitializationState
 /// The action a client should take to recover from a workflow initialization failure. Part of the wire contract.
 /// </summary>
 [JsonConverter(typeof(JsonCamelCaseEnumConverter))]
-public enum WorkflowRecommendedAction
+internal enum WorkflowRecommendedAction
 {
     /// <summary>
     /// The created instance was cleaned up; the client can safely retry instance creation.
@@ -62,7 +62,7 @@ public enum WorkflowRecommendedAction
 /// Hypermedia pointer to the process resume endpoint, surfaced so clients know where to recover
 /// a workflow that failed after the process state may already have changed.
 /// </summary>
-public sealed record WorkflowResumeEndpoint(
+internal sealed record WorkflowResumeEndpoint(
     [property: JsonPropertyName("method")] string Method,
     [property: JsonPropertyName("path")] string Path
 );
@@ -73,7 +73,7 @@ public sealed record WorkflowResumeEndpoint(
 /// <c>application/problem+json</c>; the workflow-specific members are serialized alongside the standard
 /// ones and form a stable recovery contract clients can react to.
 /// </summary>
-public sealed class WorkflowInitializationProblemDetails : ProblemDetails
+internal sealed class WorkflowInitializationProblemDetails : ProblemDetails
 {
     /// <summary>
     /// The stage initialization reached when it failed.
