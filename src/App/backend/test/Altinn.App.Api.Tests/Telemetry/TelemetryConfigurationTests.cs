@@ -172,6 +172,25 @@ public class TelemetryConfigurationTests
     }
 
     [Fact]
+    public async Task AspNetCore_Logs_Below_Warning_Are_Not_Exported()
+    {
+        List<LogRecord> exported = [];
+        await using var app = AppBuilder.Build(registerCustomAppServices: services =>
+            services.ConfigureOpenTelemetryLoggerProvider(builder => builder.AddInMemoryExporter(exported))
+        );
+        var loggers = app.Services.GetRequiredService<ILoggerFactory>();
+        var hosting = loggers.CreateLogger("Microsoft.AspNetCore.Hosting.Diagnostics");
+
+        hosting.LogInformation("Request finished GET /path?query=secret");
+        hosting.LogWarning("A warning from ASP.NET Core");
+        app.Services.GetRequiredService<LoggerProvider>().ForceFlush();
+
+        var fromAspNetCore = exported.Where(r => r.CategoryName == "Microsoft.AspNetCore.Hosting.Diagnostics");
+        var record = Assert.Single(fromAspNetCore);
+        Assert.Equal(LogLevel.Warning, record.LogLevel);
+    }
+
+    [Fact]
     public async Task Library_Telemetry_Has_Its_Own_Source_And_Meter()
     {
         await using var app = AppBuilder.Build();

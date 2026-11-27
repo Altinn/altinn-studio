@@ -226,6 +226,12 @@ public static class ServiceCollectionExtensions
                 options => options.IncludeFormattedMessage = true
             );
 
+        // ASP.NET Core's own records, one for each step of every request and probe, repeat what the request's span
+        // says, and their messages carry the query string, which telemetry never does. The console still gets them.
+        services.AddLogging(logging =>
+            logging.AddFilter<OpenTelemetryLoggerProvider>("Microsoft.AspNetCore", LogLevel.Warning)
+        );
+
         // Created once per process; touching it here makes sure the gauge exists before the meter provider is built.
         _ = AppTelemetryResource.StartTime;
     }
