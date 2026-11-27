@@ -241,6 +241,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await RemoveEnforceDataTypeTaskIdSetting(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await RemoveTelemetrySettings(projectFile));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await CheckAppFileNameCase(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -1233,6 +1236,7 @@ internal static class V8Tov9Upgrade
                 ).Detect(),
                 new RemovedFeatureManagementDetector(scanner).Detect(),
                 new RemovedAppSettingsMemberDetector(pristineView).Detect(),
+                new ApplicationInsightsUsageDetector(scanner, projectFile).Detect(),
                 new InternalizedAppTypeDetector(pristineView).Detect()
             );
 
@@ -1374,6 +1378,30 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error removing the JsonObjectInDataResponse feature flag from the appsettings files", ex);
+        }
+    }
+
+    /// <summary>
+    /// Removes the telemetry settings v9 no longer reads from the appsettings files: UseOpenTelemetry,
+    /// UseOpenTelemetryCollector, the ApplicationInsights section and Logging:ApplicationInsights. v9 apps export only
+    /// over OpenTelemetry, configured by the runtime and studioctl.
+    /// </summary>
+    static async Task<int> RemoveTelemetrySettings(string projectFile)
+    {
+        UpgradeConsole.BeginStep("Telemetry settings");
+        try
+        {
+            var appFolder = Path.GetDirectoryName(projectFile) ?? projectFile;
+            var result = await TelemetrySettingsMigration.Migrate(appFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No Application Insights or OpenTelemetry settings in the appsettings files",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error removing the telemetry settings from the appsettings files", ex);
         }
     }
 
