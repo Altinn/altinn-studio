@@ -1,3 +1,4 @@
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.App;
@@ -24,7 +25,7 @@ internal sealed class SubformPdfServiceTask(
     ILogger<SubformPdfServiceTask> logger
 ) : IServiceTask
 {
-    public string Type => "subformPdf";
+    public string Type => AltinnTaskTypes.SubformPdf;
 
     /// <inheritdoc />
     public IEnumerable<string> ValidateConfiguration(ProcessTaskValidationContext context)
@@ -83,6 +84,16 @@ internal sealed class SubformPdfServiceTask(
         );
 
     /// <summary>
+    /// Whether the task renders the data element as one of the subform's entries. PDF previews use it too, so a
+    /// preview shows the entries the task stores PDFs for.
+    /// </summary>
+    internal static bool RendersEntry(
+        IAppResources appResources,
+        ValidAltinnSubformPdfConfiguration config,
+        DataElement dataElement
+    ) => dataElement.DataType == GetSubformDataType(appResources, config);
+
+    /// <summary>
     /// Why the frontend cannot render the subform's entries, or null when it can: the subform UI folder must be a UI
     /// folder of its own, not a task's, with a <c>defaultDataType</c>.
     /// </summary>
@@ -126,11 +137,12 @@ internal sealed class SubformPdfServiceTask(
 
         ValidAltinnSubformPdfConfiguration config = GetValidAltinnSubformPdfConfiguration(taskId);
 
-        string subformDataType = GetSubformDataType(appResources, config);
         string? filenameTextResourceKey = config.FilenameTextResourceKey;
         string subformUiFolder = config.SubformUiFolder;
 
-        List<DataElement> subformDataElements = instance.Data.Where(x => x.DataType == subformDataType).ToList();
+        List<DataElement> subformDataElements = instance
+            .Data.Where(element => RendersEntry(appResources, config, element))
+            .ToList();
 
         // Generate PDFs sequentially
         foreach (DataElement dataElement in subformDataElements)

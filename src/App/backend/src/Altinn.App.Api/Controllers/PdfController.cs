@@ -1,4 +1,5 @@
 using Altinn.App.Api.Infrastructure.RateLimiting;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
@@ -111,7 +112,7 @@ public class PdfController : ControllerBase
 
             List<ProcessTask> subformPdfTasks = _processReader
                 .GetProcessTasks()
-                .Where(processTask => RendersSubformsOfType(processTask, dataElement.DataType))
+                .Where(processTask => RendersEntry(processTask, dataElement))
                 .ToList();
             if (subformPdfTasks.Count == 0)
             {
@@ -153,7 +154,7 @@ public class PdfController : ControllerBase
 
         // Render the task the same way its PDF service task would
         AltinnTaskExtension? taskExtension = task.ExtensionElements?.TaskExtension;
-        if (taskExtension?.TaskType == "pdf")
+        if (taskExtension?.TaskType == AltinnTaskTypes.Pdf)
         {
             byte[] pdfPreview = await _pdfService.GeneratePdf(
                 instance,
@@ -166,7 +167,7 @@ public class PdfController : ControllerBase
             return File(pdfPreview, "application/pdf");
         }
 
-        if (taskExtension?.TaskType != "subformPdf")
+        if (taskExtension?.TaskType != AltinnTaskTypes.SubformPdf)
         {
             return BadRequest("taskId must identify a PDF or subform PDF service task");
         }
@@ -182,7 +183,7 @@ public class PdfController : ControllerBase
 
         string? subformId = dataElementId?.ToString();
         DataElement? subform = instance.Data.Find(element => element.Id == subformId);
-        if (subform is null || subform.DataType != subformDataType)
+        if (subform is null || !SubformPdfServiceTask.RendersEntry(_appResources, subformConfig, subform))
         {
             return BadRequest($"dataElementId must be the id of a data element of type {subformDataType}");
         }
@@ -199,10 +200,14 @@ public class PdfController : ControllerBase
     }
 
     private static bool IsPdfOrSubformPdfServiceTask(ProcessElement? element) =>
-        element is ProcessTask { ExtensionElements.TaskExtension.TaskType: "pdf" or "subformPdf" };
+        element
+            is ProcessTask
+            {
+                ExtensionElements.TaskExtension.TaskType: AltinnTaskTypes.Pdf or AltinnTaskTypes.SubformPdf,
+            };
 
-    private bool RendersSubformsOfType(ProcessTask task, string dataType) =>
+    private bool RendersEntry(ProcessTask task, DataElement dataElement) =>
         task.ExtensionElements?.TaskExtension
-            is { TaskType: "subformPdf", SubformPdfConfiguration: AltinnSubformPdfConfiguration config }
-        && SubformPdfServiceTask.GetSubformDataType(_appResources, config.Validate()) == dataType;
+            is { TaskType: AltinnTaskTypes.SubformPdf, SubformPdfConfiguration: AltinnSubformPdfConfiguration config }
+        && SubformPdfServiceTask.RendersEntry(_appResources, config.Validate(), dataElement);
 }
