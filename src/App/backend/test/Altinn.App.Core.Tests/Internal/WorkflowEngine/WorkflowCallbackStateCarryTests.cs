@@ -73,8 +73,7 @@ public class WorkflowCallbackStateCarryTests
             null!,
             appMetadata,
             Mock.Of<IAppModel>(),
-            signer ?? CreateSigner(),
-            EmptyProcessReader()
+            signer ?? CreateSigner()
         );
     }
 
@@ -283,68 +282,6 @@ public class WorkflowCallbackStateCarryTests
         Assert.Contains($"'{key}'", exception.Message, StringComparison.Ordinal);
     }
 
-    [Fact]
-    public async Task Capture_ThenRestore_CarriesCachedSigneeStateBytesOnly()
-    {
-        var appMetadata = CreateAppMetadata();
-        var processReader = new Mock<IProcessReader>();
-        processReader
-            .Setup(x => x.GetProcessTasks())
-            .Returns([
-                new ProcessTask
-                {
-                    Id = "Task_1",
-                    ExtensionElements = new()
-                    {
-                        TaskExtension = new()
-                        {
-                            SignatureConfiguration = new() { SigneeStatesDataTypeId = "signeeStates" },
-                        },
-                    },
-                },
-            ]);
-        var service = new WorkflowCallbackStateService(
-            CreateInitializer(appMetadata),
-            null!,
-            appMetadata,
-            Mock.Of<IAppModel>(),
-            CreateSigner(),
-            processReader.Object
-        );
-        Instance instance = CreateInstance();
-        var signeeState = new DataElement
-        {
-            Id = Guid.NewGuid().ToString(),
-            DataType = "signeeStates",
-            BlobVersionId = "v2",
-        };
-        var attachment = new DataElement
-        {
-            Id = Guid.NewGuid().ToString(),
-            DataType = "attachment",
-            BlobVersionId = "v1",
-        };
-        var uncachedSigneeState = new DataElement
-        {
-            Id = Guid.NewGuid().ToString(),
-            DataType = "signeeStates",
-            BlobVersionId = "v1",
-        };
-        instance.Data = [signeeState, attachment, uncachedSigneeState];
-        InstanceDataUnitOfWork unitOfWork = await CreateInitializer(appMetadata)
-            .Init(instance, _versions, "Task_1", "nb");
-        unitOfWork.PreloadBinaryData(signeeState, "[]"u8.ToArray());
-        unitOfWork.PreloadBinaryData(attachment, "attachment"u8.ToArray());
-
-        string captured = await service.CaptureState(unitOfWork);
-
-        (InstanceDataUnitOfWork restored, _) = await service.RestoreState(_instanceId, captured, "nb");
-        Assert.True(restored.TryGetCachedBinaryData(signeeState, out ReadOnlyMemory<byte> bytes));
-        Assert.Equal("[]"u8.ToArray(), bytes.ToArray());
-        Assert.False(restored.TryGetCachedBinaryData(attachment, out _));
-        Assert.False(restored.TryGetCachedBinaryData(uncachedSigneeState, out _));
-    }
-
     private static void AssertCarries(WorkflowCallbackStateCarry carry, int openingIndex)
     {
         CarriedMailbox? mailbox = carry.FindMailbox(openingIndex);
@@ -382,7 +319,4 @@ public class WorkflowCallbackStateCarryTests
             .Returns(new ApplicationMetadata("ttd/test-app") { DataTypes = [] });
         return appMetadata.Object;
     }
-
-    private static IProcessReader EmptyProcessReader() =>
-        Mock.Of<IProcessReader>(r => r.GetProcessTasks() == new List<ProcessTask>());
 }
