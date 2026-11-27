@@ -32,7 +32,7 @@ public sealed class RerunAfterSaveTask : IProcessTask
 
     public string Type => "rerun-after-save";
 
-    public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) =>
+    public void DefineStart(PipelineBuilder.Lifecycle pipeline) =>
         pipeline
             .Stage(StoreFiles)
             .Stage(
@@ -42,8 +42,7 @@ public sealed class RerunAfterSaveTask : IProcessTask
                 {
                     RetryStrategy = ProcessStepRetryStrategy.Constant(TimeSpan.FromSeconds(1), maxRetries: 3),
                 }
-            )
-            .Build();
+            );
 
     private static Task<StageResult> StoreFiles(StageContext context)
     {
