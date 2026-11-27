@@ -37,11 +37,18 @@ public sealed class AzureMonitorFailedRequestsTests
                     Row("app-a", "POST Instances/Post [app/org]", _laterBucket, 22),
                     Row("app-a", "POST {org}/{app}/instances", _laterBucket, 15),
                     Row("app-a", "POST {org}/{app}/instances", _earlierBucket, 4),
+                    Row("app-a", "POST /{org}/{app}/instances", _earlierBucket, 6),
                     Row(
                         "app-a",
                         "PUT {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/next",
                         _laterBucket,
                         3
+                    ),
+                    Row(
+                        "app-a",
+                        "PUT /{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/next",
+                        _laterBucket,
+                        2
                     ),
                 ]
         );
@@ -55,9 +62,9 @@ public sealed class AzureMonitorFailedRequestsTests
             [_laterBucket.ToUnixTimeMilliseconds(), _earlierBucket.ToUnixTimeMilliseconds()],
             result[InstanceCreation].Timestamps
         );
-        Assert.Equal([37, 4], result[InstanceCreation].Counts);
+        Assert.Equal([37, 10], result[InstanceCreation].Counts);
         Assert.Equal([_laterBucket.ToUnixTimeMilliseconds()], result[ProcessNext].Timestamps);
-        Assert.Equal([3], result[ProcessNext].Counts);
+        Assert.Equal([5], result[ProcessNext].Counts);
     }
 
     [Fact]
@@ -69,7 +76,7 @@ public sealed class AzureMonitorFailedRequestsTests
                 [
                     Row("app-a", "POST Instances/Post [app/org]", _laterBucket, 22),
                     Row("app-a", "POST {org}/{app}/instances", _laterBucket, 15),
-                    Row("app-b", "POST {org}/{app}/instances/create", _laterBucket, 2),
+                    Row("app-b", "POST /{org}/{app}/instances/create", _laterBucket, 2),
                     Row("app-b", "POST Instances/PostSimplified [app/org]", _earlierBucket, 1),
                 ]
         );

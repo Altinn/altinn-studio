@@ -1,4 +1,5 @@
 import { AppCard } from '@app/form-component/app-components';
+import { withComponentGrid } from '@app/form-component/layout-components/common/storybook';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
@@ -33,6 +34,7 @@ const EXAMPLE_IMAGE_SRC = `data:image/svg+xml,${encodeURIComponent(exampleSvg)}`
 const meta = {
   title: 'LayoutComponents/Image',
   component: ImageLayout,
+  decorators: [withComponentGrid],
   // IMAGE_PROP_CATEGORIES is a docs helper, not a story — keep CSF from rendering it as one.
   excludeStories: ['IMAGE_PROP_CATEGORIES'],
   parameters: {

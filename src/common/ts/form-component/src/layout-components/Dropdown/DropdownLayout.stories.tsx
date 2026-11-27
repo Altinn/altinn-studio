@@ -1,3 +1,4 @@
+import { withComponentGrid } from '@app/form-component/layout-components/common/storybook';
 import { useArgs } from 'storybook/preview-api';
 import { fn } from 'storybook/test';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
@@ -46,6 +47,7 @@ const land = [
 const meta = {
   title: 'LayoutComponents/Dropdown',
   component: Dropdown,
+  decorators: [withComponentGrid],
   // DROPDOWN_PROP_CATEGORIES is a docs helper, not a story — keep CSF from rendering it as one.
   excludeStories: ['DROPDOWN_PROP_CATEGORIES'],
   parameters: {
@@ -113,5 +115,24 @@ export const WithValidationMessages: Story = {
     required: true,
     isValid: false,
     validationMessages: 'Du må fylle ut bostedsland.',
+  },
+};
+
+/** Label on its own line below `sm` (600px), beside the dropdown from there. */
+export const LabelBeside: Story = {
+  args: {
+    title: 'Bostedsland',
+    description: 'Velg landet du bor i.',
+    labelGrid: { xs: 12, sm: 4 },
+    innerGrid: { xs: 12, sm: 8 },
+  },
+};
+
+/** Full width below `md` (1024px), half width from there. */
+export const HalfWidth: Story = {
+  parameters: { componentGrid: { size: { xs: 12, md: 6 } } },
+  args: {
+    title: 'Bostedsland',
+    description: 'Velg landet du bor i.',
   },
 };

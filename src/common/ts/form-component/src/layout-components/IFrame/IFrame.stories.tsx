@@ -1,3 +1,4 @@
+import { withComponentGrid } from '@app/form-component/layout-components/common/storybook';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
@@ -17,6 +18,7 @@ export const IFRAME_PROP_CATEGORIES = {
 const meta = {
   title: 'LayoutComponents/IFrame',
   component: IFrame,
+  decorators: [withComponentGrid],
   excludeStories: ['IFRAME_PROP_CATEGORIES'],
   parameters: {
     layout: 'padded',

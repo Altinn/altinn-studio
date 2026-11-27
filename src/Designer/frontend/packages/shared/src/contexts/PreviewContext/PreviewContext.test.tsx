@@ -57,4 +57,17 @@ describe('PreviewContext', () => {
       expect(result.current.shouldReloadPreview).toBe(false);
     });
   });
+
+  it('keeps the same functions when the preview reloads', () => {
+    const { result } = renderHook(() => usePreviewContext(), {
+      wrapper: PreviewContextProvider,
+    });
+    const { doReloadPreview, previewHasLoaded } = result.current;
+
+    act(doReloadPreview);
+
+    expect(result.current.shouldReloadPreview).toBe(true);
+    expect(result.current.doReloadPreview).toBe(doReloadPreview);
+    expect(result.current.previewHasLoaded).toBe(previewHasLoaded);
+  });
 });

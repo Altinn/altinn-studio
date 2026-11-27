@@ -1,4 +1,5 @@
 import { ValidationMessages } from '@app/form-component/app-components/ValidationMessages';
+import { withComponentGrid } from '@app/form-component/layout-components/common/storybook';
 import { fn } from 'storybook/test';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
@@ -46,6 +47,7 @@ const storedImage: StoredImage = {
 const meta = {
   title: 'LayoutComponents/ImageUpload',
   component: ImageUploadLayout,
+  decorators: [withComponentGrid],
   excludeStories: ['IMAGE_UPLOAD_PROP_CATEGORIES'],
   parameters: { layout: 'padded' },
   args: {

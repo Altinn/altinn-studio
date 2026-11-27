@@ -1,3 +1,4 @@
+import { withComponentGrid } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { Paragraph } from './Paragraph';
@@ -5,6 +6,7 @@ import { Paragraph } from './Paragraph';
 const meta = {
   title: 'LayoutComponents/Paragraph',
   component: Paragraph,
+  decorators: [withComponentGrid],
   parameters: {
     layout: 'padded',
   },

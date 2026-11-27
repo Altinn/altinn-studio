@@ -16,6 +16,20 @@ internal interface IDataClientWithStorageMetadata
         CancellationToken cancellationToken = default
     );
 
+    /// <summary>
+    /// Reads one blob version of a data element. Storage serves it to the instance's service owner only, also after
+    /// the element was deleted or its content replaced, until its cleanup removes the version.
+    /// </summary>
+    /// <returns>The bytes of the version, or null when Storage does not have it.</returns>
+    Task<byte[]?> GetBlobVersionBytes(
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        Guid dataId,
+        string blobVersionId,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    );
+
     Task<DataElementWithStorageMetadata> InsertBinaryDataWithStorageMetadata(
         string instanceId,
         string dataType,

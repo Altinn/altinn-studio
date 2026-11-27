@@ -27,6 +27,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - `studioctl app upgrade v9` changes `pdf`, `subformPdf`, `eFormidling` and `fiksArkiv` tasks declared as `<bpmn:task>` in `process.bpmn` to the `<bpmn:serviceTask>` element v9 requires. Before, the app did not build after the upgrade. ([#21266](https://github.com/Altinn/altinn-studio/pull/21266))
 - `studioctl app upgrade v9` compiles apps that use C# 14 or C# 15 syntax, such as `extension` blocks, the `field` keyword and unions, so its C# migrations keep using exact symbol information instead of falling back to syntax-based detection, which may over-report. ([#22110](https://github.com/Altinn/altinn-studio/pull/22110))
+- In Localtest, a process transition no longer stays in `processing` when the workflow engine runs a step again after that step deleted or replaced a file, as the payment task does with an unfinished payment. Localtest now serves the file as it was, as Altinn Storage does. ([#21909](https://github.com/Altinn/altinn-studio/issues/21909))
 
 ## [0.1.0-preview.34] - 2026-11-20
 

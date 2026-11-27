@@ -1,0 +1,453 @@
+using System.Diagnostics;
+using Altinn.Studio.Common.Domain;
+using Altinn.Studio.Common.Domain.App;
+using Altinn.Studio.Fleet.Store;
+
+namespace Altinn.Studio.Fleet.Analysis;
+
+/// <summary>What <see cref="AnalysisRunner.Run"/> does.</summary>
+public sealed record AnalysisOptions
+{
+    public required IReadOnlyList<RuntimeEnvironment> Environments { get; init; }
+
+    /// <summary>Only these service owners, or all when <c>null</c>.</summary>
+    public IReadOnlySet<ServiceOwnerCode>? Orgs { get; init; }
+
+    /// <summary>How many apps to analyze at a time. An analysis may build the app, so this is bounded by memory and cores.</summary>
+    public int Parallelism { get; init; } = 4;
+
+    /// <summary>Analyze every app, also those already analyzed at their deployed version.</summary>
+    public bool Force { get; init; }
+
+    /// <summary>
+    /// Where to make the run's own folder, which the apps are copied to while they are analyzed and which the run
+    /// deletes at its end. The system's temporary folder when <c>null</c>.
+    /// </summary>
+    public string? WorkFolder { get; init; }
+}
+
+/// <summary>What a run of one analysis did in an environment.</summary>
+public sealed record AnalysisRunResult(
+    RuntimeEnvironment Environment,
+    string Analysis,
+    int Apps,
+    int Analyzed,
+    int Unchanged,
+    int Failed,
+    int Removed
+);
+
+/// <summary>What a run of an <see cref="IItemAnalysis"/> did with its items.</summary>
+/// <param name="Analysis">The analysis.</param>
+/// <param name="ItemsName">What the items are, such as <c>app library versions</c>.</param>
+/// <param name="Items">How many items the analysis needs.</param>
+/// <param name="Analyzed">How many of them it analyzed.</param>
+/// <param name="Unchanged">How many it had already.</param>
+/// <param name="Failed">How many of those it analyzed failed.</param>
+/// <param name="Removed">How many it forgot, because they are no longer needed.</param>
+public sealed record AnalysisItemsResult(
+    string Analysis,
+    string ItemsName,
+    int Items,
+    int Analyzed,
+    int Unchanged,
+    int Failed,
+    int Removed
+);
+
+/// <summary>What a run of analyses did.</summary>
+/// <param name="Results">What each analysis did in each environment.</param>
+/// <param name="Items">What each <see cref="IItemAnalysis"/> did with its items.</param>
+public sealed record AnalysisReport(IReadOnlyList<AnalysisRunResult> Results, IReadOnlyList<AnalysisItemsResult> Items);
+
+/// <summary>
+/// Runs analyses over the apps in a store's environments and records the results, then the items of each
+/// <see cref="IItemAnalysis"/>. An app already analyzed at its deployed version is skipped, unless the analysis failed
+/// or the version is not known, so a run after a sync only analyzes what changed.
+/// </summary>
+/// <remarks>
+/// The store's app folders are never changed: an analysis may build the app, which writes into its folder, and the
+/// store may be a read-only copy. Each analysis gets a copy of the app of its own.
+/// </remarks>
+public sealed class AnalysisRunner(
+    FleetStore store,
+    AnalysisDatabase database,
+    IReadOnlyList<IAppAnalysis> analyses,
+    IAnalysisExecutor executor
+)
+{
+    // An analysis named twice would run twice on the same copy of each app.
+    private readonly List<IAppAnalysis> _analyses = [.. analyses.DistinctBy(analysis => analysis.Name)];
+
+    public async Task<AnalysisReport> Run(
+        AnalysisOptions options,
+        IAnalysisObserver? observer,
+        CancellationToken cancellationToken
+    )
+    {
+        foreach (IAppAnalysis analysis in _analyses)
+        {
+            RefuseToLoseResults(analysis, options);
+        }
+
+        // Every environment's apps are read before a new version of an analysis replaces its tables, so that a store
+        // that cannot be read stops the run while the earlier results are still there.
+        var apps = new Dictionary<RuntimeEnvironment, List<StoredApp>>();
+        foreach (RuntimeEnvironment environment in options.Environments)
+        {
+            apps[environment] =
+            [
+                .. FleetStoreReader
+                    .ListApps(store, environment)
+                    .Where(app => options.Orgs is null || options.Orgs.Contains(app.App.Org)),
+            ];
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        // A folder of the run's own, so that runs sharing a work folder do not delete each other's copies. It is made
+        // before a new version of an analysis replaces its tables too, so that a folder that cannot be made stops the
+        // run while the earlier results are still there.
+        string workFolder = Path.Join(options.WorkFolder ?? Path.GetTempPath(), $"fleet-analysis-{Guid.NewGuid():N}");
+        try
+        {
+            Directory.CreateDirectory(workFolder);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            throw new FleetException($"Cannot make the run's work folder {workFolder}: {ex.Message}", ex);
+        }
+
+        try
+        {
+            foreach (IAppAnalysis analysis in _analyses)
+            {
+                database.Prepare(analysis);
+            }
+
+            var results = new List<AnalysisRunResult>();
+            foreach (RuntimeEnvironment environment in options.Environments)
+            {
+                results.AddRange(
+                    await Run(environment, apps[environment], options, workFolder, observer, cancellationToken)
+                );
+            }
+
+            var items = new List<AnalysisItemsResult>();
+            foreach (IItemAnalysis analysis in _analyses.OfType<IItemAnalysis>())
+            {
+                items.Add(await RunItems(analysis, options, workFolder, observer, cancellationToken));
+            }
+
+            return new AnalysisReport(results, items);
+        }
+        finally
+        {
+            TryDelete(workFolder);
+        }
+    }
+
+    /// <summary>
+    /// Refuses a run for only some service owners or environments of an analysis whose version changed. The new version
+    /// replaces the analysis's tables, so the results for the others would be lost until a run for all of them.
+    /// </summary>
+    /// <exception cref="FleetException">The run would lose results.</exception>
+    private void RefuseToLoseResults(IAppAnalysis analysis, AnalysisOptions options)
+    {
+        if (!database.IsOutdated(analysis))
+        {
+            return;
+        }
+
+        HashSet<string> asked = [.. options.Environments.Select(e => e.Name)];
+        List<string> recorded = [.. database.Environments(analysis).Order(StringComparer.Ordinal)];
+        if (options.Orgs is not null || recorded.Any(name => !asked.Contains(name)))
+        {
+            throw new FleetException(
+                $"{database.Path} has results of an earlier version of the {analysis.Name} analysis, which its new "
+                    + "version replaces for every app. Run it for every service owner, in "
+                    + $"{string.Join(" and ", recorded.Union(asked).Order(StringComparer.Ordinal))}."
+            );
+        }
+    }
+
+    private async Task<List<AnalysisRunResult>> Run(
+        RuntimeEnvironment environment,
+        List<StoredApp> apps,
+        AnalysisOptions options,
+        string workFolder,
+        IAnalysisObserver? observer,
+        CancellationToken cancellationToken
+    )
+    {
+        HashSet<AppIdentifier> running = [.. apps.Select(app => app.App)];
+        var jobs = new List<(IAppAnalysis Analysis, StoredApp App)>();
+        var removed = new Dictionary<string, int>();
+        foreach (IAppAnalysis analysis in _analyses)
+        {
+            Dictionary<AppIdentifier, AnalyzedApp> earlier = database.ReadApps(analysis, environment);
+
+            // Within the service owners asked for, an app that no longer runs leaves the database.
+            List<AppIdentifier> stopped =
+            [
+                .. earlier.Keys.Where(app =>
+                    (options.Orgs is null || options.Orgs.Contains(app.Org)) && !running.Contains(app)
+                ),
+            ];
+            database.RemoveApps(analysis, environment, stopped);
+            removed[analysis.Name] = stopped.Count;
+            jobs.AddRange(
+                apps.Where(app =>
+                        options.Force
+                        // An index rebuilt from the files on disk does not know the deployed versions, so nothing
+                        // tells whether such an app changed.
+                        || app.Version is null
+                        || !earlier.TryGetValue(app.App, out AnalyzedApp? before)
+                        || before.Failed
+                        || before.Version != app.Version?.Value
+                    )
+                    .Select(app => (analysis, app))
+            );
+        }
+
+        var analyzed = new Dictionary<string, int>();
+        var failed = new Dictionary<string, int>();
+        foreach (IAppAnalysis analysis in _analyses)
+        {
+            analyzed[analysis.Name] = jobs.Count(job => job.Analysis == analysis);
+            failed[analysis.Name] = 0;
+        }
+
+        int completed = 0;
+        observer?.OnAppsProgress(environment, 0, jobs.Count);
+        await Parallel.ForEachAsync(
+            jobs,
+            new ParallelOptions { MaxDegreeOfParallelism = options.Parallelism, CancellationToken = cancellationToken },
+            async (job, token) =>
+            {
+                string? failure = await Analyze(environment, job.Analysis, job.App, workFolder, token);
+                if (failure is not null)
+                {
+                    lock (failed)
+                    {
+                        failed[job.Analysis.Name]++;
+                    }
+                }
+
+                int done = Interlocked.Increment(ref completed);
+                observer?.OnAppsProgress(environment, done, jobs.Count);
+            }
+        );
+
+        return
+        [
+            .. _analyses.Select(analysis => new AnalysisRunResult(
+                environment,
+                analysis.Name,
+                apps.Count,
+                analyzed[analysis.Name],
+                apps.Count - analyzed[analysis.Name],
+                failed[analysis.Name],
+                removed[analysis.Name]
+            )),
+        ];
+    }
+
+    /// <summary>Analyzes a copy of an app, records the outcome, and returns why the analysis failed, or <c>null</c>.</summary>
+    private async Task<string?> Analyze(
+        RuntimeEnvironment environment,
+        IAppAnalysis analysis,
+        StoredApp app,
+        string workFolder,
+        CancellationToken cancellationToken
+    )
+    {
+        string copy = Path.Join(workFolder, environment.Name, analysis.Name, app.App.Org.Value, app.App.App.Value);
+        string resultFile = $"{copy}.result";
+        var timer = Stopwatch.StartNew();
+        try
+        {
+            string? failure;
+            try
+            {
+                CopyFolder(store.AppPath(environment, app.App), copy);
+                failure =
+                    ChangedWhileCopied(environment, app)
+                    ?? await executor.Run(new AnalysisJob.App(analysis.Name, copy), resultFile, cancellationToken);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                failure = $"Could not copy the app to {copy}: {ex.Message}";
+            }
+
+            return database.PutApp(
+                analysis,
+                environment,
+                app.App,
+                app.Version?.Value,
+                Outcome(failure, resultFile, timer),
+                DateTimeOffset.UtcNow
+            );
+        }
+        finally
+        {
+            TryDelete(copy);
+            TryDelete(resultFile);
+        }
+    }
+
+    /// <summary>
+    /// Tells whether the copy of an app may be of another version than the one the run read, and so the one its result
+    /// is recorded with. A run takes no lock on the store, and a sync moves an app's new folder in before its index
+    /// records the new version. So the copy is of the version read only when the index still has that version after the
+    /// copy, and no sync was then moving apps.
+    /// </summary>
+    /// <returns>Why the copy cannot be analyzed, or <c>null</c> when it is of the version read.</returns>
+    private string? ChangedWhileCopied(RuntimeEnvironment environment, StoredApp app)
+    {
+        const string Again = "The app is analyzed again on the next run.";
+        try
+        {
+            if (FleetStoreReader.IsCommitting(store, environment))
+            {
+                return $"A sync was changing the store's apps when the app was copied. {Again}";
+            }
+
+            StoredApp? now = FleetStoreReader.FindApp(store, environment, app.App);
+            if (now is not null && now.Version?.Value == app.Version?.Value)
+            {
+                return null;
+            }
+
+            string before = app.Version?.Value ?? "an unknown version";
+            string after = now is null ? "none" : now.Version?.Value ?? "an unknown version";
+            return $"A sync changed the app from {before} to {after} while it was copied. {Again}";
+        }
+        catch (FleetException ex)
+        {
+            return $"Could not read the app's version after it was copied: {ex.Message}";
+        }
+    }
+
+    /// <summary>
+    /// Forgets the items an analysis no longer needs, analyzes those it says to, and records each.
+    /// </summary>
+    private async Task<AnalysisItemsResult> RunItems(
+        IItemAnalysis analysis,
+        AnalysisOptions options,
+        string workFolder,
+        IAnalysisObserver? observer,
+        CancellationToken cancellationToken
+    )
+    {
+        ItemPlan plan = database.Write(tables => analysis.PlanItems(tables, options));
+        string folder = Path.Join(workFolder, "items", analysis.Name);
+        Directory.CreateDirectory(folder);
+        int completed = 0;
+        int failed = 0;
+        observer?.OnItemsProgress(analysis.Name, analysis.ItemsName, 0, plan.Pending.Count);
+        await Parallel.ForEachAsync(
+            plan.Pending.Select((item, index) => (Item: item, Index: index)),
+            new ParallelOptions { MaxDegreeOfParallelism = options.Parallelism, CancellationToken = cancellationToken },
+            async (job, token) =>
+            {
+                string resultFile = Path.Join(folder, $"{job.Index}.result");
+                var timer = Stopwatch.StartNew();
+                try
+                {
+                    string? failure = await executor.Run(
+                        new AnalysisJob.Item(analysis.Name, job.Item),
+                        resultFile,
+                        token
+                    );
+                    if (database.PutItem(analysis, job.Item, Outcome(failure, resultFile, timer)) is not null)
+                    {
+                        Interlocked.Increment(ref failed);
+                    }
+                }
+                finally
+                {
+                    TryDelete(resultFile);
+                }
+
+                int done = Interlocked.Increment(ref completed);
+                observer?.OnItemsProgress(analysis.Name, analysis.ItemsName, done, plan.Pending.Count);
+            }
+        );
+
+        return new AnalysisItemsResult(
+            analysis.Name,
+            analysis.ItemsName,
+            plan.Total,
+            plan.Pending.Count,
+            plan.Total - plan.Pending.Count,
+            failed,
+            plan.Removed
+        );
+    }
+
+    /// <summary>How a job ended, from why the executor says it failed and the file it wrote.</summary>
+    private static AnalysisOutcome Outcome(string? failure, string resultFile, Stopwatch timer)
+    {
+        var outcome = new AnalysisOutcome(
+            failure,
+            failure is null && File.Exists(resultFile) ? resultFile : null,
+            timer.Elapsed.TotalSeconds
+        );
+        return outcome is { Failure: null, ResultFile: null }
+            ? outcome with
+            {
+                Failure = "The analysis wrote no result.",
+            }
+            : outcome;
+    }
+
+    /// <summary>
+    /// Copies an app's folder. The copies are writable, whatever the store's files are, so that an analysis can build
+    /// in them and they can be deleted on Windows, where a read-only file cannot be.
+    /// </summary>
+    internal static void CopyFolder(string source, string destination)
+    {
+        if (Directory.Exists(destination))
+        {
+            Directory.Delete(destination, recursive: true);
+        }
+
+        Directory.CreateDirectory(destination);
+        foreach (string folder in Directory.EnumerateDirectories(source, "*", SearchOption.AllDirectories))
+        {
+            Directory.CreateDirectory(Path.Join(destination, Path.GetRelativePath(source, folder)));
+        }
+
+        foreach (string file in Directory.EnumerateFiles(source, "*", SearchOption.AllDirectories))
+        {
+            string copy = Path.Join(destination, Path.GetRelativePath(source, file));
+            File.Copy(file, copy);
+            FileAttributes attributes = File.GetAttributes(copy);
+            if (attributes.HasFlag(FileAttributes.ReadOnly))
+            {
+                File.SetAttributes(copy, attributes & ~FileAttributes.ReadOnly);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Deletes a copy or a result file. What an analysis leaves behind, such as a file a process it started still
+    /// holds, stays in the temporary folder rather than ending the run.
+    /// </summary>
+    private static void TryDelete(string path)
+    {
+        try
+        {
+            if (Directory.Exists(path))
+            {
+                Directory.Delete(path, recursive: true);
+            }
+            else
+            {
+                File.Delete(path);
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
+    }
+}

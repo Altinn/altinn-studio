@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 
+import { withComponentGrid } from '@app/form-component/layout-components/common/storybook';
 import { useArgs } from 'storybook/preview-api';
 import { fn } from 'storybook/test';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
@@ -117,6 +118,7 @@ function EditableAddress({ args, updateArgs }: EditableAddressProps) {
 const meta = {
   title: 'LayoutComponents/Address',
   component: AddressLayout,
+  decorators: [withComponentGrid],
   // ADDRESS_PROP_CATEGORIES is a docs helper, not a story — keep CSF from rendering it as one.
   excludeStories: ['ADDRESS_PROP_CATEGORIES'],
   parameters: {

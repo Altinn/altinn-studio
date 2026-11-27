@@ -26,15 +26,6 @@ internal sealed record WorkflowCallbackState
     public required List<FormDataEntry> FormData { get; init; }
 
     /// <summary>
-    /// The signee-state documents a step of this workflow has written, with the blob version they were written as.
-    /// A retried step then reads the bytes it was given instead of re-reading Storage, where an earlier attempt
-    /// whose response was lost may already have replaced them, so its save reaches Storage's replay handling.
-    /// </summary>
-    [JsonPropertyName("binaryData")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public List<BinaryDataEntry>? BinaryData { get; init; }
-
-    /// <summary>
     /// The mailbox a service task's external stage has open, keyed by the stage's item index as a string (JSON
     /// object keys are strings) — the app's own bookkeeping riding the blob rather than anything the engine reads.
     /// <c>null</c> for every workflow with no mailbox open. A service task opens one at a time, so the map holds one
@@ -76,16 +67,4 @@ internal sealed record FormDataEntry
 
     [JsonPropertyName("data")]
     public required JsonElement Data { get; init; }
-}
-
-internal sealed record BinaryDataEntry
-{
-    [JsonPropertyName("id")]
-    public required string Id { get; init; }
-
-    [JsonPropertyName("blobVersionId")]
-    public required string? BlobVersionId { get; init; }
-
-    [JsonPropertyName("data")]
-    public required byte[] Data { get; init; }
 }

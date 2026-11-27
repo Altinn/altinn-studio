@@ -1,3 +1,4 @@
+import { withComponentGrid } from '@app/form-component/layout-components/common/storybook';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
@@ -18,6 +19,7 @@ export const AUDIO_PROP_CATEGORIES = {
 const meta = {
   title: 'LayoutComponents/Audio',
   component: Audio,
+  decorators: [withComponentGrid],
   excludeStories: ['AUDIO_PROP_CATEGORIES'],
   parameters: {
     layout: 'padded',

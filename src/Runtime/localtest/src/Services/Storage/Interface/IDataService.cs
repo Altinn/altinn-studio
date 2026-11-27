@@ -93,4 +93,18 @@ public interface IDataService
         int? storageAccountNumber,
         CancellationToken cancellationToken = default
     );
+
+    /// <summary>
+    /// Best-effort delete of the legacy non-versioned blob of data element metadata that has already been deleted.
+    /// </summary>
+    /// <remarks>
+    /// Aggregate mutations use this operation to keep the element's original blob versions readable for workflow retries.
+    /// LocalTest has no orphan cleanup, so those detached versions stay. Legacy blobs have no blob-version
+    /// metadata, so they are deleted here.
+    /// </remarks>
+    Task DeleteLegacyDataElementBlob(
+        Instance instance,
+        DataElement dataElement,
+        int? storageAccountNumber
+    );
 }

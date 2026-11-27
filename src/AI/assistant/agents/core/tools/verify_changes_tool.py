@@ -37,6 +37,7 @@ from pydantic import BaseModel, ConfigDict
 
 from agents.altinn.findings import Finding, split_new_and_old
 from agents.altinn.layout import get_layout_schema, get_referenced_schemas
+from agents.altinn.layout.components import has_navigation, layout_components, text_key_bindings
 from agents.altinn.layout.schema_validator import validate_layout_json
 from agents.altinn.resources.validator import ResourceValidator, text_resource_ids, text_resource_warnings
 from agents.core.tool import LoopContext, ToolResult, WriteTool
@@ -241,9 +242,6 @@ def _is_text_resource(file_path: str) -> bool:
 # ---------------------------------------------------------------------------
 
 
-_NAVIGATION_COMPONENT_TYPES = {"NavigationButtons", "NavigationBar"}
-
-
 def _check_page_navigation(ctx: LoopContext, changed: list[str]) -> _Result:
     """In a multi-page layout set, every changed page must carry a
     navigation component.
@@ -354,16 +352,11 @@ class _TextKeyBinding:
 def _text_key_bindings(parsed_layout: Any) -> list[_TextKeyBinding]:
     found: list[_TextKeyBinding] = []
     # An unreadable layout has no keys here: the schema validator owns unreadable layouts.
-    for component in _layout_components(parsed_layout) or []:
-        bindings = component.get("textResourceBindings") if isinstance(component, dict) else None
-        if not isinstance(bindings, dict):
+    for component in layout_components(parsed_layout) or []:
+        if not isinstance(component, dict):
             continue
         component_id = component.get("id") if isinstance(component.get("id"), str) else None
-        found.extend(
-            _TextKeyBinding(component_id, name, key)
-            for name, key in bindings.items()
-            if isinstance(key, str) and key.strip()
-        )
+        found.extend(_TextKeyBinding(component_id, name, key) for name, key in text_key_bindings(component).items())
     return found
 
 
@@ -381,17 +374,10 @@ def _read_page_order(settings_path: Path) -> list[str] | None:
 
 def _has_navigation_component(repo: Path, file_path: str) -> bool:
     """Does the layout contain a NavigationButtons/NavigationBar component?"""
-    components = _layout_components(_parse_json(WorkingTreeFiles(repo).read_text(file_path)))
+    components = layout_components(_parse_json(WorkingTreeFiles(repo).read_text(file_path)))
     if components is None:
         return True  # unreadable/invalid JSON is the schema validator's problem
-    return any(isinstance(c, dict) and c.get("type") in _NAVIGATION_COMPONENT_TYPES for c in components)
-
-
-def _layout_components(parsed: Any) -> list[Any] | None:
-    """Return `data.layout`, or None when the layout is unreadable or has no layout list."""
-    data = parsed.get("data") if isinstance(parsed, dict) else None
-    layout = data.get("layout") if isinstance(data, dict) else None
-    return layout if isinstance(layout, list) else None
+    return has_navigation(components)
 
 
 def _parse_json(text: str | None) -> Any:
@@ -415,12 +401,11 @@ def _check_forbidden_new_files(ctx: LoopContext, changed: list[str]) -> _Result:
     An unfinished v9 upgrade keeps `layout-sets.json` and the rule files, and
     those must still be editable and deletable.
     """
-    forbidden_patterns = ctx.app_version_profile.forbidden_new_file_patterns
     notes = [
         f"{file_path}: {replacement}"
         for file_path in changed
-        for pattern, replacement in forbidden_patterns.items()
-        if PurePosixPath(file_path).match(pattern) and not git_ops.exists_in_head(ctx.repo_path, file_path)
+        if (replacement := ctx.app_version_profile.forbidden_file(file_path))
+        and not git_ops.exists_in_head(ctx.repo_path, file_path)
     ]
     return _Result(not notes, notes)
 

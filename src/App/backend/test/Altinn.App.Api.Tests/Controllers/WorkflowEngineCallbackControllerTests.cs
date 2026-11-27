@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using System.Security.Claims;
 using System.Text;
@@ -8,6 +9,8 @@ using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Action;
 using Altinn.App.Core.Features.Auth;
+using Altinn.App.Core.Features.Payment.Models;
+using Altinn.App.Core.Features.Payment.Processors;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Infrastructure.Clients.Secrets;
@@ -17,6 +20,7 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
+using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Validation;
@@ -24,12 +28,15 @@ using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.ProcessEnd;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskAbandon;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskStart;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
+using Altinn.App.Tests.Common;
 using Altinn.App.Tests.Common.Auth;
 using Altinn.App.Tests.Common.Fixtures;
 using Altinn.App.Tests.Common.Mocks;
@@ -836,6 +843,78 @@ public class WorkflowEngineCallbackControllerTests
     }
 
     [Fact]
+    public async Task ExecuteCommand_WhenWorkflowOwnedSaveIsForbidden_DiagnosesIt_AndTheSameStepSavesAfterAPolicyFix()
+    {
+        await using ControllerSetup setup = CreateSetup(services =>
+        {
+            services.Services.AddSingleton<IWorkflowEngineCommand>(new AddBinaryDataCommand());
+            services.Services.AddTelemetrySink();
+        });
+        setup.Services.Storage.ForbidMutations = true;
+        Guid stepId = Guid.NewGuid();
+
+        IActionResult denied = await setup.Execute(AddBinaryDataCommand.Key, stepId);
+
+        var objectResult = Assert.IsType<ObjectResult>(denied);
+        Assert.Equal(StatusCodes.Status500InternalServerError, objectResult.StatusCode);
+        var problem = Assert.IsType<ProblemDetails>(objectResult.Value);
+        Assert.False(problem.Extensions.ContainsKey("nonRetryable"));
+        AssertDenialReported(setup);
+
+        setup.Services.Storage.ForbidMutations = false;
+
+        IActionResult retried = await setup.Execute(AddBinaryDataCommand.Key, stepId);
+
+        Assert.IsType<OkObjectResult>(retried);
+        var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(InstanceOwnerPartyId, setup.InstanceGuid);
+        Assert.Single(storedInstance.Data);
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_WhenWorkflowOwnedSaveGetsAnotherStorageFailure_PropagatesWithoutTheDiagnosis()
+    {
+        await using ControllerSetup setup = CreateSetup(new AddBinaryDataCommand());
+        setup.Services.Storage.ForcedMutationConflictMessage = "unrelated conflict";
+
+        await Assert.ThrowsAsync<PlatformHttpException>(() => setup.Execute(AddBinaryDataCommand.Key, Guid.NewGuid()));
+
+        Assert.False(LoggedDenialDiagnosis(setup));
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_WhenCommandThrowsAWrappedForbidden_PropagatesWithTheDiagnosis()
+    {
+        await using ControllerSetup setup = CreateSetup(services =>
+        {
+            services.Services.AddSingleton<IWorkflowEngineCommand>(new ThrowWrappedForbiddenCommand());
+            services.Services.AddTelemetrySink();
+        });
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            setup.Execute(ThrowWrappedForbiddenCommand.Key, Guid.NewGuid())
+        );
+
+        AssertDenialReported(setup);
+        Assert.Empty(GetMutationRequests(setup.Services));
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_WhenAcquireIsForbidden_PropagatesWithTheDiagnosis()
+    {
+        await using ControllerSetup setup = CreateSetup(services => services.Services.AddTelemetrySink());
+        setup.Services.Storage.ForbidMutations = true;
+
+        PlatformHttpException exception = await Assert.ThrowsAsync<PlatformHttpException>(() =>
+            setup.Execute(ProcessingStatusAcquirer.Key, stepId: Guid.NewGuid())
+        );
+
+        Assert.Equal(HttpStatusCode.Forbidden, exception.StatusCode);
+        AssertDenialReported(setup);
+        var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(InstanceOwnerPartyId, setup.InstanceGuid);
+        Assert.True(ProcessStatusHelper.IsIdle(storedInstance));
+    }
+
+    [Fact]
     public async Task ExecuteCommand_WhenInitialProcessAcquireGetsStaleInstanceVersion_FailsPermanentlyWithoutMutation()
     {
         await using ControllerSetup setup = CreateSetup(_ => { });
@@ -910,24 +989,162 @@ public class WorkflowEngineCallbackControllerTests
     }
 
     [Fact]
-    public async Task ExecuteCommand_WhenRealServiceTaskLazyReadUsesStaleCallbackState_ReturnsConflict()
+    public async Task ExecuteCommand_WhenLazyReadFindsReplacedContent_ReadsTheBlobVersionTheStateCaptured()
     {
-        Guid dataElementId = Guid.NewGuid();
-        await using ControllerSetup setup = CreateSetup(
+        var serviceTask = new LazyReadServiceTask(Guid.NewGuid());
+        await using ControllerSetup setup = CreateLazyReadSetup(serviceTask, "captured"u8.ToArray());
+        setup.Services.Storage.AddDataRaw(
+            serviceTask.DataElementId,
+            "replaced"u8.ToArray(),
+            StorageClientInterceptor.CreateBlobVersionId(2)
+        );
+
+        IActionResult result = await setup.Execute(
+            ExecuteServiceTask.Key,
+            stepId: Guid.NewGuid(),
+            LazyReadServiceTask.CommandPayload,
+            collectionKey: "service-task-chain"
+        );
+
+        Assert.IsType<OkObjectResult>(result);
+        Assert.Equal("captured"u8.ToArray(), serviceTask.ReadData);
+        Assert.Empty(GetMutationRequests(setup.Services));
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_WhenLazyReadFindsReplacedContentAndStorageNoLongerKeepsTheCapturedVersion_ReturnsConflict()
+    {
+        var serviceTask = new LazyReadServiceTask(Guid.NewGuid());
+        await using ControllerSetup setup = CreateLazyReadSetup(serviceTask, "captured"u8.ToArray());
+        setup.Services.Storage.AddDataRaw(
+            serviceTask.DataElementId,
+            "replaced"u8.ToArray(),
+            StorageClientInterceptor.CreateBlobVersionId(2)
+        );
+        setup.Services.Storage.CleanUpDetachedBlobVersions();
+
+        IActionResult result = await setup.Execute(
+            ExecuteServiceTask.Key,
+            stepId: Guid.NewGuid(),
+            LazyReadServiceTask.CommandPayload
+        );
+
+        var conflict = Assert.IsType<ConflictObjectResult>(result);
+        Assert.Equal(StatusCodes.Status409Conflict, conflict.StatusCode);
+        var problem = Assert.IsType<ProblemDetails>(conflict.Value);
+        Assert.Equal("Data element content conflict", problem.Title);
+        Assert.Contains("Reload the instance data and retry the request.", problem.Detail, StringComparison.Ordinal);
+        Assert.Contains(serviceTask.DataElementId.ToString(), problem.Detail, StringComparison.Ordinal);
+        var contentRequest = Assert.Single(
+            setup.Services.Storage.RequestsResponses,
+            request =>
+                request.RequestMethod == HttpMethod.Get
+                && request.RequestUrl?.AbsolutePath.Contains("/versions/", StringComparison.Ordinal) != true
+        );
+        Assert.Equal(
+            StorageClientInterceptor.CreateDataETag(1),
+            Assert.Single(contentRequest.RequestHeaders.IfMatch).ToString()
+        );
+        Assert.Empty(GetMutationRequests(setup.Services));
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_WhenSaveBuildsOnACapturedVersionSomethingElseReplaced_FailsAsStaleAndKeepsTheOtherChange()
+    {
+        var serviceTask = new LazyReadServiceTask(Guid.NewGuid(), contentToSave: "from the callback"u8.ToArray());
+        await using ControllerSetup setup = CreateLazyReadSetup(serviceTask, "captured"u8.ToArray());
+        setup.Services.Storage.AddDataRaw(
+            serviceTask.DataElementId,
+            "replaced"u8.ToArray(),
+            StorageClientInterceptor.CreateBlobVersionId(2)
+        );
+        setup.Services.Storage.SetStorageVersions(
+            InstanceOwnerPartyId,
+            setup.InstanceGuid,
+            instanceVersion: 2,
+            processStateVersion: 1
+        );
+
+        IActionResult result = await setup.Execute(
+            ExecuteServiceTask.Key,
+            stepId: Guid.NewGuid(),
+            LazyReadServiceTask.CommandPayload,
+            collectionKey: "service-task-chain"
+        );
+
+        Assert.Equal("captured"u8.ToArray(), serviceTask.ReadData);
+        var objectResult = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status422UnprocessableEntity, objectResult.StatusCode);
+        Assert.Equal("StoragePreconditionFailedException", Assert.IsType<ProblemDetails>(objectResult.Value).Title);
+        StorageClientInterceptor.RequestResponse mutationRequest = Assert.Single(GetMutationRequests(setup.Services));
+        Assert.Equal(
+            "1",
+            mutationRequest
+                .RequestHeaders.GetValues(StoragePreconditionHeaders.IfInstanceVersionMatchHeaderName)
+                .Single()
+        );
+        StorageInstanceMutationUpdateDataElement update = Assert.Single(
+            DeserializeMutationRequest(mutationRequest.RequestBody!).UpdateDataElements
+        );
+        Assert.Equal(StorageClientInterceptor.CreateBlobVersionId(1), update.ExpectedCurrentBlobVersion);
+        var (_, storedData) = setup.Services.Storage.GetInstanceAndData(InstanceOwnerPartyId, setup.InstanceGuid);
+        Assert.Equal("replaced"u8.ToArray(), storedData[serviceTask.DataElementId.ToString()]);
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_StepThatReplacedAFileRunAgainAfterItsSaveWasCommitted_Completes()
+    {
+        var serviceTask = new LazyReadServiceTask(Guid.NewGuid(), contentToSave: "rewritten"u8.ToArray());
+        await using ControllerSetup setup = CreateLazyReadSetup(serviceTask, "captured"u8.ToArray());
+        Guid stepId = Guid.NewGuid();
+
+        IActionResult lostAnswer = await setup.Execute(
+            ExecuteServiceTask.Key,
+            stepId,
+            LazyReadServiceTask.CommandPayload,
+            collectionKey: "service-task-chain"
+        );
+        IActionResult retry = await setup.Execute(
+            ExecuteServiceTask.Key,
+            stepId,
+            LazyReadServiceTask.CommandPayload,
+            collectionKey: "service-task-chain"
+        );
+
+        WorkflowCallbackState savedState = setup.DeserializeState(
+            Assert.IsType<AppCallbackResponse>(Assert.IsType<OkObjectResult>(lostAnswer).Value).State!
+        );
+        WorkflowCallbackState retriedState = setup.DeserializeState(
+            Assert.IsType<AppCallbackResponse>(Assert.IsType<OkObjectResult>(retry).Value).State!
+        );
+        Assert.Equal("captured"u8.ToArray(), serviceTask.ReadData);
+        Assert.Equal(savedState.InstanceVersion, retriedState.InstanceVersion);
+        Assert.Equal(
+            Assert.Single(savedState.Instance.Data).BlobVersionId,
+            Assert.Single(retriedState.Instance.Data).BlobVersionId
+        );
+        var (_, storedData) = setup.Services.Storage.GetInstanceAndData(InstanceOwnerPartyId, setup.InstanceGuid);
+        Assert.Equal("rewritten"u8.ToArray(), storedData[serviceTask.DataElementId.ToString()]);
+        Assert.Equal(2, GetMutationRequests(setup.Services).Count);
+    }
+
+    private static ControllerSetup CreateLazyReadSetup(LazyReadServiceTask serviceTask, byte[] capturedContent) =>
+        CreateSetup(
             services =>
             {
-                services.Services.AddSingleton<IServiceTask>(new LazyReadServiceTask(dataElementId));
+                services.Services.AddSingleton<IServiceTask>(serviceTask);
                 services.Services.AddSingleton<IWorkflowEngineCommand>(serviceProvider => new ExecuteServiceTask(
                     serviceProvider.GetRequiredService<AppImplementationFactory>(),
                     new MailboxDeliveryEnvelope(serviceProvider.GetRequiredService<WorkflowStateSigner>())
                 ));
+                services.Services.AddSingleton(Mock.Of<IProcessEngine>());
             },
             (services, instance) =>
             {
                 instance.Data.Add(
                     new DataElement
                     {
-                        Id = dataElementId.ToString(),
+                        Id = serviceTask.DataElementId.ToString(),
                         InstanceGuid = GetInstanceGuid(instance).ToString(),
                         DataType = DataTypeId,
                         ContentType = ContentType,
@@ -936,34 +1153,137 @@ public class WorkflowEngineCallbackControllerTests
                     }
                 );
                 services.Storage.AddDataRaw(
-                    dataElementId,
-                    "stale state"u8.ToArray(),
+                    serviceTask.DataElementId,
+                    capturedContent,
                     StorageClientInterceptor.CreateBlobVersionId(1)
                 );
             }
         );
-        setup.Services.Storage.SetDataBlobVersionId(dataElementId, StorageClientInterceptor.CreateBlobVersionId(2));
-        string commandPayload = CommandPayloadSerializer.Serialize(
-            new ExecuteServiceTaskPayload(LazyReadServiceTask.ServiceTaskType, ItemIndex: 0)
-        )!;
 
-        IActionResult result = await setup.Execute(ExecuteServiceTask.Key, stepId: Guid.NewGuid(), commandPayload);
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ExecuteCommand_PaymentCleanupRunAgainAfterItsSaveWasCommitted_Completes(bool abandon)
+    {
+        Guid paymentDataElementId = Guid.NewGuid();
+        var paymentProcessor = new Mock<IPaymentProcessor>(MockBehavior.Strict);
+        paymentProcessor.Setup(processor => processor.PaymentProcessorId).Returns("processor");
+        paymentProcessor
+            .Setup(processor =>
+                processor.TerminatePayment(
+                    It.IsAny<Instance>(),
+                    It.IsAny<PaymentInformation>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(true);
+        var payment = new PaymentInformation
+        {
+            TaskId = "Task_1",
+            Status = PaymentStatus.Created,
+            OrderDetails = new OrderDetails
+            {
+                PaymentProcessorId = "processor",
+                Currency = "NOK",
+                OrderLines = [],
+                Receiver = new PaymentReceiver(),
+            },
+            PaymentDetails = new PaymentDetails { PaymentId = "payment-1" },
+        };
+        await using ControllerSetup setup = CreateSetup(
+            services =>
+            {
+                services.AddDataType(
+                    new DataType
+                    {
+                        Id = "payment",
+                        TaskIds = ["Task_1"],
+                        AllowedContentTypes = [ContentType],
+                        MaxCount = 1,
+                    }
+                );
+                services
+                    .Mock<IProcessReader>()
+                    .Setup(reader => reader.GetAltinnTaskExtension("Task_1"))
+                    .Returns(
+                        new AltinnTaskExtension
+                        {
+                            PaymentConfiguration = new AltinnPaymentConfiguration
+                            {
+                                PaymentDataType = "payment",
+                                PaymentReceiptPdfDataType = "receipt",
+                            },
+                        }
+                    );
+                services.Services.AddSingleton(paymentProcessor.Object);
+                services.Services.AddSingleton<IProcessTask>(serviceProvider => new PaymentProcessTask(
+                    Mock.Of<IPdfService>(),
+                    serviceProvider.GetRequiredService<IProcessReader>(),
+                    serviceProvider.GetRequiredService<AppImplementationFactory>()
+                ));
+                services.Services.AddSingleton<IWorkflowEngineCommand>(serviceProvider => new StartTask(
+                    new ProcessTaskResolver(serviceProvider.GetRequiredService<AppImplementationFactory>())
+                ));
+                services.Services.AddSingleton<IWorkflowEngineCommand>(serviceProvider => new AbandonTask(
+                    new ProcessTaskResolver(serviceProvider.GetRequiredService<AppImplementationFactory>())
+                ));
+            },
+            (services, instance) =>
+            {
+                instance.Process = new ProcessState
+                {
+                    Status = ProcessStatus.Processing,
+                    CurrentTask = new ProcessElementInfo
+                    {
+                        ElementId = "Task_1",
+                        AltinnTaskType = AltinnTaskTypes.Payment,
+                    },
+                };
+                instance.Data.Add(
+                    new DataElement
+                    {
+                        Id = paymentDataElementId.ToString(),
+                        InstanceGuid = GetInstanceGuid(instance).ToString(),
+                        DataType = "payment",
+                        ContentType = ContentType,
+                        BlobVersionId = StorageClientInterceptor.CreateBlobVersionId(1),
+                    }
+                );
+                services.Storage.AddDataRaw(
+                    paymentDataElementId,
+                    JsonSerializer.SerializeToUtf8Bytes(payment),
+                    StorageClientInterceptor.CreateBlobVersionId(1)
+                );
+            }
+        );
+        string commandKey = abandon ? AbandonTask.Key : StartTask.Key;
+        string commandPayload = CommandPayloadSerializer.Serialize(new ProcessTaskStagePayload(StageIndex: 0))!;
+        Guid stepId = Guid.NewGuid();
 
-        var conflict = Assert.IsType<ConflictObjectResult>(result);
-        Assert.Equal(StatusCodes.Status409Conflict, conflict.StatusCode);
-        var problem = Assert.IsType<ProblemDetails>(conflict.Value);
-        Assert.Equal("Data element content conflict", problem.Title);
-        Assert.Contains("Reload the instance data and retry the request.", problem.Detail, StringComparison.Ordinal);
-        Assert.Contains(dataElementId.ToString(), problem.Detail, StringComparison.Ordinal);
-        var contentRequest = Assert.Single(
-            setup.Services.Storage.RequestsResponses,
-            request => request.RequestMethod == HttpMethod.Get
+        IActionResult lostAnswer = await setup.Execute(commandKey, stepId, commandPayload);
+        IActionResult retry = await setup.Execute(commandKey, stepId, commandPayload);
+
+        WorkflowCallbackState savedState = setup.DeserializeState(
+            Assert.IsType<AppCallbackResponse>(Assert.IsType<OkObjectResult>(lostAnswer).Value).State!
         );
-        Assert.Equal(
-            StorageClientInterceptor.CreateDataETag(1),
-            Assert.Single(contentRequest.RequestHeaders.IfMatch).ToString()
+        WorkflowCallbackState retriedState = setup.DeserializeState(
+            Assert.IsType<AppCallbackResponse>(Assert.IsType<OkObjectResult>(retry).Value).State!
         );
-        Assert.Empty(GetMutationRequests(setup.Services));
+        Assert.Empty(savedState.Instance.Data);
+        Assert.Empty(retriedState.Instance.Data);
+        Assert.Equal(savedState.InstanceVersion, retriedState.InstanceVersion);
+        Assert.Equal(savedState.ProcessStateVersion, retriedState.ProcessStateVersion);
+        var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(InstanceOwnerPartyId, setup.InstanceGuid);
+        Assert.Empty(storedInstance.Data);
+        Assert.All(
+            GetMutationRequests(setup.Services),
+            request =>
+                Assert.Equal(
+                    stepId.ToString(),
+                    request.RequestHeaders.GetValues(StoragePreconditionHeaders.IdempotencyKeyHeaderName).Single()
+                )
+        );
+        Assert.Equal(2, GetMutationRequests(setup.Services).Count);
     }
 
     [Fact]
@@ -1416,6 +1736,27 @@ public class WorkflowEngineCallbackControllerTests
 
     private static Guid GetInstanceGuid(Instance instance) => Guid.Parse(instance.Id!.Split('/')[1]);
 
+    // Needs AddTelemetrySink in the setup.
+    private static void AssertDenialReported(ControllerSetup setup)
+    {
+        Assert.True(LoggedDenialDiagnosis(setup));
+        Activity callback = Assert.Single(
+            setup.ServiceProvider.GetRequiredService<TelemetrySink>().CapturedActivities,
+            activity => activity.OperationName.EndsWith(".Callback", StringComparison.Ordinal)
+        );
+        Assert.Equal(true, callback.GetTagItem(Telemetry.InternalLabels.ServiceOwnerAuthorizationDenied));
+        Assert.Equal(ActivityStatusCode.Error, callback.Status);
+    }
+
+    private static bool LoggedDenialDiagnosis(ControllerSetup setup)
+    {
+        string diagnosis = ServiceOwnerAuthorizationDiagnostics.Describe(setup.Services.AppMetadata);
+        return setup.ServiceProvider.Logs.Exists(log =>
+            log.LogLevel == LogLevel.Error
+            && log.FormattedMessage?.Contains(diagnosis, StringComparison.Ordinal) == true
+        );
+    }
+
     private static List<Altinn.App.Tests.Common.Mocks.StorageClientInterceptor.RequestResponse> GetMutationRequests(
         MockedServiceCollection services
     ) =>
@@ -1458,6 +1799,20 @@ public class WorkflowEngineCallbackControllerTests
         }
     }
 
+    // Like app code a command runs without catching, such as IInstantiationProcessor.DataCreation.
+    private sealed class ThrowWrappedForbiddenCommand : IWorkflowEngineCommand
+    {
+        public const string Key = "ThrowWrappedForbiddenForCallbackTest";
+
+        public string GetKey() => Key;
+
+        public Task<WorkflowEngineCommandResult> Execute(WorkflowEngineCommandContext context) =>
+            throw new InvalidOperationException(
+                "Data creation failed",
+                new PlatformHttpException(HttpStatusCode.Forbidden, "Storage refused the request")
+            );
+    }
+
     private sealed class AddBinaryDataCommand : IWorkflowEngineCommand
     {
         public const string Key = "AddBinaryDataForCallbackTest";
@@ -1476,9 +1831,16 @@ public class WorkflowEngineCallbackControllerTests
         }
     }
 
-    private sealed class LazyReadServiceTask(Guid dataElementId) : IServiceTask
+    private sealed class LazyReadServiceTask(Guid dataElementId, byte[]? contentToSave = null) : IServiceTask
     {
         public const string ServiceTaskType = "LazyReadForCallbackTest";
+
+        public static string CommandPayload =>
+            CommandPayloadSerializer.Serialize(new ExecuteServiceTaskPayload(ServiceTaskType, ItemIndex: 0))!;
+
+        public Guid DataElementId => dataElementId;
+
+        public byte[]? ReadData { get; private set; }
 
         public string Type => ServiceTaskType;
 
@@ -1486,7 +1848,17 @@ public class WorkflowEngineCallbackControllerTests
 
         public async Task<ServiceTaskResult> Execute(StageContext context)
         {
-            await context.InstanceDataMutator.GetBinaryData(new DataElementIdentifier(dataElementId));
+            ReadData = (
+                await context.InstanceDataMutator.GetBinaryData(new DataElementIdentifier(dataElementId))
+            ).ToArray();
+            if (contentToSave is not null)
+            {
+                context.InstanceDataMutator.UpdateBinaryDataElement(
+                    new DataElementIdentifier(dataElementId),
+                    ContentType,
+                    contentToSave
+                );
+            }
             return ServiceTaskResult.Completed();
         }
     }
