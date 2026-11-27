@@ -15,6 +15,11 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
     private const string IdempotencyKeyHeader = "Idempotency-Key";
     private const string CollectionKeyHeader = "Collection-Key";
 
+    // The engine returns each workflow's callback state (the instance and its form data) unless asked not
+    // to. No reader in the app uses it, and every status read would otherwise download it for each workflow
+    // it lists.
+    private const string ExcludeStateQuery = "includeState=false";
+
     private readonly HttpClient _httpClient;
     private readonly PlatformSettings _platformSettings;
     private readonly ILogger<WorkflowEngineClient> _logger;
@@ -101,7 +106,8 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
         CancellationToken cancellationToken = default
     )
     {
-        string url = $"{GetWorkflowEngineEndpoint()}/{Uri.EscapeDataString(ns)}/workflows/{workflowId}";
+        string url =
+            $"{GetWorkflowEngineEndpoint()}/{Uri.EscapeDataString(ns)}/workflows/{workflowId}?{ExcludeStateQuery}";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Get, url);
         using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, cancellationToken);
 
@@ -386,7 +392,7 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
     )
     {
         var url = $"{GetWorkflowEngineEndpoint()}/{Uri.EscapeDataString(ns)}/workflows";
-        var queryParams = new List<string>();
+        var queryParams = new List<string> { ExcludeStateQuery };
 
         if (!string.IsNullOrWhiteSpace(collectionKey))
         {
@@ -411,12 +417,7 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
             queryParams.Add($"cursor={cursor.Value}");
         }
 
-        if (queryParams.Count > 0)
-        {
-            url += "?" + string.Join("&", queryParams);
-        }
-
-        return url;
+        return url + "?" + string.Join("&", queryParams);
     }
 
     private string GetWorkflowEngineEndpoint() => _platformSettings.ApiWorkflowEngineEndpoint.TrimEnd('/');

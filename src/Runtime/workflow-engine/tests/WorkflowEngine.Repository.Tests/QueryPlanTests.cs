@@ -186,6 +186,30 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
+    public async Task ClearExpiredCompletedState_UsesIndexScans()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        var plan = await QueryPlanHelper.ExplainAsync(
+            dataSource,
+            DbMaintenanceService.Sql.ClearExpiredCompletedStateCommand,
+            [
+                new NpgsqlParameter<DateTimeOffset>("cutoff", _now.AddDays(-7)),
+                new NpgsqlParameter<int>("batchSize", 1000),
+                new NpgsqlParameter<DateTimeOffset>("now", _now),
+            ],
+            ct
+        );
+
+        // The candidate scan must range-scan the partial index of completed workflows not yet cleared. Any
+        // other index would rescan every completed workflow retention keeps, on every sweep.
+        QueryPlanHelper.AssertNoSeqScan(plan, "workflows");
+        QueryPlanHelper.AssertNoSeqScan(plan, "steps");
+        QueryPlanHelper.AssertUsesIndexScan(plan, "workflows", "ix_workflows_updated_at_completed_state");
+    }
+
+    [Fact]
     public async Task FailPoisonedWorkflows_UsesIndexScans()
     {
         var ct = TestContext.Current.CancellationToken;

@@ -86,11 +86,11 @@ public class WorkflowEngineClientTests
         Assert.Equal("second-workflow", workflows[1].OperationId);
 
         Assert.Equal(
-            "http://workflow-engine/api/v1/ttd%2Fapp/workflows?label=org:ttd&status=Enqueued&status=Failed",
+            "http://workflow-engine/api/v1/ttd%2Fapp/workflows?includeState=false&label=org:ttd&status=Enqueued&status=Failed",
             requestUris[0]!.ToString()
         );
         Assert.Equal(
-            $"http://workflow-engine/api/v1/ttd%2Fapp/workflows?label=org:ttd&status=Enqueued&status=Failed&cursor={nextCursor}",
+            $"http://workflow-engine/api/v1/ttd%2Fapp/workflows?includeState=false&label=org:ttd&status=Enqueued&status=Failed&cursor={nextCursor}",
             requestUris[1]!.ToString()
         );
 
@@ -102,6 +102,43 @@ public class WorkflowEngineClientTests
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             );
+    }
+
+    [Fact]
+    public async Task ListWorkflows_WithoutFilters_StillLeavesTheStateOut()
+    {
+        var requestUris = new List<Uri?>();
+        var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+        handlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .Returns<HttpRequestMessage, CancellationToken>(
+                (request, _) =>
+                {
+                    requestUris.Add(request.RequestUri);
+                    return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NoContent));
+                }
+            );
+        handlerMock.Protected().Setup("Dispose", ItExpr.IsAny<bool>());
+
+        using var httpClient = new HttpClient(handlerMock.Object);
+        var client = new WorkflowEngineClient(
+            httpClient,
+            Options.Create(new PlatformSettings { ApiWorkflowEngineEndpoint = "http://workflow-engine/api/v1/" }),
+            Mock.Of<ILogger<WorkflowEngineClient>>()
+        );
+
+        IReadOnlyList<WorkflowStatusResponse> workflows = await client.ListWorkflows("ttd/app");
+
+        Assert.Empty(workflows);
+        Assert.Equal(
+            "http://workflow-engine/api/v1/ttd%2Fapp/workflows?includeState=false",
+            Assert.Single(requestUris)!.ToString()
+        );
     }
 
     [Theory]
@@ -130,7 +167,7 @@ public class WorkflowEngineClientTests
                 {
                     Assert.Equal(HttpMethod.Get, request.Method);
                     Assert.Equal(
-                        $"http://workflow-engine/api/v1/ttd%2Fapp/workflows/{workflowId}",
+                        $"http://workflow-engine/api/v1/ttd%2Fapp/workflows/{workflowId}?includeState=false",
                         request.RequestUri!.ToString()
                     );
                     return Task.FromResult(
