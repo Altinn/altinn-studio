@@ -135,6 +135,25 @@ public sealed class ApplicationInsightsUsageDetectorTests : IDisposable
     }
 
     [Fact]
+    public void Reports_UseOtlpExporter_but_not_a_named_otlp_exporter()
+    {
+        _app.Write(
+            "Program.cs",
+            """
+            services.AddOpenTelemetry().UseOtlpExporter();
+            services.ConfigureOpenTelemetryTracerProvider(b => b.AddOtlpExporter("ElasticExporter", null));
+            """
+        );
+
+        var result = Detect();
+
+        var todo = Assert.Single(result.Todos);
+        Assert.Contains("UseOtlpExporter()", todo, StringComparison.Ordinal);
+        Assert.Contains(result.Warnings, w => w.Contains("UseOtlpExporter", StringComparison.Ordinal));
+        Assert.DoesNotContain(result.Warnings, w => w.Contains("AddOtlpExporter", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void Ignores_open_telemetry_code_and_an_apps_own_types_with_generic_names()
     {
         _app.Write(

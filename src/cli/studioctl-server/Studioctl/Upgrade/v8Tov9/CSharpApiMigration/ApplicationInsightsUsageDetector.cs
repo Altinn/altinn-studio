@@ -83,11 +83,28 @@ internal sealed class ApplicationInsightsUsageDetector
         _projectFile = projectFile;
     }
 
+    private const string UseOtlpExporterSummary =
+        "UseOtlpExporter() stops a v9 app from starting wherever the runtime gives it a collector: the OpenTelemetry "
+        + "SDK does not allow it next to the app libraries' own OTLP exporter. Remove it; the libraries already export "
+        + "over OTLP. To send telemetry to a destination of the app's own as well, add a named exporter, such as "
+        + "AddOtlpExporter(\"my-backend\", options => ...), with ConfigureOpenTelemetryTracerProvider. Found:";
+
     public MigrationResult Detect()
     {
         var matches = _scanner.Files.SelectMany(MatchesIn).Concat(PackageReferences());
-        return WarnOnlyDetector.Report(Summary, matches);
+        var useOtlpExporter = _scanner.Files.SelectMany(file =>
+            CSharpSyntaxQueries.InvokedMethods(file, _crossCuttingOtlpExporter)
+        );
+        return WarnOnlyDetector.Combine(
+            WarnOnlyDetector.Report(Summary, matches),
+            WarnOnlyDetector.Report(UseOtlpExporterSummary, useOtlpExporter)
+        );
     }
+
+    private static readonly IReadOnlySet<string> _crossCuttingOtlpExporter = new HashSet<string>(StringComparer.Ordinal)
+    {
+        "UseOtlpExporter",
+    };
 
     private static IEnumerable<CSharpApiMatch> MatchesIn(ScannedCSharpFile file)
     {
