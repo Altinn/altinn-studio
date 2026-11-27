@@ -15,5 +15,16 @@
       IdFormat: W3C,
       HasParent: true
     }
+  ],
+  Metrics: [
+    {
+      Name: altinn.app_lib.data.patched,
+      MeterName: Altinn.App,
+      Measurements: [
+        {
+          Value: 1.0
+        }
+      ]
+    }
   ]
 }
