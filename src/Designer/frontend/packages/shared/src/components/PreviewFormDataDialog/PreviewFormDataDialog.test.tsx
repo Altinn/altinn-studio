@@ -107,6 +107,44 @@ describe('PreviewFormDataDialog', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('says so when it cannot read the data', async () => {
+    renderDialog({ readPreviewFormData: vi.fn().mockRejectedValue(new Error('Failed')) });
+
+    expect(await screen.findByText(textMock('general.fetch_error_message'))).toBeInTheDocument();
+  });
+
+  it('says so when the form has no data', async () => {
+    renderDialog({ readPreviewFormData: vi.fn().mockResolvedValue({ dataElements: [] }) });
+
+    expect(
+      await screen.findByText(textMock('ux_editor.preview.form_data.none')),
+    ).toBeInTheDocument();
+  });
+
+  it('shows the data of the data model the developer chooses', async () => {
+    const user = userEvent.setup();
+    renderDialog({
+      readPreviewFormData: vi.fn().mockResolvedValue({
+        dataElements: [
+          { id: 'first', dataType: 'model', data: { name: 'Kari' } },
+          { id: 'second', dataType: 'other', data: { name: 'Ola' } },
+        ],
+      }),
+    });
+
+    await user.selectOptions(
+      await screen.findByRole('combobox', {
+        name: textMock('ux_editor.preview.form_data.data_model'),
+      }),
+      'second',
+    );
+
+    const data = screen.getByRole('textbox', {
+      name: textMock('ux_editor.preview.form_data.data', { dataType: 'other' }),
+    });
+    expect(JSON.parse((data as HTMLTextAreaElement).value)).toEqual({ name: 'Ola' });
+  });
+
   it('reads nothing while it is closed', () => {
     const readPreviewFormData = vi.fn().mockResolvedValue(formData);
     renderDialog({ readPreviewFormData, open: false });
