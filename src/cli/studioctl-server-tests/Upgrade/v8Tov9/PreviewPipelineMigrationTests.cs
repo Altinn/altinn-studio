@@ -2986,6 +2986,8 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         var options = Write(
             "logic/RetryOptions.cs",
             """
+            using Retry = Altinn.App.Core.Features.Process.ProcessStepRetryStrategy;
+
             public static class RetryOptions
             {
                 public static ProcessStepOptions Built() =>
@@ -2998,6 +3000,8 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
 
                 public static ProcessStepRetryStrategy FromFactory() =>
                     ProcessStepRetryStrategy.Exponential(TimeSpan.FromSeconds(1));
+
+                public static ProcessStepOptions Aliased() => new() { RetryStrategy = new Retry { MaxRetries = 3 } };
             }
             """
         );
@@ -3012,10 +3016,10 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         var copied =
             "ProcessStepRetryStrategy can no longer be copied with changed values. Create the one you need with "
             + "Exponential, Linear, Constant or None.";
-        // Without the semantic model, the type of a target-typed new() is unknown.
+        // Without the semantic model, neither a target-typed new() nor an alias tells the type.
         string[] expected = semantic
-            ? [$"{file}:9: {built}", $"{file}:11: {built}", $"{file}:14: {copied}"]
-            : [$"{file}:9: {built}", $"{file}:14: {copied}"];
+            ? [$"{file}:11: {built}", $"{file}:13: {built}", $"{file}:16: {copied}", $"{file}:21: {built}"]
+            : [$"{file}:11: {built}", $"{file}:16: {copied}"];
         Assert.Equal(expected, result.Todos);
         Assert.Equal(written, await ReadMigrated(options));
     }

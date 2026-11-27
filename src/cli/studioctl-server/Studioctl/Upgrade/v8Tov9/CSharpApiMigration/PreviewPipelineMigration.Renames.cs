@@ -846,8 +846,8 @@ internal sealed partial class PreviewPipelineMigration
     /// hand, which only its factories create now. A method reported as a whole is skipped, since its to-do covers it.
     /// </summary>
     /// <remarks>
-    /// A strategy built with a target-typed <c>new()</c>, or copied from what a call returns, is found only with the
-    /// semantic model.
+    /// A strategy built with a target-typed <c>new()</c> or through a <c>using</c> alias, or copied from what a call
+    /// returns, is found only with the semantic model.
     /// </remarks>
     private static void ReportLeftovers(ScannedCSharpFile file, TypeNames names, List<UpgradeMessage> messages)
     {
@@ -947,13 +947,9 @@ internal sealed partial class PreviewPipelineMigration
         {
             var todo = node switch
             {
-                ObjectCreationExpressionSyntax created
-                    when TypeName(created.Type) is { } name
-                        && name.Identifier.ValueText == PipelineApi.RetryStrategy
-                        && names.IsAltinn(name, model) => _retryStrategyBuilt,
-                ImplicitObjectCreationExpressionSyntax created
-                    when IsOfAltinnType(created, PipelineApi.RetryStrategy, names, model) == true =>
-                    _retryStrategyBuilt,
+                BaseObjectCreationExpressionSyntax created
+                    when IsOfAltinnType(created, PipelineApi.RetryStrategy, names, model)
+                        ?? NamesRetryStrategy(created, names, model) => _retryStrategyBuilt,
                 WithExpressionSyntax copied
                     when IsOfAltinnType(copied.Expression, PipelineApi.RetryStrategy, names, model) == true =>
                     _retryStrategyCopied,
@@ -972,13 +968,28 @@ internal sealed partial class PreviewPipelineMigration
     }
 
     /// <summary>
-    /// The name of the type as written, without its namespace.
+    /// Whether the construction is written as <c>new ProcessStepRetryStrategy</c>, with or without its namespace, for
+    /// when the semantic model cannot tell its type.
     /// </summary>
-    private static IdentifierNameSyntax? TypeName(TypeSyntax type) =>
-        type switch
+    private static bool NamesRetryStrategy(
+        BaseObjectCreationExpressionSyntax created,
+        TypeNames names,
+        SemanticModel? model
+    )
+    {
+        if (created is not ObjectCreationExpressionSyntax explicitCreation)
         {
-            IdentifierNameSyntax name => name,
-            QualifiedNameSyntax { Right: IdentifierNameSyntax name } => name,
+            return false;
+        }
+
+        var name = explicitCreation.Type switch
+        {
+            IdentifierNameSyntax identifier => identifier,
+            QualifiedNameSyntax { Right: IdentifierNameSyntax identifier } => identifier,
             _ => null,
         };
+        return name is not null
+            && name.Identifier.ValueText == PipelineApi.RetryStrategy
+            && names.IsAltinn(name, model);
+    }
 }
