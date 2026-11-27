@@ -5,11 +5,11 @@ namespace Altinn.App.Core.Features;
 partial class Telemetry
 {
     internal Activity? StartGetSignDocumentsActivity() =>
-        ActivitySource.StartActivity("SignDocumentManager.GetSignDocuments");
+        LibraryActivitySource.StartActivity("SignDocumentManager.GetSignDocuments");
 
     internal Activity? StartSynchronizeSigneeContextsWithSignDocumentsActivity(string taskId)
     {
-        Activity? activity = ActivitySource.StartActivity(
+        Activity? activity = LibraryActivitySource.StartActivity(
             "SignDocumentManager.SynchronizeSigneeContextsWithSignDocuments"
         );
         activity?.SetTag(Labels.TaskId, taskId);
@@ -17,5 +17,5 @@ partial class Telemetry
     }
 
     internal Activity? StartDownloadSignDocumentActivity() =>
-        ActivitySource.StartActivity("SignDocumentManager.DownloadSignDocument");
+        LibraryActivitySource.StartActivity("SignDocumentManager.DownloadSignDocument");
 }

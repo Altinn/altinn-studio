@@ -5,11 +5,11 @@ namespace Altinn.App.Core.Features;
 
 partial class Telemetry
 {
-    internal Activity? StartDataListActivity() => ActivitySource.StartActivity("DataList.Get");
+    internal Activity? StartDataListActivity() => LibraryActivitySource.StartActivity("DataList.Get");
 
     internal Activity? StartDataListActivity(InstanceIdentifier instanceIdentifier)
     {
-        var activity = ActivitySource.StartActivity("DataList.GetWithId");
+        var activity = LibraryActivitySource.StartActivity("DataList.GetWithId");
         activity?.SetInstanceId(instanceIdentifier.InstanceGuid);
         return activity;
     }

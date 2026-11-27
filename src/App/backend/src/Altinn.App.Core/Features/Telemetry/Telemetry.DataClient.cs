@@ -8,14 +8,14 @@ partial class Telemetry
 {
     internal Activity? StartInsertFormDataActivity(Instance? instance)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.InsertFormData");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.InsertFormData");
         activity?.SetInstanceId(instance);
         return activity;
     }
 
     internal Activity? StartUpdateDataActivity(Guid instanceId, Guid dataElementId)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.UpdateData");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.UpdateData");
         activity?.SetInstanceId(instanceId);
         activity?.SetDataElementId(dataElementId);
         return activity;
@@ -23,7 +23,7 @@ partial class Telemetry
 
     internal Activity? StartUpdateDataActivity(Instance instance, DataElement dataElement)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.UpdateData");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.UpdateData");
         activity?.SetInstanceId(instance);
         activity?.SetDataElementId(dataElement);
         return activity;
@@ -31,7 +31,7 @@ partial class Telemetry
 
     internal Activity? StartGetBinaryDataActivity(Guid instanceId, Guid dataElementId)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.GetBinaryData");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.GetBinaryData");
         activity?.SetInstanceId(instanceId);
         activity?.SetDataElementId(dataElementId);
         return activity;
@@ -39,7 +39,7 @@ partial class Telemetry
 
     internal Activity? StartGetBinaryDataListActivity(Guid? instanceId, int? partyId)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.GetBinaryDataList");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.GetBinaryDataList");
         activity?.SetInstanceId(instanceId);
         activity?.SetInstanceOwnerPartyId(partyId);
         return activity;
@@ -47,7 +47,7 @@ partial class Telemetry
 
     internal Activity? StartInsertBinaryDataActivity(Guid? instanceId, int? partyId)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.InsertBinaryData");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.InsertBinaryData");
         activity?.SetInstanceId(instanceId);
         activity?.SetInstanceOwnerPartyId(partyId);
         return activity;
@@ -55,14 +55,14 @@ partial class Telemetry
 
     internal Activity? StartInsertBinaryDataActivity(string? instanceId)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.InsertBinaryData");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.InsertBinaryData");
         activity?.SetInstanceId(instanceId);
         return activity;
     }
 
     internal Activity? StartUpdateBinaryDataActivity(Guid? instanceId, int? partyId)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.UpdateBinaryData");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.UpdateBinaryData");
         activity?.SetInstanceId(instanceId);
         activity?.SetInstanceOwnerPartyId(partyId);
         return activity;
@@ -70,21 +70,21 @@ partial class Telemetry
 
     internal Activity? StartUpdateBinaryDataActivity(string? instanceId)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.UpdateBinaryData");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.UpdateBinaryData");
         activity?.SetInstanceId(instanceId);
         return activity;
     }
 
     internal Activity? StartUpdateDataActivity(Instance? instance)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.UpdateData");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.UpdateData");
         activity?.SetInstanceId(instance);
         return activity;
     }
 
     internal Activity? StartDeleteDataActivity(Guid? instanceId, int? partyId)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.DeleteData");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.DeleteData");
         activity?.SetInstanceId(instanceId);
         activity?.SetInstanceOwnerPartyId(partyId);
         return activity;
@@ -92,7 +92,7 @@ partial class Telemetry
 
     internal Activity? StartGetFormDataActivity(Guid? instanceId, int? partyId)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.GetFormData");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.GetFormData");
         activity?.SetInstanceId(instanceId);
         activity?.SetInstanceOwnerPartyId(partyId);
         return activity;
@@ -100,14 +100,14 @@ partial class Telemetry
 
     internal Activity? StartGetFormDataActivity(Instance? instance)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.GetFormData");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.GetFormData");
         activity?.SetInstanceId(instance);
         return activity;
     }
 
     internal Activity? StartLockDataElementActivity(string? instanceId, Guid? dataGuid)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.LockDataElement");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.LockDataElement");
         activity?.SetInstanceId(instanceId);
         activity?.SetDataElementId(dataGuid);
         return activity;
@@ -115,7 +115,7 @@ partial class Telemetry
 
     internal Activity? StartUnlockDataElementActivity(string? instanceId, Guid? dataGuid)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.UnlockDataElement");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.UnlockDataElement");
         activity?.SetInstanceId(instanceId);
         activity?.SetDataElementId(dataGuid);
         return activity;

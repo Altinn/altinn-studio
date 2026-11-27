@@ -167,7 +167,6 @@ public static class ServiceCollectionExtensions
 
         var export = !isTest && !string.IsNullOrWhiteSpace(config[OtlpEndpointVariable]);
 
-        services.AddHostedService<TelemetryInitialization>();
         services.AddSingleton<Telemetry>();
 
         ConfigureRootRequestPropagation(services);
@@ -182,6 +181,8 @@ public static class ServiceCollectionExtensions
                 // wins, since the last one set does.
                 builder = builder
                     .SetSampler(new AlwaysOnSampler())
+                    .AddSource(Telemetry.LibraryInstrumentationName)
+                    // The app's own spans, from Telemetry.ActivitySource.
                     .AddSource(appId)
                     .AddHttpClientInstrumentation(opts =>
                     {
@@ -201,6 +202,8 @@ public static class ServiceCollectionExtensions
             .WithMetrics(builder =>
             {
                 builder = builder
+                    .AddMeter(Telemetry.LibraryInstrumentationName)
+                    // The app's own metrics, from Telemetry.Meter.
                     .AddMeter(appId)
                     .AddMeter(AppTelemetryResource.WorkloadMeterName)
                     .AddRuntimeInstrumentation()
@@ -229,55 +232,6 @@ public static class ServiceCollectionExtensions
 
     internal static bool IsProbe(HttpRequest request) =>
         request.Path.StartsWithSegments(ProbePath, StringComparison.OrdinalIgnoreCase);
-
-    private sealed class TelemetryInitialization(
-        ILogger<TelemetryInitialization> logger,
-        Telemetry telemetry,
-        MeterProvider meterProvider
-    ) : IHostedService
-    {
-        public async Task StartAsync(CancellationToken cancellationToken)
-        {
-            // This codepath for initialization is here only because it makes it a lot easier to
-            // query the metrics from Prometheus using 'increase' without the appearance of a "missed" sample.
-            // 'increase' in Prometheus will not interpret 'none' -> 1 as a delta/increase,
-            // so when querying the increase within a range, there may be 1 less sample than expected.
-            // So here we let the metrics be initialized to 0,
-            // and then run collection/flush on the OTel MeterProvider to make sure they are exported.
-            // The first time we then increment the metric, it will count as a change from 0 -> 1
-            telemetry.Init();
-            try
-            {
-                var task = Task.Factory.StartNew(
-                    () =>
-                    {
-                        if (!meterProvider.ForceFlush(10_000))
-                        {
-                            logger.LogInformation("Failed to flush metrics after 10 seconds");
-                        }
-                    },
-                    cancellationToken,
-                    // Long running to avoid doing this blocking on a "normal" thread pool thread
-                    TaskCreationOptions.LongRunning | TaskCreationOptions.DenyChildAttach,
-                    TaskScheduler.Default
-                );
-                if (await Task.WhenAny(task, Task.Delay(500, cancellationToken)) != task)
-                {
-                    logger.LogInformation(
-                        "Tried to flush metrics within 0.5 seconds but it was taking too long, proceeding with startup"
-                    );
-                }
-            }
-            catch (Exception ex)
-            {
-                if (ex is OperationCanceledException)
-                    return;
-                logger.LogWarning(ex, "Failed to flush metrics");
-            }
-        }
-
-        public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
-    }
 
     /// <summary>
     /// PDF generation works by using a headless browser to render the frontend of an app instance.

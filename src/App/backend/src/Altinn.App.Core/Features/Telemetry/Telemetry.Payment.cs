@@ -10,7 +10,8 @@ partial class Telemetry
             .StartActivity($"{Payment.Prefix}.CalculateOrderDetails")
             ?.AddTag("altinn.payment.calculator.type", calculator.GetType().FullName);
 
-    internal Activity? StartPaymentServiceActivity() => ActivitySource.StartActivity($"{Payment.Prefix}.StartPayment");
+    internal Activity? StartPaymentServiceActivity() =>
+        LibraryActivitySource.StartActivity($"{Payment.Prefix}.StartPayment");
 
     internal static class Payment
     {

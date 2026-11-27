@@ -4,5 +4,6 @@ namespace Altinn.App.Core.Features;
 
 partial class Telemetry
 {
-    internal Activity? StartFileValidateActivity() => ActivitySource.StartActivity("FileValidatorService.Validate");
+    internal Activity? StartFileValidateActivity() =>
+        LibraryActivitySource.StartActivity("FileValidatorService.Validate");
 }

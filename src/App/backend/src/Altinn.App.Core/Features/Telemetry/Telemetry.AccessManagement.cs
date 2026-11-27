@@ -5,8 +5,8 @@ namespace Altinn.App.Core.Features;
 partial class Telemetry
 {
     internal Activity? StartAppInstanceDelegationActivity() =>
-        ActivitySource.StartActivity("AccessManagementClient.Delegate");
+        LibraryActivitySource.StartActivity("AccessManagementClient.Delegate");
 
     internal Activity? StartAppInstanceRevokeActivity() =>
-        ActivitySource.StartActivity("AccessManagementClient.Revoke");
+        LibraryActivitySource.StartActivity("AccessManagementClient.Revoke");
 }

@@ -4,5 +4,6 @@ namespace Altinn.App.Core.Features;
 
 partial class Telemetry
 {
-    internal Activity? StartGetApplicationLanguageActivity() => ActivitySource.StartActivity("ApplicationLanguage.Get");
+    internal Activity? StartGetApplicationLanguageActivity() =>
+        LibraryActivitySource.StartActivity("ApplicationLanguage.Get");
 }

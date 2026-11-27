@@ -6,10 +6,10 @@ partial class Telemetry
 {
     internal Activity? StartGetPartyActivity(int? partyId)
     {
-        var activity = ActivitySource.StartActivity("PartyClient.GetParty");
+        var activity = LibraryActivitySource.StartActivity("PartyClient.GetParty");
         activity?.SetInstanceOwnerPartyId(partyId);
         return activity;
     }
 
-    internal Activity? StartLookupPartyActivity() => ActivitySource.StartActivity("PartyClient.LookupParty");
+    internal Activity? StartLookupPartyActivity() => LibraryActivitySource.StartActivity("PartyClient.LookupParty");
 }

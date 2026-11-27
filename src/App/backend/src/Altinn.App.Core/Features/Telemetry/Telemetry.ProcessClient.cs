@@ -5,11 +5,11 @@ namespace Altinn.App.Core.Features;
 partial class Telemetry
 {
     internal Activity? StartGetProcessDefinitionActivity() =>
-        ActivitySource.StartActivity("ProcessClient.GetProcessDefinition");
+        LibraryActivitySource.StartActivity("ProcessClient.GetProcessDefinition");
 
     internal Activity? StartGetProcessHistoryActivity(string? instanceGuid, string? instanceOwnerPartyId)
     {
-        var activity = ActivitySource.StartActivity("ProcessClient.GetProcessHistory");
+        var activity = LibraryActivitySource.StartActivity("ProcessClient.GetProcessHistory");
         if (Guid.TryParse(instanceGuid, out Guid instanceId))
         {
             activity?.SetInstanceId(instanceId);

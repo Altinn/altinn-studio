@@ -6,7 +6,7 @@ partial class Telemetry
 {
     internal Activity? StartGetPartyListForPartyIds(IReadOnlyList<int> partyIds)
     {
-        var activity = ActivitySource.StartActivity("RegisterClient.GetPartyListForPartyIds");
+        var activity = LibraryActivitySource.StartActivity("RegisterClient.GetPartyListForPartyIds");
         if (activity is not null && partyIds is not null)
         {
             var now = DateTimeOffset.UtcNow;

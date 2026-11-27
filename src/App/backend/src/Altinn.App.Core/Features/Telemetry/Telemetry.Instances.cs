@@ -8,11 +8,14 @@ partial class Telemetry
 {
     private void InitInstances(InitContext context)
     {
-        InitMetricCounter(context, MetricNameInstancesCreated, init: static m => m.Add(0));
-        InitMetricCounter(context, MetricNameInstancesCompleted, init: static m => m.Add(0));
-        InitMetricCounter(context, MetricNameInstancesDeleted, init: static m => m.Add(0));
-
-        InitMetricHistogram(context, MetricNameInstancesDuration);
+        InitMetricCounter(context, MetricNameInstancesCreated, "{instance}", "Instances the app created.");
+        InitMetricCounter(context, MetricNameInstancesCompleted, "{instance}", "Instances the app completed.");
+        InitMetricCounter(context, MetricNameInstancesDeleted, "{instance}", "Instances the app deleted.");
+        InitMetricHistogram(
+            context,
+            MetricNameInstancesDuration,
+            "Time from an instance's creation until the app completed or deleted it."
+        );
     }
 
     internal void InstanceCreated(Instance instance) => _counters[MetricNameInstancesCreated].Add(1);
@@ -41,36 +44,36 @@ partial class Telemetry
 
     internal Activity? StartGetInstanceByGuidActivity(Guid? instanceGuid = null)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.GetInstanceByGuid");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.GetInstanceByGuid");
         activity?.SetInstanceId(instanceGuid);
         return activity;
     }
 
     internal Activity? StartGetInstanceByInstanceActivity(Guid? instanceGuid = null)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.GetInstanceByInstance");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.GetInstanceByInstance");
         activity?.SetInstanceId(instanceGuid);
         return activity;
     }
 
     internal Activity? StartGetInstancesActivity(Guid? instanceGuid = null)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.GetInstances");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.GetInstances");
         activity?.SetInstanceId(instanceGuid);
         return activity;
     }
 
-    internal Activity? StartQueryInstancesActivity() => ActivitySource.StartActivity($"{Prefix}.Query");
+    internal Activity? StartQueryInstancesActivity() => LibraryActivitySource.StartActivity($"{Prefix}.Query");
 
     internal Activity? StartCreateInstanceActivity()
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.Create");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.Create");
         return activity;
     }
 
     internal Activity? StartDeleteInstanceActivity(Guid instanceGuid, int instanceOwnerPartyId)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.Delete");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.Delete");
         activity?.SetInstanceId(instanceGuid);
         activity?.SetInstanceOwnerPartyId(instanceOwnerPartyId);
         return activity;
@@ -78,7 +81,7 @@ partial class Telemetry
 
     internal Activity? StartUpdateProcessActivity(Instance instance, int eventCount = 0)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.UpdateProcess");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.UpdateProcess");
         activity?.SetInstanceId(instance);
         activity?.SetTag(Labels.InstanceEventsCount, eventCount);
         return activity;
@@ -86,7 +89,7 @@ partial class Telemetry
 
     internal Activity? StartCompleteConfirmationActivity(Guid instanceGuid, int instanceOwnerPartyId)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.CompleteConfirmation");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.CompleteConfirmation");
         activity?.SetInstanceId(instanceGuid);
         activity?.SetInstanceOwnerPartyId(instanceOwnerPartyId);
         return activity;
@@ -94,7 +97,7 @@ partial class Telemetry
 
     internal Activity? StartUpdateReadStatusActivity(Guid instanceGuid, int instanceOwnerPartyId)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.UpdateReadStatus");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.UpdateReadStatus");
         activity?.SetInstanceId(instanceGuid);
         activity?.SetInstanceOwnerPartyId(instanceOwnerPartyId);
         return activity;
@@ -102,7 +105,7 @@ partial class Telemetry
 
     internal Activity? StartUpdateSubStatusActivity(Guid instanceGuid, int instanceOwnerPartyId)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.UpdateSubStatus");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.UpdateSubStatus");
         activity?.SetInstanceId(instanceGuid);
         activity?.SetInstanceOwnerPartyId(instanceOwnerPartyId);
         return activity;
@@ -110,7 +113,7 @@ partial class Telemetry
 
     internal Activity? StartUpdatePresentationTextActivity(Guid instanceGuid, int instanceOwnerPartyId)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.UpdatePresentationText");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.UpdatePresentationText");
         activity?.SetInstanceId(instanceGuid);
         activity?.SetInstanceOwnerPartyId(instanceOwnerPartyId);
         return activity;
@@ -118,7 +121,7 @@ partial class Telemetry
 
     internal Activity? StartUpdateDataValuesActivity(Guid instanceGuid, int instanceOwnerPartyId)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.UpdateDataValues");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.UpdateDataValues");
         activity?.SetInstanceId(instanceGuid);
         activity?.SetInstanceOwnerPartyId(instanceOwnerPartyId);
         return activity;
@@ -128,9 +131,9 @@ partial class Telemetry
     {
         internal const string Prefix = "Instance";
 
-        internal static readonly string MetricNameInstancesCreated = Metrics.CreateLibName("instances_created");
-        internal static readonly string MetricNameInstancesCompleted = Metrics.CreateLibName("instances_completed");
-        internal static readonly string MetricNameInstancesDeleted = Metrics.CreateLibName("instances_deleted");
-        internal static readonly string MetricNameInstancesDuration = Metrics.CreateLibName("instances_duration");
+        internal static readonly string MetricNameInstancesCreated = Metrics.CreateLibName("instances.created");
+        internal static readonly string MetricNameInstancesCompleted = Metrics.CreateLibName("instances.completed");
+        internal static readonly string MetricNameInstancesDeleted = Metrics.CreateLibName("instances.deleted");
+        internal static readonly string MetricNameInstancesDuration = Metrics.CreateLibName("instances.duration");
     }
 }

@@ -5,5 +5,5 @@ namespace Altinn.App.Core.Features;
 partial class Telemetry
 {
     internal Activity? StartRefreshAuthenticationTokenActivity() =>
-        ActivitySource.StartActivity($"Authentication.Refresh");
+        LibraryActivitySource.StartActivity($"Authentication.Refresh");
 }

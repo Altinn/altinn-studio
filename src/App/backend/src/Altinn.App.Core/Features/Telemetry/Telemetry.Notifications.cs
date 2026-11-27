@@ -2,98 +2,70 @@ using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using NetEscapades.EnumGenerators;
 using static Altinn.App.Core.Features.Telemetry.Notifications;
-using Tag = System.Collections.Generic.KeyValuePair<string, object?>;
 
 namespace Altinn.App.Core.Features;
 
 partial class Telemetry
 {
-    /// <summary>
-    /// Prometheus' increase and rate functions do not register the first value as an increase, but rather as the registration.<br/>
-    /// This means that going from none (non-existent) to 1 on a counter will register as an increase of 0.<br/>
-    /// In order to work around this, we initialize to 0 for all metrics here.<br/>
-    /// Github issue can be found <a href="https://github.com/prometheus/prometheus/issues/3806">here</a>.
-    /// </summary>
-    /// <param name="context"></param>
     private void InitNotifications(InitContext context)
     {
-        InitMetricCounter(
-            context,
-            MetricNameOrder,
-            init: static m =>
-            {
-                foreach (var type in OrderTypeExtensions.GetValues())
-                {
-                    foreach (var result in OrderResultExtensions.GetValues())
-                    {
-                        m.Add(
-                            0,
-                            new Tag(InternalLabels.Type, type.ToStringFast(useMetadataAttributes: true)),
-                            new Tag(InternalLabels.Result, result.ToStringFast(useMetadataAttributes: true))
-                        );
-                    }
-                }
-            }
-        );
-
-        InitMetricCounter(
-            context,
-            MetricNameOrderCancel,
-            init: static m =>
-            {
-                foreach (var result in CancelResultExtensions.GetValues())
-                {
-                    m.Add(0, new Tag(InternalLabels.Result, result.ToStringFast(useMetadataAttributes: true)));
-                }
-            }
-        );
+        InitMetricCounter(context, MetricNameOrder, "{order}", "Notification orders the app placed.");
+        InitMetricCounter(context, MetricNameOrderCancel, "{cancellation}", "Notification orders the app cancelled.");
     }
 
     internal Activity? StartNotificationConditionTokenGenerateActivity(Guid instanceGuid)
     {
-        var activity = ActivitySource.StartActivity("Notifications.Condition.GenerateToken");
+        var activity = LibraryActivitySource.StartActivity("Notifications.Condition.GenerateToken");
         activity?.SetTag(InternalLabels.NotificationOrderId, instanceGuid);
         return activity;
     }
 
     internal Activity? StartNotificationConditionValidateActivity(Guid instanceGuid)
     {
-        var activity = ActivitySource.StartActivity("Notifications.Condition.ValidateCode");
+        var activity = LibraryActivitySource.StartActivity("Notifications.Condition.ValidateCode");
         activity?.SetTag(InternalLabels.NotificationOrderId, instanceGuid);
         return activity;
     }
 
     internal Activity? StartNotificationOrderActivity(OrderType type)
     {
-        var activity = ActivitySource.StartActivity("Notifications.Order");
+        var activity = LibraryActivitySource.StartActivity("Notifications.Order");
         activity?.SetTag(InternalLabels.NotificationType, type.ToStringFast(useMetadataAttributes: true));
         return activity;
     }
 
-    internal void RecordNotificationOrder(OrderType type, OrderResult result) =>
-        _counters[MetricNameOrder]
-            .Add(
-                1,
-                new Tag(InternalLabels.Type, type.ToStringFast(useMetadataAttributes: true)),
-                new Tag(InternalLabels.Result, result.ToStringFast(useMetadataAttributes: true))
-            );
+    internal void RecordNotificationOrder(OrderType type, OrderResult result)
+    {
+        var tags = Outcome(failed: result == OrderResult.Error);
+        tags.Add(InternalLabels.NotificationType, type.ToStringFast(useMetadataAttributes: true));
+        _counters[MetricNameOrder].Add(1, tags);
+    }
 
     internal Activity? StartNotificationOrderCancelActivity(Guid orderId)
     {
-        var activity = ActivitySource.StartActivity("Notifications.Order.Cancel");
+        var activity = LibraryActivitySource.StartActivity("Notifications.Order.Cancel");
         activity?.SetTag(InternalLabels.NotificationOrderId, orderId);
         return activity;
     }
 
     internal void RecordNotificationOrderCancel(CancelResult result) =>
         _counters[MetricNameOrderCancel]
-            .Add(1, new Tag(InternalLabels.Result, result.ToStringFast(useMetadataAttributes: true)));
+            .Add(
+                1,
+                result switch
+                {
+                    CancelResult.Success => default,
+                    // The caller gave up, such as a request that was aborted, rather than the cancellation failing.
+                    CancelResult.Cancelled => new TagList { { InternalLabels.ErrorType, ErrorTypeCancelled } },
+                    _ => Outcome(failed: true),
+                }
+            );
 
     internal static class Notifications
     {
-        internal static readonly string MetricNameOrder = Metrics.CreateLibName("notification_orders");
+        internal static readonly string MetricNameOrder = Metrics.CreateLibName("notification.orders");
         internal static readonly string MetricNameOrderCancel = Metrics.CreateLibName(
-            "notification_order_cancellations"
+            "notification.order_cancellations"
         );
 
         [EnumExtensions(MetadataSource = MetadataSource.DisplayAttribute)]

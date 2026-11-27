@@ -16,8 +16,8 @@
   ],
   Metrics: [
     {
-      Name: altinn_app_lib_instances_completed,
-      MeterName: test,
+      Name: altinn.app_lib.instances.completed,
+      MeterName: Altinn.App,
       Measurements: [
         {
           Value: 1.0

@@ -10,18 +10,20 @@ partial class Telemetry
 
     internal Activity? StartVerifyDataElementsUnchangedSincePreviousChanges()
     {
-        var activity = ActivitySource.StartActivity($"{ActivityName}.VerifyDataElementsUnchangedSincePreviousChanges");
+        var activity = LibraryActivitySource.StartActivity(
+            $"{ActivityName}.VerifyDataElementsUnchangedSincePreviousChanges"
+        );
         return activity;
     }
 
     internal Activity? StartRemoveHiddenDataForValidation()
     {
-        return ActivitySource.StartActivity($"{Prefix}.RemoveHiddenDataForValidation");
+        return LibraryActivitySource.StartActivity($"{Prefix}.RemoveHiddenDataForValidation");
     }
 
     internal Activity? StartSaveChanges(DataElementChanges instance)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.SaveChanges");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.SaveChanges");
         activity?.AddTag("altinn.instance.changed_data_elements.count", instance.AllChanges.Count);
         return activity;
     }

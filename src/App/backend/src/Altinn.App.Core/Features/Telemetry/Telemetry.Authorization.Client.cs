@@ -7,11 +7,12 @@ namespace Altinn.App.Core.Features;
 
 partial class Telemetry
 {
-    internal Activity? StartClientGetPartyListActivity() => ActivitySource.StartActivity($"{Prefix}.GetPartyList");
+    internal Activity? StartClientGetPartyListActivity() =>
+        LibraryActivitySource.StartActivity($"{Prefix}.GetPartyList");
 
     internal Activity? StartClientValidateSelectedPartyActivity(int partyId)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.ValidateSelectedParty");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.ValidateSelectedParty");
         activity?.SetInstanceOwnerPartyId(partyId);
         return activity;
     }
@@ -22,7 +23,7 @@ partial class Telemetry
         string? taskId = null
     )
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.AuthorizeAction");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.AuthorizeAction");
 
         activity?.SetInstanceId(instanceIdentifier.InstanceGuid);
         activity?.SetInstanceOwnerPartyId(instanceIdentifier.InstanceOwnerPartyId);
@@ -34,7 +35,7 @@ partial class Telemetry
 
     internal Activity? StartClientAuthorizeActionsActivity(Platform.Storage.Interface.Models.Instance instance)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.AuthorizeActions");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.AuthorizeActions");
 
         activity?.SetInstanceId(instance);
 
@@ -43,7 +44,7 @@ partial class Telemetry
 
     internal Activity? StartClientGetRolesActivity(int userId)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.GetRoles");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.GetRoles");
 
         activity?.SetUserId(userId);
 
@@ -56,7 +57,7 @@ partial class Telemetry
         string action
     )
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.IsAuthorizerForTaskAndAction");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.IsAuthorizerForTaskAndAction");
         if (activity is not null)
         {
             activity.SetTaskId(taskId);

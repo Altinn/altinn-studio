@@ -1,6 +1,7 @@
 using System.Collections.Frozen;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
+using System.Reflection;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Models;
 using Microsoft.Extensions.Options;
@@ -26,16 +27,32 @@ public sealed partial class Telemetry : IDisposable
     private readonly object _lock = new();
 
     /// <summary>
-    /// Gets the ActivitySource for the app.
-    /// Using this, you can create traces that are transported to the OpenTelemetry collector.
+    /// The name of the app libraries' own <see cref="System.Diagnostics.ActivitySource"/> and
+    /// <see cref="System.Diagnostics.Metrics.Meter"/>. The collectors tell the libraries' telemetry from the app's by
+    /// it.
+    /// </summary>
+    internal const string LibraryInstrumentationName = "Altinn.App";
+
+    /// <summary>
+    /// The version of the app libraries, as in the app's package reference, such as <c>9.0.0</c>.
+    /// </summary>
+    internal static string LibraryVersion { get; } = ResolveLibraryVersion();
+
+    /// <summary>
+    /// The app's own ActivitySource, named after the app, for spans the app's code creates. The app libraries'
+    /// spans come from a source of their own.
     /// </summary>
     public ActivitySource ActivitySource { get; }
 
     /// <summary>
-    /// Gets the Meter for the app.
-    /// Using this, you can create metrics that are transported to the OpenTelemetry collector.
+    /// The app's own Meter, named after the app, for metrics the app's code creates. They go to the service owner's
+    /// Application Insights. The app libraries' metrics come from a meter of their own.
     /// </summary>
     public Meter Meter { get; }
+
+    internal ActivitySource LibraryActivitySource { get; }
+
+    internal Meter LibraryMeter { get; }
 
     private FrozenDictionary<string, Counter<long>> _counters;
     private FrozenDictionary<string, Histogram<double>> _histograms;
@@ -51,6 +68,8 @@ public sealed partial class Telemetry : IDisposable
         var appVersion = appSettings.Value.AppVersion;
         ActivitySource = new ActivitySource(appId, appVersion);
         Meter = new Meter(appId, appVersion);
+        LibraryActivitySource = new ActivitySource(LibraryInstrumentationName, LibraryVersion);
+        LibraryMeter = new Meter(LibraryInstrumentationName, LibraryVersion);
 
         _counters = FrozenDictionary<string, Counter<long>>.Empty;
         _histograms = FrozenDictionary<string, Histogram<double>>.Empty;
@@ -81,6 +100,8 @@ public sealed partial class Telemetry : IDisposable
             InitCorrespondence(context);
             InitFiks(context);
 
+            // A counter's series appears with its first measurement. Dashboards count with increase_pure(), which
+            // takes a missing series as zero, so nothing is zero-initialized here.
             // NOTE: This Telemetry class is registered as a singleton
             // Metrics could be kept in fields of the respective objects that use them for instrumentation
             // but most of these objects have scoped or transient lifetime, which would be inefficient.
@@ -101,7 +122,7 @@ public sealed partial class Telemetry : IDisposable
     /// </summary>
     public static class Metrics
     {
-        internal static readonly string Prefix = "altinn_app_lib";
+        internal static readonly string Prefix = "altinn.app_lib";
         internal static readonly string PrefixCustom = "altinn_app";
 
         /// <summary>
@@ -111,7 +132,7 @@ public sealed partial class Telemetry : IDisposable
         /// <returns>Full metric name</returns>
         public static string CreateName(string name) => $"{PrefixCustom}_{name}";
 
-        internal static string CreateLibName(string name) => $"{Prefix}_{name}";
+        internal static string CreateLibName(string name) => $"{Prefix}.{name}";
     }
 
     /// <summary>
@@ -286,10 +307,15 @@ public sealed partial class Telemetry : IDisposable
         internal const string NotificationOrderId = "altinn.notification.order.id";
         internal const string NotificationType = "altinn.notification.type";
 
-        // Metric attributes keep the names v8 has, as the metric names do: dashboards and the collectors' metric
-        // allowlist read them for v8 and v9 apps alike. They are never span attributes.
-        internal const string Result = "result";
-        internal const string Type = "type";
+        /// <summary>
+        /// Why a unit of work failed, in a value from a small set. Absent when it succeeded.
+        /// </summary>
+        internal const string ErrorType = "error.type";
+
+        /// <summary>
+        /// Whether a Maskinporten token came from the app's cache.
+        /// </summary>
+        internal const string MaskinportenTokenCached = "altinn.maskinporten.token.cached";
         internal const string AuthorizationAction = "altinn.authorization.action";
         internal const string AuthorizerAction = "altinn.authorization.authorizer.action";
         internal const string AuthorizerTaskId = "altinn.authorization.authorizer.task.id";
@@ -323,21 +349,79 @@ public sealed partial class Telemetry : IDisposable
         internal const string ProblemDetail = "altinn.problem.detail";
     }
 
-    private void InitMetricCounter(InitContext context, string name, Action<Counter<long>> init)
+    /// <summary>
+    /// <c>error.type</c> when nothing more specific than that the work failed is known, as the semantic conventions
+    /// name it.
+    /// </summary>
+    internal const string ErrorTypeOther = "_OTHER";
+
+    /// <summary>
+    /// <c>error.type</c> when the caller cancelled the work.
+    /// </summary>
+    internal const string ErrorTypeCancelled = "cancelled";
+
+    /// <summary>
+    /// The bucket boundaries of the libraries' duration histograms, in seconds: from a second to a month, since an
+    /// instance or a process can stay open for weeks.
+    /// </summary>
+    internal static readonly IReadOnlyList<double> DurationBuckets =
+    [
+        1,
+        5,
+        15,
+        30,
+        60,
+        300,
+        900,
+        1800,
+        3600,
+        10800,
+        43200,
+        86400,
+        172800,
+        604800,
+        1209600,
+        2592000,
+    ];
+
+    private static TagList Outcome(bool failed) =>
+        failed ? new TagList { { InternalLabels.ErrorType, ErrorTypeOther } } : default;
+
+    private void InitMetricCounter(InitContext context, string name, string unit, string description)
     {
-        // NOTE: There is an initialization function here mostly to zero-init counters.
-        // This is useful in a prometheus-setting due to the 'increase' operator being a bit strange:
-        // * none -> 1 does not count as an increase
-        // * 0 -> 1 does count as an increase
-        var counter = Meter.CreateCounter<long>(name, unit: null, description: null);
+        var counter = LibraryMeter.CreateCounter<long>(name, unit, description);
         context.Counters.Add(name, counter);
-        init(counter);
     }
 
-    private void InitMetricHistogram(InitContext context, string name)
+    private void InitMetricHistogram(InitContext context, string name, string description)
     {
-        var histogram = Meter.CreateHistogram<double>(name, unit: null, description: null);
+        var histogram = LibraryMeter.CreateHistogram<double>(
+            name,
+            unit: "s",
+            description: description,
+            tags: null,
+            advice: new InstrumentAdvice<double> { HistogramBucketBoundaries = DurationBuckets }
+        );
         context.Histograms.Add(name, histogram);
+    }
+
+    private static string ResolveLibraryVersion()
+    {
+        var assembly = typeof(Telemetry).Assembly;
+        var version = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+        if (string.IsNullOrWhiteSpace(version))
+        {
+            version = assembly.GetName().Version?.ToString(3);
+        }
+
+        if (string.IsNullOrWhiteSpace(version))
+        {
+            return "unknown";
+        }
+
+        // The commit after '+' would give every build its own value.
+        int metadata = version.IndexOf('+', StringComparison.Ordinal);
+        return metadata < 0 ? version : version[..metadata];
     }
 
     /// <summary>
@@ -353,6 +437,8 @@ public sealed partial class Telemetry : IDisposable
             IsDisposed = true;
             ActivitySource?.Dispose();
             Meter?.Dispose();
+            LibraryActivitySource?.Dispose();
+            LibraryMeter?.Dispose();
         }
     }
 }

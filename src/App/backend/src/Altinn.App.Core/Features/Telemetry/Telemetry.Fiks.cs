@@ -3,7 +3,6 @@ using System.Diagnostics;
 using Altinn.Platform.Storage.Interface.Models;
 using NetEscapades.EnumGenerators;
 using static Altinn.App.Core.Features.Telemetry.Fiks;
-using Tag = System.Collections.Generic.KeyValuePair<string, object?>;
 
 namespace Altinn.App.Core.Features;
 
@@ -11,22 +10,8 @@ partial class Telemetry
 {
     private void InitFiks(InitContext context)
     {
-        string[] metrics = [MetricNameMessageSent, MetricNameMessageReceived];
-
-        foreach (var metric in metrics)
-        {
-            InitMetricCounter(
-                context,
-                metric,
-                init: static m =>
-                {
-                    foreach (var result in FiksResultExtensions.GetValues())
-                    {
-                        m.Add(0, new Tag(InternalLabels.Result, result.ToStringFast(useMetadataAttributes: true)));
-                    }
-                }
-            );
-        }
+        InitMetricCounter(context, MetricNameMessageSent, "{message}", "Fiks messages the app sent.");
+        InitMetricCounter(context, MetricNameMessageReceived, "{message}", "Fiks messages the app received.");
     }
 
     internal Activity? StartSendFiksActivity(
@@ -37,7 +22,7 @@ partial class Telemetry
         string? correlationId
     )
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.Send");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.Send");
         activity?.AddTag(Labels.FiksMessageRecipient, fiksRecipient);
         activity?.AddTag(Labels.FiksMessageType, fiksMessageType);
         activity?.AddTag(Labels.FiksSendersReference, sendersReference);
@@ -49,7 +34,7 @@ partial class Telemetry
 
     internal Activity? StartGenerateAndSendFiksActivity(string taskId, Instance instance, string fiksMessageType)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.GenerateAndSend");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.GenerateAndSend");
         activity?.SetInstanceId(instance);
         activity?.AddTag(Labels.TaskId, taskId);
         activity?.AddTag(Labels.FiksMessageType, fiksMessageType);
@@ -66,7 +51,7 @@ partial class Telemetry
         string? correlationId
     )
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.Receive");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.Receive");
         activity?.AddTag(Labels.FiksMessageSender, fiksSender);
         activity?.AddTag(Labels.FiksMessageId, fiksMessageId);
         activity?.AddTag(Labels.FiksMessageType, fiksMessageType);
@@ -78,19 +63,17 @@ partial class Telemetry
     }
 
     internal void RecordFiksMessageSent(FiksResult result) =>
-        _counters[MetricNameMessageSent]
-            .Add(1, new Tag(InternalLabels.Result, result.ToStringFast(useMetadataAttributes: true)));
+        _counters[MetricNameMessageSent].Add(1, Outcome(failed: result == FiksResult.Error));
 
     internal void RecordFiksMessageReceived(FiksResult result) =>
-        _counters[MetricNameMessageReceived]
-            .Add(1, new Tag(InternalLabels.Result, result.ToStringFast(useMetadataAttributes: true)));
+        _counters[MetricNameMessageReceived].Add(1, Outcome(failed: result == FiksResult.Error));
 
     internal static class Fiks
     {
         internal const string Prefix = "Fiks";
 
-        internal static readonly string MetricNameMessageSent = Metrics.CreateLibName("fiks_messages_sent");
-        internal static readonly string MetricNameMessageReceived = Metrics.CreateLibName("fiks_messages_received");
+        internal static readonly string MetricNameMessageSent = Metrics.CreateLibName("fiks.messages.sent");
+        internal static readonly string MetricNameMessageReceived = Metrics.CreateLibName("fiks.messages.received");
 
         [EnumExtensions(MetadataSource = MetadataSource.DisplayAttribute)]
         internal enum FiksResult

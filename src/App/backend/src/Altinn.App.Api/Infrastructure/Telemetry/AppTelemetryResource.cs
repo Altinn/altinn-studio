@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
-using System.Reflection;
 using OpenTelemetry.Resources;
 
 namespace Altinn.App.Api.Infrastructure.Telemetry;
@@ -36,12 +35,6 @@ internal static class AppTelemetryResource
     /// gets a new one. It identifies a process, not an Altinn instance.
     /// </summary>
     internal static string InstanceId { get; } = Guid.NewGuid().ToString();
-
-    /// <summary>
-    /// The version of the app libraries, as in the app's package reference, such as <c>9.0.0</c> or
-    /// <c>9.1.0-preview.3</c>.
-    /// </summary>
-    internal static string LibraryVersion { get; } = ResolveLibraryVersion();
 
     /// <summary>
     /// The <c>altinn.workload.start_time</c> gauge, in seconds since the Unix epoch. Created once per process, so that
@@ -84,29 +77,13 @@ internal static class AppTelemetryResource
             .AddAttributes([
                 new(Core.Features.Telemetry.InternalLabels.ServiceOwner, serviceOwner),
                 new(Core.Features.Telemetry.InternalLabels.App, app),
-                new(Core.Features.Telemetry.InternalLabels.AppLibVersion, LibraryVersion),
             ])
             // Detected again after the defaults above, so that the deployment's values win.
-            .AddEnvironmentVariableDetector();
-    }
-
-    private static string ResolveLibraryVersion()
-    {
-        Assembly assembly = typeof(Core.Features.Telemetry).Assembly;
-        string? version = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
-        if (string.IsNullOrWhiteSpace(version))
-        {
-            version = assembly.GetName().Version?.ToString(3);
-        }
-
-        if (string.IsNullOrWhiteSpace(version))
-        {
-            return "unknown";
-        }
-
-        // The commit after '+' would give every build its own value.
-        int metadata = version.IndexOf('+', StringComparison.Ordinal);
-        return metadata < 0 ? version : version[..metadata];
+            .AddEnvironmentVariableDetector()
+            // Except the libraries' own version, which only the libraries know for certain.
+            .AddAttributes([
+                new(Core.Features.Telemetry.InternalLabels.AppLibVersion, Core.Features.Telemetry.LibraryVersion),
+            ]);
     }
 
     private static double ResolveProcessStartTime()

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.Reflection;
 using Altinn.App.Api.Helpers;
 using Altinn.App.Api.Infrastructure.Telemetry;
@@ -115,7 +116,11 @@ public class TelemetryConfigurationTests
         await using var app = AppBuilder.Build(
             configData:
             [
-                new("OTEL_RESOURCE_ATTRIBUTES", "k8s.pod.uid=0b6e1f5c-1111-2222-3333-444455556666,service.version=v42"),
+                new(
+                    "OTEL_RESOURCE_ATTRIBUTES",
+                    "k8s.pod.uid=0b6e1f5c-1111-2222-3333-444455556666,service.version=v42,"
+                        + "altinn.app_runtime.version=9,altinn.app_lib.version=not-the-libraries"
+                ),
             ]
         );
 
@@ -128,9 +133,11 @@ public class TelemetryConfigurationTests
         Assert.False(resource.ContainsKey("service.namespace"));
         Assert.Equal(appId[0], resource["altinn.service_owner"]);
         Assert.Equal(appId[1], resource["altinn.app"]);
-        Assert.Equal(AppTelemetryResource.LibraryVersion, resource["altinn.app_lib.version"]);
-        Assert.StartsWith("9.", AppTelemetryResource.LibraryVersion, StringComparison.Ordinal);
-        Assert.DoesNotContain('+', AppTelemetryResource.LibraryVersion);
+        Assert.Equal("9", resource["altinn.app_runtime.version"]);
+        // The libraries know their own version, so theirs wins.
+        Assert.Equal(Telemetry.LibraryVersion, resource["altinn.app_lib.version"]);
+        Assert.StartsWith("9.", Telemetry.LibraryVersion, StringComparison.Ordinal);
+        Assert.DoesNotContain('+', Telemetry.LibraryVersion);
         Assert.True(Guid.TryParse(resource["service.instance.id"], out _));
 
         // The same resource on every signal.
@@ -162,6 +169,37 @@ public class TelemetryConfigurationTests
         app.Services.GetRequiredService<LoggerProvider>().ForceFlush();
 
         Assert.Contains(exported, record => record.LogLevel == LogLevel.Information);
+    }
+
+    [Fact]
+    public async Task Library_Telemetry_Has_Its_Own_Source_And_Meter()
+    {
+        await using var app = AppBuilder.Build();
+        var telemetry = app.Services.GetRequiredService<Telemetry>();
+        var appName = StartupHelper.GetApplicationId(app.Environment.ContentRootPath).Split('/')[1];
+
+        Assert.Equal("Altinn.App", telemetry.LibraryActivitySource.Name);
+        Assert.Equal("Altinn.App", telemetry.LibraryMeter.Name);
+        Assert.Equal(Telemetry.LibraryVersion, telemetry.LibraryMeter.Version);
+        // The app's own code keeps a source and a meter named after the app.
+        Assert.Equal(appName, telemetry.ActivitySource.Name);
+        Assert.Equal(appName, telemetry.Meter.Name);
+
+        // Read from this host's meter: other hosts in the test process have meters of the same name.
+        List<Instrument> instruments = [];
+        using (var listener = new MeterListener())
+        {
+            listener.InstrumentPublished = (instrument, _) =>
+            {
+                if (ReferenceEquals(instrument.Meter, telemetry.LibraryMeter))
+                    instruments.Add(instrument);
+            };
+            listener.Start();
+        }
+
+        var started = Assert.Single(instruments, i => i.Name == "altinn.app_lib.processes.started");
+        Assert.Equal("{process}", started.Unit);
+        Assert.All(instruments, i => Assert.StartsWith("altinn.app_lib.", i.Name, StringComparison.Ordinal));
     }
 
     [Fact]

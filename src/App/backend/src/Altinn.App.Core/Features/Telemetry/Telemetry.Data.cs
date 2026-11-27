@@ -3,52 +3,40 @@ using System.Diagnostics;
 using Altinn.Platform.Storage.Interface.Models;
 using NetEscapades.EnumGenerators;
 using static Altinn.App.Core.Features.Telemetry.Data;
-using Tag = System.Collections.Generic.KeyValuePair<string, object?>;
 
 namespace Altinn.App.Core.Features;
 
 partial class Telemetry
 {
-    private void InitData(InitContext context)
-    {
-        InitMetricCounter(
-            context,
-            MetricNameDataPatched,
-            init: static m =>
-            {
-                m.Add(0, new Tag(InternalLabels.Result, PatchResult.Success.ToStringFast(useMetadataAttributes: true)));
-                m.Add(0, new Tag(InternalLabels.Result, PatchResult.Error.ToStringFast(useMetadataAttributes: true)));
-            }
-        );
-    }
+    private void InitData(InitContext context) =>
+        InitMetricCounter(context, MetricNameDataPatched, "{patch}", "Patches applied to an instance's data.");
 
     internal void DataPatched(PatchResult result) =>
-        _counters[MetricNameDataPatched]
-            .Add(1, new Tag(InternalLabels.Result, result.ToStringFast(useMetadataAttributes: true)));
+        _counters[MetricNameDataPatched].Add(1, Outcome(failed: result == PatchResult.Error));
 
     internal Activity? StartDataPatchActivity(Instance instance)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.Patch");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.Patch");
         activity?.SetInstanceId(instance);
         return activity;
     }
 
     internal Activity? StartDataProcessWriteActivity(IDataProcessor dataProcessor)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.ProcessWrite.{dataProcessor.GetType().Name}");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.ProcessWrite.{dataProcessor.GetType().Name}");
         return activity;
     }
 
     internal Activity? StartDataProcessWriteActivity(IDataWriteProcessor dataProcessor)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.ProcessWrite.{dataProcessor.GetType().Name}");
+        var activity = LibraryActivitySource.StartActivity($"{Prefix}.ProcessWrite.{dataProcessor.GetType().Name}");
         return activity;
     }
 
     internal static class Data
     {
         internal const string Prefix = "Data";
-        internal static readonly string MetricNameDataPatched = Metrics.CreateLibName("data_patched");
+        internal static readonly string MetricNameDataPatched = Metrics.CreateLibName("data.patched");
 
         [EnumExtensions(MetadataSource = MetadataSource.DisplayAttribute)]
         internal enum PatchResult
