@@ -5,6 +5,12 @@ reviews:
     enabled: true
     base_branches:
       - ".*"
+  # Snapshot directories hold expected output that tests rewrite. Reviewing the diffs is noise; the
+  # tests and the PublicApiTests snapshots (not filtered, see below) carry the checks that matter.
+  path_filters:
+    - "!**/_snapshots/**"
+    - "!**/.snapshots/**"
+    - "!**/.Verify/**"
   path_instructions:
     - path: "src/App/backend/test/**/PublicApiTests.*.verified.txt"
       instructions: >-
