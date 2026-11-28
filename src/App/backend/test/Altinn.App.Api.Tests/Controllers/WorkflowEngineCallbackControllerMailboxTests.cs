@@ -26,8 +26,8 @@ using Xunit.Abstractions;
 namespace Altinn.App.Api.Tests.Controllers;
 
 /// <summary>
-/// The relay from the controller's end: the unit tests prove what the saga does, this proves the controller
-/// asks for it — after the save on a success, before the response on a permanent failure.
+/// The relay from the controller's end: the unit tests prove what the saga does, this proves the controller asks for
+/// it — after the save on a success, and never on a failure.
 /// </summary>
 public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase
 {
@@ -39,51 +39,47 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase
     private static readonly Guid _mailboxId = new("018f4e00-0000-7000-8000-0000000000aa");
 
     /// <summary>
-    /// The item index of the handler answering the probe task's exchange: the conclusion, composed right after
-    /// the stage that opens the mailbox at item index 0 — the literal <c>"0"</c> in the blobs below.
+    /// The probe task's external stage is its first item: its send and every receive step carry this index, and the
+    /// carried mailbox is keyed on it — the literal <c>"0"</c> in the blobs below.
     /// </summary>
-    private const int HandlerIndex = 1;
+    private const int StageIndex = 0;
 
     public WorkflowEngineCallbackControllerMailboxTests(ITestOutputHelper outputHelper)
         : base(outputHelper) { }
 
-    /// <summary>A pipeline answered by messages, whose handlers return whatever the test wants.</summary>
+    /// <summary>One external stage whose send and handlers return whatever the test wants.</summary>
+    /// <param name="onTimeout">The stage's timeout handler, or <c>null</c> to compose none.</param>
     /// <param name="trailingStage">
-    /// Composes a plain stage between the send and the terminal, which makes the send a stage the exchange's
-    /// handler does <em>not</em> follow — the shape whose send hands over to a continuation rather than to a
-    /// receiver.
+    /// Composes a plain stage after the external stage, so that being done with the replies carries on with that
+    /// stage rather than ending the task.
     /// </param>
     private sealed class RelayProbeTask(
-        Func<StageContext, ServiceTaskReply, ServiceTaskExchangeResult> onMessage,
-        Func<StageContext, MailboxClosedReason, ServiceTaskResult> onClosed,
-        Func<StageContext, ServiceTaskMailbox, ServiceTaskOpeningStageResult>? onSend = null,
+        Func<StageContext, ServiceTaskReply, ServiceTaskReplyResult> onReply,
+        Func<StageContext, ServiceTaskResult>? onTimeout,
+        Func<StageContext, ReplyAddress, ServiceTaskResult>? onSend = null,
         bool trailingStage = false
     ) : IServiceTask
     {
         public string Type => ServiceTaskType;
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
+        public void DefineExecute(PipelineBuilder.ServiceTask pipeline)
         {
-            pipeline.Stage(
-                (context, mailbox) =>
-                    Task.FromResult(
-                        onSend is null ? ServiceTaskOpeningStageResult.Completed() : onSend(context, mailbox)
-                    ),
-                new MailboxOptions { Timeout = TimeSpan.FromDays(3) },
-                out MailboxHandle archive
+            pipeline.ExternalStage(
+                SendToRecipient,
+                (context, reply) => Task.FromResult(onReply(context, reply)),
+                timeout: TimeSpan.FromDays(3),
+                onTimeout: onTimeout is null ? null : context => Task.FromResult(onTimeout(context))
             );
 
             if (trailingStage)
             {
-                pipeline.Stage(_ => Task.FromResult(StageResult.Completed()));
+                pipeline.Stage(_ => Task.FromResult(ServiceTaskResult.Completed()));
             }
-
-            return pipeline.ConcludeOnReplies(
-                archive,
-                (context, reply) => Task.FromResult(onMessage(context, reply)),
-                (context, reason) => Task.FromResult(onClosed(context, reason))
-            );
         }
+
+        /// <summary>A named method, so the stage has the step name a failure reports it by.</summary>
+        private Task<ServiceTaskResult> SendToRecipient(StageContext context, ReplyAddress address) =>
+            Task.FromResult(onSend is null ? ServiceTaskResult.Completed() : onSend(context, address));
     }
 
     /// <summary>Every engine call the callback makes, in the order it made them.</summary>
@@ -91,7 +87,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase
     {
         public List<string> Calls { get; } = [];
 
-        public List<string> EnqueueKeys { get; } = [];
+        public List<string?> EnqueueKeys { get; } = [];
 
         public List<WorkflowEnqueueRequest> EnqueueRequests { get; } = [];
 
@@ -195,66 +191,36 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase
         HttpStatusCode Status,
         WorkflowCallbackState? Returned,
         CallRecorder Recorder,
-        Guid StepId
+        Guid StepId,
+        string Body
     );
 
     /// <summary>
-    /// Drives one receive callback. Only one of the two handlers can run for a given rendezvous, so a test
-    /// supplies the one its <paramref name="mailbox"/> dispatches to and leaves the other at its default —
-    /// which fails loudly rather than answering plausibly. The mailbox is built from the services of the host
-    /// that receives the callback.
+    /// Drives one receive step's callback: a reply or the closed signal, as <paramref name="mailbox"/> says. The
+    /// reply handler defaults to one that fails loudly rather than answering plausibly. The mailbox is built from the
+    /// services of the host that receives the callback.
     /// </summary>
     private Task<CallbackOutcome> RunReceiveCallback(
         Func<IServiceProvider, AppCallbackMailbox> mailbox,
-        Func<StageContext, ServiceTaskReply, ServiceTaskExchangeResult>? onMessage = null,
-        Func<StageContext, MailboxClosedReason, ServiceTaskResult>? onClosed = null
-    ) =>
-        RunCallback(
-            mailbox,
-            // A receive step as the runtime enqueues one: it names the handler that answers the message.
-            new ExecuteServiceTaskPayload(ServiceTaskType, ItemIndex: HandlerIndex),
-            onMessage,
-            onClosed,
-            onSend: null
-        );
+        Func<StageContext, ServiceTaskReply, ServiceTaskReplyResult>? onReply = null,
+        Func<StageContext, ServiceTaskResult>? onTimeout = null,
+        bool trailingStage = false
+    ) => RunCallback(mailbox, onReply, onTimeout, onSend: null, trailingStage: trailingStage);
 
     /// <summary>
-    /// Drives the send stage's own callback — the primary workflow's last step. The exchange's handler is composed
-    /// right after it, so its completion starts that exchange's receive leg; nothing in its payload says so.
+    /// Drives the send's own callback: the last step of the stage's first workflow. It carries the same item index
+    /// as a receive step; only the missing mailbox receipt makes it the send.
     /// </summary>
-    private Task<CallbackOutcome> RunSendStageCallback(
-        Func<StageContext, ServiceTaskMailbox, ServiceTaskOpeningStageResult> onSend
-    ) =>
-        RunCallback(
-            mailbox: null,
-            new ExecuteServiceTaskPayload(ServiceTaskType, ItemIndex: 0),
-            onMessage: null,
-            onClosed: null,
-            onSend
-        );
-
-    /// <summary>
-    /// The same callback for a pipeline whose send is followed by a stage rather than by the handler: the
-    /// same payload, and its completion starts the workflow carrying that stage instead.
-    /// </summary>
-    private Task<CallbackOutcome> RunSendStageCallbackWithTrailingStage(
-        Func<StageContext, ServiceTaskMailbox, ServiceTaskOpeningStageResult> onSend
-    ) =>
-        RunCallback(
-            mailbox: null,
-            new ExecuteServiceTaskPayload(ServiceTaskType, ItemIndex: 0),
-            onMessage: null,
-            onClosed: null,
-            onSend,
-            trailingStage: true
-        );
+    private Task<CallbackOutcome> RunSendCallback(
+        Func<StageContext, ReplyAddress, ServiceTaskResult> onSend,
+        bool trailingStage = false
+    ) => RunCallback(mailbox: null, onReply: null, onTimeout: null, onSend, trailingStage: trailingStage);
 
     private async Task<CallbackOutcome> RunCallback(
         Func<IServiceProvider, AppCallbackMailbox>? mailbox,
-        ExecuteServiceTaskPayload stepPayload,
-        Func<StageContext, ServiceTaskReply, ServiceTaskExchangeResult>? onMessage,
-        Func<StageContext, MailboxClosedReason, ServiceTaskResult>? onClosed,
-        Func<StageContext, ServiceTaskMailbox, ServiceTaskOpeningStageResult>? onSend,
+        Func<StageContext, ServiceTaskReply, ServiceTaskReplyResult>? onReply,
+        Func<StageContext, ServiceTaskResult>? onTimeout,
+        Func<StageContext, ReplyAddress, ServiceTaskResult>? onSend,
         Exception? engineThrowsOnEnqueue = null,
         CallRecorder? recorder = null,
         bool trailingStage = false
@@ -271,8 +237,8 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase
             {
                 services.AddSingleton<IServiceTask>(
                     new RelayProbeTask(
-                        onMessage ?? ((_, _) => throw new InvalidOperationException("Unexpected message handler")),
-                        onClosed ?? ((_, _) => throw new InvalidOperationException("Unexpected closure handler")),
+                        onReply ?? ((_, _) => throw new InvalidOperationException("Unexpected reply handler")),
+                        onTimeout,
                         onSend,
                         trailingStage
                     )
@@ -309,7 +275,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase
                         (_, _, _, _, state, _, action, idempotencyKey, _) =>
                         {
                             recorder.Calls.Add("after-workflow");
-                            recorder.EnqueueKeys.Add(idempotencyKey!);
+                            recorder.EnqueueKeys.Add(idempotencyKey);
                             recorder.AfterWorkflowState.Add(state);
                             recorder.AfterWorkflowActions.Add(action);
                         }
@@ -347,7 +313,9 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase
             WorkflowId = Guid.NewGuid(),
             StepId = stepId,
             Mailbox = mailbox?.Invoke(Services),
-            Payload = CommandPayloadSerializer.Serialize(stepPayload),
+            Payload = CommandPayloadSerializer.Serialize(
+                new ExecuteServiceTaskPayload(ServiceTaskType, ItemIndex: StageIndex)
+            ),
             State = signer.Sign(JsonSerializer.Serialize(incoming), SigningDomain.CallbackState),
         };
 
@@ -357,19 +325,18 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase
             content
         );
 
+        string body = await response.Content.ReadAsStringAsync();
         WorkflowCallbackState? returned = null;
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            var callbackResponse = JsonSerializer.Deserialize<AppCallbackResponse>(
-                await response.Content.ReadAsStringAsync(),
-                JsonSerializerOptions
-            );
+            var callbackResponse = JsonSerializer.Deserialize<AppCallbackResponse>(body, JsonSerializerOptions);
+            Assert.NotNull(callbackResponse?.State);
             returned = JsonSerializer.Deserialize<WorkflowCallbackState>(
-                signer.Verify(callbackResponse!.State!, SigningDomain.CallbackState)
+                signer.Verify(callbackResponse.State, SigningDomain.CallbackState)
             );
         }
 
-        return new CallbackOutcome(response.StatusCode, returned, recorder, stepId);
+        return new CallbackOutcome(response.StatusCode, returned, recorder, stepId, body);
     }
 
     private static Instance CreateInstance(Guid instanceGuid) =>
@@ -429,77 +396,9 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase
     }
 
     [Fact]
-    public async Task Conclusion_ClosesTheMailboxBeforeTheAfterWorkflow_ThroughTheRealCallback()
-    {
-        CallbackOutcome outcome = await RunReceiveCallback(Delivered, onMessage: (_, _) => ServiceTaskResult.Success());
-
-        Assert.Equal(HttpStatusCode.OK, outcome.Status);
-        Assert.Equal(["close", "after-workflow"], outcome.Recorder.Calls);
-        Assert.Equal(_mailboxId, Assert.Single(outcome.Recorder.Closed));
-        Assert.Equal(outcome.StepId.ToString(), Assert.Single(outcome.Recorder.EnqueueKeys));
-    }
-
-    [Fact]
-    public async Task Conclusion_StartsTheAfterWorkflowOnTheBlobItJustPublished()
-    {
-        CallbackOutcome outcome = await RunReceiveCallback(Delivered, onMessage: (_, _) => ServiceTaskResult.Success());
-
-        Assert.NotNull(outcome.Returned);
-        Assert.Null(outcome.Returned.Mailboxes);
-
-        string afterWorkflowState = Assert.Single(outcome.Recorder.AfterWorkflowState);
-        var signer = Services.GetRequiredService<WorkflowStateSigner>();
-        var carried = JsonSerializer.Deserialize<WorkflowCallbackState>(
-            signer.Verify(afterWorkflowState, SigningDomain.CallbackState)
-        );
-        Assert.Null(carried!.Mailboxes);
-    }
-
-    [Fact]
-    public async Task AwaitNextReply_EnqueuesTheSuccessorAndKeepsTheMailboxOpenAndCarried()
-    {
-        CallbackOutcome outcome = await RunReceiveCallback(
-            Delivered,
-            onMessage: (_, _) => ServiceTaskExchangeResult.AwaitNextReply()
-        );
-
-        Assert.Equal(HttpStatusCode.OK, outcome.Status);
-        Assert.Equal(["enqueue"], outcome.Recorder.Calls);
-        Assert.Empty(outcome.Recorder.Closed);
-        Assert.Equal(outcome.StepId.ToString(), Assert.Single(outcome.Recorder.EnqueueKeys));
-        Assert.NotNull(outcome.Returned!.Mailboxes);
-        Assert.Equal(_mailboxId, Assert.Contains("0", outcome.Returned.Mailboxes).Id);
-    }
-
-    [Fact]
-    public async Task PermanentFailure_ClosesTheMailboxAndStillFailsTheCallback()
-    {
-        CallbackOutcome outcome = await RunReceiveCallback(
-            Closed,
-            onClosed: (_, _) => ServiceTaskResult.FailedPermanent("the archive never confirmed before the deadline")
-        );
-
-        Assert.Equal(HttpStatusCode.UnprocessableEntity, outcome.Status);
-        Assert.Equal(["close"], outcome.Recorder.Calls);
-        Assert.Equal(_mailboxId, Assert.Single(outcome.Recorder.Closed));
-    }
-
-    [Fact]
-    public async Task RetryableFailure_StartsNoSaga()
-    {
-        CallbackOutcome outcome = await RunReceiveCallback(
-            Delivered,
-            onMessage: (_, _) => ServiceTaskResult.FailedRetryable("the archive is down")
-        );
-
-        Assert.Equal(HttpStatusCode.InternalServerError, outcome.Status);
-        Assert.Empty(outcome.Recorder.Calls);
-    }
-
-    [Fact]
     public void TheRelayResolvesFromTheRealContainer()
     {
-        // Every test above substitutes the process engine, so this proves the shipped registration can actually
+        // Every test below substitutes the process engine, so this proves the shipped registration can actually
         // be built — the relay sits in a graph a future edit could make circular.
         using HttpClient client = GetRootedClient(Org, App);
         Assert.NotNull(client);
@@ -507,147 +406,107 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase
         Assert.NotNull(Services.GetRequiredService<MailboxRelay>());
     }
 
-    [Fact]
-    public async Task TheMessageHandlerIsHandedTheMessage()
-    {
-        ServiceTaskReply? seen = null;
-        await RunReceiveCallback(
-            Delivered,
-            onMessage: (_, reply) =>
-            {
-                seen = reply;
-                return ServiceTaskResult.Success();
-            }
-        );
-
-        Assert.NotNull(seen);
-        Assert.Equal("<receipt/>", seen.Payload);
-        Assert.Equal("fiks-message-1", seen.IdempotencyKey);
-    }
-
-    [Fact]
-    public async Task TheClosureHandlerIsHandedTheReason()
-    {
-        MailboxClosedReason? seen = null;
-        await RunReceiveCallback(
-            Closed,
-            onClosed: (_, reason) =>
-            {
-                seen = reason;
-                return ServiceTaskResult.Success();
-            }
-        );
-
-        Assert.Equal(MailboxClosedReason.Deadline, seen);
-    }
-
     // ---------------------------------------------------------------------------------------------
-    // The send stage's own callback — the primary workflow's last step for a declaring pipeline.
+    // The send's own callback: the last step of the external stage's first workflow.
     // ---------------------------------------------------------------------------------------------
 
     [Fact]
-    public async Task SendStageCompletes_EnqueuesTheFirstReceiverFromItsOwnCallback()
+    public async Task SendCompletes_EnqueuesTheFirstReceiverFromItsOwnCallback()
     {
-        CallbackOutcome outcome = await RunSendStageCallback((_, _) => ServiceTaskOpeningStageResult.Completed());
+        CallbackOutcome outcome = await RunSendCallback((_, _) => ServiceTaskResult.Completed());
 
         Assert.Equal(HttpStatusCode.OK, outcome.Status);
         Assert.Equal(["enqueue"], outcome.Recorder.Calls);
         Assert.Empty(outcome.Recorder.Closed);
         Assert.Equal(outcome.StepId.ToString(), Assert.Single(outcome.Recorder.EnqueueKeys));
 
-        // Parked on the mailbox the carry held for the opening stage, on the state this callback published.
+        // Parked on the mailbox the carry held for the stage, on the state this callback published, and running
+        // the same item as the send: the receipt, not the index, is what makes it a receive step.
         WorkflowRequest receiver = Assert.Single(Assert.Single(outcome.Recorder.EnqueueRequests).Workflows);
         Assert.Equal(_mailboxId, receiver.Mailbox?.Id);
         Assert.True(receiver.IsHead);
         Assert.True(receiver.DependsOnHeads);
+        Assert.Equal($"{ExecuteServiceTask.Key}: {StageIndex}", Assert.Single(receiver.Steps).OperationId);
 
-        // The exchange is only starting: its entry keeps traveling.
-        Assert.NotNull(outcome.Returned!.Mailboxes);
+        // The replies are still to come: the mailbox keeps traveling.
+        Assert.NotNull(outcome.Returned?.Mailboxes);
         Assert.Equal(_mailboxId, Assert.Contains("0", outcome.Returned.Mailboxes).Id);
     }
 
-    [Fact]
-    public async Task SendStageConcludes_ClosesEveryMailboxBeforeTheAfterWorkflow_AndEnqueuesNoReceiver()
-    {
-        CallbackOutcome outcome = await RunSendStageCallback(
-            (_, _) => ServiceTaskOpeningStageResult.Conclude(ServiceTaskResult.Success(action: "reject"))
-        );
-
-        Assert.Equal(HttpStatusCode.OK, outcome.Status);
-        Assert.Equal(["close", "after-workflow"], outcome.Recorder.Calls);
-        Assert.Equal(_mailboxId, Assert.Single(outcome.Recorder.Closed));
-        Assert.Equal("reject", Assert.Single(outcome.Recorder.AfterWorkflowActions));
-        Assert.Equal(outcome.StepId.ToString(), Assert.Single(outcome.Recorder.EnqueueKeys));
-
-        // The blob the conclusion published carries no exchange it just closed.
-        Assert.Null(outcome.Returned!.Mailboxes);
-    }
-
     /// <summary>
-    /// The same callback for a send the handler does not follow: the continuation is enqueued from inside the
-    /// still-unsettled step, on the blob this callback published, and keyed on this step — and it declares no
-    /// mailbox of its own, since it runs stages rather than waiting for an answer.
+    /// A stage composed after the external stage changes nothing about the send: it waits for replies, and the
+    /// stage after it runs only once the reply handler is done.
     /// </summary>
     [Fact]
-    public async Task SendStageWithATrailingStage_EnqueuesTheNextSegmentFromItsOwnCallback()
+    public async Task SendCompletes_WithAStageAfterIt_StillEnqueuesTheFirstReceiver()
     {
-        CallbackOutcome outcome = await RunSendStageCallbackWithTrailingStage(
-            (_, _) => ServiceTaskOpeningStageResult.Completed()
-        );
+        CallbackOutcome outcome = await RunSendCallback((_, _) => ServiceTaskResult.Completed(), trailingStage: true);
 
         Assert.Equal(HttpStatusCode.OK, outcome.Status);
         Assert.Equal(["enqueue"], outcome.Recorder.Calls);
-        Assert.Empty(outcome.Recorder.Closed);
-        Assert.Equal(outcome.StepId.ToString(), Assert.Single(outcome.Recorder.EnqueueKeys));
-
-        WorkflowRequest continuation = Assert.Single(Assert.Single(outcome.Recorder.EnqueueRequests).Workflows);
-        Assert.Null(continuation.Mailbox);
-        Assert.True(continuation.IsHead);
-        Assert.True(continuation.DependsOnHeads);
-        // The trailing stage alone: it is what starts this exchange's receive leg, from its own callback.
-        Assert.Equal($"{ExecuteServiceTask.Key}: 1", Assert.Single(continuation.Steps).OperationId);
-
-        // The exchange is still to be answered: its entry keeps traveling.
-        Assert.NotNull(outcome.Returned!.Mailboxes);
+        WorkflowRequest receiver = Assert.Single(Assert.Single(outcome.Recorder.EnqueueRequests).Workflows);
+        Assert.Equal(_mailboxId, receiver.Mailbox?.Id);
+        Assert.Equal($"{ExecuteServiceTask.Key}: {StageIndex}", Assert.Single(receiver.Steps).OperationId);
+        Assert.NotNull(outcome.Returned?.Mailboxes);
         Assert.Equal(_mailboxId, Assert.Contains("0", outcome.Returned.Mailboxes).Id);
     }
 
+    [Fact]
+    public async Task SendEndsTheTask_ClosesTheMailboxBeforeTheAfterWorkflow_AndEnqueuesNoReceiver()
+    {
+        CallbackOutcome outcome = await RunSendCallback((_, _) => ServiceTaskResult.EndTask(action: "reject"));
+
+        Assert.Equal(HttpStatusCode.OK, outcome.Status);
+        Assert.Equal(["close", "after-workflow"], outcome.Recorder.Calls);
+        Assert.Equal(_mailboxId, Assert.Single(outcome.Recorder.Closed));
+        Assert.Empty(outcome.Recorder.EnqueueRequests);
+        Assert.Equal("reject", Assert.Single(outcome.Recorder.AfterWorkflowActions));
+        Assert.Equal(outcome.StepId.ToString(), Assert.Single(outcome.Recorder.EnqueueKeys));
+
+        // The blob it published carries no mailbox it just closed.
+        Assert.NotNull(outcome.Returned);
+        Assert.Null(outcome.Returned.Mailboxes);
+    }
+
     /// <summary>
-    /// And the conclusion from that same stage, which the runtime honors wherever the stage sits: the mailbox
-    /// closes, the process advances, and no continuation is enqueued for the items composed after it.
+    /// Ending the task from the send skips the items composed after it: the mailbox closes, the process advances,
+    /// and no continuation is enqueued.
     /// </summary>
     [Fact]
-    public async Task SendStageWithATrailingStage_Concludes_ClosesTheMailboxAndStartsNoContinuation()
+    public async Task SendEndsTheTask_WithAStageAfterIt_ClosesTheMailboxAndStartsNoContinuation()
     {
-        CallbackOutcome outcome = await RunSendStageCallbackWithTrailingStage(
-            (_, _) => ServiceTaskOpeningStageResult.Conclude(ServiceTaskResult.Success(action: "confirm"))
+        CallbackOutcome outcome = await RunSendCallback(
+            (_, _) => ServiceTaskResult.EndTask(action: "confirm"),
+            trailingStage: true
         );
 
         Assert.Equal(HttpStatusCode.OK, outcome.Status);
         Assert.Equal(["close", "after-workflow"], outcome.Recorder.Calls);
         Assert.Equal(_mailboxId, Assert.Single(outcome.Recorder.Closed));
+        Assert.Empty(outcome.Recorder.EnqueueRequests);
         Assert.Equal("confirm", Assert.Single(outcome.Recorder.AfterWorkflowActions));
-        Assert.Null(outcome.Returned!.Mailboxes);
+        Assert.NotNull(outcome.Returned);
+        Assert.Null(outcome.Returned.Mailboxes);
     }
 
+    /// <summary>
+    /// A failure never closes the reply address: a resumed send publishes the same one, and replies that arrived
+    /// meanwhile wait.
+    /// </summary>
     [Fact]
-    public async Task SendStageConcludesWithPermanentFailure_ClosesTheMailboxAndAdvancesNothing()
+    public async Task SendFailsPermanently_ClosesNothingAndFailsTheCallback()
     {
-        CallbackOutcome outcome = await RunSendStageCallback(
-            (_, _) =>
-                ServiceTaskOpeningStageResult.Conclude(
-                    ServiceTaskResult.FailedPermanent("the recipient account does not exist")
-                )
+        CallbackOutcome outcome = await RunSendCallback(
+            (_, _) => ServiceTaskResult.FailedPermanent("the recipient's credentials were refused")
         );
 
         Assert.Equal(HttpStatusCode.UnprocessableEntity, outcome.Status);
-        Assert.Equal(["close"], outcome.Recorder.Calls);
-        Assert.Equal(_mailboxId, Assert.Single(outcome.Recorder.Closed));
+        Assert.Empty(outcome.Recorder.Calls);
     }
 
     /// <summary>
     /// The relay runs inside the callback, after the save: a throw from its tail must reach the engine as a
-    /// retryable failure (5xx) — never a swallowed success, which would settle the primary workflow with no receiver
+    /// retryable failure (5xx) — never a swallowed success, which would settle the send's workflow with no receiver
     /// listening on the published address, and never a non-retryable 4xx, since the enqueue is
     /// idempotency-keyed and a replay of the whole step is the designed recovery. The controller has no
     /// catch on this path and the app pipeline no exception handler, so the pin here is the exception
@@ -662,10 +521,9 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase
         HttpRequestException thrown = await Assert.ThrowsAsync<HttpRequestException>(() =>
             RunCallback(
                 mailbox: null,
-                new ExecuteServiceTaskPayload(ServiceTaskType, ItemIndex: 0),
-                onMessage: null,
-                onClosed: null,
-                onSend: (_, _) => ServiceTaskOpeningStageResult.Completed(),
+                onReply: null,
+                onTimeout: null,
+                onSend: (_, _) => ServiceTaskResult.Completed(),
                 engineThrowsOnEnqueue: new HttpRequestException("engine unreachable"),
                 recorder: recorder
             )
@@ -676,5 +534,206 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase
         Assert.Equal(["enqueue"], recorder.Calls);
         Assert.Empty(recorder.Closed);
         Assert.Empty(recorder.AfterWorkflowState);
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // A receive step's callback: one reply, or the closed signal.
+    // ---------------------------------------------------------------------------------------------
+
+    [Fact]
+    public async Task TheReplyHandlerIsHandedTheReply()
+    {
+        ServiceTaskReply? seen = null;
+        await RunReceiveCallback(
+            Delivered,
+            onReply: (_, reply) =>
+            {
+                seen = reply;
+                return ServiceTaskReplyResult.Completed();
+            }
+        );
+
+        Assert.NotNull(seen);
+        Assert.Equal("<receipt/>", seen.Payload);
+        Assert.Equal("fiks-message-1", seen.IdempotencyKey);
+    }
+
+    [Fact]
+    public async Task ReplyCompletesTheLastItem_ClosesTheMailboxThenStartsTheAfterWorkflow()
+    {
+        CallbackOutcome outcome = await RunReceiveCallback(
+            Delivered,
+            onReply: (_, _) => ServiceTaskReplyResult.Completed()
+        );
+
+        Assert.Equal(HttpStatusCode.OK, outcome.Status);
+        Assert.Equal(["close", "after-workflow"], outcome.Recorder.Calls);
+        Assert.Equal(_mailboxId, Assert.Single(outcome.Recorder.Closed));
+        Assert.Equal(outcome.StepId.ToString(), Assert.Single(outcome.Recorder.EnqueueKeys));
+        // Done with the replies after the last item: the task ends with the default flow.
+        Assert.Null(Assert.Single(outcome.Recorder.AfterWorkflowActions));
+    }
+
+    [Fact]
+    public async Task ReplyCompletesTheLastItem_StartsTheAfterWorkflowOnTheBlobItJustPublished()
+    {
+        CallbackOutcome outcome = await RunReceiveCallback(
+            Delivered,
+            onReply: (_, _) => ServiceTaskReplyResult.Completed()
+        );
+
+        Assert.NotNull(outcome.Returned);
+        Assert.Null(outcome.Returned.Mailboxes);
+
+        string afterWorkflowState = Assert.Single(outcome.Recorder.AfterWorkflowState);
+        var signer = Services.GetRequiredService<WorkflowStateSigner>();
+        var carried = JsonSerializer.Deserialize<WorkflowCallbackState>(
+            signer.Verify(afterWorkflowState, SigningDomain.CallbackState)
+        );
+        Assert.NotNull(carried);
+        Assert.Null(carried.Mailboxes);
+    }
+
+    /// <summary>
+    /// Done with the replies, with a stage composed after the external stage: the mailbox closes before that stage's
+    /// workflow is enqueued, and neither the published blob nor the one that workflow starts from carries it.
+    /// </summary>
+    [Fact]
+    public async Task ReplyCompletes_WithAStageAfterIt_ClosesTheMailboxThenEnqueuesThatStage()
+    {
+        CallbackOutcome outcome = await RunReceiveCallback(
+            Delivered,
+            onReply: (_, _) => ServiceTaskReplyResult.Completed(),
+            trailingStage: true
+        );
+
+        Assert.Equal(HttpStatusCode.OK, outcome.Status);
+        Assert.Equal(["close", "enqueue"], outcome.Recorder.Calls);
+        Assert.Equal(_mailboxId, Assert.Single(outcome.Recorder.Closed));
+        Assert.Equal(outcome.StepId.ToString(), Assert.Single(outcome.Recorder.EnqueueKeys));
+        Assert.Empty(outcome.Recorder.AfterWorkflowState);
+
+        WorkflowRequest continuation = Assert.Single(Assert.Single(outcome.Recorder.EnqueueRequests).Workflows);
+        Assert.Null(continuation.Mailbox);
+        Assert.True(continuation.IsHead);
+        Assert.True(continuation.DependsOnHeads);
+        Assert.Equal($"{ExecuteServiceTask.Key}: {StageIndex + 1}", Assert.Single(continuation.Steps).OperationId);
+
+        Assert.NotNull(outcome.Returned);
+        Assert.Null(outcome.Returned.Mailboxes);
+        Assert.NotNull(continuation.State);
+        var signer = Services.GetRequiredService<WorkflowStateSigner>();
+        var carried = JsonSerializer.Deserialize<WorkflowCallbackState>(
+            signer.Verify(continuation.State, SigningDomain.CallbackState)
+        );
+        Assert.NotNull(carried);
+        Assert.Null(carried.Mailboxes);
+    }
+
+    /// <summary>
+    /// Ending the task from a reply handler skips the stage composed after it: the mailbox closes and the process
+    /// advances with the handler's action.
+    /// </summary>
+    [Fact]
+    public async Task ReplyEndsTheTask_WithAStageAfterIt_ClosesTheMailboxAndStartsTheAfterWorkflowWithItsAction()
+    {
+        CallbackOutcome outcome = await RunReceiveCallback(
+            Delivered,
+            onReply: (_, _) => ServiceTaskReplyResult.EndTask(action: "reject"),
+            trailingStage: true
+        );
+
+        Assert.Equal(HttpStatusCode.OK, outcome.Status);
+        Assert.Equal(["close", "after-workflow"], outcome.Recorder.Calls);
+        Assert.Equal(_mailboxId, Assert.Single(outcome.Recorder.Closed));
+        Assert.Empty(outcome.Recorder.EnqueueRequests);
+        Assert.Equal("reject", Assert.Single(outcome.Recorder.AfterWorkflowActions));
+        Assert.NotNull(outcome.Returned);
+        Assert.Null(outcome.Returned.Mailboxes);
+    }
+
+    [Fact]
+    public async Task AwaitNextReply_EnqueuesTheSuccessorAndKeepsTheMailboxOpenAndCarried()
+    {
+        CallbackOutcome outcome = await RunReceiveCallback(
+            Delivered,
+            onReply: (_, _) => ServiceTaskReplyResult.AwaitNextReply()
+        );
+
+        Assert.Equal(HttpStatusCode.OK, outcome.Status);
+        Assert.Equal(["enqueue"], outcome.Recorder.Calls);
+        Assert.Empty(outcome.Recorder.Closed);
+        Assert.Equal(outcome.StepId.ToString(), Assert.Single(outcome.Recorder.EnqueueKeys));
+
+        WorkflowRequest successor = Assert.Single(Assert.Single(outcome.Recorder.EnqueueRequests).Workflows);
+        Assert.Equal(_mailboxId, successor.Mailbox?.Id);
+        Assert.Equal($"{ExecuteServiceTask.Key}: {StageIndex}", Assert.Single(successor.Steps).OperationId);
+
+        Assert.NotNull(outcome.Returned?.Mailboxes);
+        Assert.Equal(_mailboxId, Assert.Contains("0", outcome.Returned.Mailboxes).Id);
+    }
+
+    /// <summary>
+    /// A failure never closes the reply address, so a resume runs the handler on the same reply, and the replies
+    /// behind it wait.
+    /// </summary>
+    [Fact]
+    public async Task ReplyHandlerFailsPermanently_ClosesNothingAndStillFailsTheCallback()
+    {
+        CallbackOutcome outcome = await RunReceiveCallback(
+            Delivered,
+            onReply: (_, _) => ServiceTaskReplyResult.FailedPermanent("the receipt could not be read")
+        );
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, outcome.Status);
+        Assert.Empty(outcome.Recorder.Calls);
+    }
+
+    [Fact]
+    public async Task RetryableFailure_StartsNoSaga()
+    {
+        CallbackOutcome outcome = await RunReceiveCallback(
+            Delivered,
+            onReply: (_, _) => ServiceTaskReplyResult.FailedRetryable("the archive is down")
+        );
+
+        Assert.Equal(HttpStatusCode.InternalServerError, outcome.Status);
+        Assert.Empty(outcome.Recorder.Calls);
+    }
+
+    [Fact]
+    public async Task TheClosedSignal_RunsTheTimeoutHandler_WhoseCompletionCarriesOn()
+    {
+        bool timeoutHandled = false;
+        CallbackOutcome outcome = await RunReceiveCallback(
+            Closed,
+            onTimeout: _ =>
+            {
+                timeoutHandled = true;
+                return ServiceTaskResult.Completed();
+            }
+        );
+
+        Assert.True(timeoutHandled);
+        Assert.Equal(HttpStatusCode.OK, outcome.Status);
+        Assert.Equal(["close", "after-workflow"], outcome.Recorder.Calls);
+        Assert.Null(Assert.Single(outcome.Recorder.AfterWorkflowActions));
+        Assert.NotNull(outcome.Returned);
+        Assert.Null(outcome.Returned.Mailboxes);
+    }
+
+    [Fact]
+    public async Task TheClosedSignal_WithoutATimeoutHandler_FailsTheCallbackPermanently()
+    {
+        CallbackOutcome outcome = await RunReceiveCallback(Closed, onTimeout: null);
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, outcome.Status);
+        Assert.Empty(outcome.Recorder.Calls);
+        using JsonDocument problem = JsonDocument.Parse(outcome.Body);
+        Assert.Equal("ServiceTaskReplyTimedOut", problem.RootElement.GetProperty("title").GetString());
+        string? detail = problem.RootElement.GetProperty("detail").GetString();
+        Assert.NotNull(detail);
+        Assert.Contains("'Send to recipient'", detail);
+        Assert.Contains("3.00:00:00", detail);
     }
 }

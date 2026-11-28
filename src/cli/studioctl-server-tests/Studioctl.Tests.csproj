@@ -37,4 +37,12 @@
     <Content Include="Upgrade/v8Tov9/TestData/**" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <!-- The App library's public API, which the names the v9 upgrade writes and reports are checked against. -->
+  <PropertyGroup>
+    <AppCorePublicApi>../../App/backend/test/Altinn.App.Core.Tests/PublicApiTests.PublicApi_ShouldNotChange_Unintentionally.verified.txt</AppCorePublicApi>
+  </PropertyGroup>
+  <ItemGroup Condition="Exists('$(AppCorePublicApi)')">
+    <Content Include="$(AppCorePublicApi)" Link="Upgrade/v8Tov9/TestData/AppCorePublicApi.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

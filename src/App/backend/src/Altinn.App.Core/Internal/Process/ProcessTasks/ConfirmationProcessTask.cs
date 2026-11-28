@@ -1,5 +1,4 @@
 using Altinn.App.Core.Constants;
-using Altinn.App.Core.Features.Process;
 
 namespace Altinn.App.Core.Internal.Process.ProcessTasks;
 
@@ -14,13 +13,4 @@ internal sealed class ConfirmationProcessTask : IProcessTask
 {
     /// <inheritdoc/>
     public string Type => AltinnTaskTypes.Confirmation;
-
-    /// <inheritdoc/>
-    public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) => pipeline.Build();
-
-    /// <inheritdoc/>
-    public ProcessTaskPipeline DefineEnd(PipelineBuilder pipeline) => pipeline.Build();
-
-    /// <inheritdoc/>
-    public ProcessTaskPipeline DefineAbandon(PipelineBuilder pipeline) => pipeline.Build();
 }

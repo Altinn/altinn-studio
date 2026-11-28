@@ -11,96 +11,99 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Models;
 internal sealed class WorkflowCallbackStateCarry
 {
     /// <summary>
-    /// Keyed by the opening stage's item index — the exchange's identity everywhere. Nothing here assumes the
-    /// map holds at most one entry.
+    /// The external stage whose mailbox is open, by item index. A service task opens one mailbox at a time, so the
+    /// carry holds at most one.
     /// </summary>
-    private readonly Dictionary<int, CarriedMailbox> _mailboxes = new();
+    private int _stageIndex;
+
+    private CarriedMailbox? _mailbox;
 
     /// <summary>The shape of every workflow that has opened no mailbox.</summary>
     public WorkflowCallbackStateCarry() { }
 
     /// <summary>
-    /// Restores the carry from an incoming blob. Keys must be canonical renderings of an item index — two
-    /// spellings of one index would collapse into one entry and let the blob's last writer win.
+    /// Restores the carry from an incoming blob. The key must be the canonical rendering of an item index, and the
+    /// blob may carry one mailbox at most, as this app-lib writes them.
     /// </summary>
     public WorkflowCallbackStateCarry(WorkflowCallbackState state)
     {
-        if (state.Mailboxes is not { } carried)
+        if (state.Mailboxes is not { } carried || carried.Count == 0)
         {
             return;
         }
 
-        foreach ((string key, CarriedMailbox mailbox) in carried)
+        if (carried.Count > 1)
         {
-            if (
-                !int.TryParse(key, NumberStyles.None, CultureInfo.InvariantCulture, out int stageIndex)
-                || key != stageIndex.ToString(CultureInfo.InvariantCulture)
-            )
-            {
-                throw new InvalidOperationException(
-                    $"The workflow state carries a mailbox under key '{key}', which is not an opening stage's "
-                        + "item index as this app-lib writes one. This blob was written by a version of this "
-                        + "app-lib that keyed mailboxes differently; nothing in this version can honor it."
-                );
-            }
-
-            _mailboxes[stageIndex] = mailbox;
+            throw new InvalidOperationException(
+                $"The workflow state carries {carried.Count.ToString(CultureInfo.InvariantCulture)} mailboxes, and "
+                    + "this app-lib keeps one open at a time. This blob was written by a version of this app-lib that "
+                    + "opened several; nothing in this version can honor it."
+            );
         }
+
+        (string key, CarriedMailbox mailbox) = carried.Single();
+        if (
+            !int.TryParse(key, NumberStyles.None, CultureInfo.InvariantCulture, out int stageIndex)
+            || key != stageIndex.ToString(CultureInfo.InvariantCulture)
+        )
+        {
+            throw new InvalidOperationException(
+                $"The workflow state carries a mailbox under key '{key}', which is not an external stage's "
+                    + "item index as this app-lib writes one. This blob was written by a version of this "
+                    + "app-lib that keyed mailboxes differently; nothing in this version can honor it."
+            );
+        }
+
+        _stageIndex = stageIndex;
+        _mailbox = mailbox;
     }
 
     /// <summary>
-    /// The mailboxes still traveling, in their blob shape: keyed by the opening stage's item index as a
-    /// string, or <c>null</c> when none is — not an empty map, so the blob a workflow with no exchange
-    /// publishes keeps the shape it always had.
+    /// The open mailbox in its blob shape: keyed by its stage's item index as a string, or <c>null</c> when none
+    /// is open — not an empty map, so the blob a workflow with no mailbox publishes keeps the shape it always had.
     /// </summary>
     public IReadOnlyDictionary<string, CarriedMailbox>? Mailboxes =>
-        _mailboxes.Count == 0
+        _mailbox is null
             ? null
-            : _mailboxes.ToDictionary(
-                kv => kv.Key.ToString(CultureInfo.InvariantCulture),
-                kv => kv.Value,
-                StringComparer.Ordinal
-            );
+            : new Dictionary<string, CarriedMailbox>(StringComparer.Ordinal)
+            {
+                [_stageIndex.ToString(CultureInfo.InvariantCulture)] = _mailbox,
+            };
 
     /// <summary>
-    /// Records the mailbox the stage at the given item index just minted. Re-recording the same mailbox is
-    /// the idempotent replay of a mint and is accepted; a different mailbox for the same index throws rather
-    /// than picking a winner.
+    /// Records the mailbox the external stage at the given item index just minted. Re-recording the same mailbox is
+    /// the idempotent replay of a mint and is accepted; any other mailbox while one is open throws rather than
+    /// picking a winner.
     /// </summary>
     public void RecordMailbox(int stageIndex, Guid mailboxId, DateTimeOffset deadline)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(stageIndex);
         ArgumentOutOfRangeException.ThrowIfEqual(mailboxId, Guid.Empty, nameof(mailboxId));
 
-        if (_mailboxes.TryGetValue(stageIndex, out CarriedMailbox? carried) && carried.Id != mailboxId)
+        if (_mailbox is { } open && (open.Id != mailboxId || _stageIndex != stageIndex))
         {
             throw new InvalidOperationException(
-                $"The stage at index {stageIndex} already carries mailbox '{carried.Id}' and cannot also carry "
-                    + $"'{mailboxId}'. A stage opens one mailbox, once."
+                $"The stage at index {_stageIndex} still carries mailbox '{open.Id}', so the stage at index "
+                    + $"{stageIndex} cannot also carry '{mailboxId}'. A service task opens one mailbox at a time."
             );
         }
 
-        _mailboxes[stageIndex] = new CarriedMailbox { Id = mailboxId, Deadline = deadline };
+        _stageIndex = stageIndex;
+        _mailbox = new CarriedMailbox { Id = mailboxId, Deadline = deadline };
     }
 
     /// <summary>
-    /// The mailbox the stage at the given item index opened, or <c>null</c> when this workflow carries none
-    /// for it.
+    /// The mailbox the external stage at the given item index opened, or <c>null</c> when this workflow carries
+    /// none for it.
     /// </summary>
-    public CarriedMailbox? FindMailbox(int stageIndex) =>
-        _mailboxes.TryGetValue(stageIndex, out CarriedMailbox? mailbox) ? mailbox : null;
+    public CarriedMailbox? FindMailbox(int stageIndex) => _stageIndex == stageIndex ? _mailbox : null;
+
+    /// <summary>The open mailbox, whichever stage opened it, or <c>null</c> when none is open.</summary>
+    public CarriedMailbox? OpenMailbox => _mailbox;
 
     /// <summary>
-    /// Every mailbox still traveling, ordered by opening stage index — what a conclusion that ends the whole
-    /// task closes. A snapshot: recording a conclusion afterwards does not mutate it.
+    /// Records that the open mailbox has closed, dropping it from the blob this callback publishes, so the next
+    /// external stage, or the next transition's, can open its own.
     /// </summary>
-    public IReadOnlyList<(int StageIndex, CarriedMailbox Mailbox)> FindAllMailboxes() =>
-        _mailboxes.OrderBy(kv => kv.Key).Select(kv => (kv.Key, kv.Value)).ToList();
-
-    /// <summary>
-    /// Records that the exchange the stage at the given item index opened has concluded, dropping its mailbox
-    /// from the blob this callback publishes — the next transition may open a mailbox from a stage at the
-    /// same index, which <see cref="RecordMailbox"/> would refuse over a stale entry.
-    /// </summary>
-    public void RecordMailboxConcluded(int stageIndex) => _mailboxes.Remove(stageIndex);
+    public void RecordMailboxClosed() => _mailbox = null;
 }

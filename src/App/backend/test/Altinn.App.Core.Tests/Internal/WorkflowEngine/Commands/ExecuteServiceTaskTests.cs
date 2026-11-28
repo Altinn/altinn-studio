@@ -20,7 +20,7 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands;
 
 /// <summary>
 /// The simple dispatch of <see cref="ExecuteServiceTask"/>: an <see cref="IServiceTask"/> whose pipeline
-/// is just its conclusion, <c>Finally(Execute)</c> — every test here runs that pipeline end to end. The
+/// is one stage, <c>Stage(Execute)</c> — every test here runs that pipeline end to end. The
 /// multi-stage dispatch is covered by <see cref="ExecuteServiceTaskStageTests"/>.
 /// </summary>
 public class ExecuteServiceTaskTests
@@ -34,7 +34,7 @@ public class ExecuteServiceTaskTests
 
         public string Type => "myServiceTask";
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+        public void DefineExecute(PipelineBuilder.ServiceTask pipeline) => pipeline.Stage(Execute);
 
         public Task<ServiceTaskResult> Execute(StageContext context)
         {
@@ -44,8 +44,7 @@ public class ExecuteServiceTaskTests
         }
     }
 
-    private static FakeServiceTask Succeeding() =>
-        new(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+    private static FakeServiceTask Succeeding() => new(_ => Task.FromResult(ServiceTaskResult.Completed()));
 
     private static readonly DateTimeOffset FixtureExecutionReferenceTime = new(2025, 3, 14, 9, 26, 53, TimeSpan.Zero);
 
@@ -69,8 +68,7 @@ public class ExecuteServiceTaskTests
             mutator = mutatorMock.Object;
         }
 
-        // A simple IServiceTask's pipeline is its conclusion and nothing else, so the concluding step names
-        // item 0.
+        // A simple IServiceTask's pipeline is one stage, so its step names item 0.
         var payload = new ExecuteServiceTaskPayload(serviceTaskType, ItemIndex: 0);
         string serializedPayload = CommandPayloadSerializer.Serialize(payload)!;
 
@@ -150,20 +148,12 @@ public class ExecuteServiceTaskTests
     }
 
     [Theory]
-    [InlineData(false, null)]
-    [InlineData(false, "reject")]
-    [InlineData(true, null)]
-    [InlineData(true, "reject")]
-    public async Task Execute_WhenServiceTaskSucceeds_ReturnsProcessContinuation(bool constructDirectly, string? action)
+    [InlineData(null)]
+    [InlineData("reject")]
+    public async Task Execute_WhenServiceTaskEndsTheTask_ReturnsProcessContinuationWithTheAction(string? action)
     {
         // Arrange
-        var serviceTask = new FakeServiceTask(_ =>
-            Task.FromResult<ServiceTaskResult>(
-                constructDirectly
-                    ? new SuccessfulServiceTaskResult { Action = action }
-                    : ServiceTaskResult.Success(action)
-            )
-        );
+        var serviceTask = new FakeServiceTask(_ => Task.FromResult(ServiceTaskResult.EndTask(action)));
         var command = CreateCommand(serviceTask);
         var context = CreateContext(CreateInstance(), "myServiceTask");
 
@@ -176,6 +166,24 @@ public class ExecuteServiceTaskTests
         Assert.Equal(action, success.ProcessNextContinuation?.Action);
         Assert.Equal(ProcessStatus.Processing, context.InstanceDataMutator.Instance.Process?.Status);
         Assert.Equal(1, serviceTask.ExecuteCount);
+    }
+
+    /// <summary>
+    /// The task's only stage is its last item, so completing it ends the task with the default flow: no action, and
+    /// no mailbox to close.
+    /// </summary>
+    [Fact]
+    public async Task Execute_WhenTheOnlyStageCompletes_EndsTheTaskWithNoAction()
+    {
+        var command = CreateCommand(Succeeding());
+        var context = CreateContext(CreateInstance(), "myServiceTask", stepId: Guid.NewGuid());
+
+        var result = await ((IWorkflowEngineCommand)command).Execute(context);
+
+        var success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
+        Assert.NotNull(success.ProcessNextContinuation);
+        Assert.Null(success.ProcessNextContinuation.Action);
+        Assert.Null(success.MailboxContinuation);
     }
 
     [Fact]
@@ -199,7 +207,7 @@ public class ExecuteServiceTaskTests
     {
         Guid stepId = Guid.Parse("11111111-2222-3333-4444-555555555555");
         var executionReferenceTime = new DateTimeOffset(2026, 7, 21, 10, 30, 0, TimeSpan.FromHours(2));
-        var serviceTask = new FakeServiceTask(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+        var serviceTask = new FakeServiceTask(_ => Task.FromResult(ServiceTaskResult.Completed()));
         var command = CreateCommand(serviceTask);
         Instance instance = CreateInstance();
         InstanceDataUnitOfWork unitOfWork = CreateUnitOfWork(instance);
@@ -226,8 +234,8 @@ public class ExecuteServiceTaskTests
     /// </summary>
     /// <remarks>
     /// Self-cleaning, like its three siblings (<c>ExecuteServiceTaskStageTests.RogueStageResult</c>,
-    /// <c>MailboxRelayTests.RogueVerdict</c>, <c>MailboxRelayTests.RogueStageVerdict</c>): should the roots
-    /// ever move off records and close this route,
+    /// <c>ExecuteServiceTaskSendTests.RogueSendResult</c>, <c>ExecuteServiceTaskReplyTests.RogueReplyResult</c>):
+    /// should the roots ever move off records and close this route,
     /// <c>base(original)</c> stops compiling and this test goes with the arm it pins.
     /// </remarks>
     private sealed record RogueResult : ServiceTaskResult
@@ -240,7 +248,7 @@ public class ExecuteServiceTaskTests
     public async Task Execute_WhenServiceTaskReturnsAnUnrecognisedResultType_FailsPermanentlyAndNamesIt()
     {
         var serviceTask = new FakeServiceTask(_ =>
-            Task.FromResult<ServiceTaskResult>(new RogueResult(ServiceTaskResult.Success()))
+            Task.FromResult<ServiceTaskResult>(new RogueResult(ServiceTaskResult.Completed()))
         );
         var command = CreateCommand(serviceTask);
         var context = CreateContext(CreateInstance(), "myServiceTask");
@@ -485,7 +493,7 @@ public class ExecuteServiceTaskTests
             context =>
             {
                 context.InstanceDataMutator.RemoveDataElement(dataElementIdentifier);
-                return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success("next"));
+                return Task.FromResult(ServiceTaskResult.EndTask("next"));
             }
         );
         var command = CreateCommand(serviceTask);
@@ -526,7 +534,7 @@ public class ExecuteServiceTaskTests
     {
         public string Type => type;
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+        public void DefineExecute(PipelineBuilder.ServiceTask pipeline) => pipeline.Stage(Execute);
 
         public Task<ServiceTaskResult> Execute(StageContext context) => execute(context);
     }

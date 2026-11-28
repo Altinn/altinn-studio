@@ -58,9 +58,8 @@ internal sealed class ServiceTaskRegistrationValidator : IHostedService
 
         try
         {
-            // Runs DefineExecute — a throwing or null-returning implementation lands here, as do the
-            // builder's own eager rejections (invalid options, a foreign or duplicate-answered
-            // mailbox handle, a mailbox left unanswered when a terminal ends the composition).
+            // Runs DefineExecute — a throwing implementation lands here, as does one that composes no step, and
+            // the builder's own eager rejections (a null delegate, invalid options, an out-of-range timeout).
             _ = task.ResolvePipeline();
         }
         catch (Exception ex)

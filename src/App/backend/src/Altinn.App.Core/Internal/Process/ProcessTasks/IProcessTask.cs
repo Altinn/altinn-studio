@@ -43,17 +43,17 @@ public interface IProcessTask
     /// stage added before the ones a transition has left to run changes what those steps do. Deploy such a change
     /// when no transition can be in flight, as for a service task pipeline.
     /// </remarks>
-    ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) => pipeline.Build();
+    void DefineStart(PipelineBuilder.Lifecycle pipeline) { }
 
     /// <summary>
     /// Composes the work to do when the task ends as stages. See <see cref="DefineStart"/>. The default composes no
     /// stages.
     /// </summary>
-    ProcessTaskPipeline DefineEnd(PipelineBuilder pipeline) => pipeline.Build();
+    void DefineEnd(PipelineBuilder.Lifecycle pipeline) { }
 
     /// <summary>
     /// Composes the work to do when the task is abandoned as stages. See <see cref="DefineStart"/>. The default
     /// composes no stages.
     /// </summary>
-    ProcessTaskPipeline DefineAbandon(PipelineBuilder pipeline) => pipeline.Build();
+    void DefineAbandon(PipelineBuilder.Lifecycle pipeline) { }
 }

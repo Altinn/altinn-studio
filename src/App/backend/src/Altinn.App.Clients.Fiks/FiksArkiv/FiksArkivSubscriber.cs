@@ -124,7 +124,7 @@ internal sealed class FiksArkivSubscriber : BackgroundService
                 message.IsErrorResponse ? Telemetry.Fiks.FiksResult.Error : Telemetry.Fiks.FiksResult.Success
             );
 
-            if (!Guid.TryParse(correlationId, out Guid mailboxId) || mailboxId == Guid.Empty)
+            if (!Guid.TryParse(correlationId, out Guid replyAddressId) || replyAddressId == Guid.Empty)
             {
                 _logger.LogError(
                     "Fiks Arkiv message {MessageId} carries no usable correlation id ({CorrelationId}), so there is "
@@ -142,7 +142,7 @@ internal sealed class FiksArkivSubscriber : BackgroundService
             bool requestRedelivery = false;
             try
             {
-                await ForwardReply(message, mailboxId);
+                await ForwardReply(message, replyAddressId);
                 forwarded = true;
             }
             catch (ServiceTaskReplyForwardException e)
@@ -203,8 +203,8 @@ internal sealed class FiksArkivSubscriber : BackgroundService
 
     /// <summary>
     /// Whether Fiks IO should redeliver, decided per <see cref="ServiceTaskReplyForwardException.Outcome"/>
-    /// so no verdict is a drifted default. Easy to misread: a full mailbox never frees a slot, <c>Late</c>
-    /// never means early, and a rejected submission is wrong rather than badly timed.
+    /// so no verdict is a drifted default. Easy to misread: a reply address with too many replies never frees a
+    /// slot, <c>Late</c> never means early, and a rejected submission is wrong rather than badly timed.
     /// </summary>
     private static bool ShouldRequestRedelivery(ServiceTaskReplyForwardException exception) =>
         exception.Outcome switch
@@ -216,13 +216,13 @@ internal sealed class FiksArkivSubscriber : BackgroundService
             ServiceTaskReplyForwardOutcome.Unroutable => false,
             ServiceTaskReplyForwardOutcome.Late => false,
             ServiceTaskReplyForwardOutcome.PayloadTooLarge => false,
-            ServiceTaskReplyForwardOutcome.MailboxFull => false,
+            ServiceTaskReplyForwardOutcome.TooManyReplies => false,
             ServiceTaskReplyForwardOutcome.Rejected => false,
 
             _ => exception.IsTransient,
         };
 
-    private async Task ForwardReply(FiksIOReceivedMessage message, Guid mailboxId)
+    private async Task ForwardReply(FiksIOReceivedMessage message, Guid replyAddressId)
     {
         var payloads = await message.Message.GetDecryptedPayloads();
         var storedMessage = new StoredFiksArkivMessage
@@ -231,7 +231,7 @@ internal sealed class FiksArkivSubscriber : BackgroundService
             MessageType = message.Message.MessageType,
             SendersReference = message.Message.SendersReference,
             InReplyToMessage = message.Message.InReplyToMessage,
-            CorrelationId = mailboxId.ToString(),
+            CorrelationId = replyAddressId.ToString(),
             Sender = message.Message.Sender,
             Recipient = message.Message.Recipient,
             MessageLifetime = message.Message.MessageLifetime,
@@ -250,17 +250,17 @@ internal sealed class FiksArkivSubscriber : BackgroundService
         var forwarder = scope.ServiceProvider.GetRequiredService<IServiceTaskReplyForwarder>();
 
         _logger.LogInformation(
-            "Forwarding Fiks Arkiv message {MessageType}:{MessageId} with {PayloadCount} payload(s) to mailbox {MailboxId}",
+            "Forwarding Fiks Arkiv message {MessageType}:{MessageId} with {PayloadCount} payload(s) to reply address {ReplyAddressId}",
             storedMessage.MessageType,
             storedMessage.MessageId,
             storedMessage.Payloads?.Count ?? 0,
-            mailboxId
+            replyAddressId
         );
 
         // The Fiks IO message id is the idempotency key, making at-least-once delivery and retries safe. The
         // task type is named, not derived, so an envelope can never be sealed against the wrong handler.
         await forwarder.ForwardReply(
-            mailboxId,
+            replyAddressId,
             AltinnTaskTypes.FiksArkiv,
             JsonSerializer.Serialize(storedMessage),
             idempotencyKey: storedMessage.MessageId.ToString()

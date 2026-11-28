@@ -1375,35 +1375,34 @@ public class ProcessNextRequestFactoryTests
     }
 
     /// <summary>
-    /// A simple IServiceTask with configurable type and options — a real class, not a mock,
-    /// because an unstubbed mock returns null from DefineExecute, which the factory needs.
+    /// A simple IServiceTask with configurable type and options — a real class, not a mock, because an unstubbed
+    /// mock composes no step, which the factory refuses.
     /// </summary>
     private sealed class FakeServiceTask(string type, ProcessStepOptions? options = null) : IServiceTask
     {
         public string Type => type;
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute, options);
+        public void DefineExecute(PipelineBuilder.ServiceTask pipeline) => pipeline.Stage(Execute, options);
 
-        public Task<ServiceTaskResult> Execute(StageContext context) =>
-            Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+        public Task<ServiceTaskResult> Execute(StageContext context) => Task.FromResult(ServiceTaskResult.Completed());
     }
 
     /// <summary>
-    /// A send→poll pipeline used by the expansion tests: one stage plus the concluding Finally, each with its own
-    /// timeout, and the poll's 48 h wait budget on the Finally alone.
+    /// A send→poll pipeline used by the expansion tests: two stages, each with its own timeout, and the poll's 48 h
+    /// wait budget on the polling stage alone.
     /// </summary>
     private sealed class SigningTask : IServiceTask
     {
         public string Type => "signing";
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+        public void DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
             pipeline
                 .Stage(
-                    _ => Task.FromResult(StageResult.Completed()),
+                    _ => Task.FromResult(ServiceTaskResult.Completed()),
                     new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(10) }
                 )
-                .Finally(
-                    _ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()),
+                .Stage(
+                    _ => Task.FromResult(ServiceTaskResult.Completed()),
                     new ProcessStepOptions
                     {
                         MaxExecutionTime = TimeSpan.FromMinutes(30),
@@ -1433,8 +1432,8 @@ public class ProcessNextRequestFactoryTests
             .ToList();
 
     /// <summary>
-    /// The primary workflow carries the pipeline's first item only: the stage's completion starts the
-    /// conclusion's own workflow.
+    /// The primary workflow carries the pipeline's first item only: the stage's completion starts the next item's
+    /// own workflow.
     /// </summary>
     [Fact]
     public async Task Create_PipelineServiceTask_PrimaryWorkflowCarriesTheFirstItemOnly()
@@ -1479,96 +1478,78 @@ public class ProcessNextRequestFactoryTests
         );
 
         // Assert — the step carries exactly the options its own item declared: the stage's timeout, and not
-        // the conclusion's wait budget, which the stage, never deferring, could never use.
+        // the polling stage's wait budget, which the first stage, never deferring, could never use.
         var dispatch = Assert.Single(ExtractServiceTaskSteps(bundle)).Step;
 
         Assert.Equal(TimeSpan.FromMinutes(10), dispatch.Command.MaxExecutionTime);
         Assert.Null(dispatch.Command.WaitBudget);
     }
 
-    private static readonly MailboxOptions _mailboxThreeDays = new() { Timeout = TimeSpan.FromDays(3) };
+    private static Task<ServiceTaskResult> PlainStage(StageContext context) =>
+        Task.FromResult(ServiceTaskResult.Completed());
 
-    private static Task<StageResult> PlainStage(StageContext context) => Task.FromResult(StageResult.Completed());
+    private static Task<ServiceTaskResult> SendStage(StageContext context, ReplyAddress replyAddress) =>
+        Task.FromResult(ServiceTaskResult.Completed());
 
-    private static Task<ServiceTaskOpeningStageResult> SendStage(StageContext context, ServiceTaskMailbox mailbox) =>
-        Task.FromResult(ServiceTaskOpeningStageResult.Completed());
-
-    private static Task<ServiceTaskExchangeResult> OnMessage(StageContext context, ServiceTaskReply reply) =>
-        Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success());
-
-    private static Task<ServiceTaskResult> OnClosed(StageContext context, MailboxClosedReason reason) =>
-        Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
-
-    private static Task<StageExchangeResult> OnSegmentMessage(StageContext context, ServiceTaskReply reply) =>
-        Task.FromResult<StageExchangeResult>(StageResult.Completed());
-
-    private static Task<StageResult> OnSegmentClosed(StageContext context, MailboxClosedReason reason) =>
-        Task.FromResult(StageResult.Completed());
+    private static Task<ServiceTaskReplyResult> OnReply(StageContext context, ServiceTaskReply reply) =>
+        Task.FromResult(ServiceTaskReplyResult.Completed());
 
     /// <summary>
-    /// A pipeline answered by a message; its conclusion declares its own timeout so the receive step can be
-    /// shown to resolve the <c>Finally</c>'s options.
+    /// A pipeline answered by a message: one external stage, whose options the send and each reply carry.
     /// </summary>
     private sealed class ArchivingTask : IServiceTask
     {
         public string Type => "archiving";
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
-            pipeline
-                .Stage(SendStage, _mailboxThreeDays, out MailboxHandle archive)
-                .ConcludeOnReplies(
-                    archive,
-                    OnMessage,
-                    OnClosed,
-                    new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(3) }
-                );
+        public void DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
+            pipeline.ExternalStage(
+                SendStage,
+                OnReply,
+                TimeSpan.FromDays(3),
+                options: new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(3) }
+            );
     }
 
     /// <summary>
-    /// A declaring pipeline with a stage on <em>each</em> side of the one that sends — the
-    /// <c>send → unrelated stage → reply terminal</c> shape the design supports, with a stage before it.
+    /// An external stage with a stage on <em>each</em> side of it.
     /// </summary>
     private sealed class SurroundedSendArchivingTask : IServiceTask
     {
         public string Type => "archiving";
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+        public void DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
             pipeline
                 .Stage(PlainStage)
-                .Stage(
+                .ExternalStage(
                     SendStage,
-                    _mailboxThreeDays,
-                    out MailboxHandle archive,
-                    new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(7) }
+                    OnReply,
+                    TimeSpan.FromDays(3),
+                    options: new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(7) }
                 )
-                .Stage(PlainStage)
-                .ConcludeOnReplies(archive, OnMessage, OnClosed);
+                .Stage(PlainStage);
     }
 
     /// <summary>
-    /// Two exchanges, the first answered <em>mid-pipeline</em>: the primary workflow carries only the archive's send,
-    /// and every later item rides a workflow of its own. The two handlers declare distinct timeouts so the receive
-    /// step can be shown to resolve the handler that answers <em>it</em>.
+    /// Two external stages in sequence: the primary workflow carries only the archive's send, and every later step
+    /// rides a workflow of its own. The two stages declare distinct timeouts.
     /// </summary>
     private sealed class ArchiveThenJournalTask : IServiceTask
     {
         public string Type => "archiving";
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+        public void DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
             pipeline
-                .Stage(SendStage, _mailboxThreeDays, out MailboxHandle archive)
-                .HandleReplies(
-                    archive,
-                    OnSegmentMessage,
-                    OnSegmentClosed,
-                    new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(5) }
+                .ExternalStage(
+                    SendStage,
+                    OnReply,
+                    TimeSpan.FromDays(3),
+                    options: new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(5) }
                 )
-                .Stage(SendStage, _mailboxThreeDays, out MailboxHandle journal)
-                .ConcludeOnReplies(
-                    journal,
-                    OnMessage,
-                    OnClosed,
-                    new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(3) }
+                .ExternalStage(
+                    SendStage,
+                    OnReply,
+                    TimeSpan.FromDays(3),
+                    options: new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(3) }
                 );
     }
 
@@ -1583,7 +1564,7 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
-    public async Task Create_MailboxPipeline_EndsMainWithTheSendStageAndEmitsNoConclusion()
+    public async Task Create_MailboxPipeline_EndsMainWithTheSendStage()
     {
         var factory = CreateFactory(serviceTasks: new ArchivingTask());
         var stateChange = CreateInitialTaskStart(altinnTaskType: "archiving");
@@ -1600,12 +1581,12 @@ public class ProcessNextRequestFactoryTests
             serviceTaskSteps
         );
         Assert.Equal($"{ExecuteServiceTask.Key}: 0", sendStep.OperationId);
-        // The send's own item and nothing else: the conclusion — item 1 here — answers the exchange, so it
-        // runs on the receive workflows rather than in the primary workflow.
+        // The send's own item and nothing else: its replies run on receive workflows rather than in the primary
+        // workflow.
         Assert.Equal(0, sendStep.Payload.ItemIndex);
 
         // The primary workflow's last step is the send: completing it is what enqueues the first receiver, from
-        // inside the still-unsettled step, so the frontier never reads empty while the exchange is open.
+        // inside the still-unsettled step, so the frontier never reads empty while the stage waits.
         var keys = ExtractCommandKeys(bundle);
         Assert.Equal(ExecuteServiceTask.Key, keys[^1]);
     }
@@ -1677,10 +1658,10 @@ public class ProcessNextRequestFactoryTests
     }
 
     /// <summary>
-    /// The assembled send stage's whole serialized payload, pinned exactly: the service task and the item it
-    /// runs, and nothing else. What follows the send — this pipeline's terminal, its exchange's only receiver
-    /// — is worked out by that step when it runs, from the pipeline it resolves then. Pinned on the whole
-    /// string so that a field added to the payload fails here too, not only a field removed.
+    /// The assembled send's whole serialized payload, pinned exactly: the service task and the item it runs, and
+    /// nothing else. What follows the send — the stage's first receiver — is worked out by that step when it runs,
+    /// from the pipeline it resolves then. Pinned on the whole string so that a field added to the payload fails here
+    /// too, not only a field removed.
     /// </summary>
     [Fact]
     public async Task Create_MailboxPipeline_SendStagePayload_IsTheItemIndexAndNothingElse()
@@ -1704,12 +1685,12 @@ public class ProcessNextRequestFactoryTests
     }
 
     /// <summary>
-    /// The assembly half of multi-exchange: the primary workflow carries only the archive's send, whose completion
-    /// starts that exchange's receive leg, with the journal's send and the terminal belonging to the workflows further
+    /// The assembly half of two external stages: the primary workflow carries only the archive's send, whose
+    /// completion starts that stage's receive workflow, with the journal's send belonging to the workflows further
     /// down the chain.
     /// </summary>
     [Fact]
-    public async Task Create_MailboxPipelineAnsweredMidPipeline_EndsMainAtTheFirstSend()
+    public async Task Create_TwoExternalStages_EndsMainAtTheFirstSend()
     {
         var factory = CreateFactory(serviceTasks: new ArchiveThenJournalTask());
         var stateChange = CreateInitialTaskStart(altinnTaskType: "archiving");
@@ -1721,8 +1702,7 @@ public class ProcessNextRequestFactoryTests
             SignedTestState
         );
 
-        // One stage step, the archive's send: the journal's send and the conclusion are later items, each in a
-        // workflow of its own.
+        // One stage step, the archive's send: the journal's send is a later item, in a workflow of its own.
         var serviceTaskSteps = ExtractServiceTaskSteps(bundle);
         (string OperationId, ExecuteServiceTaskPayload Payload, StepRequest Step) sendStep = Assert.Single(
             serviceTaskSteps
@@ -1738,7 +1718,7 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
-    public async Task Create_PipelineWithoutMailbox_LeavesTheConclusionToItsOwnWorkflow()
+    public async Task Create_PipelineWithoutMailbox_LeavesTheSecondStageToItsOwnWorkflow()
     {
         var factory = CreateFactory(serviceTasks: new SigningTask());
         var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
@@ -1751,7 +1731,7 @@ public class ProcessNextRequestFactoryTests
         );
 
         var serviceTaskSteps = ExtractServiceTaskSteps(bundle);
-        // The signing pipeline's conclusion is its item 1, which the stage's completion starts.
+        // The signing pipeline's polling stage is its item 1, which the first stage's completion starts.
         Assert.DoesNotContain(serviceTaskSteps, s => s.Payload.ItemIndex == 1);
     }
 
@@ -2394,7 +2374,7 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
-    public async Task StepOptions_ServiceTask_ConclusionTimeout_OverridesCommandDefault()
+    public async Task StepOptions_ServiceTask_OwnTimeout_OverridesCommandDefault()
     {
         // Arrange - tier 3: a greedy service task asks for two hours
         var factory = CreateFactory(
@@ -2421,7 +2401,7 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
-    public async Task StepOptions_ServiceTask_ConclusionBothFields_HonorsBoth()
+    public async Task StepOptions_ServiceTask_OwnTimeoutAndRetry_HonorsBoth()
     {
         // Arrange - tier 3 sets BOTH timeout and retry; both must land on the wire, resolved per-field
         var factory = CreateFactory(
@@ -2454,7 +2434,7 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
-    public async Task StepOptions_ServiceTask_ConclusionRetryOnly_FallsBackToCommandTimeout()
+    public async Task StepOptions_ServiceTask_OwnRetryOnly_FallsBackToCommandTimeout()
     {
         // Arrange - tier 3 sets only the retry strategy; timeout must fall back to the tier-2 default
         var factory = CreateFactory(
@@ -2644,7 +2624,7 @@ public class ProcessNextRequestFactoryTests
     {
         public string Type => "staged";
 
-        public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) =>
+        public void DefineStart(PipelineBuilder.Lifecycle pipeline) =>
             pipeline
                 .Stage(_ => Task.FromResult(StageResult.Completed()))
                 .Stage(
@@ -2654,8 +2634,7 @@ public class ProcessNextRequestFactoryTests
                         MaxExecutionTime = TimeSpan.FromMinutes(5),
                         RetryStrategy = ProcessStepRetryStrategy.Exponential(TimeSpan.FromSeconds(2), maxRetries: 7),
                     }
-                )
-                .Build();
+                );
     }
 
     [Fact]

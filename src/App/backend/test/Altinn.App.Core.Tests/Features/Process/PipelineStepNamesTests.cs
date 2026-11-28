@@ -8,10 +8,9 @@ public class PipelineStepNamesTests
     {
         public string Type => "simple";
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+        public void DefineExecute(PipelineBuilder.ServiceTask pipeline) => pipeline.Stage(Execute);
 
-        public Task<ServiceTaskResult> Execute(StageContext context) =>
-            Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+        public Task<ServiceTaskResult> Execute(StageContext context) => Task.FromResult(ServiceTaskResult.Completed());
     }
 
     private static Task<StageResult> SendToArchive(StageContext context) => Task.FromResult(StageResult.Completed());
@@ -25,7 +24,10 @@ public class PipelineStepNamesTests
         Task.FromResult(StageResult.Completed());
 
     private static Task<ServiceTaskResult> ConfirmOrder(StageContext context) =>
-        Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+        Task.FromResult(ServiceTaskResult.Completed());
+
+    private static Task<ServiceTaskResult> GenerateReceipt(StageContext context) =>
+        Task.FromResult(ServiceTaskResult.Completed());
 
     [Fact]
     public void FromMethod_MethodGroup_IsTheMethodNameAsWords()
@@ -69,46 +71,60 @@ public class PipelineStepNamesTests
     [Fact]
     public void Builder_NamesEveryItemAfterItsMethod()
     {
-        ProcessTaskPipeline lifecycle = new PipelineBuilder()
+        ProcessTaskPipeline lifecycle = new PipelineBuilder.Lifecycle()
             .Stage(SendToArchive)
             .Stage(_ => Task.FromResult(StageResult.Completed()))
-            .Build();
-        ServiceTaskPipeline execute = new PipelineBuilder().Stage(GeneratePDFReceipt).Finally(ConfirmOrder);
+            .ToPipeline();
+        ServiceTaskPipeline execute = new PipelineBuilder.ServiceTask()
+            .Stage(GenerateReceipt)
+            .Stage(ConfirmOrder)
+            .ToPipeline();
 
         Assert.Equal(["Send to archive", null], lifecycle.Stages.Select(stage => stage.DisplayName));
-        Assert.Equal(["Generate PDF receipt", "Confirm order"], execute.Items.Select(item => item.DisplayName));
+        Assert.Equal(["Generate receipt", "Confirm order"], execute.Items.Select(item => item.DisplayName));
     }
 
-    private static Task<ServiceTaskOpeningStageResult> RequestApproval(
-        StageContext context,
-        ServiceTaskMailbox mailbox
-    ) => Task.FromResult(ServiceTaskOpeningStageResult.Completed());
+    private static Task<ServiceTaskResult> RequestApproval(StageContext context, ReplyAddress replyAddress) =>
+        Task.FromResult(ServiceTaskResult.Completed());
 
-    private static Task<ServiceTaskExchangeResult> OnDecision(StageContext context, ServiceTaskReply reply) =>
-        Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success());
+    private static Task<ServiceTaskReplyResult> OnDecision(StageContext context, ServiceTaskReply reply) =>
+        Task.FromResult(ServiceTaskReplyResult.Completed());
 
-    private static Task<ServiceTaskResult> OnClosed(StageContext context, MailboxClosedReason reason) =>
-        Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+    private static Task<ServiceTaskResult> OnTimeout(StageContext context) =>
+        Task.FromResult(ServiceTaskResult.Completed());
 
     /// <summary>
-    /// Which of a reply handler's two methods runs is known only when the message or the close arrives, so the step
-    /// is named after both, and never after one that did not run.
+    /// An external stage's send is named after its method. Which of the receive step's two methods runs is known only
+    /// when the reply or the close arrives, so that step is named after both, and never after one that did not run.
     /// </summary>
     [Fact]
-    public void Builder_NamesAReplyHandlerAfterBothItsMethods()
+    public void Builder_NamesAnExternalStagesSendAndReceiveSteps()
     {
-        ServiceTaskPipeline pipeline = new PipelineBuilder()
-            .Stage(RequestApproval, new MailboxOptions { Timeout = TimeSpan.FromDays(1) }, out MailboxHandle approval)
-            .ConcludeOnReplies(approval, OnDecision, OnClosed);
+        var withTimeout = Assert.IsType<ServiceTaskItem.ExternalStage>(
+            Assert.Single(
+                new PipelineBuilder.ServiceTask()
+                    .ExternalStage(RequestApproval, OnDecision, onTimeout: OnTimeout)
+                    .ToPipeline()
+                    .Items
+            )
+        );
+        var withoutTimeout = Assert.IsType<ServiceTaskItem.ExternalStage>(
+            Assert.Single(
+                new PipelineBuilder.ServiceTask().ExternalStage(RequestApproval, OnDecision).ToPipeline().Items
+            )
+        );
 
-        Assert.Equal(["Request approval", "On decision / On closed"], pipeline.Items.Select(item => item.DisplayName));
+        Assert.Equal("Request approval", withTimeout.DisplayName);
+        Assert.Equal("On decision / On timeout", withTimeout.ReplyDisplayName);
+        Assert.Equal("On decision", withoutTimeout.ReplyDisplayName);
     }
 
     [Fact]
-    public void Builder_SimpleServiceTask_ConcludesWithoutAName()
+    public void Builder_SimpleServiceTask_HasAStepWithoutAName()
     {
-        ServiceTaskPipeline pipeline = new SimpleTask().DefineExecute(new PipelineBuilder());
+        var builder = new PipelineBuilder.ServiceTask();
+        new SimpleTask().DefineExecute(builder);
 
-        Assert.Null(Assert.Single(pipeline.Items).DisplayName);
+        Assert.Null(Assert.Single(builder.ToPipeline().Items).DisplayName);
     }
 }

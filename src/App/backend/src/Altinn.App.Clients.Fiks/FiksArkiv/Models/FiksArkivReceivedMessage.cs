@@ -42,7 +42,7 @@ public sealed record FiksArkivReceivedMessage
     public bool IsError =>
         FiksIOConstants.IsErrorType(MessageType) || Payloads.OfType<FiksArkivReceivedMessagePayload.Error>().Any();
 
-    /// <summary>Whether this is the archive's receipt (<c>*.kvittering</c>) — the answer that settles the exchange.</summary>
+    /// <summary>Whether this is the archive's receipt (<c>*.kvittering</c>) — the answer that ends the task.</summary>
     public bool IsReceipt => FiksIOConstants.IsReceiptType(MessageType);
 
     /// <summary>

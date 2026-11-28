@@ -117,7 +117,7 @@ public class WorkflowEnginePipelineTests(ITestOutputHelper output, AppFixtureCla
         string logs = await fixture.GetSnapshotAppLogs();
 
         // The exact journey: part 1 completes once; part 2 fails, defers, then completes — the
-        // engine re-enters at part 2 both times; part 3 concludes once.
+        // engine re-enters at part 2 both times; part 3 runs once.
         AssertInOrder(
             logs,
             "Pipeline.ReserveResources.Run1.Completed",
@@ -127,7 +127,7 @@ public class WorkflowEnginePipelineTests(ITestOutputHelper output, AppFixtureCla
             "Pipeline.ConfirmOrder.Run1.Success"
         );
 
-        // The core claim: neither the completed stage nor the conclusion ever ran again, and the
+        // The core claim: neither the completed stage nor the last stage ever ran again, and the
         // misbehaving stage ran exactly three times.
         Assert.DoesNotContain("Pipeline.ReserveResources.Run2", logs);
         Assert.DoesNotContain("Pipeline.DispatchOrder.Run4", logs);

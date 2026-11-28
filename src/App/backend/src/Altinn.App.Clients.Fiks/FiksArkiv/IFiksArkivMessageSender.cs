@@ -18,9 +18,9 @@ internal interface IFiksArkivMessageSender
     /// <param name="sendersReference">The caller-provided sender reference used to identify retries of the same message.</param>
     /// <param name="replyAddress">
     /// The address the recipient's answers must be routed back to — for
-    /// <see cref="FiksArkivServiceTask"/>, the <c>ServiceTaskMailbox.Id</c> handed to its send stage.
+    /// <see cref="FiksArkivServiceTask"/>, the <c>ReplyAddress.Id</c> handed to its send.
     /// It travels as the Fiks IO <c>klientKorrelasjonsId</c>, the one field Fiks IO echoes back on every
-    /// reply, so an answer can be delivered into the mailbox the task is waiting on.
+    /// reply, so an answer can be delivered to the reply address the task is waiting on.
     /// </param>
     /// <param name="executionReferenceTime">The execution reference time, stable across retries.</param>
     /// <param name="dataMutator">The active instance data mutator.</param>

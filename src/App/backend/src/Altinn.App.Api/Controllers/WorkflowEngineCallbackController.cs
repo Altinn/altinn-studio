@@ -295,7 +295,6 @@ public class WorkflowEngineCallbackController : ControllerBase
                         payload,
                         instanceDataUnitOfWork,
                         updatedState,
-                        success.ProcessNextContinuation is not null,
                         success.ProcessNextContinuation?.Action,
                         cancellationToken
                     );
@@ -381,23 +380,6 @@ public class WorkflowEngineCallbackController : ControllerBase
                 );
 
             case FailedWorkflowEngineCommandResult failed:
-                // A permanent failure still concludes the exchange — the mailbox must stop accepting messages.
-                // Before the response, so a retried step repeats it.
-                if (failed.MailboxContinuation is { } failedContinuation)
-                {
-                    await RunMailboxRelay(
-                        failedContinuation,
-                        appId,
-                        instanceId,
-                        payload,
-                        instanceDataUnitOfWork,
-                        state: null,
-                        autoAdvanceProcess: false,
-                        autoAdvanceAction: null,
-                        cancellationToken
-                    );
-                }
-
                 if (failed.Exception is DataElementContentConflictException contentConflict)
                 {
                     activity?.SetStatus(ActivityStatusCode.Error, "Data element content conflict");
@@ -573,8 +555,7 @@ public class WorkflowEngineCallbackController : ControllerBase
         InstanceIdentifier instanceId,
         AppCallbackPayload payload,
         InstanceDataUnitOfWork unitOfWork,
-        string? state,
-        bool autoAdvanceProcess,
+        string state,
         string? autoAdvanceAction,
         CancellationToken cancellationToken
     )
@@ -589,7 +570,6 @@ public class WorkflowEngineCallbackController : ControllerBase
                 Payload = payload,
                 DataAccessor = unitOfWork,
                 State = state,
-                AutoAdvanceProcess = autoAdvanceProcess,
                 AutoAdvanceAction = autoAdvanceAction,
             },
             cancellationToken

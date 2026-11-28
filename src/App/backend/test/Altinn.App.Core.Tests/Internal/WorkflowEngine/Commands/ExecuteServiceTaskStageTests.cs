@@ -13,28 +13,28 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands;
 
 /// <summary>
 /// The pipeline dispatch of <see cref="ExecuteServiceTask"/> for a multi-stage <see cref="IServiceTask"/>:
-/// resolution by item index — the conclusion's included, since it is an item like any other — stage-result
-/// mapping, the plain index-not-found verdict, and the refusal of a payload naming no item at all. The
-/// dispatch of a pipeline that is just its conclusion is covered by <see cref="ExecuteServiceTaskTests"/>.
+/// resolution by item index, stage-result mapping — carrying on, and ending the task from any stage — the plain
+/// index-not-found verdict, and the refusal of a payload naming no item at all. The dispatch of a one-stage pipeline
+/// is covered by <see cref="ExecuteServiceTaskTests"/>.
 /// </summary>
 public class ExecuteServiceTaskStageTests
 {
     /// <summary>
     /// A send→poll pipeline whose behavior each test scripts via delegates: the stage at item
-    /// index 0 dispatches, and the Finally — item index 1 — awaits the receipt and concludes.
+    /// index 0 dispatches, and the stage at item index 1 awaits the receipt.
     /// </summary>
     private sealed class ShippingTask : IServiceTask
     {
         public string Type => "shipping";
 
-        public Func<StageContext, Task<StageResult>> OnSend { get; init; } =
-            _ => Task.FromResult(StageResult.Completed());
+        public Func<StageContext, Task<ServiceTaskResult>> OnSend { get; init; } =
+            _ => Task.FromResult(ServiceTaskResult.Completed());
 
         public Func<StageContext, Task<ServiceTaskResult>> OnAwait { get; init; } =
-            _ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+            _ => Task.FromResult(ServiceTaskResult.Completed());
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
-            pipeline.Stage(ctx => OnSend(ctx)).Finally(ctx => OnAwait(ctx));
+        public void DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
+            pipeline.Stage(ctx => OnSend(ctx)).Stage(ctx => OnAwait(ctx));
     }
 
     private static ExecuteServiceTask CreateCommand(IServiceTask serviceTask)
@@ -86,22 +86,22 @@ public class ExecuteServiceTaskStageTests
 
     private static ExecuteServiceTaskPayload Payload(int? itemIndex) => new("shipping", itemIndex);
 
-    /// <summary>The item index of <see cref="ShippingTask"/>'s conclusion.</summary>
-    private const int ConclusionIndex = 1;
+    /// <summary>The item index of <see cref="ShippingTask"/>'s last stage.</summary>
+    private const int LastIndex = 1;
 
     /// <summary>
-    /// The stage-result counterpart of
+    /// The mid-pipeline counterpart of
     /// <c>ExecuteServiceTaskTests.Execute_WhenServiceTaskReturnsAnUnrecognisedResultType_…</c>: a type the
-    /// mapper does not know must fail permanently and name itself, never be concluded as a silent success and
+    /// mapper does not know must fail permanently and name itself, never be taken for a completed stage and
     /// never ride the outer catch's retry ladder.
     /// </summary>
     /// <remarks>
     /// Self-cleaning: closing the copy-constructor route properly stops <c>base(original)</c> compiling, and
     /// this test disappears with the arm it pins.
     /// </remarks>
-    private sealed record RogueStageResult : StageResult
+    private sealed record RogueStageResult : ServiceTaskResult
     {
-        public RogueStageResult(StageResult original)
+        public RogueStageResult(ServiceTaskResult original)
             : base(original) { }
     }
 
@@ -110,7 +110,7 @@ public class ExecuteServiceTaskStageTests
     {
         var task = new ShippingTask
         {
-            OnSend = _ => Task.FromResult<StageResult>(new RogueStageResult(StageResult.Completed())),
+            OnSend = _ => Task.FromResult<ServiceTaskResult>(new RogueStageResult(ServiceTaskResult.Completed())),
         };
 
         WorkflowEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(), Payload(0));
@@ -121,10 +121,16 @@ public class ExecuteServiceTaskStageTests
         Assert.Contains(nameof(RogueStageResult), failed.ErrorMessage, StringComparison.Ordinal);
     }
 
+#nullable disable
+    /// <summary>A stage written without nullable annotations, answering null.</summary>
+    private static Task<ServiceTaskResult> AnswerNull() => Task.FromResult<ServiceTaskResult>(null);
+
+#nullable restore
+
     [Fact]
     public async Task Stage_WhenItReturnsNull_FailsPermanentlyWithoutThrowing()
     {
-        var task = new ShippingTask { OnSend = _ => Task.FromResult<StageResult>(null!) };
+        var task = new ShippingTask { OnSend = _ => AnswerNull() };
 
         WorkflowEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(), Payload(0));
 
@@ -135,11 +141,11 @@ public class ExecuteServiceTaskStageTests
     }
 
     /// <summary>
-    /// A stage is its workflow's last step, so completing it starts the conclusion's workflow and concludes
-    /// nothing itself.
+    /// A stage is its workflow's last step, so completing it starts the next item's workflow and does not end the
+    /// task.
     /// </summary>
     [Fact]
-    public async Task Stage_Completed_StartsTheConclusionsWorkflow_AndDoesNotConcludeTheTask()
+    public async Task Stage_Completed_StartsTheNextItemsWorkflow_AndDoesNotEndTheTask()
     {
         var command = CreateCommand(new ShippingTask());
 
@@ -148,39 +154,12 @@ public class ExecuteServiceTaskStageTests
         var success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.Null(success.ProcessNextContinuation);
         var continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(success.MailboxContinuation);
-        Assert.Equal(0, continuing.Handover.AfterItemIndex);
-        Assert.Equal(
-            [$"{ExecuteServiceTask.Key}: {ConclusionIndex}"],
-            continuing.Handover.Plan.Steps.Select(step => step.OperationId)
-        );
-        Assert.Null(continuing.Handover.Target);
-    }
-
-    /// <summary>Two stages and the conclusion in a row: each stage hands over to the next item's workflow.</summary>
-    private sealed class TwoStageTask : IServiceTask
-    {
-        public string Type => "shipping";
-
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
-            pipeline
-                .Stage(_ => Task.FromResult(StageResult.Completed()))
-                .Stage(_ => Task.FromResult(StageResult.Completed()))
-                .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
-    }
-
-    [Fact]
-    public async Task Stage_FollowedByAPlainStage_Completed_HandsOverToThatStage()
-    {
-        var command = CreateCommand(new TwoStageTask());
-
-        var result = await command.Execute(CreateContext(), Payload(0));
-
-        var success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
-        Assert.Null(success.ProcessNextContinuation);
-        var continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(success.MailboxContinuation);
         Assert.Equal("shipping", continuing.ServiceTaskType);
         Assert.Equal(0, continuing.Handover.AfterItemIndex);
-        Assert.Equal([$"{ExecuteServiceTask.Key}: 1"], continuing.Handover.Plan.Steps.Select(step => step.OperationId));
+        Assert.Equal(
+            [$"{ExecuteServiceTask.Key}: {LastIndex}"],
+            continuing.Handover.Steps.Select(step => step.OperationId)
+        );
         Assert.Null(continuing.Handover.Target);
     }
 
@@ -201,10 +180,10 @@ public class ExecuteServiceTaskStageTests
     [Fact]
     public async Task Stage_Defer_ReturnsDeferredResult()
     {
-        // Any stage may await an async dependency — deferral is not reserved for the conclusion.
+        // Any stage may await an async dependency — deferral is not reserved for the last stage.
         var task = new ShippingTask
         {
-            OnSend = _ => Task.FromResult(StageResult.Defer(TimeSpan.FromSeconds(30), "queue is saturated")),
+            OnSend = _ => Task.FromResult(ServiceTaskResult.Defer(TimeSpan.FromSeconds(30), "queue is saturated")),
         };
         var command = CreateCommand(task);
 
@@ -225,8 +204,8 @@ public class ExecuteServiceTaskStageTests
             OnSend = _ =>
                 Task.FromResult(
                     permanent
-                        ? StageResult.FailedPermanent("shipment rejected")
-                        : StageResult.FailedRetryable("shipment service timed out")
+                        ? ServiceTaskResult.FailedPermanent("shipment rejected")
+                        : ServiceTaskResult.FailedRetryable("shipment service timed out")
                 ),
         };
         var command = CreateCommand(task);
@@ -238,48 +217,93 @@ public class ExecuteServiceTaskStageTests
         Assert.Contains("Service task 'shipping' failed", failed.ErrorMessage);
     }
 
+    /// <summary>
+    /// The last item has nothing after it, so completing it ends the task with the default flow.
+    /// </summary>
     [Fact]
-    public async Task ConclusionIndex_RunsTheFinally_AndAdvancesTheProcess()
+    public async Task LastStage_Completed_EndsTheTaskWithNoAction()
     {
         var command = CreateCommand(new ShippingTask());
 
-        var result = await command.Execute(CreateContext(), Payload(ConclusionIndex));
+        var result = await command.Execute(CreateContext(), Payload(LastIndex));
 
         var success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.NotNull(success.ProcessNextContinuation);
+        Assert.Null(success.ProcessNextContinuation.Action);
+        Assert.Null(success.MailboxContinuation);
+    }
+
+    /// <summary>
+    /// However the task ends, a mailbox still carried is closed before the next transition starts. A well-formed
+    /// pipeline closes each external stage's mailbox before the next item runs, so only a reshaped one gets here.
+    /// </summary>
+    [Fact]
+    public async Task LastStage_Completed_WithAMailboxStillCarried_ClosesItBeforeTheNextTransition()
+    {
+        var mailboxId = Guid.NewGuid();
+        WorkflowEngineCommandContext context = CreateContext();
+        context.StateCarry.RecordMailbox(0, mailboxId, DateTimeOffset.UtcNow.AddDays(1));
+
+        var result = await CreateCommand(new ShippingTask()).Execute(context, Payload(LastIndex));
+
+        var success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.Null(success.ProcessNextContinuation?.Action);
+        Assert.NotNull(success.ProcessNextContinuation);
+        Assert.Equal(mailboxId, Assert.IsType<MailboxContinuation.Conclude>(success.MailboxContinuation).MailboxId);
+        Assert.Null(context.StateCarry.OpenMailbox);
     }
 
     [Fact]
-    public async Task Finally_SuccessWithAction_CarriesTheAction()
+    public async Task LastStage_EndTaskWithAction_CarriesTheAction()
     {
-        var task = new ShippingTask
-        {
-            OnAwait = _ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success("reject")),
-        };
+        var task = new ShippingTask { OnAwait = _ => Task.FromResult(ServiceTaskResult.EndTask("reject")) };
         var command = CreateCommand(task);
 
-        var result = await command.Execute(CreateContext(), Payload(ConclusionIndex));
+        var result = await command.Execute(CreateContext(), Payload(LastIndex));
 
         var success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.NotNull(success.ProcessNextContinuation);
-        Assert.Equal("reject", success.ProcessNextContinuation?.Action);
+        Assert.Equal("reject", success.ProcessNextContinuation.Action);
     }
 
+    /// <summary>
+    /// Any stage can end the task: the next transition gets the stage's action, and nothing is handed over, so the
+    /// items composed after it never run.
+    /// </summary>
     [Fact]
-    public async Task Finally_Defer_ReturnsDeferredResult()
+    public async Task Stage_EndTaskMidPipeline_EndsTheTaskWithTheAction_AndStartsNoLaterItem()
     {
-        // The Finally is where a send-then-poll pipeline waits.
+        bool awaitRan = false;
         var task = new ShippingTask
         {
+            OnSend = _ => Task.FromResult(ServiceTaskResult.EndTask("reject")),
             OnAwait = _ =>
-                Task.FromResult<ServiceTaskResult>(
-                    ServiceTaskResult.Defer(TimeSpan.FromMinutes(5), "awaiting receipt")
-                ),
+            {
+                awaitRan = true;
+                return Task.FromResult(ServiceTaskResult.Completed());
+            },
         };
         var command = CreateCommand(task);
 
-        var result = await command.Execute(CreateContext(), Payload(ConclusionIndex));
+        var result = await command.Execute(CreateContext(), Payload(0));
+
+        var success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
+        Assert.Equal("reject", success.ProcessNextContinuation?.Action);
+        Assert.Null(success.MailboxContinuation);
+        Assert.False(awaitRan);
+    }
+
+    [Fact]
+    public async Task LastStage_Defer_ReturnsDeferredResult()
+    {
+        // The last stage is where a send-then-poll pipeline waits.
+        var task = new ShippingTask
+        {
+            OnAwait = _ => Task.FromResult(ServiceTaskResult.Defer(TimeSpan.FromMinutes(5), "awaiting receipt")),
+        };
+        var command = CreateCommand(task);
+
+        var result = await command.Execute(CreateContext(), Payload(LastIndex));
 
         var deferred = Assert.IsType<DeferredWorkflowEngineCommandResult>(result);
         Assert.Equal(TimeSpan.FromMinutes(5), deferred.Delay);
@@ -331,25 +355,24 @@ public class ExecuteServiceTaskStageTests
 
         public string Type => "shipping";
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+        public void DefineExecute(PipelineBuilder.ServiceTask pipeline) => pipeline.Stage(Execute);
 
         public Task<ServiceTaskResult> Execute(StageContext context)
         {
             Executed = true;
-            return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+            return Task.FromResult(ServiceTaskResult.Completed());
         }
     }
 
     [Fact]
-    public async Task ConcludingIndexAgainstSimpleTask_FailsPermanently_AsItemNotFound()
+    public async Task IndexPastASimpleTasksOnlyStage_FailsPermanently_AsItemNotFound()
     {
-        // Version skew: a workflow enqueued when the task composed a stage — so its conclusion sat at item
-        // index 1 — calling back into an app version where the task is a simple IServiceTask, whose whole
-        // pipeline is the conclusion at index 0.
+        // Version skew: a workflow enqueued when the task composed two stages — so its last sat at item index 1 —
+        // calling back into an app version where the task has one stage, at index 0.
         var simple = new SimpleTask();
         var command = CreateCommand(simple);
 
-        var result = await command.Execute(CreateContext(), Payload(ConclusionIndex));
+        var result = await command.Execute(CreateContext(), Payload(LastIndex));
 
         var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
@@ -358,10 +381,10 @@ public class ExecuteServiceTaskStageTests
     }
 
     [Fact]
-    public async Task MockedTaskWhoseDefineReturnsNull_FailsRetryably_WithALegibleMessage()
+    public async Task MockedTaskThatComposesNothing_FailsRetryably_WithALegibleMessage()
     {
-        // An unstubbed mock returns null from DefineExecute. The dispatch must fail legibly rather than
-        // NullReference — the same guard covers a broken real implementation.
+        // An unstubbed mock composes no step. The dispatch must fail legibly rather than run nothing — the same
+        // guard covers a broken real implementation, which app startup refuses first.
         var mock = new Mock<IServiceTask>();
         mock.Setup(x => x.Type).Returns("shipping");
         var command = CreateCommand(mock.Object);
@@ -370,7 +393,7 @@ public class ExecuteServiceTaskStageTests
 
         var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.False(failed.NonRetryable);
-        Assert.Contains("DefineExecute returned null", failed.ErrorMessage);
+        Assert.Contains("DefineExecute composes no step", failed.ErrorMessage);
     }
 
     [Fact]
@@ -382,7 +405,7 @@ public class ExecuteServiceTaskStageTests
             OnSend = ctx =>
             {
                 observed = ctx;
-                return Task.FromResult(StageResult.Completed());
+                return Task.FromResult(ServiceTaskResult.Completed());
             },
         };
         var command = CreateCommand(task);
@@ -394,41 +417,5 @@ public class ExecuteServiceTaskStageTests
         Assert.Equal(context.Payload.WorkflowId, observed.WorkflowId);
         Assert.Equal(context.Payload.StepId, observed.StepId);
         Assert.Same(context.InstanceDataMutator, observed.InstanceDataMutator);
-    }
-
-    [Fact]
-    public async Task ItemIndexPointingAtAReplyHandler_WithNoRendezvous_FailsAsReceiptMissing()
-    {
-        var task = new ReplyFirstTask();
-        var command = CreateCommand(task);
-
-        var result = await command.Execute(CreateContext(), Payload(1));
-
-        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
-        Assert.True(failed.NonRetryable);
-        Assert.Equal("MailboxReceiptMissing", failed.ExceptionType);
-    }
-
-    /// <summary>
-    /// A pipeline whose item 1 is a reply handler rather than a stage — the earliest position a handler
-    /// can occupy, since it names a stage composed before it.
-    /// </summary>
-    private sealed class ReplyFirstTask : IServiceTask
-    {
-        public string Type => "shipping";
-
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
-            pipeline
-                .Stage(
-                    (_, _) => Task.FromResult(ServiceTaskOpeningStageResult.Completed()),
-                    new MailboxOptions { Timeout = TimeSpan.FromDays(1) },
-                    out MailboxHandle handle
-                )
-                .HandleReplies(
-                    handle,
-                    (_, _) => Task.FromResult<StageExchangeResult>(StageExchangeResult.AwaitNextReply()),
-                    (_, _) => Task.FromResult(StageResult.Completed())
-                )
-                .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
     }
 }

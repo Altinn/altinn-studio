@@ -14,7 +14,7 @@ public sealed class ServiceTaskReplyForwardException : AltinnException
 
     /// <summary>
     /// <see langword="true"/> when forwarding again could succeed. <see langword="false"/> when settled —
-    /// including <see cref="ServiceTaskReplyForwardOutcome.MailboxFull"/>: the count never goes back down.
+    /// including <see cref="ServiceTaskReplyForwardOutcome.TooManyReplies"/>: the count never goes back down.
     /// </summary>
     public bool IsTransient =>
         Outcome
@@ -22,7 +22,7 @@ public sealed class ServiceTaskReplyForwardException : AltinnException
                 or ServiceTaskReplyForwardOutcome.SigningUnavailable;
 
     /// <summary>The reply address the message was forwarded to.</summary>
-    public Guid MailboxId { get; }
+    public Guid ReplyAddressId { get; }
 
     /// <summary>The idempotency key supplied for the message — the source's own message id.</summary>
     public string? IdempotencyKey { get; }
@@ -33,13 +33,13 @@ public sealed class ServiceTaskReplyForwardException : AltinnException
     /// <see cref="IServiceTaskReplyForwarder"/> throw the outcome under test.
     /// </summary>
     /// <param name="outcome">Why the message was not accepted.</param>
-    /// <param name="mailboxId">The reply address the message was forwarded to.</param>
+    /// <param name="replyAddressId">The reply address the message was forwarded to.</param>
     /// <param name="idempotencyKey">The idempotency key supplied for the message, if any.</param>
     /// <param name="message">Human-readable description of the failure.</param>
     /// <param name="innerException">The underlying failure, when there was one.</param>
     public ServiceTaskReplyForwardException(
         ServiceTaskReplyForwardOutcome outcome,
-        Guid mailboxId,
+        Guid replyAddressId,
         string? idempotencyKey,
         string message,
         Exception? innerException = null
@@ -47,7 +47,7 @@ public sealed class ServiceTaskReplyForwardException : AltinnException
         : base(message, innerException)
     {
         Outcome = outcome;
-        MailboxId = mailboxId;
+        ReplyAddressId = replyAddressId;
         IdempotencyKey = idempotencyKey;
     }
 }

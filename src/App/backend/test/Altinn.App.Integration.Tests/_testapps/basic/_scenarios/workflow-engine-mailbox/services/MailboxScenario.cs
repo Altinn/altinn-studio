@@ -14,27 +14,23 @@ using TestApp.Shared;
 namespace Altinn.App.Integration.Tests.Scenarios.WorkflowEngineMailbox;
 
 /// <summary>
-/// A task answered by messages: "SendToArchive" opens the mailbox and publishes its address, and the
-/// exchange is concluded by <see cref="PipelineBuilder.ConcludeOnReplies"/> — two
-/// messages, the first answered with <see cref="ServiceTaskExchangeResult.AwaitNextReply"/> and the
-/// second concluding the task. Two messages rather than one is deliberate: only an exchange that
-/// continues past its first message exercises the relay's successor path (enqueue a successor
-/// receiver) as well as its conclusion.
+/// A task answered by messages: an external stage, "SendToArchive", publishes its reply address, and its reply
+/// handler takes two messages, the first answered with <see cref="ServiceTaskReplyResult.AwaitNextReply"/> and the
+/// second with <see cref="ServiceTaskReplyResult.Completed"/>. Two messages rather than one is deliberate: only a
+/// stage that waits past its first reply exercises the relay's successor path (enqueue a successor receiver) as well
+/// as its close.
 ///
-/// The declaring stage is deliberately <strong>surrounded</strong> by plain stages —
-/// "PrepareDocuments" before it and "RecordDispatch" after — so that the test's claim about where the
-/// mint step sits can fail in both directions: a mint hoisted to the front of the stage list (which
-/// would start the deadline clock before the pre-send work, eroding the budget) breaks the
-/// "immediately after PrepareDocuments" half, and a mint deferred to the end breaks the "immediately
-/// before SendToArchive" half. A declaring stage that is first or last makes one of those
-/// unfalsifiable.
+/// The external stage is deliberately <strong>surrounded</strong> by plain stages — "PrepareDocuments" before it
+/// and "RecordDispatch" after — so that the mint's place can fail in both directions: a mint hoisted to the front of
+/// the stage list (which would start the deadline clock before the pre-send work, eroding the budget) breaks the
+/// "immediately after PrepareDocuments" half, and the stage after it shows that the reply handler's completion
+/// closes the mailbox and carries on, and that the last item's completion ends the task.
 /// </summary>
 /// <remarks>
-/// The closure handler is this scenario's tripwire, mirroring the throwing default handlers in the
+/// The timeout handler is this scenario's tripwire, mirroring the throwing default handlers in the
 /// controller-level unit tests: on the happy path nothing may reach it, so it logs an unmistakable
-/// marker (the test asserts its absence) and concludes permanently failed, which alone would keep the
-/// process off its end event. A run that dispatched to the wrong half of the exchange therefore
-/// cannot pass.
+/// marker (the test asserts its absence) and fails permanently, which alone would keep the
+/// process off its end event. A run that dispatched to the wrong handler therefore cannot pass.
 /// </remarks>
 public sealed class ArchivingServiceTask : IServiceTask
 {
@@ -44,81 +40,83 @@ public sealed class ArchivingServiceTask : IServiceTask
     /// <summary>A plain stage before the send, so "the mint does not run before it" is falsifiable.</summary>
     public const string PrepareStageLabel = "PrepareDocuments";
 
-    /// <summary>The declaring stage's log/recorder key. Stages are dispatched by item index; this label
-    /// only names the stage in the scenario's own recorded runs and logs.</summary>
+    /// <summary>The send's log/recorder key. Steps are dispatched by item index; this label
+    /// only names the send in the scenario's own recorded runs and logs.</summary>
     public const string SendStageLabel = "SendToArchive";
 
-    /// <summary>A plain stage after the send, so "the mint is not deferred past it" is falsifiable.</summary>
+    /// <summary>A plain stage after the external stage, which runs once the replies are handled.</summary>
     public const string RecordStageLabel = "RecordDispatch";
 
     public string Type => ServiceTaskType;
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+    public void DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
         pipeline
             .Stage(PrepareDocuments)
-            .Stage(
+            .ExternalStage(
                 SendToArchive,
+                HandleArchiveReply,
                 // Comfortably clear of the sum of the test's own waits (three 90s polls plus the
                 // synchronous process/next wait), so a slow run fails on a test deadline that blames the
-                // clock rather than tripping onClosed and blaming the app. Nothing waits for closure, so
+                // clock rather than tripping onTimeout and blaming the app. Nothing waits for the timeout, so
                 // there is no reason to keep this tight.
-                new MailboxOptions { Timeout = TimeSpan.FromMinutes(20) },
-                out MailboxHandle archive
+                timeout: TimeSpan.FromMinutes(20),
+                onTimeout: HandleArchiveTimeout
             )
-            .Stage(RecordDispatch)
-            .ConcludeOnReplies(archive, onMessage: HandleArchiveMessage, onClosed: HandleArchiveClosed);
+            .Stage(RecordDispatch);
 
-    private Task<StageResult> PrepareDocuments(StageContext context)
+    private Task<ServiceTaskResult> PrepareDocuments(StageContext context)
     {
         int run = MailboxExchangeRecorder.NextRun(PrepareStageLabel);
         SnapshotLogger.LogInfo($"Mailbox.PrepareDocuments.Run{run}.Completed");
-        return Task.FromResult(StageResult.Completed());
+        return Task.FromResult(ServiceTaskResult.Completed());
     }
 
-    private Task<ServiceTaskOpeningStageResult> SendToArchive(StageContext context, ServiceTaskMailbox mailbox)
+    private Task<ServiceTaskResult> SendToArchive(StageContext context, ReplyAddress replyAddress)
     {
         int run = MailboxExchangeRecorder.NextRun(SendStageLabel);
         // Standing in for the outbound message that would carry the reply address to the archive.
-        MailboxExchangeRecorder.PublishAddress(mailbox.Id, mailbox.Deadline);
+        MailboxExchangeRecorder.PublishAddress(replyAddress.Id, replyAddress.Deadline);
         SnapshotLogger.LogInfo($"Mailbox.SendToArchive.Run{run}.Published");
-        return Task.FromResult(ServiceTaskOpeningStageResult.Completed());
+        return Task.FromResult(ServiceTaskResult.Completed());
     }
 
-    private Task<StageResult> RecordDispatch(StageContext context)
+    private Task<ServiceTaskResult> RecordDispatch(StageContext context)
     {
         int run = MailboxExchangeRecorder.NextRun(RecordStageLabel);
         SnapshotLogger.LogInfo($"Mailbox.RecordDispatch.Run{run}.Completed");
-        return Task.FromResult(StageResult.Completed());
+        return Task.FromResult(ServiceTaskResult.Completed());
     }
 
-    private Task<ServiceTaskExchangeResult> HandleArchiveMessage(StageContext context, ServiceTaskReply reply)
+    private Task<ServiceTaskReplyResult> HandleArchiveReply(StageContext context, ServiceTaskReply reply)
     {
         MailboxExchangeRecorder.RecordMessage(reply);
         string kind = ReadKind(reply.Payload);
         switch (kind)
         {
             case "ack":
-                SnapshotLogger.LogInfo($"Mailbox.OnMessage.Position{reply.Position}.Ack.AwaitNextReply");
-                return Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskExchangeResult.AwaitNextReply());
+                SnapshotLogger.LogInfo($"Mailbox.OnReply.Position{reply.Position}.Ack.AwaitNextReply");
+                return Task.FromResult(ServiceTaskReplyResult.AwaitNextReply());
 
             case "receipt":
-                SnapshotLogger.LogInfo($"Mailbox.OnMessage.Position{reply.Position}.Receipt.Success");
-                return Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success());
+                SnapshotLogger.LogInfo($"Mailbox.OnReply.Position{reply.Position}.Receipt.Completed");
+                return Task.FromResult(ServiceTaskReplyResult.Completed());
 
             default:
-                SnapshotLogger.LogError($"Mailbox.OnMessage.Position{reply.Position}.Tripwire");
-                return Task.FromResult<ServiceTaskExchangeResult>(
-                    ServiceTaskResult.FailedPermanent($"The archive sent a message this task cannot read: '{kind}'.")
+                SnapshotLogger.LogError($"Mailbox.OnReply.Position{reply.Position}.Tripwire");
+                return Task.FromResult(
+                    ServiceTaskReplyResult.FailedPermanent(
+                        $"The archive sent a message this task cannot read: '{kind}'."
+                    )
                 );
         }
     }
 
-    private Task<ServiceTaskResult> HandleArchiveClosed(StageContext context, MailboxClosedReason reason)
+    private Task<ServiceTaskResult> HandleArchiveTimeout(StageContext context)
     {
-        MailboxExchangeRecorder.RecordClosed(reason);
-        SnapshotLogger.LogError($"Mailbox.OnClosed.{reason}.Tripwire");
-        return Task.FromResult<ServiceTaskResult>(
-            ServiceTaskResult.FailedPermanent($"The archive never answered before the mailbox closed ({reason}).")
+        MailboxExchangeRecorder.RecordTimeout();
+        SnapshotLogger.LogError("Mailbox.OnTimeout.Tripwire");
+        return Task.FromResult(
+            ServiceTaskResult.FailedPermanent("The archive never answered before the reply address closed.")
         );
     }
 
@@ -146,7 +144,7 @@ public sealed record ExchangeState(
     Guid? MailboxId,
     DateTimeOffset? Deadline,
     IReadOnlyList<RecordedMessage> Messages,
-    string? ClosedReason,
+    bool TimedOut,
     IReadOnlyDictionary<string, int> Runs
 );
 
@@ -161,7 +159,7 @@ internal static class MailboxExchangeRecorder
     private static readonly List<RecordedMessage> _messages = new();
     private static Guid? _mailboxId;
     private static DateTimeOffset? _deadline;
-    private static string? _closedReason;
+    private static bool _timedOut;
 
     public static int NextRun(string stage)
     {
@@ -190,11 +188,11 @@ internal static class MailboxExchangeRecorder
         }
     }
 
-    public static void RecordClosed(MailboxClosedReason reason)
+    public static void RecordTimeout()
     {
         lock (_lock)
         {
-            _closedReason = reason.ToString();
+            _timedOut = true;
         }
     }
 
@@ -206,7 +204,7 @@ internal static class MailboxExchangeRecorder
                 _mailboxId,
                 _deadline,
                 new List<RecordedMessage>(_messages),
-                _closedReason,
+                _timedOut,
                 new Dictionary<string, int>(_runs, StringComparer.Ordinal)
             );
         }
@@ -220,7 +218,7 @@ internal static class MailboxExchangeRecorder
             _messages.Clear();
             _mailboxId = null;
             _deadline = null;
-            _closedReason = null;
+            _timedOut = false;
         }
     }
 }

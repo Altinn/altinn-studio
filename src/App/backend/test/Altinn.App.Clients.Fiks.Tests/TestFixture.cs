@@ -89,7 +89,7 @@ internal sealed record TestFixture(
         AppImplementationFactory.GetServiceTasks().First(x => x.Type == AltinnTaskTypes.FiksArkiv);
 
     /// <summary>
-    /// The Fiks Arkiv task's composed pipeline — the send stage plus its reply handler.
+    /// The Fiks Arkiv task's composed pipeline: one external stage, the send with its reply and timeout handlers.
     /// </summary>
     public ServiceTaskPipeline FiksArkivPipeline => FiksArkivServiceTask.ResolvePipeline();
     public IFiksIOClientFactory FiksIOClientFactory => App.Services.GetRequiredService<IFiksIOClientFactory>();

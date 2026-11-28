@@ -12,7 +12,7 @@ namespace Altinn.App.Integration.Tests.Scenarios.WorkflowEnginePipeline;
 /// <summary>
 /// A three-part pipeline whose middle part misbehaves on purpose: "ReserveResources" completes on
 /// its first run; "DispatchOrder" fails retryably on run 1, defers on run 2, and completes on
-/// run 3 — both re-entry paths on the same stage; the Finally ("ConfirmOrder") succeeds. Every
+/// run 3 — both re-entry paths on the same stage; the last stage ("ConfirmOrder") completes. Every
 /// run logs its run number via <see cref="SnapshotLogger"/>; the test asserts the exact sequence
 /// and, crucially, the absence of a second run of parts 1 and 3.
 /// </summary>
@@ -20,7 +20,7 @@ public sealed class ThreePartPipelineTask : IServiceTask
 {
     public string Type => "pipeline";
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+    public void DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
         pipeline
             .Stage(ReserveResources)
             .Stage(
@@ -32,31 +32,31 @@ public sealed class ThreePartPipelineTask : IServiceTask
                     RetryStrategy = ProcessStepRetryStrategy.Constant(TimeSpan.FromSeconds(1), maxRetries: 3),
                 }
             )
-            .Finally(ConfirmOrder);
+            .Stage(ConfirmOrder);
 
-    private Task<StageResult> ReserveResources(StageContext context)
+    private Task<ServiceTaskResult> ReserveResources(StageContext context)
     {
         int run = PipelineRunCounter.NextRun("ReserveResources");
         SnapshotLogger.LogInfo($"Pipeline.ReserveResources.Run{run}.Completed");
-        return Task.FromResult(StageResult.Completed());
+        return Task.FromResult(ServiceTaskResult.Completed());
     }
 
-    private Task<StageResult> DispatchOrder(StageContext context)
+    private Task<ServiceTaskResult> DispatchOrder(StageContext context)
     {
         int run = PipelineRunCounter.NextRun("DispatchOrder");
         switch (run)
         {
             case 1:
                 SnapshotLogger.LogInfo($"Pipeline.DispatchOrder.Run{run}.FailedRetryable");
-                return Task.FromResult(StageResult.FailedRetryable("Scenario dispatch failed transiently."));
+                return Task.FromResult(ServiceTaskResult.FailedRetryable("Scenario dispatch failed transiently."));
             case 2:
                 SnapshotLogger.LogInfo($"Pipeline.DispatchOrder.Run{run}.Defer");
                 return Task.FromResult(
-                    StageResult.Defer(TimeSpan.FromSeconds(1), "scenario dispatch awaiting a queue slot")
+                    ServiceTaskResult.Defer(TimeSpan.FromSeconds(1), "scenario dispatch awaiting a queue slot")
                 );
             default:
                 SnapshotLogger.LogInfo($"Pipeline.DispatchOrder.Run{run}.Completed");
-                return Task.FromResult(StageResult.Completed());
+                return Task.FromResult(ServiceTaskResult.Completed());
         }
     }
 
@@ -64,7 +64,7 @@ public sealed class ThreePartPipelineTask : IServiceTask
     {
         int run = PipelineRunCounter.NextRun("ConfirmOrder");
         SnapshotLogger.LogInfo($"Pipeline.ConfirmOrder.Run{run}.Success");
-        return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+        return Task.FromResult(ServiceTaskResult.Completed());
     }
 }
 

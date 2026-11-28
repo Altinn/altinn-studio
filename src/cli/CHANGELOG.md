@@ -19,6 +19,9 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - Localtest lets apps delete locked data, and change locked data of a data type with `taskIds`, as Altinn Storage does. A change outside the data type's tasks is still refused with `409 Conflict`. ([#22098](https://github.com/Altinn/altinn-studio/pull/22098))
 - `studioctl app upgrade v9` reports `ProcessTaskDataLocker` and `IProcessTaskDataLocker` as removed in v9. Before, it pointed code that used the class to the interface. ([#22100](https://github.com/Altinn/altinn-studio/pull/22100))
+- `studioctl app upgrade v9` writes service tasks and process tasks for the current v9 pipeline API ([#22104](https://github.com/Altinn/altinn-studio/pull/22104)):
+    - run again, it rewrites code written for an earlier v9 preview, such as `Finally` and `ConcludeOnReplies` to `Stage` and `ExternalStage`, and reports what it cannot rewrite
+    - the `DefineStart`, `DefineEnd` or `DefineAbandon` it adds for v8 work takes `PipelineBuilder.Lifecycle`
 
 ### Fixed
 

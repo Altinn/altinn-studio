@@ -32,8 +32,8 @@ public class WorkflowEngineCallbackControllerCarryTests : ApiTestBase
     private static readonly Guid _mintedMailboxId = new("018f4e00-0000-7000-8000-0000000000cc");
     private static readonly DateTimeOffset _deadline = new(2026, 8, 30, 12, 0, 0, TimeSpan.Zero);
 
-    /// <summary>The item index the tests key the carried mailbox on.</summary>
-    private const int OpeningIndex = 0;
+    /// <summary>The external stage's item index the tests key the carried mailbox on.</summary>
+    private const int StageIndex = 0;
 
     public WorkflowEngineCallbackControllerCarryTests(ITestOutputHelper outputHelper)
         : base(outputHelper) { }
@@ -54,10 +54,10 @@ public class WorkflowEngineCallbackControllerCarryTests : ApiTestBase
 
         public Task<WorkflowEngineCommandResult> Execute(WorkflowEngineCommandContext context)
         {
-            SeenMailbox = context.StateCarry.FindMailbox(OpeningIndex);
+            SeenMailbox = context.StateCarry.FindMailbox(StageIndex);
             if (Mints)
             {
-                context.StateCarry.RecordMailbox(OpeningIndex, _mintedMailboxId, _deadline);
+                context.StateCarry.RecordMailbox(StageIndex, _mintedMailboxId, _deadline);
             }
 
             return Task.FromResult<WorkflowEngineCommandResult>(new SuccessfulWorkflowEngineCommandResult());

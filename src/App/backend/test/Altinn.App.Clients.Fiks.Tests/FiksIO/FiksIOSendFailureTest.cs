@@ -7,7 +7,7 @@ namespace Altinn.App.Clients.Fiks.Tests.FiksIO;
 /// <summary>
 /// The send-failure classification `FiksArkivServiceTask` branches its catch arms on: only failures that
 /// provably fail identically on every retry may match a predicate at all, and the two predicates split them
-/// by who remediates — case-level concludes the exchange, app-level fails the workflow for the operator.
+/// by who remediates — case-level ends the task, app-level fails the workflow for the operator.
 /// </summary>
 public class FiksIOSendFailureTest
 {
@@ -34,7 +34,7 @@ public class FiksIOSendFailureTest
     /// <summary>
     /// Load-bearing: <c>MaskinportenException</c> wraps transport failures and 5xx as well as refusals, and
     /// even a genuine refusal can heal (key rollover, clock skew) — not deterministic, so it must retry
-    /// rather than conclude the exchange or fail the workflow over what may be a passing outage.
+    /// rather than end the task or fail the workflow over what may be a passing outage.
     /// </summary>
     [Fact]
     public void AMaskinportenFailure_MatchesNeitherPredicate()

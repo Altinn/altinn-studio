@@ -11,40 +11,24 @@ using Xunit.Abstractions;
 namespace Altinn.App.Integration.Tests.WorkflowEngine;
 
 /// <summary>
-/// Two mailbox exchanges in one task, in one relay chain: transition → receivers for the first exchange →
-/// <em>continuation</em> → receivers for the second → conclusion → process-next. This is the composition no
-/// unit test can span, because the continuation is a real engine workflow enqueued from inside a receiver
-/// that has not settled yet, and because "the frontier is never empty" is a property of what the collection
-/// looks like *between* two hops.
+/// Two external stages in one task, in one relay chain: transition → the archive's receivers → close →
+/// <em>continuation</em> → the journal's receiver → close → process-next. This is the composition no unit test
+/// can span, because the continuation is a real engine workflow enqueued from inside a receiver that has not
+/// settled yet, and because "the frontier is never empty" is a property of what the collection looks like
+/// *between* two hops.
 /// </summary>
 /// <remarks>
 /// <para>
-/// The scenario's BPMN carries two mailbox service tasks so one instance walks two different pipeline
-/// shapes, and this one test walks it end to end:
+/// The scenario's <c>Task_Sequential</c> composes <c>ExternalStage(SendToArchive, HandleArchiveReply) →
+/// ExternalStage(SendToJournal, HandleJournalReply)</c>. The archive answers twice (ack, then receipt) and the
+/// journal once; the journal's send rides the continuation the archive's completion starts, so this is where the
+/// continuation's identity, steps and deadline clock are pinned.
 /// </para>
-/// <list type="bullet">
-/// <item>
-/// <description>
-/// <c>Task_Sequential</c> — the plan's shape: <c>Stage(SendToArchive) → HandleReplies(archive) →
-/// Stage(SendToJournal) → ConcludeOnReplies(journal)</c>. The second send rides the continuation, so this
-/// is where the continuation's identity, steps and deadline clock are pinned.
-/// </description>
-/// </item>
-/// <item>
-/// <description>
-/// <c>Task_Upfront</c> — both sends up front and neither handler concluding the task:
-/// <c>Stage(Alpha) → Stage(Beta) → HandleReplies(Alpha) → HandleReplies(Beta) → Stage(RecordOutcome) →
-/// Finally</c>. Three things only this shape can show: a conclusion choosing one of <em>two</em> carried
-/// mailboxes to close, two handlers back to back with no continuation between them, and a continuation that
-/// concludes the task itself and advances the process from there.
-/// </description>
-/// </item>
-/// </list>
 /// <para>
 /// Deliberately assertion-based rather than snapshot-based, for the reason
 /// <see cref="WorkflowEngineMailboxTests"/> gives: this suite auto-accepts new and changed snapshots
-/// locally, so a first-run snapshot would pin whatever the code happened to produce. The single-exchange
-/// suite stays untouched as the regression floor; nothing here shares state with it.
+/// locally, so a first-run snapshot would pin whatever the code happened to produce. Nothing here shares state
+/// with the single-exchange suite.
 /// </para>
 /// </remarks>
 [Trait("Category", "Integration")]
@@ -54,13 +38,9 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
 {
     private const string DataTaskId = "Task_1";
     private const string SequentialTaskId = "Task_Sequential";
-    private const string UpfrontTaskId = "Task_Upfront";
 
     private const string ArchiveStage = "SendToArchive";
     private const string JournalStage = "SendToJournal";
-    private const string AlphaStage = "SendAlpha";
-    private const string BetaStage = "SendBeta";
-    private const string RecordStage = "RecordOutcome";
 
     private const string PrimaryOperationIdPrefix = "Process next:";
     private const string MailboxReceiveOperationIdPrefix = "Mailbox receive:";
@@ -69,7 +49,9 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
     private const string AckPayload = """{"kind":"ack","reference":"ark-1"}""";
     private const string ReceiptPayload = """{"kind":"receipt","reference":"ark-1"}""";
 
-    /// <summary>Both tasks declare this; kept in sync with the scenario's <c>ExchangeTimeout</c>.</summary>
+    /// <summary>
+    /// Both external stages declare this; kept in sync with the scenario's <c>ExchangeTimeout</c>.
+    /// </summary>
     private static readonly TimeSpan _declaredTimeout = TimeSpan.FromMinutes(20);
 
     // Keep in sync with StudioctlEnvironment.WaitForEngineReady - the engine's host-exposed address.
@@ -98,7 +80,7 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
     ];
 
     [Fact]
-    public async Task MultiExchange_SequentialAndUpfrontSends_ChainContinuationsToTheEndEvent()
+    public async Task ExternalStages_TwoInSequence_ChainThroughAContinuationToTheEndEvent()
     {
         await using var fixtureScope = await classFixture.Get(
             output,
@@ -130,7 +112,7 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
         string ns = Uri.EscapeDataString(instance.Data.Model.AppId);
         string collectionKey = instance.Data.Model.Id.Split('/')[1];
 
-        // ================= Exchange A: the transition only opens the first mailbox =================
+        // ================= The archive: the transition only opens the first mailbox =================
 
         EngineWorkflow sequentialPrimary = await WaitForCompletedPrimaryWorkflow(
             engineClient,
@@ -139,10 +121,10 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
             SequentialTaskId
         );
 
-        // Decision 3, structurally: the mint hugs its stage wherever that stage rides, so a send composed
-        // after a reply handler is *not* in the transition. If SendToJournal's mint appeared here, the
-        // second exchange's deadline would start burning during the first exchange - which is the shape
-        // Task_Upfront asks for on purpose and this one must not have.
+        // The mint hugs its send, so the transition carries the archive's mint and send and nothing of the
+        // journal's: the journal's external stage starts only once the archive's is done with its replies. If
+        // SendToJournal's mint appeared here, the journal's deadline would start burning during the archive's
+        // exchange.
         Assert.Equal(new List<string> { "MintMailbox: 0", "ExecuteServiceTask: 0" }, PipelineSteps(sequentialPrimary));
 
         // The primary workflow ends with the send, whose completion enqueues the first receiver from
@@ -150,12 +132,15 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
         // step list, not the pipeline subset: a transition step appended after the hand-over would break this and be
         // invisible to the assertion above.
         Assert.Equal("ExecuteServiceTask: 0", OperationIds(sequentialPrimary)[^1]);
+        EngineStep archiveSendStep = sequentialPrimary.Steps.Single(step =>
+            step.OperationId == "ExecuteServiceTask: 0"
+        );
 
         MultiExchangeState afterSend = await WaitForState(fixture, state => state.Mailboxes.ContainsKey(ArchiveStage));
         Guid archiveId = afterSend.Mailboxes[ArchiveStage].Id;
         Assert.Empty(afterSend.Messages);
 
-        // ---- Message 1: the non-terminal handler awaits the next one ----
+        // ---- Reply 1: the archive's reply handler awaits the next one ----
         await ForwardReply(fixture, archiveId, idempotencyKey: "archive-ack-1", payload: AckPayload);
         MultiExchangeState afterAck = await WaitForState(fixture, state => state.Messages.Count >= 1);
         RecordedMessage ack = afterAck.Messages[0];
@@ -167,19 +152,20 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
         // The margin the deadline assertion below leans on. Nothing about the exchange needs it.
         await Task.Delay(_mintSeparation);
 
-        // ================= The hand-over: A concludes, the continuation starts B =================
+        // ================= The hand-over: the archive's stage is done, the journal's starts =================
 
         // Sampled because there is no other way to see it: "the collection never reads all-settled" is a
         // statement about every instant between two hops, and nothing the engine records afterwards can
         // testify to it. The ordering invariants are *not* sampled - they are read off the engine's own
         // timestamps further down, which is both exact and free of jitter.
         //
-        // The sampler stops on the event that bounds its window - the next exchange's receiver appearing -
+        // The sampler stops on the event that bounds its window - the journal's receiver appearing -
         // rather than on a cancel the test issues once it has seen that receiver itself. Cancelling from
         // outside made the window's end a race the sampler usually lost: its last completed read could
         // predate the receiver by a whole iteration, leaving the window unbounded on that side.
         using var samplerDeadline = new CancellationTokenSource(_exchangeTimeout);
-        string journalReceiverOperationId = $"{MailboxReceiveOperationIdPrefix} {SequentialTaskId} · 2";
+        // A receive workflow is named for its external stage's item index: the journal's is item 1.
+        string journalReceiverOperationId = $"{MailboxReceiveOperationIdPrefix} {SequentialTaskId} · 1";
         Task<List<HandoverSample>> sampler = SampleHandover(
             engineClient,
             ns,
@@ -189,7 +175,7 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
             samplerDeadline.Token
         );
 
-        // ---- Message 2: the non-terminal handler concludes the exchange, and the pipeline carries on ----
+        // ---- Reply 2: the archive's reply handler completes its stage, and the pipeline carries on ----
         await ForwardReply(fixture, archiveId, idempotencyKey: "archive-receipt-1", payload: ReceiptPayload);
         MultiExchangeState afterContinuation = await WaitForState(
             fixture,
@@ -209,22 +195,22 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
 
         // The window has to straddle the hand-over from both sides, or the frontier claim below is a
         // statement about an interval in which nothing happened. Before: the mailbox still open and no
-        // receiver for the next exchange. After: that receiver seen, which is what stopped the sampler.
+        // receiver for the journal. After: that receiver seen, which is what stopped the sampler.
         Assert.False(
             samples[0].NextReceiverExists,
-            $"The sampler started after the second exchange's receiver already existed:\n  {trace}"
+            $"The sampler started after the journal's receiver already existed:\n  {trace}"
         );
         Assert.Equal("Open", samples[0].MailboxStatus);
         Assert.True(
             samples[^1].NextReceiverExists,
-            $"The sampler ran out its {_exchangeTimeout.TotalSeconds:0}s deadline without ever seeing the second "
-                + $"exchange's receiver, so the continuation never enqueued it:\n  {trace}"
+            $"The sampler ran out its {_exchangeTimeout.TotalSeconds:0}s deadline without ever seeing the journal's "
+                + $"receiver, so the continuation never enqueued it:\n  {trace}"
         );
 
-        // Invariant 1, and the only claim here that genuinely needs sampling: a head set that has gone
-        // empty, or whose every head is terminal, is a frontier a downstream consumer would read as "this
-        // instance is done" while the task is still mid-exchange. Close-before-continue is *not* checked
-        // here - see the timestamp assertion further down, which pins the real ordering without jitter.
+        // The only claim here that genuinely needs sampling: a head set that has gone empty, or whose every
+        // head is terminal, is a frontier a downstream consumer would read as "this instance is done" while the
+        // task is still mid-exchange. Close-before-continue is *not* checked here - see the timestamp assertion
+        // further down, which pins the real ordering without jitter.
         foreach (HandoverSample sample in samples.Where(sample => sample.Error is null))
         {
             Assert.False(
@@ -241,38 +227,54 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
 
         List<EngineWorkflow> workflows = await ListWorkflows(engineClient, ns, collectionKey);
 
-        EngineWorkflow concludingReceiver = Single(
+        // The archive's two receivers, each the one step that runs the archive's reply handler: the first keyed
+        // on the send that enqueued it, the second on the first receiver, whose AwaitNextReply enqueued it.
+        EngineWorkflow firstArchiveReceiver = Single(
+            workflows,
+            $"{MailboxReceiveOperationIdPrefix} {SequentialTaskId} · 0"
+        );
+        Assert.Equal(new List<string> { "ExecuteServiceTask: 0" }, OperationIds(firstArchiveReceiver));
+        Assert.Equal(archiveSendStep.DatabaseId.ToString(), firstArchiveReceiver.IdempotencyKey);
+
+        EngineWorkflow completingReceiver = Single(
             workflows,
             $"{MailboxReceiveOperationIdPrefix} {SequentialTaskId} · after message 0"
         );
-        EngineStep concludingStep = Assert.Single(concludingReceiver.Steps);
+        EngineStep completingStep = Assert.Single(completingReceiver.Steps);
+        Assert.Equal("ExecuteServiceTask: 0", completingStep.OperationId);
+        Assert.Equal(
+            Assert.Single(firstArchiveReceiver.Steps).DatabaseId.ToString(),
+            completingReceiver.IdempotencyKey
+        );
 
-        // Polled, not read once. The sampler returns the instant the next receiver appears, and that receiver
+        // Polled, not read once. The sampler returns the instant the journal's receiver appears, and that receiver
         // exists because the continuation's last step's callback *returned* - the engine's write of the step
         // and workflow completion lands milliseconds later, so reading the status straight off the sighting
-        // sees Processing on a contended runner. (The up-front task's second continuation needs no poll: the
-        // process continuation depends on that workflow, so EndEvent_1 is unreachable
-        // until it has settled.)
+        // sees Processing on a contended runner.
         EngineWorkflow continuation = await WaitForCompletedWorkflow(
             engineClient,
             ns,
             collectionKey,
-            // Named for the item it follows: the handler that concluded exchange A, at item index 1.
-            $"{ServiceTaskStageOperationIdPrefix} {SequentialTaskId} · 2"
+            // Named for the item it follows: the archive's external stage, item 0.
+            $"{ServiceTaskStageOperationIdPrefix} {SequentialTaskId} · 1"
         );
 
         // Each step performs at most one keyed enqueue, so the bare executing step id is the whole key -
-        // here the step of the receiver whose handler concluded the exchange, so a retried attempt of that
-        // step continues onto the same workflow instead of starting a second one.
-        Assert.Equal(concludingStep.DatabaseId.ToString(), continuation.IdempotencyKey);
+        // here the step of the receiver whose reply handler completed the archive's stage, so a retried attempt of
+        // that step continues onto the same workflow instead of starting a second one.
+        Assert.Equal(completingStep.DatabaseId.ToString(), continuation.IdempotencyKey);
 
-        // The workflow planned from the pipeline at this hop: the stage composed after the handler, its mint
-        // hugging it. That stage is the workflow's last step and opens the next exchange, so completing it
-        // is what enqueues the receiver - from inside the still-unsettled step, so the continuation cannot
-        // settle before that receiver exists.
-        Assert.Equal(new List<string> { "MintMailbox: 2", "ExecuteServiceTask: 2" }, OperationIds(continuation));
+        // The workflow planned from the pipeline at this hop: the journal's external stage, its mint hugging its
+        // send. The send is the workflow's last step, so completing it is what enqueues the journal's receiver -
+        // from inside the still-unsettled step, so the continuation cannot settle before that receiver exists.
+        Assert.Equal(new List<string> { "MintMailbox: 1", "ExecuteServiceTask: 1" }, OperationIds(continuation));
+        EngineStep journalSendStep = continuation.Steps.Single(step => step.OperationId == "ExecuteServiceTask: 1");
 
-        // A continuation runs stages; it is not a receiver, and declaring a mailbox would have parked it as
+        EngineWorkflow journalReceiver = Single(workflows, journalReceiverOperationId);
+        Assert.Equal(new List<string> { "ExecuteServiceTask: 1" }, OperationIds(journalReceiver));
+        Assert.Equal(journalSendStep.DatabaseId.ToString(), journalReceiver.IdempotencyKey);
+
+        // A continuation runs a send; it is not a receiver, and declaring a mailbox would have parked it as
         // one. The receive-workflow marker is only on the dashboard projection, which is why this reads it
         // there; the mailbox counters asserted at the end pin the same thing from the public API's side.
         //
@@ -283,14 +285,14 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
         // still there and still populated for the workflows that do declare a mailbox.
         List<DashboardWorkflow> dashboard = await GetDashboardWorkflows(engineClient, collectionKey);
         Assert.Null(SingleDashboard(dashboard, continuation.DatabaseId).MailboxId);
-        Assert.NotNull(SingleDashboard(dashboard, concludingReceiver.DatabaseId).MailboxId);
+        Assert.NotNull(SingleDashboard(dashboard, completingReceiver.DatabaseId).MailboxId);
 
-        // The continuation is enqueued from inside the concluding receiver — still running, still the
+        // The continuation is enqueued from inside the completing receiver — still running, still the
         // head — so the injected head dependency is exactly that receiver.
         Assert.True(continuation.IsHead);
         EngineWorkflow continuationDetail = await GetWorkflow(engineClient, ns, continuation.DatabaseId);
         Assert.NotNull(continuationDetail.Dependencies);
-        Assert.Equal(concludingReceiver.DatabaseId, Guid.Parse(Assert.Single(continuationDetail.Dependencies).Key));
+        Assert.Equal(completingReceiver.DatabaseId, Guid.Parse(Assert.Single(continuationDetail.Dependencies).Key));
 
         // The transition's labels are re-derived onto the continuation, so the collection lookup that gates
         // downstream work still finds this workflow once retention has purged the earlier ones. A
@@ -302,7 +304,7 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
         );
         Assert.Equal(SequentialTaskId, Assert.Contains("processNextTargetTask", continuation.Labels));
 
-        // ================= The second exchange's clock started at the continuation =================
+        // ================= The journal's clock started at the continuation =================
 
         Guid journalId = afterContinuation.Mailboxes[JournalStage].Id;
         EngineMailbox archiveMailbox = await GetMailbox(engineClient, ns, archiveId);
@@ -310,7 +312,7 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
         Assert.Equal(_declaredTimeout, archiveMailbox.Timeout);
         Assert.Equal(_declaredTimeout, journalMailbox.Timeout);
 
-        // ---- Invariant 4, close-before-continue, exactly ----
+        // ---- Close-before-continue, exactly ----
         // Both instants are stamped by the engine on the two hops' own rows, so this is the ordering itself
         // rather than an inference from when a poller happened to look: the mailbox stopped accepting
         // messages before the workflow that runs the next item existed at all. Reversing the two calls
@@ -318,21 +320,22 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
         // sampler watches for is enqueued by the continuation's last step, a whole engine hop later, so a
         // swapped close and enqueue is invisible to any amount of sampling.
         Assert.NotNull(archiveMailbox.DisposedAt);
+        Assert.Equal("Request", archiveMailbox.DisposedReason);
         Assert.True(
             archiveMailbox.DisposedAt < continuation.CreatedAt,
-            $"The first exchange's mailbox was closed at {archiveMailbox.DisposedAt:O}, which is not before the "
+            $"The archive's mailbox was closed at {archiveMailbox.DisposedAt:O}, which is not before the "
                 + $"continuation it hands over to was created ({continuation.CreatedAt:O}). A message could have "
-                + "landed in an exchange the pipeline had already moved past."
+                + "landed in an external stage the pipeline had already moved past."
         );
 
         // Same timeout on both, so the difference between the deadlines is exactly the time between the two
         // mints - two values from one clock, no cross-clock comparison to be wrong about. The transition's
-        // mint and the continuation's mint are a whole exchange apart, which is what decision 3 promises for
-        // a send composed after a handler.
+        // mint and the continuation's mint are a whole exchange apart, because the journal's external stage
+        // starts only once the archive's is done.
         Assert.True(
             journalMailbox.Deadline - archiveMailbox.Deadline >= _mintSeparation,
-            $"The second mailbox's deadline ({journalMailbox.Deadline:O}) is not at least {_mintSeparation} later "
-                + $"than the first's ({archiveMailbox.Deadline:O}), so its clock did not start at the continuation."
+            $"The journal's mailbox deadline ({journalMailbox.Deadline:O}) is not at least {_mintSeparation} later "
+                + $"than the archive's ({archiveMailbox.Deadline:O}), so its clock did not start at the continuation."
         );
 
         // And the same claim anchored to the continuation itself: the mint cannot have run before the
@@ -341,25 +344,26 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
         DateTimeOffset journalMintedAt = journalMailbox.Deadline - journalMailbox.Timeout;
         Assert.True(
             journalMintedAt >= continuation.CreatedAt - TimeSpan.FromSeconds(5),
-            $"The second mailbox was minted at {journalMintedAt:O}, before the continuation that carries its "
+            $"The journal's mailbox was minted at {journalMintedAt:O}, before the continuation that carries its "
                 + $"mint step was even created ({continuation.CreatedAt:O})."
         );
 
-        // The phase-1 bridging trick, on the continuation's own mint step: MintMailbox keys the mailbox on
-        // the step id the engine sent it, and the workflow read reports each step's databaseId. Should this
-        // go red, suspect the callback contract before suspecting the mint.
-        EngineStep journalMintStep = continuation.Steps.Single(step => step.OperationId == "MintMailbox: 2");
+        // The bridging trick, on the continuation's own mint step: MintMailbox keys the mailbox on the step id
+        // the engine sent it, and the workflow read reports each step's databaseId. Should this go red, suspect
+        // the callback contract before suspecting the mint.
+        EngineStep journalMintStep = continuation.Steps.Single(step => step.OperationId == "MintMailbox: 1");
         Assert.Equal(journalMintStep.DatabaseId.ToString(), journalMailbox.IdempotencyKey);
         Assert.Equal(collectionKey, journalMailbox.CollectionKey);
 
-        // The app saw the deadline the engine recorded - the address the stage published is the real one.
+        // The app saw the deadline the engine recorded - the address the send published is the real one.
         Assert.Equal(journalMailbox.Deadline, afterContinuation.Mailboxes[JournalStage].Deadline);
 
-        // ================= The terminal handler concludes, and the process advances =================
+        // ================= The journal's reply completes the last item, and the task ends =================
 
         await ForwardReply(fixture, journalId, idempotencyKey: "journal-receipt-1", payload: ReceiptPayload);
-        await WaitForCurrentTask(fixture, token, instance, UpfrontTaskId);
+        await WaitForProcessEnd(fixture, token, instance);
 
+        // "Request" and not "Deadline": both closures came from this task, not from the engine's deadline sweep.
         EngineMailbox archiveAfterTask = await GetMailbox(engineClient, ns, archiveId);
         EngineMailbox journalAfterTask = await GetMailbox(engineClient, ns, journalId);
         Assert.Equal("Disposed", archiveAfterTask.Status);
@@ -367,7 +371,7 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
         Assert.Equal("Disposed", journalAfterTask.Status);
         Assert.Equal("Request", journalAfterTask.DisposedReason);
 
-        // Two messages and two receivers on the first exchange, one and one on the second, nothing left
+        // Two messages and two receivers on the archive's mailbox, one and one on the journal's, nothing left
         // unread. NextSeq counts the positions receivers consumed, so a continuation that had declared
         // either mailbox would show up here as a third (or second) consumer.
         Assert.Equal(2, archiveAfterTask.NextIdx);
@@ -377,168 +381,40 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
         Assert.Equal(1, journalAfterTask.NextSeq);
         Assert.Equal(0, journalAfterTask.UnpairedDeliveries);
 
-        // ================= Task_Upfront: both sends on the transition =================
-
-        EngineWorkflow upfrontPrimary = await WaitForCompletedPrimaryWorkflow(
-            engineClient,
-            ns,
-            collectionKey,
-            UpfrontTaskId
-        );
-
-        // The other side of decision 3, and the split rule that carries it: a mailbox-opening stage always
-        // ends its workflow, so the transition carries the *first* send only and the second rides a
-        // continuation of its own. Both are still composed before either handler, which is what makes the
-        // sequential task's claim above falsifiable rather than a restatement of whatever the code does.
-        Assert.Equal(new List<string> { "MintMailbox: 0", "ExecuteServiceTask: 0" }, PipelineSteps(upfrontPrimary));
-        Assert.Equal("ExecuteServiceTask: 0", OperationIds(upfrontPrimary)[^1]);
-
-        MultiExchangeState afterUpfrontSends = await WaitForState(
-            fixture,
-            state => state.Mailboxes.ContainsKey(AlphaStage) && state.Mailboxes.ContainsKey(BetaStage)
-        );
-        Guid alphaId = afterUpfrontSends.Mailboxes[AlphaStage].Id;
-        Guid betaId = afterUpfrontSends.Mailboxes[BetaStage].Id;
-
-        // The second send's own hop: one continuation carrying its mint and itself, named for the stage it
-        // follows and keyed on that stage's step, so a replayed attempt of the first send continues onto this
-        // same workflow instead of sending twice.
-        EngineWorkflow upfrontSecondSend = await WaitForCompletedWorkflow(
-            engineClient,
-            ns,
-            collectionKey,
-            $"{ServiceTaskStageOperationIdPrefix} {UpfrontTaskId} · 1"
-        );
-        Assert.Equal(new List<string> { "MintMailbox: 1", "ExecuteServiceTask: 1" }, OperationIds(upfrontSecondSend));
-        Assert.Equal(upfrontPrimary.Steps[^1].DatabaseId.ToString(), upfrontSecondSend.IdempotencyKey);
-
-        // ---- Each exchange gets its declared budget, measured from its own mint ----
-        // Which hop minted which mailbox is pinned by the step id the engine keyed the mailbox on, not by
-        // comparing two instants: Alpha's mint is a step of the transition and Beta's a step of the
-        // continuation, so a mint hoisted onto the wrong hop fails here even when the two are milliseconds
-        // apart - and a mint deferred behind Alpha's handler leaves this continuation without a mint step at
-        // all. Both budgets are undiminished: the hop before spends none of them, which is the whole
-        // difference from an exchange whose send is composed after a handler.
-        EngineMailbox alphaMailbox = await GetMailbox(engineClient, ns, alphaId);
-        EngineMailbox betaMailbox = await GetMailbox(engineClient, ns, betaId);
-        Assert.Equal(_declaredTimeout, alphaMailbox.Timeout);
-        Assert.Equal(_declaredTimeout, betaMailbox.Timeout);
-        Assert.Equal(
-            upfrontPrimary.Steps.Single(step => step.OperationId == "MintMailbox: 0").DatabaseId.ToString(),
-            alphaMailbox.IdempotencyKey
-        );
-        Assert.Equal(
-            upfrontSecondSend.Steps.Single(step => step.OperationId == "MintMailbox: 1").DatabaseId.ToString(),
-            betaMailbox.IdempotencyKey
-        );
-
-        // Beta's clock starts at its own mint, one hop after Alpha's and never before it - the mint hugs the
-        // stage that sends, so an earlier start would mean the mint was hoisted ahead of the stage it
-        // addresses. Both mailboxes exist before this test forwards anything, which is what "both sends go
-        // out up front" means for the exchanges themselves.
-        DateTimeOffset betaMintedAt = betaMailbox.Deadline - betaMailbox.Timeout;
-        Assert.True(
-            betaMailbox.Deadline >= alphaMailbox.Deadline,
-            $"Beta's deadline ({betaMailbox.Deadline:O}) precedes Alpha's ({alphaMailbox.Deadline:O}), so its "
-                + "clock started before the send it belongs to."
-        );
-        Assert.True(
-            betaMintedAt >= upfrontSecondSend.CreatedAt - TimeSpan.FromSeconds(5),
-            $"Beta's mailbox was minted at {betaMintedAt:O}, before the continuation that carries its mint step "
-                + $"was even created ({upfrontSecondSend.CreatedAt:O})."
-        );
-
-        // ---- Alpha concludes while Beta is open: two carried mailboxes, exactly one closed ----
-        await ForwardReply(fixture, alphaId, idempotencyKey: "alpha-receipt-1", payload: ReceiptPayload);
-        EngineMailbox alphaClosed = await WaitForMailbox(
-            engineClient,
-            ns,
-            alphaId,
-            mailbox => mailbox.Status == "Disposed"
-        );
-        Assert.Equal("Request", alphaClosed.DisposedReason);
-
-        // Read after Alpha's closure is observed and before Beta is answered at all: the blob carried both
-        // mailboxes into that conclusion, and a conclusion that closed "the mailboxes" rather than "its
-        // mailbox" would have taken Beta with it - sabotaging the resume path decision 5 protects.
-        EngineMailbox betaStillOpen = await GetMailbox(engineClient, ns, betaId);
-        Assert.Equal("Open", betaStillOpen.Status);
-        Assert.Null(betaStillOpen.DisposedReason);
-
-        // Nothing is composed between the two handlers, so there is no continuation workflow between them -
-        // the next exchange's receiver is enqueued directly from the concluding receiver's hop, keyed on that
-        // hop's own step id like every relay enqueue.
-        string betaReceiverOperationId = $"{MailboxReceiveOperationIdPrefix} {UpfrontTaskId} · 1";
-        await WaitForWorkflow(engineClient, ns, collectionKey, betaReceiverOperationId);
-        List<EngineWorkflow> upfrontWorkflows = await ListWorkflows(engineClient, ns, collectionKey);
-        Assert.DoesNotContain(
-            upfrontWorkflows,
-            // The handler that just concluded sits at item index 2, so this is the name a continuation of
-            // its own would have had. The one named "after 0" above is the *first send's*, a hop earlier.
-            w => w.OperationId == $"{ServiceTaskStageOperationIdPrefix} {UpfrontTaskId} · 3"
-        );
-        EngineWorkflow betaReceiver = Single(upfrontWorkflows, betaReceiverOperationId);
-        EngineWorkflow alphaConcludingReceiver = Single(
-            upfrontWorkflows,
-            $"{MailboxReceiveOperationIdPrefix} {UpfrontTaskId} · 0"
-        );
-        EngineStep alphaConcludingStep = Assert.Single(alphaConcludingReceiver.Steps);
-        Assert.Equal(alphaConcludingStep.DatabaseId.ToString(), betaReceiver.IdempotencyKey);
-
-        // ---- Beta concludes, and its continuation concludes the task itself ----
-        await ForwardReply(fixture, betaId, idempotencyKey: "beta-receipt-1", payload: ReceiptPayload);
-        await WaitForProcessEnd(fixture, token, instance);
-
+        // One receive workflow per reply, all settled, and one continuation only: the journal's Completed comes
+        // from the last item, so it ends the task without starting another workflow of the pipeline's. Read after
+        // WaitForProcessEnd: the process continuation depends on the journal's receiver, so EndEvent_1 is
+        // unreachable until that receiver has settled.
         List<EngineWorkflow> finalWorkflows = await ListWorkflows(engineClient, ns, collectionKey);
-        EngineWorkflow betaContinuation = Single(
-            finalWorkflows,
-            // Beta's handler is the pipeline's item 3.
-            $"{ServiceTaskStageOperationIdPrefix} {UpfrontTaskId} · 4"
+        List<EngineWorkflow> receivers = finalWorkflows
+            .Where(w => w.OperationId.StartsWith(MailboxReceiveOperationIdPrefix, StringComparison.Ordinal))
+            .ToList();
+        Assert.Equal(3, receivers.Count);
+        Assert.All(receivers, receiver => Assert.Equal("Completed", receiver.OverallStatus));
+        Assert.Equal(
+            new List<string> { $"{ServiceTaskStageOperationIdPrefix} {SequentialTaskId} · 1" },
+            finalWorkflows
+                .Where(w => w.OperationId.StartsWith(ServiceTaskStageOperationIdPrefix, StringComparison.Ordinal))
+                .Select(w => w.OperationId)
+                .ToList()
         );
 
-        // RecordOutcome runs alone on the continuation Beta's conclusion starts, and its completion starts
-        // the one the pipeline's Finally runs on - keyed on RecordOutcome's step. The process advanced off
-        // that concluding step through the ordinary controller path, which is what reaching EndEvent_1 above
-        // proves.
-        Assert.Equal(new List<string> { "ExecuteServiceTask: 4" }, OperationIds(betaContinuation));
-        Assert.Equal("Completed", betaContinuation.OverallStatus);
-        EngineWorkflow conclusion = Single(finalWorkflows, $"{ServiceTaskStageOperationIdPrefix} {UpfrontTaskId} · 5");
-        Assert.Equal(new List<string> { "ExecuteServiceTask: 5" }, OperationIds(conclusion));
-        Assert.Equal("Completed", conclusion.OverallStatus);
-        Assert.Equal(betaContinuation.Steps[^1].DatabaseId.ToString(), conclusion.IdempotencyKey);
-
-        EngineMailbox betaAfterTask = await GetMailbox(engineClient, ns, betaId);
-        Assert.Equal("Disposed", betaAfterTask.Status);
-        Assert.Equal("Request", betaAfterTask.DisposedReason);
-
-        // ================= What the app itself saw, across all four exchanges =================
-
+        // ================= What the app itself saw ==========
         MultiExchangeState finalState = await GetState(fixture);
 
-        // Every closure handler in this scenario is a tripwire: reaching one would mean an exchange was
-        // never answered, or that a message was dispatched to the wrong handler. All four stay silent.
-        Assert.Empty(finalState.Closures);
+        // Both timeout handlers are tripwires: reaching one would mean a stage was never answered, or that the
+        // engine handed a stage the closed signal instead of a reply. Both stay silent.
+        Assert.Empty(finalState.Timeouts);
 
-        Assert.Equal(4, finalState.Mailboxes.Count);
+        Assert.Equal(2, finalState.Mailboxes.Count);
         Assert.Equal(
-            new List<string>
-            {
-                $"{ArchiveStage}:0",
-                $"{ArchiveStage}:1",
-                $"{JournalStage}:0",
-                $"{AlphaStage}:0",
-                $"{BetaStage}:0",
-            },
+            new List<string> { $"{ArchiveStage}:0", $"{ArchiveStage}:1", $"{JournalStage}:0" },
             finalState.Messages.Select(message => $"{message.Exchange}:{message.Position}").ToList()
         );
 
-        // No stage re-ran: a conclusion never re-enters an earlier part of the pipeline.
-        foreach (
-            string stage in new[] { ArchiveStage, JournalStage, AlphaStage, BetaStage, RecordStage, "ConfirmBoth" }
-        )
-        {
-            Assert.Equal(1, Assert.Contains(stage, finalState.Runs));
-        }
+        // No send re-ran: completing a stage never re-enters an earlier part of the pipeline.
+        Assert.Equal(1, Assert.Contains(ArchiveStage, finalState.Runs));
+        Assert.Equal(1, Assert.Contains(JournalStage, finalState.Runs));
 
         // ================= And the journey the log tells =================
 
@@ -547,31 +423,23 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
             logs,
             "Multi.SendToArchive.Run1.Published",
             "Multi.Forward.archive-ack-1.Accepted",
-            "Multi.Archive.OnMessage.Position0.Ack.AwaitNextReply",
+            "Multi.Archive.OnReply.Position0.Ack.AwaitNextReply",
             "Multi.Forward.archive-receipt-1.Accepted",
-            "Multi.Archive.OnMessage.Position1.Receipt.Completed",
+            "Multi.Archive.OnReply.Position1.Receipt.Completed",
             "Multi.SendToJournal.Run1.Published",
             "Multi.Forward.journal-receipt-1.Accepted",
-            "Multi.Journal.OnMessage.Position0.Receipt.Success",
-            "Multi.SendAlpha.Run1.Published",
-            "Multi.SendBeta.Run1.Published",
-            "Multi.Forward.alpha-receipt-1.Accepted",
-            "Multi.SendAlpha.OnMessage.Position0.Receipt.Completed",
-            "Multi.Forward.beta-receipt-1.Accepted",
-            "Multi.SendBeta.OnMessage.Position0.Receipt.Completed",
-            "Multi.RecordOutcome.Run1.Completed",
-            "Multi.ConfirmBoth.Run1.Success"
+            "Multi.Journal.OnReply.Position0.Receipt.Completed"
         );
         Assert.DoesNotContain("Tripwire", logs);
-        Assert.DoesNotContain("OnClosed.", logs);
+        Assert.DoesNotContain("OnTimeout.", logs);
         Assert.DoesNotContain(".Run2.", logs);
     }
 
     /// <summary>
-    /// One reading of the three things that have to hold together across a conclusion hand-over. The order
-    /// inside a sample is load-bearing: the mailbox is read <em>before</em> the workflow list, so a sample
-    /// that saw the next receiver while the mailbox was still open proves the close came too late rather
-    /// than proving the sampler was slow.
+    /// One reading of the three things that have to hold together across the hand-over from the archive's stage
+    /// to the journal's. The order inside a sample is load-bearing: the mailbox is read <em>before</em> the
+    /// workflow list, so a sample that saw the next receiver while the mailbox was still open proves the close
+    /// came too late rather than proving the sampler was slow.
     /// </summary>
     private sealed record HandoverSample(
         DateTimeOffset At,
@@ -825,54 +693,6 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
         throw new UnreachableException();
     }
 
-    private static async Task WaitForWorkflow(
-        HttpClient engineClient,
-        string ns,
-        string collectionKey,
-        string operationId
-    )
-    {
-        DateTimeOffset deadline = DateTimeOffset.UtcNow + _exchangeTimeout;
-        string seen = "(nothing)";
-        while (DateTimeOffset.UtcNow < deadline)
-        {
-            List<EngineWorkflow> workflows = await ListWorkflows(engineClient, ns, collectionKey);
-            if (workflows.Any(w => w.OperationId == operationId))
-                return;
-
-            seen = string.Join(", ", workflows.Select(w => $"{w.OperationId}: {w.OverallStatus}"));
-            await Task.Delay(TimeSpan.FromMilliseconds(250));
-        }
-
-        Assert.Fail($"No '{operationId}' workflow within {_exchangeTimeout.TotalSeconds:0}s. Saw: [{seen}]");
-    }
-
-    private static async Task<EngineMailbox> WaitForMailbox(
-        HttpClient engineClient,
-        string ns,
-        Guid mailboxId,
-        Func<EngineMailbox, bool> predicate
-    )
-    {
-        DateTimeOffset deadline = DateTimeOffset.UtcNow + _exchangeTimeout;
-        EngineMailbox mailbox = await GetMailbox(engineClient, ns, mailboxId);
-        while (!predicate(mailbox))
-        {
-            if (DateTimeOffset.UtcNow >= deadline)
-            {
-                Assert.Fail(
-                    $"Mailbox {mailboxId} did not reach the expected state within "
-                        + $"{_exchangeTimeout.TotalSeconds:0}s. Last seen: {mailbox.Status}/{mailbox.DisposedReason}"
-                );
-            }
-
-            await Task.Delay(TimeSpan.FromMilliseconds(250));
-            mailbox = await GetMailbox(engineClient, ns, mailboxId);
-        }
-
-        return mailbox;
-    }
-
     private static async Task<EngineMailbox> GetMailbox(HttpClient engineClient, string ns, Guid mailboxId)
     {
         using var response = await engineClient.GetAsync($"/api/v1/{ns}/mailboxes/{mailboxId}");
@@ -945,32 +765,6 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
         return match;
     }
 
-    private static async Task WaitForCurrentTask(
-        AppFixture fixture,
-        string token,
-        AppFixture.ReadApiResponse<Instance> instance,
-        string expectedTask
-    )
-    {
-        DateTimeOffset deadline = DateTimeOffset.UtcNow + _exchangeTimeout;
-        string? lastSeenTask = null;
-        while (DateTimeOffset.UtcNow < deadline)
-        {
-            using var refreshedResponse = await fixture.Instances.Get(token, instance);
-            using var refreshed = await refreshedResponse.Read<Instance>();
-            lastSeenTask = refreshed.Data.Model?.Process?.CurrentTask?.ElementId;
-            if (lastSeenTask == expectedTask)
-                return;
-
-            await Task.Delay(TimeSpan.FromMilliseconds(500));
-        }
-
-        Assert.Fail(
-            $"The process never reached {expectedTask} within {_exchangeTimeout.TotalSeconds:0}s "
-                + $"(last seen task: {lastSeenTask}).\n----- APP LOGS -----\n{await fixture.GetAppLogs()}"
-        );
-    }
-
     private static async Task WaitForProcessEnd(
         AppFixture fixture,
         string token,
@@ -991,7 +785,7 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
         }
 
         Assert.Fail(
-            $"The chain did not conclude: the process never reached EndEvent_1 within "
+            $"The task did not end: the process never reached EndEvent_1 within "
                 + $"{_exchangeTimeout.TotalSeconds:0}s (last seen task: {lastSeenTask}).\n"
                 + $"----- APP LOGS -----\n{await fixture.GetAppLogs()}"
         );
@@ -1046,7 +840,7 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
     private sealed record MultiExchangeState(
         Dictionary<string, RecordedMailbox> Mailboxes,
         List<RecordedMessage> Messages,
-        List<string> Closures,
+        List<string> Timeouts,
         Dictionary<string, int> Runs
     );
 

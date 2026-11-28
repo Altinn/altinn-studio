@@ -4,40 +4,186 @@ namespace Altinn.App.Core.Tests.Features.Process;
 
 public class PipelineBuilderTests
 {
-    private static readonly MailboxOptions _threeDays = new() { Timeout = TimeSpan.FromDays(3) };
+    private static Task<StageResult> SendToArchive(StageContext context) => Task.FromResult(StageResult.Completed());
 
-    private static Task<StageResult> Plain(StageContext context) => Task.FromResult(StageResult.Completed());
+    private static Task<StageResult> NotifyOwner(StageContext context) => Task.FromResult(StageResult.Completed());
 
-    private static Task<ServiceTaskOpeningStageResult> Send(StageContext context, ServiceTaskMailbox mailbox) =>
-        Task.FromResult(ServiceTaskOpeningStageResult.Completed());
+    private static Task<ServiceTaskResult> Prepare(StageContext context) =>
+        Task.FromResult(ServiceTaskResult.Completed());
+
+    private static Task<ServiceTaskResult> RequestApproval(StageContext context, ReplyAddress replyAddress) =>
+        Task.FromResult(ServiceTaskResult.Completed());
+
+    private static Task<ServiceTaskReplyResult> OnDecision(StageContext context, ServiceTaskReply reply) =>
+        Task.FromResult(ServiceTaskReplyResult.AwaitNextReply());
+
+    private static Task<ServiceTaskResult> OnTimeout(StageContext context) =>
+        Task.FromResult(ServiceTaskResult.FailedPermanent("no answer"));
+
+#nullable disable
+    // Arguments a caller without nullable annotations can pass.
+    private static readonly Func<StageContext, Task<StageResult>> _noLifecycleWork = null;
+    private static readonly Func<StageContext, Task<ServiceTaskResult>> _noWork = null;
+    private static readonly Func<StageContext, ReplyAddress, Task<ServiceTaskResult>> _noSend = null;
+    private static readonly Func<StageContext, ServiceTaskReply, Task<ServiceTaskReplyResult>> _noReply = null;
+
+#nullable restore
+
+    // ── Lifecycle ────────────────────────────────────────────────────────────────────────────
 
     [Fact]
-    public void Build_KeepsTheStagesInCompositionOrder_WithTheirOptions()
+    public void Lifecycle_KeepsTheStagesInCompositionOrder_WithTheirOptionsAndNames()
     {
         var second = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(5) };
 
-        ProcessTaskPipeline pipeline = new PipelineBuilder().Stage(Plain).Stage(Plain, second).Build();
+        ProcessTaskPipeline pipeline = new PipelineBuilder.Lifecycle()
+            .Stage(SendToArchive)
+            .Stage(NotifyOwner, second)
+            .Stage(_ => Task.FromResult(StageResult.Completed()))
+            .ToPipeline();
 
-        Assert.Equal(2, pipeline.Stages.Count);
+        Assert.Equal(["Send to archive", "Notify owner", null], pipeline.Stages.Select(stage => stage.DisplayName));
         Assert.Null(pipeline.Stages[0].StepOptions);
         Assert.Same(second, pipeline.Stages[1].StepOptions);
+        Assert.Null(pipeline.Stages[2].StepOptions);
     }
 
     [Fact]
-    public void Build_WithNoStages_IsAnEmptyPipeline()
+    public void Lifecycle_WithNoStages_IsAnEmptyPipeline()
     {
-        Assert.Empty(new PipelineBuilder().Build().Stages);
+        Assert.Empty(new PipelineBuilder.Lifecycle().ToPipeline().Stages);
     }
 
     [Fact]
-    public void Build_AfterOpeningAMailbox_IsRefusedAtComposition()
+    public void Lifecycle_StageWithInvalidOptions_IsRefusedAtComposition()
     {
-        // A reply is answered after the transition commits, which only a service task's conclusion does.
-        PipelineBuilder builder = new PipelineBuilder().Stage(Send, _threeDays, out MailboxHandle _);
+        var builder = new PipelineBuilder.Lifecycle();
 
-        InvalidOperationException thrown = Assert.Throws<InvalidOperationException>(() => builder.Build());
+        Assert.Throws<InvalidOperationException>(() =>
+            builder.Stage(SendToArchive, new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromSeconds(-5) })
+        );
+        Assert.Throws<ArgumentNullException>(() => builder.Stage(_noLifecycleWork));
+        Assert.Empty(builder.ToPipeline().Stages);
+    }
 
-        Assert.Contains("opens a mailbox", thrown.Message, StringComparison.Ordinal);
-        Assert.Contains(nameof(PipelineBuilder.ConcludeOnReplies), thrown.Message, StringComparison.Ordinal);
+    // ── Service task ─────────────────────────────────────────────────────────────────────────
+
+    [Fact]
+    public void ServiceTask_EveryCallAppendsAndReturnsTheSameBuilder()
+    {
+        var builder = new PipelineBuilder.ServiceTask();
+
+        Assert.Same(builder, builder.Stage(Prepare));
+        Assert.Same(builder, builder.ExternalStage(RequestApproval, OnDecision));
+        Assert.Same(builder, builder.Stage(Prepare));
+
+        Assert.Collection(
+            builder.ToPipeline().Items,
+            item => Assert.IsType<ServiceTaskItem.Stage>(item),
+            item => Assert.IsType<ServiceTaskItem.ExternalStage>(item),
+            item => Assert.IsType<ServiceTaskItem.Stage>(item)
+        );
+    }
+
+    [Fact]
+    public void ServiceTask_Stage_RecordsItsWorkOptionsAndName()
+    {
+        Func<StageContext, Task<ServiceTaskResult>> work = Prepare;
+        var options = new ProcessStepOptions { WaitBudget = TimeSpan.FromHours(48) };
+
+        ServiceTaskItem item = Assert.Single(new PipelineBuilder.ServiceTask().Stage(work, options).ToPipeline().Items);
+
+        var stage = Assert.IsType<ServiceTaskItem.Stage>(item);
+        Assert.Same(work, stage.Work);
+        Assert.Same(options, stage.StepOptions);
+        Assert.Equal("Prepare", stage.DisplayName);
+    }
+
+    [Fact]
+    public void ServiceTask_ExternalStage_RecordsItsHandlersTimeoutOptionsAndNames()
+    {
+        Func<StageContext, ReplyAddress, Task<ServiceTaskResult>> send = RequestApproval;
+        Func<StageContext, ServiceTaskReply, Task<ServiceTaskReplyResult>> onReply = OnDecision;
+        Func<StageContext, Task<ServiceTaskResult>> onTimeout = OnTimeout;
+        var options = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(3) };
+
+        ServiceTaskItem item = Assert.Single(
+            new PipelineBuilder.ServiceTask()
+                .ExternalStage(send, onReply, TimeSpan.FromDays(3), onTimeout, options)
+                .ToPipeline()
+                .Items
+        );
+
+        var stage = Assert.IsType<ServiceTaskItem.ExternalStage>(item);
+        Assert.Same(send, stage.Send);
+        Assert.Same(onReply, stage.OnReply);
+        Assert.Same(onTimeout, stage.OnTimeout);
+        Assert.Equal(TimeSpan.FromDays(3), stage.Timeout);
+        Assert.Same(options, stage.StepOptions);
+        Assert.Equal("Request approval", stage.DisplayName);
+        Assert.Equal("On decision / On timeout", stage.ReplyDisplayName);
+    }
+
+    [Fact]
+    public void ServiceTask_ExternalStageWithoutTimeoutOrOnTimeout_GetsTheDefaultTimeoutAndNoTimeoutHandler()
+    {
+        var stage = Assert.IsType<ServiceTaskItem.ExternalStage>(
+            Assert.Single(
+                new PipelineBuilder.ServiceTask().ExternalStage(RequestApproval, OnDecision).ToPipeline().Items
+            )
+        );
+
+        Assert.Equal(PipelineBuilder.ServiceTask.DefaultReplyTimeout, stage.Timeout);
+        Assert.Null(stage.OnTimeout);
+        Assert.Null(stage.StepOptions);
+        Assert.Equal("On decision", stage.ReplyDisplayName);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    [InlineData(21 * 24 * 60 + 1)]
+    public void ServiceTask_ExternalStageWithATimeoutOutOfRange_IsRefusedAtComposition(int minutes)
+    {
+        var builder = new PipelineBuilder.ServiceTask();
+
+        ArgumentOutOfRangeException thrown = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            builder.ExternalStage(RequestApproval, OnDecision, TimeSpan.FromMinutes(minutes))
+        );
+
+        Assert.Equal("timeout", thrown.ParamName);
+        Assert.Empty(builder.ToPipeline().Items);
+    }
+
+    [Fact]
+    public void ServiceTask_ExternalStageWithTheLongestTimeout_Composes()
+    {
+        var stage = Assert.IsType<ServiceTaskItem.ExternalStage>(
+            Assert.Single(
+                new PipelineBuilder.ServiceTask()
+                    .ExternalStage(RequestApproval, OnDecision, TimeSpan.FromDays(21))
+                    .ToPipeline()
+                    .Items
+            )
+        );
+
+        Assert.Equal(PipelineBuilder.ServiceTask.MaxReplyTimeout, stage.Timeout);
+    }
+
+    [Fact]
+    public void ServiceTask_InvalidArguments_AreRefusedAtComposition()
+    {
+        var builder = new PipelineBuilder.ServiceTask();
+        var invalidOptions = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromSeconds(-5) };
+
+        Assert.Throws<ArgumentNullException>(() => builder.Stage(_noWork));
+        Assert.Throws<InvalidOperationException>(() => builder.Stage(Prepare, invalidOptions));
+        Assert.Throws<ArgumentNullException>(() => builder.ExternalStage(_noSend, OnDecision));
+        Assert.Throws<ArgumentNullException>(() => builder.ExternalStage(RequestApproval, _noReply));
+        Assert.Throws<InvalidOperationException>(() =>
+            builder.ExternalStage(RequestApproval, OnDecision, options: invalidOptions)
+        );
+
+        Assert.Empty(builder.ToPipeline().Items);
     }
 }

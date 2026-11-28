@@ -17,7 +17,7 @@ internal sealed record MailboxCreateRequest
 
     /// <summary>
     /// How long the mailbox stays open. Must be positive and no larger than the engine's configured maximum; the
-    /// engine stamps the absolute deadline from it at mint, and the deadline is what bounds the exchange.
+    /// engine stamps the absolute deadline from it at mint, and the deadline is what bounds the wait for messages.
     /// </summary>
     [JsonPropertyName("timeout")]
     public required TimeSpan Timeout { get; init; }

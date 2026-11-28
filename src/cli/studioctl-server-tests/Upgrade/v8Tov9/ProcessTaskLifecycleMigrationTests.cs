@@ -1,14 +1,18 @@
+using System.Reflection;
+using System.Runtime.Loader;
 using Altinn.Studio.Cli.Upgrade;
 using Altinn.Studio.Cli.Upgrade.v8Tov9;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Studioctl.Tests.Upgrade.v8Tov9;
 
 /// <summary>
 /// Covers the <c>IProcessTask</c> lifecycle members v9 removes. The contract is "no v8 work is silently lost": a
 /// member that does nothing is removed and the app compiles against a v9-shaped stub, and a member that does work
-/// gets a port stub whose only compile errors are its own, so the build stops until the work is composed as stages.
+/// gets a port stub whose only compile errors are its own, so the build stops until the work is composed as stages,
+/// and that throws if only its <c>#error</c> is removed.
 /// Most cases run both with a semantic model (the app compiled against v8) and without.
 /// </summary>
 public sealed class ProcessTaskLifecycleMigrationTests : IDisposable
@@ -30,9 +34,9 @@ public sealed class ProcessTaskLifecycleMigrationTests : IDisposable
     {
         var members = v9
             ? """
-                        ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) => pipeline.Build();
-                        ProcessTaskPipeline DefineEnd(PipelineBuilder pipeline) => pipeline.Build();
-                        ProcessTaskPipeline DefineAbandon(PipelineBuilder pipeline) => pipeline.Build();
+                        void DefineStart(PipelineBuilder.Lifecycle pipeline) { }
+                        void DefineEnd(PipelineBuilder.Lifecycle pipeline) { }
+                        void DefineAbandon(PipelineBuilder.Lifecycle pipeline) { }
                 """
             : """
                         Task Start(string taskId, Instance instance) => Task.CompletedTask;
@@ -85,12 +89,19 @@ public sealed class ProcessTaskLifecycleMigrationTests : IDisposable
                     public static StageResult Completed() => throw new NotImplementedException();
                 }
 
-                public sealed class ProcessTaskPipeline { }
+                public sealed record ProcessStepOptions { }
 
-                public sealed class PipelineBuilder
+                public abstract class PipelineBuilder
                 {
-                    public PipelineBuilder Stage(Func<StageContext, Task<StageResult>> work) => this;
-                    public ProcessTaskPipeline Build() => new();
+                    private PipelineBuilder() { }
+
+                    public sealed class Lifecycle : PipelineBuilder
+                    {
+                        public Lifecycle Stage(
+                            Func<StageContext, Task<StageResult>> work,
+                            ProcessStepOptions? options = null
+                        ) => this;
+                    }
                 }
             }
 
@@ -114,7 +125,9 @@ public sealed class ProcessTaskLifecycleMigrationTests : IDisposable
         SemanticScannerFactory.EmitStubAssembly("Altinn.App.Core", SdkStub(v9: true))
     );
 
-    /// <summary>The usings every fixture file needs; the v8 app template has no implicit usings.</summary>
+    /// <summary>
+    /// The usings every fixture file needs; the v8 app template has no implicit usings.
+    /// </summary>
     private const string Usings = """
         using System;
         using System.Threading.Tasks;
@@ -122,7 +135,9 @@ public sealed class ProcessTaskLifecycleMigrationTests : IDisposable
         using Altinn.Platform.Storage.Interface.Models;
         """;
 
-    /// <summary>A v8 task that implements the three members implicitly, in the shapes apps write them.</summary>
+    /// <summary>
+    /// A v8 task that implements the three members implicitly, in the shapes apps write them.
+    /// </summary>
     private const string LegacyTask = """
         public class ParallelSigningTask : IProcessTask
         {
@@ -155,18 +170,90 @@ public sealed class ProcessTaskLifecycleMigrationTests : IDisposable
     private void AssertCompilesAgainstV9() => AssertCompilesAgainstV9ExceptPortStubs(0);
 
     /// <summary>
-    /// The only errors are the port stubs' own: each stops the build with its <c>#error</c> (CS1029) and has no
-    /// return statement yet (CS0161).
+    /// The only errors are the port stubs' own: each stops the build with its <c>#error</c> (CS1029).
     /// </summary>
     private void AssertCompilesAgainstV9ExceptPortStubs(int stubs)
     {
         var errors = SemanticScannerFactory.CompileErrors(AppFolder, _v9Sdk.Value);
         Assert.True(
-            errors.All(static error => error.Id is "CS1029" or "CS0161")
-                && errors.Count(static error => error.Id == "CS1029") == stubs
-                && errors.Count(static error => error.Id == "CS0161") == stubs,
+            errors.All(static error => error.Id == "CS1029") && errors.Count == stubs,
             $"Expected only the errors of {stubs} port stub(s) against v9:\n" + string.Join("\n", errors)
         );
+    }
+
+    /// <summary>
+    /// Calls the task's lifecycle method as the v9 libraries do when they compose its pipeline, and returns what it
+    /// threw. The app and the v9 stub are compiled into one assembly, so it loads without resolving the stub.
+    /// </summary>
+    private Exception? ComposeAgainstV9(string taskType, string definition)
+    {
+        var compilation = SemanticScannerFactory
+            .Compile(AppFolder, _v9Sdk.Value)
+            .RemoveReferences(_v9Sdk.Value)
+            .AddSyntaxTrees(CSharpSyntaxTree.ParseText(SdkStub(v9: true)));
+        using var image = new MemoryStream();
+        var emit = compilation.Emit(image, cancellationToken: TestContext.Current.CancellationToken);
+        Assert.True(emit.Success, string.Join("\n", emit.Diagnostics));
+        image.Position = 0;
+        var context = new AssemblyLoadContext(nameof(ComposeAgainstV9), isCollectible: true);
+        try
+        {
+            var assembly = context.LoadFromStream(image);
+            var type = assembly.GetType(taskType, throwOnError: true, ignoreCase: false);
+            var builder = assembly.GetType(
+                "Altinn.App.Core.Features.Process.PipelineBuilder+Lifecycle",
+                throwOnError: true,
+                ignoreCase: false
+            );
+            Assert.NotNull(type);
+            Assert.NotNull(builder);
+            var method = type.GetMethod(definition);
+            Assert.NotNull(method);
+            try
+            {
+                method.Invoke(Activator.CreateInstance(type), [Activator.CreateInstance(builder)]);
+                return null;
+            }
+            catch (TargetInvocationException e)
+            {
+                return e.InnerException;
+            }
+        }
+        finally
+        {
+            context.Unload();
+        }
+    }
+
+    /// <summary>
+    /// The upgraded app as the final pass sees it: its files, compiled against the v9 stub.
+    /// </summary>
+    private Project V9Project(AdhocWorkspace workspace)
+    {
+        var compilation = SemanticScannerFactory.Compile(AppFolder, _v9Sdk.Value);
+        var project = workspace.AddProject(
+            ProjectInfo.Create(
+                ProjectId.CreateNewId(),
+                VersionStamp.Create(),
+                "App",
+                "App",
+                LanguageNames.CSharp,
+                compilationOptions: compilation.Options,
+                metadataReferences: compilation.References
+            )
+        );
+        foreach (var tree in compilation.SyntaxTrees)
+        {
+            project = project
+                .AddDocument(
+                    Path.GetFileName(tree.FilePath),
+                    tree.GetText(TestContext.Current.CancellationToken),
+                    filePath: tree.FilePath
+                )
+                .Project;
+        }
+
+        return project;
     }
 
     [Theory]
@@ -203,8 +290,8 @@ public sealed class ProcessTaskLifecycleMigrationTests : IDisposable
                 + "        await Task.Yield();\n"
                 + "    }\n"
                 + "\n"
-                + "    public global::Altinn.App.Core.Features.Process.ProcessTaskPipeline DefineAbandon("
-                + "global::Altinn.App.Core.Features.Process.PipelineBuilder pipeline)\n"
+                + "    public void DefineAbandon("
+                + "global::Altinn.App.Core.Features.Process.PipelineBuilder.Lifecycle pipeline)\n"
                 + "    {\n"
                 + "        #error Port Abandon to stages in DefineAbandon as the comment below says, then remove this line.\n"
                 + "        // v9 no longer calls Abandon(string taskId, Instance instance). It runs the stages this method\n"
@@ -213,7 +300,77 @@ public sealed class ProcessTaskLifecycleMigrationTests : IDisposable
         );
         Assert.Contains("through context.InstanceDataMutator, not through IDataClient", migrated);
         Assert.Contains("context.StepId is the same on every retry", migrated);
-        Assert.DoesNotContain("return pipeline", migrated.Replace("// return pipeline", ""));
+        // The example composition is commented out; the only statement throws until the work is ported.
+        Assert.Contains("        // pipeline.Stage(FirstStage).Stage(SecondStage);\n", migrated);
+        Assert.Contains(
+            "        // }\n"
+                + "\n"
+                + "        throw new global::System.NotImplementedException(\"Port Abandon to stages in DefineAbandon, "
+                + "then delete the line that throws this exception.\");\n"
+                + "    }\n",
+            migrated
+        );
+    }
+
+    [Fact]
+    public async Task PortStub_WithOnlyItsErrorRemoved_CompilesAndThrowsWhenComposed()
+    {
+        var task = Write("logic/ParallelSigningTask.cs", Usings + "\n" + LegacyTask);
+        Migrate(semantic: false);
+        var migrated = await File.ReadAllTextAsync(task, TestContext.Current.CancellationToken);
+        var error = Assert.Single(
+            migrated.Split('\n'),
+            static line => line.TrimStart().StartsWith("#error", StringComparison.Ordinal)
+        );
+        await File.WriteAllTextAsync(
+            task,
+            migrated.Replace(error + "\n", "", StringComparison.Ordinal),
+            TestContext.Current.CancellationToken
+        );
+
+        AssertCompilesAgainstV9();
+        var thrown = Assert.IsType<NotImplementedException>(ComposeAgainstV9("ParallelSigningTask", "DefineAbandon"));
+        Assert.Equal(
+            "Port Abandon to stages in DefineAbandon, then delete the line that throws this exception.",
+            thrown.Message
+        );
+    }
+
+    [Fact]
+    public async Task FinalPass_ShortensThePortStubsTypes()
+    {
+        var task = Write("logic/ParallelSigningTask.cs", Usings + "\n" + LegacyTask);
+        var scanner = Scanner(semantic: false);
+        new ProcessTaskLifecycleMigration(scanner).Migrate(TestContext.Current.CancellationToken);
+        using var workspace = new AdhocWorkspace();
+
+        var finalized = await GeneratedTypeReferenceFinalizer.FinalizeAsync(
+            scanner,
+            [V9Project(workspace)],
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.Equal(1, finalized.ChangedFiles);
+        var migrated = await File.ReadAllTextAsync(task, TestContext.Current.CancellationToken);
+        Assert.Contains("using Altinn.App.Core.Features.Process;\n", migrated);
+        Assert.Contains("    public void DefineAbandon(PipelineBuilder.Lifecycle pipeline)\n", migrated);
+        Assert.Contains("        throw new NotImplementedException(\"Port Abandon to stages", migrated);
+        AssertCompilesAgainstV9ExceptPortStubs(1);
+    }
+
+    [Fact]
+    public async Task RunningAgain_KeepsThePortStub_AndAddsNoSecond()
+    {
+        var task = Write("logic/ParallelSigningTask.cs", Usings + "\n" + LegacyTask);
+        Migrate(semantic: false);
+        var once = await File.ReadAllTextAsync(task, TestContext.Current.CancellationToken);
+
+        // Without a semantic model: the stub's #error stops the app compiling.
+        var result = Migrate(semantic: false);
+
+        Assert.Empty(result.Todos);
+        Assert.Contains("composes DefineAbandon, which runs instead", Assert.Single(result.Warnings));
+        Assert.Equal(once, await File.ReadAllTextAsync(task, TestContext.Current.CancellationToken));
     }
 
     [Theory]
@@ -328,14 +485,16 @@ public sealed class ProcessTaskLifecycleMigrationTests : IDisposable
     }
 
     [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task TaskThatAlreadyComposesThePhase_KeepsItsDefinition(bool semantic)
+    [InlineData(true, "PipelineBuilder.Lifecycle")]
+    [InlineData(false, "PipelineBuilder.Lifecycle")]
+    [InlineData(true, "global::Altinn.App.Core.Features.Process.PipelineBuilder.Lifecycle")]
+    [InlineData(false, "global::Altinn.App.Core.Features.Process.PipelineBuilder.Lifecycle")]
+    public async Task TaskThatAlreadyComposesThePhase_KeepsItsDefinition(bool semantic, string builder)
     {
         var task = Write(
             "logic/ComposedTask.cs",
             Usings
-                + """
+                + $$"""
                 using Altinn.App.Core.Features.Process;
 
                 public class ComposedTask : IProcessTask
@@ -344,7 +503,9 @@ public sealed class ProcessTaskLifecycleMigrationTests : IDisposable
 
                     public Task Start(string taskId, Instance instance) => Task.Delay(1);
 
-                    public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) => pipeline.Build();
+                    public void DefineStart({{builder}} pipeline) => pipeline.Stage(Begin);
+
+                    private Task<StageResult> Begin(StageContext context) => Task.FromResult(StageResult.Completed());
                 }
                 """
         );
@@ -516,20 +677,59 @@ public sealed class ProcessTaskLifecycleMigrationTests : IDisposable
         Assert.Contains("Added a DefineStart", Assert.Single(result.Todos));
         AssertCompilesAgainstV9ExceptPortStubs(1);
         Assert.Contains(
-            "DefineStart(global::Altinn.App.Core.Features.Process.PipelineBuilder pipeline)",
+            "public void DefineStart(global::Altinn.App.Core.Features.Process.PipelineBuilder.Lifecycle pipeline)",
             await File.ReadAllTextAsync(task, TestContext.Current.CancellationToken)
         );
     }
 
+    /// <summary>
+    /// With a semantic model only: by spelling alone, the app's own <c>PipelineBuilder.Lifecycle</c> cannot be told
+    /// from the Altinn one.
+    /// </summary>
+    [Fact]
+    public void DefineTakingTheAppsOwnLookalikeBuilder_DoesNotCountAsADefinition()
+    {
+        Write(
+            "logic/LookalikeTask.cs",
+            Usings
+                + """
+                namespace Shapes
+                {
+                    public abstract class PipelineBuilder
+                    {
+                        public sealed class Lifecycle { }
+                    }
+                }
+
+                public class LookalikeTask : IProcessTask
+                {
+                    public string Type => "lookalike";
+
+                    public Task Start(string taskId, Instance instance) => Task.Delay(1);
+
+                    public void DefineStart(Shapes.PipelineBuilder.Lifecycle pipeline) { }
+                }
+                """
+        );
+
+        var result = Migrate(semantic: true);
+
+        Assert.Empty(result.Warnings);
+        Assert.Contains("Added a DefineStart", Assert.Single(result.Todos));
+        AssertCompilesAgainstV9ExceptPortStubs(1);
+    }
+
     [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task PrivateDefineHelper_IsReportedInsteadOfBeingTakenForTheDefinition(bool semantic)
+    [InlineData(true, "private void DefineStart(PipelineBuilder.Lifecycle pipeline) { }")]
+    [InlineData(false, "private void DefineStart(PipelineBuilder.Lifecycle pipeline) { }")]
+    [InlineData(true, "public int DefineStart(PipelineBuilder.Lifecycle pipeline) => 0;")]
+    [InlineData(false, "public int DefineStart(PipelineBuilder.Lifecycle pipeline) => 0;")]
+    public async Task DefineV9CannotCall_IsReportedInsteadOfBeingTakenForTheDefinition(bool semantic, string definition)
     {
         var task = Write(
             "logic/PrivateHelperTask.cs",
             Usings
-                + """
+                + $$"""
                 using Altinn.App.Core.Features.Process;
 
                 public class PrivateHelperTask : IProcessTask
@@ -538,7 +738,7 @@ public sealed class ProcessTaskLifecycleMigrationTests : IDisposable
 
                     public Task Start(string taskId, Instance instance) => Task.Delay(1);
 
-                    private ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) => pipeline.Build();
+                    {{definition}}
                 }
                 """
         );
@@ -547,12 +747,9 @@ public sealed class ProcessTaskLifecycleMigrationTests : IDisposable
 
         Assert.Empty(result.Warnings);
         var todo = Assert.Single(result.Todos);
-        Assert.Contains("DefineStart(PipelineBuilder) cannot take its place", todo);
-        // Nothing generated: a public member of that signature would collide with the helper.
-        Assert.DoesNotContain(
-            "global::Altinn.App.Core.Features.Process.ProcessTaskPipeline DefineStart",
-            await File.ReadAllTextAsync(task, TestContext.Current.CancellationToken)
-        );
+        Assert.Contains("DefineStart(PipelineBuilder.Lifecycle) cannot take its place", todo);
+        // Nothing generated: a public member of that signature would collide with it.
+        Assert.DoesNotContain("#error", await File.ReadAllTextAsync(task, TestContext.Current.CancellationToken));
     }
 
     [Fact]

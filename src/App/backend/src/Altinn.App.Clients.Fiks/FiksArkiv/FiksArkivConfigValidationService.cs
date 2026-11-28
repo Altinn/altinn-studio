@@ -54,7 +54,7 @@ internal sealed class FiksArkivConfigValidationService : IHostedService
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
     /// <summary>
-    /// A Fiks Arkiv task always moves the process on when it concludes: with the configured success action
+    /// A Fiks Arkiv task always moves the process on when it ends: with the configured success action
     /// when the archive confirms the record, and with the error action (<c>reject</c> by default) when the
     /// archiving cannot succeed. Only an exclusive gateway right after the task can tell those two outcomes
     /// apart, so a task that flows straight into the next element would route a rejected archiving exactly
@@ -81,7 +81,7 @@ internal sealed class FiksArkivConfigValidationService : IHostedService
             if (next.Count == 0 || gateways.Count != next.Count)
                 throw new FiksArkivConfigurationException(
                     $"The Fiks Arkiv task '{task.Id}' must be followed by an exclusive gateway. The task always "
-                        + "moves the process on when it concludes: with the success action when the archive confirms "
+                        + "moves the process on when it ends: with the success action when the archive confirms "
                         + $"the record, and with '{errorAction}' when the archiving cannot succeed. The gateway is where "
                         + "those two paths diverge; without one, a rejected archiving would follow the same flow as a "
                         + "confirmed one."

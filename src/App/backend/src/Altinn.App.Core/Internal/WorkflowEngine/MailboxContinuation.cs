@@ -1,19 +1,14 @@
-using System.Globalization;
 using Altinn.App.Core.Features.Process;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 /// <summary>
-/// What the relay does next — a closed set of exactly four answers, which is where "at most one execution
-/// concludes, per exchange" is made structural: no member can express another's action, and no member that
-/// enqueues a receiver or a segment has a path to a closure it did not name.
+/// What the relay does next — a closed set of exactly four answers, so no member can express another's action, and no
+/// member that enqueues a receiver or the next item has a path to a closure it did not name.
 /// </summary>
 /// <remarks>
-/// <see cref="Conclude"/> does not say which kind of step produced it. What keeps an after-workflow out of
-/// a mid-pipeline handler's reach is two facts outside this type: the stage vocabulary has no
-/// <c>Success(action)</c>, so <see cref="MailboxRelay.DecideSegment"/> never sets <c>ProcessNextContinuation</c>;
-/// and <see cref="Conclude"/> is gated on that flag in <see cref="MailboxRelay.Continue"/>, which the callback
-/// controller pins to <c>false</c> on its failure branch.
+/// <see cref="Conclude"/> always travels with the next transition's action on the same result: the task ends, so its
+/// open mailbox closes first.
 /// </remarks>
 internal abstract record MailboxContinuation
 {
@@ -25,7 +20,7 @@ internal abstract record MailboxContinuation
         public AwaitNextMessage(
             Guid mailboxId,
             string serviceTaskType,
-            int handlerItemIndex,
+            int stageIndex,
             long position,
             ProcessStepOptions? handlerStepOptions = null,
             string? handlerStepName = null
@@ -33,47 +28,43 @@ internal abstract record MailboxContinuation
         {
             MailboxId = mailboxId;
             ServiceTaskType = serviceTaskType;
-            HandlerItemIndex = handlerItemIndex;
+            StageIndex = stageIndex;
             Position = position;
             HandlerStepOptions = handlerStepOptions;
             HandlerStepName = handlerStepName;
         }
 
-        /// <summary>The mailbox the exchange runs on, read from the rendezvous.</summary>
+        /// <summary>The mailbox the replies arrive in, read from the receipt.</summary>
         public Guid MailboxId { get; }
 
-        /// <summary>The service task whose pipeline composes the reply handler.</summary>
+        /// <summary>The service task whose pipeline composes the external stage.</summary>
         public string ServiceTaskType { get; }
 
         /// <summary>
-        /// The handler's own position in the pipeline — what the successor's step names. Sourced from the
-        /// executing step's own payload, so a mid-flight reshape cannot make the successor run a different
-        /// handler.
+        /// The external stage's position in the pipeline — what the successor's step names. Sourced from the
+        /// executing step's own payload, so a mid-flight reshape cannot make the successor run a different stage.
         /// </summary>
-        public int HandlerItemIndex { get; }
+        public int StageIndex { get; }
 
         /// <summary>The position the handler just answered — names the successor for operators.</summary>
         public long Position { get; }
 
         /// <summary>
-        /// The handler's own options, which its successor's step carries just as the planner's steps carry
+        /// The stage's own options, which its successor's step carries just as the planner's steps carry
         /// theirs; read off the pipeline by the hop that decided the continuation.
         /// </summary>
         public ProcessStepOptions? HandlerStepOptions { get; }
 
         /// <summary>
-        /// The handler's step name, so the successor's step reads the same as this one. Worked out where the
+        /// The receive step's name, so the successor's step reads the same as this one. Worked out where the
         /// pipeline was resolved, since nothing is resolved here.
         /// </summary>
         public string? HandlerStepName { get; }
     }
 
     /// <summary>
-    /// A stage completed: start what the pipeline composes after it — the receive leg of the exchange the
-    /// handler composed next answers, or otherwise the workflow of the item composed next. Which exchange that is
-    /// belongs to the handler, not to this stage: on up-front sends the stage that just sent opened a <em>later</em> exchange than the one the handler after
-    /// it answers. Nothing is closed: no exchange of this task has been answered here, neither one this stage
-    /// opened nor one an earlier stage did.
+    /// An item is done and nothing closes: start what follows it — an external stage's receive workflow after its
+    /// send, or the next item's workflow after a stage.
     /// </summary>
     internal sealed record ContinueAfterStage : MailboxContinuation
     {
@@ -86,31 +77,28 @@ internal abstract record MailboxContinuation
         /// <summary>The service task whose pipeline the hand-over belongs to.</summary>
         public string ServiceTaskType { get; }
 
-        /// <summary>What the pipeline runs next, decided and planned at the verdict this came from.</summary>
+        /// <summary>What the pipeline runs next, decided and planned at the result this came from.</summary>
         public MailboxHandover Handover { get; }
     }
 
     /// <summary>
-    /// The task is over and the pipeline has nothing left to run: close every named mailbox, then start
-    /// the after-workflow if — and only if — the answer asked the process to advance. One mailbox when a
-    /// reply handler concluded its exchange; every mailbox the carry still held when a mailbox-opening
-    /// stage concluded the whole task.
+    /// The task ends with a mailbox open: close it, then start the after-workflow.
     /// </summary>
     internal sealed record Conclude : MailboxContinuation
     {
-        public Conclude(IReadOnlyList<Guid> mailboxIds)
+        public Conclude(Guid mailboxId)
         {
-            MailboxIds = mailboxIds;
+            MailboxId = mailboxId;
         }
 
-        /// <summary>Closed in order, all of them before anything downstream starts.</summary>
-        public IReadOnlyList<Guid> MailboxIds { get; }
+        /// <summary>The open mailbox, closed before anything downstream starts.</summary>
+        public Guid MailboxId { get; }
     }
 
     /// <summary>
-    /// A mid-pipeline handler concluded <em>its</em> exchange while the task carries on: close that one
-    /// mailbox, then start the next item's workflow. Not <see cref="Conclude"/> with a flag: what follows a
-    /// closing is a shape the relay dispatches on, so no arm can drift into performing the other's move.
+    /// An external stage is done with its replies while the task carries on: close its mailbox, then start the
+    /// next item's workflow. Not <see cref="Conclude"/> with a flag: what follows a closing is a shape the relay
+    /// dispatches on, so no arm can drift into performing the other's move.
     /// </summary>
     internal sealed record ConcludeAndContinue : MailboxContinuation
     {
@@ -121,100 +109,71 @@ internal abstract record MailboxContinuation
             Handover = handover;
         }
 
-        /// <summary>The concluded exchange's mailbox — the only one that closes here.</summary>
+        /// <summary>The stage's mailbox, closed before the next item starts.</summary>
         public Guid MailboxId { get; }
 
         /// <summary>The service task whose pipeline the hand-over belongs to.</summary>
         public string ServiceTaskType { get; }
 
         /// <summary>
-        /// What the pipeline runs once this exchange's mailbox is closed, decided and planned at the verdict
-        /// this continuation came from.
+        /// What the pipeline runs once the mailbox is closed, decided and planned at the result this continuation
+        /// came from.
         /// </summary>
         public MailboxHandover Handover { get; }
     }
 }
 
 /// <summary>
-/// What the pipeline runs after the item a relay hop just ran: the plan that hop made, carried whole so the
-/// enqueue re-derives nothing, plus — when the plan is a receive workflow — the mailbox it parks on. One
-/// shape rather than a pair, because the difference between a receive workflow and a continuation is one the
-/// enqueue must read anyway (a mailbox to park on, and its own operation id naming) and nothing else
-/// dispatches on. The three guards below are what that collapse costs and pays for: a pair could not express
-/// the disagreements they refuse, so they are stated here rather than left to the planner in another file.
+/// What the pipeline runs after the step a relay hop just ran: the steps that hop planned, carried whole so the
+/// enqueue re-derives nothing, and for a receive workflow the mailbox it parks on.
 /// </summary>
 internal sealed record MailboxHandover
 {
-    public MailboxHandover(int afterItemIndex, ServiceTaskSegmentPlan plan, MailboxTarget? target)
+    /// <summary>
+    /// Hands over to the workflow of the next item.
+    /// </summary>
+    public MailboxHandover(int afterItemIndex, IReadOnlyList<PlannedStep> steps)
     {
-        // The one place a plan becomes a hand-over, so the one place worth stating the invariant: the deciding
-        // hop refuses an empty plan before it gets here, and the enqueue has no verdict channel left to refuse
-        // it in — it would enqueue a workflow with no steps, which the engine settles at once, emptying the
-        // frontier under an open mailbox.
-        if (plan.Steps.Count == 0)
-        {
-            throw new ArgumentException(
-                "A hand-over must carry at least one step: an empty plan means the pipeline composes nothing "
-                    + "after the item the deciding hop ran, which that hop refuses.",
-                nameof(plan)
-            );
-        }
-
-        // A receive workflow parks on a mailbox, so the two halves are one decision: a plan that names an
-        // exchange and no target would enqueue a handler step with nothing to receive from, and a target
-        // without one would park ordinary steps on a mailbox.
-        if ((plan.ReceiveOpeningIndex is null) != (target is null))
-        {
-            throw new ArgumentException(
-                "A receive plan's mailbox travels with it: a plan naming the exchange it answers must be "
-                    + "handed the mailbox that exchange runs on, and a plan naming none must be handed no "
-                    + "mailbox.",
-                nameof(target)
-            );
-        }
-
-        // A receive workflow's one step is the handler, and the engine resolves a workflow's mailbox
-        // rendezvous for its first step only (ProcessingOrder == 0): a second step would run with none, after
-        // the first had already consumed the message this workflow was parked for.
-        if (target is not null && plan.Steps.Count != 1)
-        {
-            throw new ArgumentException(
-                "A receive workflow runs exactly one step, the reply handler that answers its exchange; this "
-                    + $"plan carries {plan.Steps.Count.ToString(CultureInfo.InvariantCulture)}.",
-                nameof(plan)
-            );
-        }
-
         AfterItemIndex = afterItemIndex;
-        Plan = plan;
+        Steps = steps;
+    }
+
+    /// <summary>
+    /// Hands over to a receive workflow: the reply step alone, parked on the external stage's mailbox. Alone because
+    /// the engine hands the mailbox receipt to a workflow's first step only, so a second step would run without it,
+    /// as the send.
+    /// </summary>
+    public MailboxHandover(int afterItemIndex, PlannedStep replyStep, MailboxTarget target)
+    {
+        AfterItemIndex = afterItemIndex;
+        Steps = [replyStep];
         Target = target;
     }
 
     /// <summary>
-    /// The item the plan follows — the reply handler that concluded its exchange, or the stage that completed.
-    /// What a continuation workflow's operation id names.
+    /// The item the steps follow — the stage that completed, or the external stage that sent or was done with its
+    /// replies. What a continuation workflow's operation id names.
     /// </summary>
     public int AfterItemIndex { get; }
 
     /// <summary>
-    /// The plan as the deciding hop made it, authoritative: the enqueue hop applies step options to these
-    /// steps and enqueues them, and never plans again — so nothing rides on the two hops resolving
-    /// <c>DefineExecute</c> to the same shape.
+    /// The steps as the deciding hop planned them, authoritative: the enqueue hop applies step options to them and
+    /// enqueues them, and never plans again — so nothing rides on the two hops resolving <c>DefineExecute</c> to the
+    /// same shape.
     /// </summary>
-    public ServiceTaskSegmentPlan Plan { get; }
+    public IReadOnlyList<PlannedStep> Steps { get; }
 
     /// <summary>
-    /// The exchange the plan's one handler step is to be parked on, or null when the plan is an ordinary
-    /// continuation. Resolved from the carry at the decide, where a missing entry can still fail the verdict
-    /// legibly.
+    /// The mailbox the one reply step is to be parked on, or null when the steps are an ordinary continuation.
+    /// Resolved from the carry at the decide, where a missing entry can still fail the step legibly.
     /// </summary>
     public MailboxTarget? Target { get; }
 }
 
 /// <summary>
-/// Where a receive workflow is to be parked — the outbound half of an exchange's identity, named apart from
-/// the inbound <c>rendezvous</c> the engine hands a receive workflow when a message arrives for it.
+/// Where a receive workflow is to be parked, named apart from the inbound <c>rendezvous</c> the engine hands a
+/// receive workflow when a message arrives for it.
 /// </summary>
 /// <param name="MailboxId">The mailbox, resolved from the state carry at the deciding hop.</param>
-/// <param name="OpeningStageIndex">The stage that opened it — what the receiver's operation id names.</param>
-internal sealed record MailboxTarget(Guid MailboxId, int OpeningStageIndex);
+/// <param name="StageIndex">The external stage that opened it — what the receiver's operation id names.</param>
+internal sealed record MailboxTarget(Guid MailboxId, int StageIndex);

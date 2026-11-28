@@ -33,14 +33,14 @@ internal static partial class PipelineStepNames
     }
 
     /// <summary>
-    /// The name of a reply handler, which runs one of two methods depending on what arrives, a message or the
-    /// mailbox's close: both names, as "On decision / On closed", so the step never shows a method that did not
-    /// run; the one of them that has a name; or null when neither has.
+    /// The name of an external stage's receive step, which runs one of two methods depending on what arrives, a
+    /// reply or the reply address's close: both names, as "On decision / On timeout", so the step never shows a
+    /// method that did not run; the one of them that has a name; or null when neither has.
     /// </summary>
-    internal static string? FromMethods(Delegate onMessage, Delegate onClosed)
+    internal static string? FromMethods(Delegate onReply, Delegate? onTimeout)
     {
-        string? first = FromMethod(onMessage);
-        string? second = FromMethod(onClosed);
+        string? first = FromMethod(onReply);
+        string? second = onTimeout is null ? null : FromMethod(onTimeout);
         return (first, second) switch
         {
             (null, null) => null,

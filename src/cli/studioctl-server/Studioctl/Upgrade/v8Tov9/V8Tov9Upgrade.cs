@@ -192,6 +192,11 @@ internal static class V8Tov9Upgrade
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, MigrateExclusiveGatewaySignature(scanner, options.CancellationToken));
+
+        // Before the lifecycle step, so that it counts a DefineStart, DefineEnd or DefineAbandon this one moved to the
+        // lifecycle builder as the task's own, instead of adding a second.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, MigratePreviewPipelines(scanner, options.CancellationToken));
         returnCode = CombineExitCodes(returnCode, MigrateProcessTaskLifecycle(scanner, options.CancellationToken));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -1002,9 +1007,37 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Gives app implementations of <c>IProcessTask</c> the <c>DefineStart</c>, <c>DefineEnd</c> and <c>DefineAbandon</c>
-    /// members v9 runs instead of the removed <c>Start</c>, <c>End</c> and <c>Abandon</c>, each running the v8 method
-    /// as one stage, and makes an explicit implementation of a removed member the type's own method.
+    /// Moves pipelines written for an earlier v9 preview to the current API: <c>DefineExecute</c> takes
+    /// <c>PipelineBuilder.ServiceTask</c> and composes <c>Stage</c> and <c>ExternalStage</c>, and <c>DefineStart</c>,
+    /// <c>DefineEnd</c> and <c>DefineAbandon</c> take <c>PipelineBuilder.Lifecycle</c>, all returning nothing.
+    /// </summary>
+    static int MigratePreviewPipelines(CSharpSourceScanner scanner, CancellationToken cancellationToken)
+    {
+        UpgradeConsole.BeginStep("Pipelines from an earlier v9 preview");
+        try
+        {
+            var result = new PreviewPipelineMigration(scanner).Migrate(cancellationToken);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No pipelines from an earlier v9 preview to update",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating pipelines from an earlier v9 preview", ex);
+        }
+    }
+
+    /// <summary>
+    /// Moves app implementations of <c>IProcessTask</c> off the removed <c>Start</c>, <c>End</c> and <c>Abandon</c>:
+    /// removes one that does nothing, and gives one that does work a <c>DefineStart</c>, <c>DefineEnd</c> or
+    /// <c>DefineAbandon</c> beside it that stops the build until the work is ported to stages. An explicit
+    /// implementation of a removed member becomes the type's own method.
     /// </summary>
     static int MigrateProcessTaskLifecycle(CSharpSourceScanner scanner, CancellationToken cancellationToken)
     {

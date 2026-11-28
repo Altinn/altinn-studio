@@ -371,10 +371,9 @@ public class ProcessEngineAuthorizerTests
     {
         public string Type => type;
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+        public void DefineExecute(PipelineBuilder.ServiceTask pipeline) => pipeline.Stage(Execute);
 
-        public Task<ServiceTaskResult> Execute(StageContext context) =>
-            Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+        public Task<ServiceTaskResult> Execute(StageContext context) => Task.FromResult(ServiceTaskResult.Completed());
     }
 
     private static Instance CreateInstance(string? taskId, string? taskType = null)

@@ -1,5 +1,3 @@
-using Altinn.App.Core.Features.Process;
-
 namespace Altinn.App.Core.Internal.Process.ProcessTasks;
 
 /// <summary>
@@ -13,13 +11,4 @@ internal sealed class NullTypeProcessTask : IProcessTask
 {
     /// <inheritdoc/>
     public string Type => "NullType";
-
-    /// <inheritdoc/>
-    public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) => pipeline.Build();
-
-    /// <inheritdoc/>
-    public ProcessTaskPipeline DefineEnd(PipelineBuilder pipeline) => pipeline.Build();
-
-    /// <inheritdoc/>
-    public ProcessTaskPipeline DefineAbandon(PipelineBuilder pipeline) => pipeline.Build();
 }

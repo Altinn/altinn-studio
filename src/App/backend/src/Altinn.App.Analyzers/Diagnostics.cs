@@ -54,28 +54,17 @@ public static class Diagnostics
             "The result of '{0}' is discarded, but '{1}' is not a usable registration on its own. {2}."
         );
 
-        // Close to the runtime backstop in PipelineBuilder.ClaimMailbox (which names the opening
-        // stage's item index, which the analyzer cannot know), so an author who meets one of them after the
-        // other reads one rule rather than two. '{0}' is the identifier of the local the handle was declared
-        // into.
-        public static readonly DiagnosticDescriptor MailboxHandleAnsweredTwice = Error(
-            "ALTINNAPP0702",
+        // '{0}' is the method, '{1}' the interface member, both as Type.Name(parameter types); '{2}' says to declare
+        // the member's signature, and to list the interface when the type only inherits it from a base class.
+        // Reported once the whole compilation is analyzed, since a call that makes the method a helper can be
+        // anywhere in it.
+        public static readonly DiagnosticDescriptor ProcessTaskMemberNotImplemented = Error(
+            "ALTINNAPP0704",
             Category.Contracts,
-            "Mailbox handle answered twice",
-            "The mailbox opened into '{0}' is already answered by an earlier handler. Each mailbox is answered "
-                + "exactly once — by HandleReplies or by ConcludeOnReplies, never by both and never twice — so a "
-                + "second handler for the same exchange would be dead code."
-        );
-
-        // Likewise close to the wording of PipelineBuilder.RequireEveryMailboxAnswered, which is
-        // what fails app startup for every shape this rule cannot prove.
-        public static readonly DiagnosticDescriptor MailboxNeverAnswered = Error(
-            "ALTINNAPP0703",
-            Category.Contracts,
-            "Mailbox opened but never answered",
-            "The mailbox opened into '{0}' is never answered: its handle is never passed anywhere, so the "
-                + "messages that come back would have no handler. Answer it before the pipeline ends — with "
-                + "HandleReplies to carry on afterwards, or with ConcludeOnReplies to end there."
+            "Process task method does not implement the member it is named after",
+            "'{0}' does not implement '{1}', so the runtime never calls it and runs the default implementation "
+                + "instead. {2}.",
+            WellKnownDiagnosticTags.CompilationEnd
         );
     }
 
@@ -394,9 +383,9 @@ public static class Diagnostics
                 + "<altinn:subformPdfConfig><altinn:subformUiFolder>, but {2}, so the app does not start. {3}."
         );
 
-        // A gateway after a service task gets the action the service task concludes with
+        // A gateway after a service task gets the action the service task ends with
         // (ProcessNextContinuation), not the user's, and a failed service task can only be resumed, not left through
-        // process/next with an action. The types this rule names never conclude with one; fiksArkiv and an app's own
+        // process/next with an action. The types this rule names never end with one; fiksArkiv and an app's own
         // service task types may. '{1}' names the conditions that read the action, and '{3}' is the task's type.
         public static readonly DiagnosticDescriptor GatewayActionAfterServiceTask = Error(
             "ALTINNAPP1030",

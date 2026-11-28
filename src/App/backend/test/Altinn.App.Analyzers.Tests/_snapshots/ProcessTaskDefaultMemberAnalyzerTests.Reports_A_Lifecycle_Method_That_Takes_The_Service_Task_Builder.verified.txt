@@ -1,0 +1,17 @@
+﻿[
+  {
+    Id: ALTINNAPP0704,
+    Title: Process task method does not implement the member it is named after,
+    Severity: Error,
+    WarningLevel: 0,
+    Location: /repo/App/Tasks.cs(10,17),
+    Code: DefineStart,
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/analysis/rules/altinnapp0704,
+    MessageFormat: '{0}' does not implement '{1}', so the runtime never calls it and runs the default implementation instead. {2}.,
+    Message: 'FetchNote.DefineStart(PipelineBuilder.ServiceTask)' does not implement 'IProcessTask.DefineStart(PipelineBuilder.Lifecycle)', so the runtime never calls it and runs the default implementation instead. Declare it as 'public void DefineStart(PipelineBuilder.Lifecycle pipeline)'.,
+    Category: Contracts,
+    CustomTags: [
+      CompilationEnd
+    ]
+  }
+]

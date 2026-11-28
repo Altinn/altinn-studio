@@ -45,7 +45,7 @@ internal sealed class PdfServiceTask : IPdfServiceTask
     /// <inheritdoc />
     public string Type => "pdf";
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+    public void DefineExecute(PipelineBuilder.ServiceTask pipeline) => pipeline.Stage(Execute);
 
     /// <inheritdoc />
     public IEnumerable<string> ValidateConfiguration(ProcessTaskValidationContext context)
@@ -100,7 +100,7 @@ internal sealed class PdfServiceTask : IPdfServiceTask
             LogSanitizer.Sanitize(taskId)
         );
 
-        return ServiceTaskResult.Success();
+        return ServiceTaskResult.Completed();
     }
 
     private ValidAltinnPdfConfiguration GetValidAltinnPdfConfiguration(string taskId)

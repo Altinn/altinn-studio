@@ -13,10 +13,10 @@ internal sealed class SuccessfulWorkflowEngineCommandResult : WorkflowEngineComm
     public ProcessNextContinuation? ProcessNextContinuation { get; init; }
 
     /// <summary>
-    /// What the mailbox relay must do once this callback's data changes are saved and re-captured: enqueue the
-    /// exchange's next receiver, or close the mailbox and start what comes after it. <c>null</c> on every callback
-    /// that is not a mailbox reply handler's. It rides the result rather than being acted on inside the command
-    /// because the successor must start on the state this handler <em>published</em>.
+    /// What the mailbox relay must do once this callback's data changes are saved and re-captured: enqueue a
+    /// receiver or the next item's workflow, or close the mailbox and start what comes after it. <c>null</c> on
+    /// every callback that is not a service task step's. It rides the result rather than being acted on inside the
+    /// command because the successor must start on the state this step <em>published</em>.
     /// </summary>
     public MailboxContinuation? MailboxContinuation { get; init; }
 }
@@ -56,13 +56,6 @@ internal sealed class FailedWorkflowEngineCommandResult : WorkflowEngineCommandR
     public readonly bool ServiceOwnerAuthorizationDenied;
 
     /// <summary>
-    /// What the mailbox relay must still do despite the failure. Set only by a permanent failure that
-    /// concludes — a reply handler's, or an opening stage's <c>Conclude(FailedPermanent)</c>: an exchange
-    /// the app has given up on must stop accepting messages, even though nothing downstream starts.
-    /// </summary>
-    public readonly MailboxContinuation? MailboxContinuation;
-
-    /// <summary>
     /// Creates a retryable failure from a caught exception (likely transient — Storage down, HTTP timeout, etc.).
     /// </summary>
     public static FailedWorkflowEngineCommandResult Retryable(Exception exception) =>
@@ -84,18 +77,14 @@ internal sealed class FailedWorkflowEngineCommandResult : WorkflowEngineCommandR
     /// Creates a non-retryable failure (validation error, business rule violation, etc.).
     /// The workflow engine will stop retrying and mark the step as permanently failed.
     /// </summary>
-    public static FailedWorkflowEngineCommandResult Permanent(
-        string errorMessage,
-        string? exceptionType = null,
-        MailboxContinuation? mailboxContinuation = null
-    ) => new(errorMessage, exceptionType, nonRetryable: true, mailboxContinuation: mailboxContinuation);
+    public static FailedWorkflowEngineCommandResult Permanent(string errorMessage, string? exceptionType = null) =>
+        new(errorMessage, exceptionType, nonRetryable: true);
 
     private FailedWorkflowEngineCommandResult(
         string errorMessage,
         string? exceptionType,
         bool nonRetryable,
         Exception? exception = null,
-        MailboxContinuation? mailboxContinuation = null,
         bool serviceOwnerAuthorizationDenied = false
     )
     {
@@ -104,6 +93,5 @@ internal sealed class FailedWorkflowEngineCommandResult : WorkflowEngineCommandR
         NonRetryable = nonRetryable;
         Exception = exception;
         ServiceOwnerAuthorizationDenied = serviceOwnerAuthorizationDenied;
-        MailboxContinuation = mailboxContinuation;
     }
 }

@@ -11,21 +11,6 @@ using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskStart;
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 /// <summary>
-/// The steps of one pipeline item's workflow. A non-null <see cref="ReceiveOpeningIndex"/> makes the plan a
-/// <em>receive</em> workflow: its one step is the reply handler answering the exchange the stage at that index
-/// opened, so the workflow must be parked on that exchange's mailbox. With it null the plan is an ordinary
-/// continuation, with no mailbox of its own. Nothing here says what runs after the item: its step derives that
-/// when it runs, from the pipeline it resolved.
-/// </summary>
-/// <param name="Steps">The workflow's steps, in execution order, with options unresolved.</param>
-/// <param name="ReceiveOpeningIndex">
-/// The stage whose exchange this plan's single handler step answers, or null when the plan is not a receive
-/// workflow. An index rather than a mailbox id: the id lives in the workflow state carry, and is resolved
-/// from it at the hop that decides to enqueue this plan.
-/// </param>
-internal sealed record ServiceTaskSegmentPlan(IReadOnlyList<PlannedStep> Steps, int? ReceiveOpeningIndex);
-
-/// <summary>
 /// The steps one process event adds to a transition, in three lists: its lifecycle steps, which run before the commit
 /// for a task end or abandon and after it for a task start, the steps after those in the transition's primary workflow,
 /// and the steps that each get an auxiliary workflow of their own.
@@ -85,11 +70,9 @@ internal sealed class WorkflowStepSet
         {
             group.ServiceTaskFollowsCommit = true;
 
-            // The primary workflow carries the first item only, so it ends on that item's step: a stage whose
-            // completion starts the next item's workflow, or the pipeline's conclusion. Item 0 is never a reply
-            // handler, since a handler answers a stage composed before it.
-            ServiceTaskSegmentPlan segment = PlanSegment(serviceTask.Type, serviceTask.Pipeline);
-            group.AddPrimaryPostCommitSteps(segment.Steps);
+            // The primary workflow carries the first item only, so it ends on that item's step, whose completion
+            // starts the next item's workflow or ends the task.
+            group.AddPrimaryPostCommitSteps(PlanItem(serviceTask.Type, serviceTask.Pipeline, itemIndex: 0));
         }
 
         if (context.IsInstantiation && context.RegisterEvents)
@@ -182,7 +165,7 @@ internal sealed class WorkflowStepSet
     /// </summary>
     private WorkflowStepSet AddProcessTaskStages(string commandKey, ProcessTaskPipeline pipeline)
     {
-        IReadOnlyList<PipelineStage.Plain> stages = pipeline.Stages;
+        IReadOnlyList<LifecycleStage> stages = pipeline.Stages;
         for (int index = 0; index < stages.Count; index++)
         {
             _lifecycleSteps.Add(
@@ -238,60 +221,52 @@ internal sealed class WorkflowStepSet
     }
 
     /// <summary>
-    /// Plans the workflow of the pipeline item after <paramref name="afterItemIndex"/>, or of the first item
-    /// when it is null, which the transition's primary workflow carries. Every item gets a workflow of its own
-    /// and is that workflow's last step, so the item's own verdict always decides what follows it: a completed
-    /// stage or concluded exchange enqueues the next item's workflow, derived from the pipeline when it runs,
-    /// and the conclusion advances the process. A <strong>mailbox-opening stage</strong> is preceded by its
-    /// <c>MintMailbox</c> step. Options are left unresolved.
+    /// The steps of the workflow of the pipeline item at <paramref name="itemIndex"/>, with options unresolved. Every
+    /// item gets a workflow of its own and is that workflow's last step, so the item's own result decides what follows
+    /// it. An <strong>external stage</strong>'s send is preceded by its <c>MintMailbox</c> step.
     /// </summary>
-    /// <returns>
-    /// The plan, with no steps only when <paramref name="afterItemIndex"/> is the pipeline's last item. The
-    /// deciding hop refuses an empty plan rather than enqueue a workflow with no steps.
-    /// </returns>
-    internal static ServiceTaskSegmentPlan PlanSegment(
+    internal static IReadOnlyList<PlannedStep> PlanItem(
         string serviceTaskType,
         ServiceTaskPipeline pipeline,
-        int? afterItemIndex = null
+        int itemIndex
     )
     {
-        int index = afterItemIndex is { } item ? item + 1 : 0;
-        if (pipeline.Items.ElementAtOrDefault(index) is not { } next)
+        ServiceTaskItem item = pipeline.Items[itemIndex];
+        PlannedStep step = CreateItemStep(serviceTaskType, itemIndex, item.StepOptions, item.DisplayName);
+        return item switch
         {
-            return new ServiceTaskSegmentPlan([], ReceiveOpeningIndex: null);
-        }
+            // The mint hugs the send on both sides: the deadline clock starts here, and the send must never go
+            // without an address. No item options on the mint step — it must not inherit the send's options.
+            ServiceTaskItem.ExternalStage =>
+            [
+                CreateStep(
+                    MintMailbox.Key,
+                    new MintMailboxPayload(serviceTaskType, itemIndex),
+                    operationId: $"{MintMailbox.Key}: {itemIndex.ToString(CultureInfo.InvariantCulture)}"
+                ),
+                step,
+            ],
 
-        PlannedStep step = CreateItemStep(serviceTaskType, index, next.StepOptions, next.DisplayName);
-        return next switch
-        {
-            // The engine resolves a workflow's mailbox rendezvous for its first step only (WorkflowExecutor,
-            // ProcessingOrder == 0), so the step that receives is alone in a workflow parked on the mailbox of
-            // the exchange it answers.
-            IReplyHandlerItem handler => new ServiceTaskSegmentPlan([step], handler.OpeningIndex),
+            ServiceTaskItem.Stage => [step],
 
-            // The mint hugs the stage that sends, on both sides: the deadline clock starts here, and the stage
-            // must never send without an address. No stage index on the step — the mint must not inherit the
-            // stage's options.
-            PipelineStage.MailboxOpening => new ServiceTaskSegmentPlan(
-                [
-                    CreateStep(
-                        MintMailbox.Key,
-                        new MintMailboxPayload(serviceTaskType, index),
-                        operationId: $"{MintMailbox.Key}: {index.ToString(CultureInfo.InvariantCulture)}"
-                    ),
-                    step,
-                ],
-                ReceiveOpeningIndex: null
-            ),
-
-            PipelineStage or PipelineConclusion.Final => new ServiceTaskSegmentPlan([step], ReceiveOpeningIndex: null),
-
-            _ => throw new UnreachableException($"Unknown pipeline item type: {next.GetType().Name}"),
+            _ => throw new UnreachableException($"Unknown pipeline item type: {item.GetType().Name}"),
         };
     }
 
     /// <summary>
-    /// One pipeline item's engine step — a stage's, a reply handler's or the conclusion's alike. The item's
+    /// The one step of a receive workflow of the external stage at <paramref name="stageIndex"/>, carrying the stage's
+    /// index like its send does. The engine hands a workflow's mailbox receipt to its first step only
+    /// (WorkflowExecutor, ProcessingOrder == 0), so the step that handles a reply is alone in a workflow parked on
+    /// the mailbox, and the receipt is what tells it apart from the send.
+    /// </summary>
+    internal static PlannedStep PlanReceive(
+        string serviceTaskType,
+        ServiceTaskItem.ExternalStage stage,
+        int stageIndex
+    ) => CreateItemStep(serviceTaskType, stageIndex, stage.StepOptions, stage.ReplyDisplayName);
+
+    /// <summary>
+    /// One pipeline item's engine step — a stage's, an external stage's send or a reply's alike. The item's
     /// index is the step's whole identity, and it travels two ways, deliberately: in the payload (dispatch
     /// reads it) and in the OperationId (the engine's own record, distinct per item for its dashboards). The
     /// item's own options ride the step as well, decided here where the pipeline is at hand, exactly as a

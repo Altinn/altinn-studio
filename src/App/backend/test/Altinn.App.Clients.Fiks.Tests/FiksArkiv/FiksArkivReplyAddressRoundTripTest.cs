@@ -23,8 +23,8 @@ using Moq;
 namespace Altinn.App.Clients.Fiks.Tests.FiksArkiv;
 
 /// <summary>
-/// The reply address end to end: the value the send stage publishes, and the mailbox the echoing answer is
-/// delivered into.
+/// The reply address end to end: the value the send publishes, and the reply address the echoing answer is
+/// delivered to.
 /// </summary>
 /// <remarks>
 /// Deliberately not a hand-written echo: the test takes the wire value off the <em>real</em> outbound
@@ -34,7 +34,7 @@ namespace Altinn.App.Clients.Fiks.Tests.FiksArkiv;
 /// </remarks>
 public class FiksArkivReplyAddressRoundTripTest
 {
-    private static readonly Guid _mailboxId = Guid.Parse("c0ffee11-1111-4a1a-9c3d-4d5e6f708192");
+    private static readonly Guid _replyAddressId = Guid.Parse("c0ffee11-1111-4a1a-9c3d-4d5e6f708192");
     private static readonly Guid _workflowStepId = Guid.Parse("9ec7e888-8f05-423c-a54c-572f36b121ef");
     private static readonly Guid _archivesOwnReference = Guid.Parse("3b1d9d0e-77a2-4a1c-8f6a-8c2b1f9d5e44");
     private static readonly Guid _incomingMessageId = Guid.Parse("18b6b0b3-9a4e-4b2a-9e2f-9b1a5e2d4c11");
@@ -42,10 +42,11 @@ public class FiksArkivReplyAddressRoundTripTest
     private static readonly DateTimeOffset _executionReferenceTime = DateTimeOffset.Parse("2026-05-17T10:15:30+02:00");
 
     [Fact]
-    public async Task TheAddressTheSendPublishes_IsTheMailboxTheEchoedAnswerIsDeliveredTo()
+    public async Task TheAddressTheSendPublishes_IsTheReplyAddressTheEchoedAnswerIsDeliveredTo()
     {
         var sentRequests = new List<FiksIOMessageRequest>();
-        var forwarded = new List<(Guid MailboxId, string ServiceTaskType, string Payload, string IdempotencyKey)>();
+        var forwarded =
+            new List<(Guid ReplyAddressId, string ServiceTaskType, string Payload, string IdempotencyKey)>();
         var forwarder = new Mock<IServiceTaskReplyForwarder>(MockBehavior.Strict);
         forwarder
             .Setup(x =>
@@ -58,8 +59,13 @@ public class FiksArkivReplyAddressRoundTripTest
                 )
             )
             .Callback(
-                (Guid mailboxId, string serviceTaskType, string payload, string idempotencyKey, CancellationToken _) =>
-                    forwarded.Add((mailboxId, serviceTaskType, payload, idempotencyKey))
+                (
+                    Guid replyAddressId,
+                    string serviceTaskType,
+                    string payload,
+                    string idempotencyKey,
+                    CancellationToken _
+                ) => forwarded.Add((replyAddressId, serviceTaskType, payload, idempotencyKey))
             )
             .Returns(Task.CompletedTask);
 
@@ -91,17 +97,17 @@ public class FiksArkivReplyAddressRoundTripTest
         );
         PrepareForPayloadGeneration(fixture, dataMutator);
 
-        // 1. The send stage publishes the mailbox id as the reply address.
-        var sendStage = Assert.IsType<PipelineStage.MailboxOpening>(fixture.FiksArkivPipeline.Items[0]);
-        ServiceTaskOpeningStageResult sendResult = await sendStage.Work(
+        // 1. The send publishes the reply address it is handed.
+        var archiveStage = Assert.IsType<ServiceTaskItem.ExternalStage>(Assert.Single(fixture.FiksArkivPipeline.Items));
+        ServiceTaskResult sendResult = await archiveStage.Send(
             CreateSendContext(dataMutator.Object),
-            new ServiceTaskMailbox { Id = _mailboxId, Deadline = _executionReferenceTime + TimeSpan.FromDays(7) }
+            new ReplyAddress { Id = _replyAddressId, Deadline = _executionReferenceTime + TimeSpan.FromDays(7) }
         );
 
-        Assert.IsType<CompletedServiceTaskOpeningStageResult>(sendResult);
+        Assert.IsType<CompletedServiceTaskResult>(sendResult);
         FiksIOMessageRequest sent = Assert.Single(sentRequests);
         Assert.Equal(_workflowStepId, sent.SendersReference);
-        Assert.Equal(_mailboxId.ToString(), sent.CorrelationId);
+        Assert.Equal(_replyAddressId.ToString(), sent.CorrelationId);
 
         // 2. Take the wire value the Fiks IO client would actually transmit, and echo exactly that back.
         MeldingRequest wire = sent.ToMeldingRequest(_senderAccount);
@@ -125,9 +131,9 @@ public class FiksArkivReplyAddressRoundTripTest
         );
 
         var delivery = Assert.Single(forwarded);
-        Assert.Equal(_mailboxId, delivery.MailboxId);
-        Assert.NotEqual(_workflowStepId, delivery.MailboxId);
-        Assert.NotEqual(_archivesOwnReference, delivery.MailboxId);
+        Assert.Equal(_replyAddressId, delivery.ReplyAddressId);
+        Assert.NotEqual(_workflowStepId, delivery.ReplyAddressId);
+        Assert.NotEqual(_archivesOwnReference, delivery.ReplyAddressId);
         // Compared against the task's own Type: the envelope binds this value, so a subscriber naming another
         // handler produces a message the waiting task refuses to open.
         Assert.Equal(fixture.FiksArkivServiceTask.Type, delivery.ServiceTaskType);
@@ -139,7 +145,7 @@ public class FiksArkivReplyAddressRoundTripTest
         Assert.Equal(_incomingMessageId, stored.MessageId);
         Assert.Equal(FiksArkivMeldingtype.ArkivmeldingOpprettKvittering, stored.MessageType);
         Assert.Equal(_archivesOwnReference, stored.SendersReference);
-        Assert.Equal(_mailboxId.ToString(), stored.CorrelationId);
+        Assert.Equal(_replyAddressId.ToString(), stored.CorrelationId);
 
         svarSender.Verify(x => x.AckAsync(), Times.Once);
         svarSender.Verify(x => x.NackWithRequeueAsync(), Times.Never);

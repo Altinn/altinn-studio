@@ -26,8 +26,8 @@ internal struct WorkflowEngineCommandContext
     public required AppCallbackPayload Payload { get; init; }
 
     /// <summary>
-    /// The non-data bookkeeping this callback's state blob is carrying (today: the mailbox the task's declaring
-    /// stage opened). Restored from the incoming blob before the command runs and written back into the outgoing one
+    /// The non-data bookkeeping this callback's state blob is carrying (today: the mailbox an external stage
+    /// opened). Restored from the incoming blob before the command runs and written back into the outgoing one
     /// after it succeeds, so a command that ignores it forwards it intact. <c>required</c> for the reason given on
     /// <see cref="InstanceDataMutator"/>.
     /// </summary>

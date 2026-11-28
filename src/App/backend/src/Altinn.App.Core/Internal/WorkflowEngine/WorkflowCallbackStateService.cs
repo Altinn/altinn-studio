@@ -72,8 +72,8 @@ internal sealed class WorkflowCallbackStateService
             InstanceVersion = instanceVersion,
             ProcessStateVersion = processStateVersion,
             FormData = formData,
-            // A concluded exchange stops traveling: the workflow this blob starts may itself open a mailbox, and a
-            // blob still naming the finished one would make that mint refuse. The carry has already dropped it.
+            // A closed mailbox stops traveling: the workflow this blob starts may itself open a mailbox, and a blob
+            // still naming the closed one would make that mint refuse. The carry has already dropped it.
             Mailboxes = carry?.Mailboxes,
         };
 

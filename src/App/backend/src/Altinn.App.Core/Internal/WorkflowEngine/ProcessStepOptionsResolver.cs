@@ -31,8 +31,8 @@ internal sealed class ProcessStepOptionsResolver
     /// <param name="commandKey">The step's command key, used to select the tier-2 default.</param>
     /// <param name="declaredOptions">
     /// The options the planner put on the step, which are tier 3: those its pipeline item declared — a lifecycle
-    /// stage, or a service task stage, reply handler or conclusion — or those of the hook handler it runs. Null on
-    /// every other step, including the mailbox mint, which must not inherit the declaring stage's options.
+    /// stage, or a service task stage or external stage — or those of the hook handler it runs. Null on every other
+    /// step, including the mailbox mint, which must not inherit the external stage's options.
     /// </param>
     public ProcessStepOptions? Resolve(string commandKey, ProcessStepOptions? declaredOptions = null)
     {

@@ -23,7 +23,7 @@ internal sealed class ServiceTaskReplyForwarder(
 {
     /// <inheritdoc />
     public async Task ForwardReply(
-        Guid mailboxId,
+        Guid replyAddressId,
         string serviceTaskType,
         string payload,
         string idempotencyKey,
@@ -35,6 +35,8 @@ internal sealed class ServiceTaskReplyForwarder(
         ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
 
         string ns = $"{appIdentifier.Org}/{appIdentifier.App}";
+        // The engine's name for a reply address.
+        Guid mailboxId = replyAddressId;
 
         MailboxDeliveryResult result;
         try
@@ -110,7 +112,7 @@ internal sealed class ServiceTaskReplyForwarder(
             // Always too late, never too early: an early message is accepted and waits.
             HttpStatusCode.Conflict => ServiceTaskReplyForwardOutcome.Late,
             HttpStatusCode.RequestEntityTooLarge => ServiceTaskReplyForwardOutcome.PayloadTooLarge,
-            HttpStatusCode.TooManyRequests => ServiceTaskReplyForwardOutcome.MailboxFull,
+            HttpStatusCode.TooManyRequests => ServiceTaskReplyForwardOutcome.TooManyReplies,
             // The undocumented 4xx family that resolves on its own (expired token, gateway mid-incident, timeout in
             // front of the engine). Permanent classification would dead-letter real business messages.
             HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden or HttpStatusCode.RequestTimeout =>
@@ -126,10 +128,10 @@ internal sealed class ServiceTaskReplyForwarder(
         {
             HttpStatusCode.NotFound =>
                 "no mailbox of this app has that address (it was never opened here, or it has been purged since "
-                    + "its exchange ended)",
+                    + "it closed)",
             HttpStatusCode.Conflict =>
-                "the mailbox is closed — the exchange concluded, an operator ended it, or its deadline passed — "
-                    + "never that the message came too early, which is accepted",
+                "the mailbox is closed — its service task was done with the replies, an operator closed it, or its "
+                    + "deadline passed — never that the message came too early, which is accepted",
             HttpStatusCode.RequestEntityTooLarge => "the payload exceeds the workflow engine's message size limit",
             HttpStatusCode.TooManyRequests =>
                 "the mailbox has already taken as many messages as the workflow engine allows, and that count "

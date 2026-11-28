@@ -1,133 +1,138 @@
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
-/// Base type for the result of executing a service task: how the task concludes. A subtype of
-/// <see cref="ServiceTaskExchangeResult"/>, so every one of these answers is also a valid answer from a reply
-/// handler — the reverse does not hold.
+/// What a service task's stage, an external stage's send and its <c>onTimeout</c> return. A subtype of
+/// <see cref="ServiceTaskReplyResult"/>, so every one of these is also a valid answer from a reply handler.
 /// </summary>
-public abstract record ServiceTaskResult : ServiceTaskExchangeResult
+public abstract record ServiceTaskResult : ServiceTaskReplyResult
 {
     /// <summary>
-    /// Declares no constructor an app can call, for the reason given on
-    /// <see cref="ServiceTaskExchangeResult"/> — read that constructor's remarks before changing this one's
-    /// accessibility.
+    /// Declares no constructor an app can call, for the reason given on <see cref="ServiceTaskReplyResult"/> —
+    /// read that constructor's remarks before changing this one's accessibility.
     /// </summary>
     private protected ServiceTaskResult() { }
 
     /// <summary>
-    /// Creates a successful result that completes the service task and advances the process.
+    /// This step is done: the next item runs, or, after the last item, the task ends with the default flow. From
+    /// a send, the message is sent and the stage waits for replies. Data changes are saved.
+    /// </summary>
+    public static new ServiceTaskResult Completed() => CompletedServiceTaskResult.Instance;
+
+    /// <summary>
+    /// Ends the task now: later items never run, an open reply address closes, and the process moves on.
     /// </summary>
     /// <param name="action">
-    /// Optional process action used to select the next transition (e.g. "reject").
-    /// When null, the default BPMN transition is used.
+    /// Optional process action that picks the next flow (e.g. "reject"). When null, the default flow is used.
     /// </param>
-    /// <remarks>
-    /// From a reply handler this also <strong>ends the exchange</strong>: the mailbox closes before anything
-    /// downstream starts.
-    /// </remarks>
-    public static SuccessfulServiceTaskResult Success(string? action = null) => new() { Action = action };
+    public static new ServiceTaskResult EndTask(string? action = null) => new EndedServiceTaskResult(action);
 
     /// <summary>
-    /// Creates a retryable failure. The workflow engine will retry the step with backoff.
-    /// Use this for transient errors (external service down, timeout, rate limit, etc.).
-    /// </summary>
-    /// <param name="errorMessage">Human-readable error message describing the failure.</param>
-    /// <remarks>
-    /// A failed attempt saves nothing. From a reply handler it retries <em>this message</em>, leaving the
-    /// exchange open.
-    /// </remarks>
-    public static FailedServiceTaskResult FailedRetryable(string errorMessage)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
-        return new FailedServiceTaskResult { ErrorMessage = errorMessage, Kind = FailureKind.Retryable };
-    }
-
-    /// <summary>
-    /// Creates a permanent (non-retryable) failure. The workflow engine will stop retrying
-    /// and mark the step as failed immediately.
-    /// Use this for errors that won't resolve by retrying (validation failure, missing config, bad data, etc.).
-    /// </summary>
-    /// <param name="errorMessage">Human-readable error message describing the failure.</param>
-    /// <remarks>
-    /// A failed attempt saves nothing. From a reply handler this <strong>ends the exchange as failed</strong>:
-    /// the mailbox is closed first, and whatever waited is not started.
-    /// </remarks>
-    public static FailedServiceTaskResult FailedPermanent(string errorMessage)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
-        return new FailedServiceTaskResult { ErrorMessage = errorMessage, Kind = FailureKind.Permanent };
-    }
-
-    /// <summary>
-    /// Creates a deferral: the task ran without error, but the outcome it awaits has not arrived yet.
-    /// The engine parks the process on this task — releasing its worker, holding no lease — and runs the
-    /// task again after <paramref name="delay"/>. Use it for "start now, confirm later" work: a
-    /// dispatched shipment, a payment capture, a signing order.
+    /// The step ran without error, but the outcome it awaits has not arrived yet: run it again after
+    /// <paramref name="delay"/>. A deferral is stateless: a deferring attempt must not change instance data.
     /// </summary>
     /// <param name="delay">
-    /// How long to wait before this task runs again — this re-check only;
-    /// <see cref="ProcessStepOptions.WaitBudget"/> caps the total.
+    /// How long to wait before this step runs again. <see cref="ProcessStepOptions.WaitBudget"/> caps the total.
     /// </param>
     /// <param name="reason">
-    /// Optional description of what is being waited for, persisted on the step and surfaced on status reads —
-    /// phrase it for a reader, not a log parser.
+    /// Optional description of what is being waited for, surfaced on status reads. Phrase it for a reader.
     /// </param>
-    /// <remarks>
-    /// A deferral is not a failure and is <strong>stateless</strong>: nothing is saved, and instance data
-    /// changes made by a deferring attempt are rejected as a contract violation. See
-    /// <c>docs/service-task-pipelines.md</c> in the app-lib repository for the waiting contract.
-    /// </remarks>
-    public static DeferredServiceTaskResult Defer(TimeSpan delay, string? reason = null)
+    public static new ServiceTaskResult Defer(TimeSpan delay, string? reason = null)
     {
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(delay, TimeSpan.Zero);
-        return new DeferredServiceTaskResult { Delay = delay, Reason = reason };
+        return new DeferredServiceTaskResult(delay, reason);
+    }
+
+    /// <summary>
+    /// A transient failure, such as an external service being down: the workflow engine runs the step again,
+    /// with backoff. A failed attempt saves nothing.
+    /// </summary>
+    /// <param name="errorMessage">Human-readable error message describing the failure.</param>
+    public static new ServiceTaskResult FailedRetryable(string errorMessage)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
+        return new FailedServiceTaskResult(errorMessage, FailureKind.Retryable);
+    }
+
+    /// <summary>
+    /// A failure no retry fixes, such as bad data or missing configuration: the step fails at once. A failed
+    /// attempt saves nothing, and an open reply address stays open, so a resume runs the step again.
+    /// </summary>
+    /// <param name="errorMessage">Human-readable error message describing the failure.</param>
+    public static new ServiceTaskResult FailedPermanent(string errorMessage)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
+        return new FailedServiceTaskResult(errorMessage, FailureKind.Permanent);
     }
 }
 
 /// <summary>
-/// Represents a service task that ran without error but is still waiting for an external outcome.
+/// A service task step that is done. Created via <see cref="ServiceTaskResult.Completed"/>.
+/// </summary>
+public sealed record CompletedServiceTaskResult : ServiceTaskResult
+{
+    internal static readonly CompletedServiceTaskResult Instance = new();
+
+    private CompletedServiceTaskResult() { }
+}
+
+/// <summary>
+/// A service task step that ends the task. Created via <see cref="ServiceTaskResult.EndTask"/>.
+/// </summary>
+public sealed record EndedServiceTaskResult : ServiceTaskResult
+{
+    internal EndedServiceTaskResult(string? action)
+    {
+        Action = action;
+    }
+
+    /// <summary>
+    /// Optional process action that picks the next flow (e.g. "reject"). When null, the default flow is used.
+    /// </summary>
+    public string? Action { get; }
+}
+
+/// <summary>
+/// A service task step that ran without error but is still waiting for an external outcome.
 /// Created via <see cref="ServiceTaskResult.Defer"/>.
 /// </summary>
 public sealed record DeferredServiceTaskResult : ServiceTaskResult
 {
+    internal DeferredServiceTaskResult(TimeSpan delay, string? reason)
+    {
+        Delay = delay;
+        Reason = reason;
+    }
+
     /// <summary>
-    /// How long to wait before running the task again.
+    /// How long to wait before running the step again.
     /// </summary>
-    public required TimeSpan Delay { get; init; }
+    public TimeSpan Delay { get; }
 
     /// <summary>
     /// Optional description of what is being waited for.
     /// </summary>
-    public string? Reason { get; init; }
+    public string? Reason { get; }
 }
 
 /// <summary>
-/// Represents a successful result of executing a service task.
-/// </summary>
-public sealed record SuccessfulServiceTaskResult : ServiceTaskResult
-{
-    /// <summary>
-    /// Optional process action used to select the next transition (e.g. "reject").
-    /// When null, the default BPMN transition is used.
-    /// </summary>
-    public string? Action { get; init; }
-}
-
-/// <summary>
-/// Represents a failed result of executing a service task. Construct via
-/// <see cref="ServiceTaskResult.FailedRetryable"/> or <see cref="ServiceTaskResult.FailedPermanent"/>.
+/// A failed service task step. Created via <see cref="ServiceTaskResult.FailedRetryable"/> or
+/// <see cref="ServiceTaskResult.FailedPermanent"/>.
 /// </summary>
 public sealed record FailedServiceTaskResult : ServiceTaskResult
 {
-    internal FailedServiceTaskResult() { }
+    internal FailedServiceTaskResult(string errorMessage, FailureKind kind)
+    {
+        ErrorMessage = errorMessage;
+        Kind = kind;
+    }
 
     /// <summary>
     /// Human-readable error message describing the failure.
     /// </summary>
-    public required string ErrorMessage { get; init; }
+    public string ErrorMessage { get; }
 
     /// <summary>
-    /// Whether the failure is retryable or permanent.
+    /// Whether the step runs again.
     /// </summary>
-    internal FailureKind Kind { get; init; }
+    public FailureKind Kind { get; }
 }

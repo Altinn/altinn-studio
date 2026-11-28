@@ -106,7 +106,7 @@ public sealed record AppCallbackPayload
 /// <summary>
 /// The mailbox rendezvous, as a receive workflow's first step is told about it. Exactly one of
 /// <see cref="Delivery"/> and <see cref="DisposedReason"/> is present, so an absent delivery is a statement
-/// rather than a gap: the exchange is over and this handler must conclude it.
+/// rather than a gap: the mailbox has closed, so the external stage's <c>onTimeout</c> runs, or the task fails.
 /// </summary>
 public sealed record AppCallbackMailbox
 {

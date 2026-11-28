@@ -53,7 +53,7 @@ internal interface IWorkflowEngineService
 
     /// <summary>
     /// Enqueues a dependent transition, keyed by its parent workflow unless <paramref name="idempotencyKey"/>
-    /// is supplied. Mailbox continuations use the concluding step's key.
+    /// is supplied. Mailbox continuations use the key of the step that ends the task.
     /// </summary>
     Task<Guid> EnqueueDependentProcessNext(
         Instance instance,

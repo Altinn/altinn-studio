@@ -10,9 +10,19 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- Build check `ALTINNAPP0704` reports a process task method named after an `IProcessTask` member that it does not implement, such as `DefineStart(PipelineBuilder.ServiceTask pipeline)`, which would never run. ([#22104](https://github.com/Altinn/altinn-studio/pull/22104))
+
 ### Changed
 
+- Breaking: A service task composes `Stage` and `ExternalStage` calls on `PipelineBuilder.ServiceTask` in `DefineExecute`, which returns `void`. Any step can end the task with `ServiceTaskResult.EndTask(action)`, and otherwise the task ends after its last stage. `Finally`, `HandleReplies`, `ConcludeOnReplies` and `ServiceTaskResult.Success` are removed. Rerun `studioctl app upgrade v9` to rewrite preview code. ([#22104](https://github.com/Altinn/altinn-studio/pull/22104))
+- Breaking: Only the factories create results, and they return `ServiceTaskResult`, `ServiceTaskReplyResult` or `StageResult`. The result types behind them are read-only, a failure has a public `Kind`, and `CompletedServiceTaskResult` and `EndedServiceTaskResult` replace `SuccessfulServiceTaskResult`. ([#22104](https://github.com/Altinn/altinn-studio/pull/22104))
+- Breaking: `ExternalStage(send, onReply, timeout, onTimeout)` replaces mailbox stages and handles. The send gets a `ReplyAddress`, reply handlers return `ServiceTaskReplyResult`, and the timeout defaults to 7 days. Without `onTimeout`, the task fails when the replies stop coming. A failed step no longer closes the reply address. ([#22104](https://github.com/Altinn/altinn-studio/pull/22104))
+- Breaking: `DefineStart`, `DefineEnd` and `DefineAbandon` take a `PipelineBuilder.Lifecycle` and return `void`, and `Build()` is removed. ([#22104](https://github.com/Altinn/altinn-studio/pull/22104))
+- Breaking: `IServiceTaskReplyForwarder.ForwardReply` takes `replyAddressId`, `ServiceTaskReplyForwardException.MailboxId` is renamed `ReplyAddressId`, and `ServiceTaskReplyForwardOutcome.MailboxFull` is renamed `TooManyReplies`. ([#22104](https://github.com/Altinn/altinn-studio/pull/22104))
 - Each stage of a service task runs in a workflow of its own, listed as `Service task stage` after the first in the workflow engine and Studio's admin panel. A task no longer stalls when a redeploy adds a stage while it runs. ([#22101](https://github.com/Altinn/altinn-studio/pull/22101))
+- A Fiks Arkiv task fails after one day without a receipt from the archive, where it waited seven, and Fiks IO keeps its message for the archive one day, where it kept it two. ([#22104](https://github.com/Altinn/altinn-studio/pull/22104))
 
 ### Fixed
 
@@ -22,6 +32,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - PDFs of forms with large repeating groups are generated faster. A form with 936 rows of radio buttons and date pickers took 11 seconds to become a PDF, and now takes 5. ([#22148](https://github.com/Altinn/altinn-studio/pull/22148))
 - A process transition no longer stays in `processing` when the workflow engine runs a step again after that step deleted or replaced a file, as the payment task does with an unfinished payment. The retry reads the file as it was and completes. This also covers process hooks and service tasks. ([#21909](https://github.com/Altinn/altinn-studio/issues/21909))
 - A retried eFormidling shipment is no longer sent without an attachment that failed to upload. When the app resumes a message that an earlier attempt created, it passes over only the files that attempt uploaded. Any other upload error fails the task, and the workflow engine tries again unless the integrasjonspunkt rejected the upload. ([#21909](https://github.com/Altinn/altinn-studio/issues/21909))
+
+### Removed
+
+- Build checks `ALTINNAPP0702` and `ALTINNAPP0703`, since there are no mailbox handles left to check. ([#22104](https://github.com/Altinn/altinn-studio/pull/22104))
 
 ## [9.0.0-preview.15] - 2026-11-25
 

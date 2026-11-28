@@ -14,14 +14,15 @@ using Xunit;
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands;
 
 /// <summary>
-/// The step that opens the mailbox: what keys the mint, what the carry ends up holding, and what each
-/// refusal — the engine's and the plain index-not-found guard — does to the step.
+/// The step that opens an external stage's mailbox before its send: what keys the mint, which timeout it asks for,
+/// what the carry ends up holding, and what each refusal — the engine's and the plain index-not-found guard — does
+/// to the step.
 /// </summary>
 public class MintMailboxTests
 {
     private static readonly Guid _instanceGuid = new("2b3e9260-24d9-4c0a-8b93-ef2c9c7dcbde");
 
-    /// <summary>The item index of the stage whose mailbox the mint step opens.</summary>
+    /// <summary>The item index of the external stage whose mailbox the mint step opens.</summary>
     private const int SendStageIndex = 0;
 
     /// <summary>Answers mints idempotently on the key, so a test can tell "minted twice" from "replayed".</summary>
@@ -130,40 +131,52 @@ public class MintMailboxTests
         ) => throw new NotSupportedException();
     }
 
-    private static readonly MailboxOptions _threeDays = new() { Timeout = TimeSpan.FromDays(3) };
+    private static Task<ServiceTaskResult> SendToArchive(StageContext context, ReplyAddress address) =>
+        Task.FromResult(ServiceTaskResult.Completed());
 
-    private static Task<StageResult> Plain(StageContext context) => Task.FromResult(StageResult.Completed());
+    private static Task<ServiceTaskReplyResult> HandleArchiveReply(StageContext context, ServiceTaskReply reply) =>
+        Task.FromResult(ServiceTaskReplyResult.Completed());
 
-    private static Task<ServiceTaskOpeningStageResult> Send(StageContext context, ServiceTaskMailbox mailbox) =>
-        Task.FromResult(ServiceTaskOpeningStageResult.Completed());
+    private static Task<ServiceTaskResult> RecordArchived(StageContext context) =>
+        Task.FromResult(ServiceTaskResult.Completed());
 
-    private static Task<ServiceTaskExchangeResult> OnMessage(StageContext context, ServiceTaskReply reply) =>
-        Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success());
-
-    private static Task<ServiceTaskResult> OnClosed(StageContext context, MailboxClosedReason reason) =>
-        Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
-
-    private static Task<ServiceTaskResult> Conclude(StageContext context) =>
-        Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
-
-    /// <summary>The shape the mint step is emitted for: a stage that sends, answered by messages.</summary>
+    /// <summary>The shape the mint step is planned for: an external stage, here with a stage after it.</summary>
     private sealed class ArchivingTask : IServiceTask
     {
         public string Type => "archiving";
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+        public void DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
             pipeline
-                .Stage(Send, _threeDays, out MailboxHandle archive)
-                .Stage(Plain)
-                .ConcludeOnReplies(archive, OnMessage, OnClosed);
+                .ExternalStage(SendToArchive, HandleArchiveReply, timeout: TimeSpan.FromDays(3))
+                .Stage(RecordArchived);
     }
 
-    /// <summary>Drift: the pipeline composes a plain stage where this workflow expects a declaring one.</summary>
-    private sealed class NoLongerDeclaringTask : IServiceTask
+    /// <summary>An external stage that gives no timeout of its own.</summary>
+    private sealed class DefaultTimeoutTask : IServiceTask
     {
         public string Type => "archiving";
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Stage(Plain).Finally(Conclude);
+        public void DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
+            pipeline.ExternalStage(SendToArchive, HandleArchiveReply);
+    }
+
+    /// <summary>Two external stages with different timeouts: the mint reads the one at its own index.</summary>
+    private sealed class ArchiveThenJournalTask : IServiceTask
+    {
+        public string Type => "archiving";
+
+        public void DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
+            pipeline
+                .ExternalStage(SendToArchive, HandleArchiveReply, timeout: TimeSpan.FromDays(3))
+                .ExternalStage(SendToArchive, HandleArchiveReply, timeout: TimeSpan.FromDays(5));
+    }
+
+    /// <summary>Drift: the pipeline composes a stage where this workflow expects an external one.</summary>
+    private sealed class NoLongerExternalTask : IServiceTask
+    {
+        public string Type => "archiving";
+
+        public void DefineExecute(PipelineBuilder.ServiceTask pipeline) => pipeline.Stage(RecordArchived);
     }
 
     /// <summary>Drift: nothing composes at this index at all.</summary>
@@ -171,8 +184,8 @@ public class MintMailboxTests
     {
         public string Type => "archiving";
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
-            pipeline.Stage(Send, _threeDays, out MailboxHandle archive).ConcludeOnReplies(archive, OnMessage, OnClosed);
+        public void DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
+            pipeline.ExternalStage(SendToArchive, HandleArchiveReply, timeout: TimeSpan.FromDays(3));
     }
 
     private static MintMailbox CreateCommand(IServiceTask serviceTask, IWorkflowEngineClient client)
@@ -223,7 +236,7 @@ public class MintMailboxTests
     private static MintMailboxPayload Payload(int stageIndex = SendStageIndex) => new("archiving", stageIndex);
 
     [Fact]
-    public async Task Execute_MintsKeyedOnTheStepIdWithTheDeclaredTimeout()
+    public async Task Execute_MintsKeyedOnTheStepIdWithTheStagesTimeout()
     {
         var minter = new RecordingMailboxMinter();
         Guid stepId = Guid.NewGuid();
@@ -240,8 +253,28 @@ public class MintMailboxTests
         Assert.Equal(_instanceGuid.ToString(), request.CollectionKey);
     }
 
+    /// <summary>
+    /// A stage that gives no timeout still opens an address with one, the default, counted from the step's reference
+    /// time.
+    /// </summary>
     [Fact]
-    public async Task Execute_RecordsTheMintedMailboxOnTheCarryUnderTheOpeningIndex()
+    public async Task Execute_ForAStageThatGivesNoTimeout_MintsWithTheDefaultTimeout()
+    {
+        var minter = new RecordingMailboxMinter();
+        var carry = new WorkflowCallbackStateCarry();
+        WorkflowEngineCommandContext context = CreateContext(carry: carry);
+
+        await CreateCommand(new DefaultTimeoutTask(), minter).Execute(context, Payload());
+
+        Assert.Equal(PipelineBuilder.ServiceTask.DefaultReplyTimeout, Assert.Single(minter.Mints).Request.Timeout);
+        Assert.Equal(
+            context.Payload.ExecutionReferenceTime + PipelineBuilder.ServiceTask.DefaultReplyTimeout,
+            carry.FindMailbox(SendStageIndex)?.Deadline
+        );
+    }
+
+    [Fact]
+    public async Task Execute_RecordsTheMintedMailboxOnTheCarryUnderTheStageIndex()
     {
         var minter = new RecordingMailboxMinter();
         var carry = new WorkflowCallbackStateCarry();
@@ -257,8 +290,29 @@ public class MintMailboxTests
     }
 
     /// <summary>
+    /// The mint reads the external stage at its own index: the second of two takes the second's timeout and is
+    /// carried under that index, never the first's.
+    /// </summary>
+    [Fact]
+    public async Task Execute_ForALaterExternalStage_MintsWithItsTimeoutAndCarriesItUnderItsIndex()
+    {
+        var minter = new RecordingMailboxMinter();
+        var carry = new WorkflowCallbackStateCarry();
+
+        WorkflowEngineCommandResult result = await CreateCommand(new ArchiveThenJournalTask(), minter)
+            .Execute(CreateContext(carry: carry), Payload(stageIndex: 1));
+
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
+        Assert.Equal(TimeSpan.FromDays(5), Assert.Single(minter.Mints).Request.Timeout);
+        Assert.Null(carry.FindMailbox(SendStageIndex));
+        Assert.NotNull(carry.FindMailbox(1));
+        Assert.NotNull(carry.Mailboxes);
+        Assert.Equal("1", Assert.Single(carry.Mailboxes).Key);
+    }
+
+    /// <summary>
     /// The property the whole step exists for: a replayed attempt lands on the mailbox the first one
-    /// published, so the stage after it can never publish a second address.
+    /// published, so the send after it can never publish a second address.
     /// </summary>
     [Fact]
     public async Task Execute_RetriedOnTheSameStep_ReplaysOntoTheSameMailbox()
@@ -352,20 +406,21 @@ public class MintMailboxTests
     }
 
     [Fact]
-    public async Task Execute_WhenNoDeclaringStageComposesAtIndex_FailsPermanentlyWithThePlainVerdict()
+    public async Task Execute_WhenAStageComposesAtIndex_FailsPermanentlyWithoutMinting()
     {
         var minter = new RecordingMailboxMinter();
+        var carry = new WorkflowCallbackStateCarry();
 
-        WorkflowEngineCommandResult result = await CreateCommand(new NoLongerDeclaringTask(), minter)
-            .Execute(CreateContext(), Payload());
+        WorkflowEngineCommandResult result = await CreateCommand(new NoLongerExternalTask(), minter)
+            .Execute(CreateContext(carry: carry), Payload());
 
         FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxDeclarationNotFound", failed.ExceptionType);
-        Assert.Contains($"from the stage at index {SendStageIndex}", failed.ErrorMessage, StringComparison.Ordinal);
-        Assert.Contains("no mailbox-opening stage at that index", failed.ErrorMessage, StringComparison.Ordinal);
-        Assert.DoesNotContain("now opened by stage", failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.Contains($"an external stage at index {SendStageIndex}", failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.Contains("now composes none at that index", failed.ErrorMessage, StringComparison.Ordinal);
         Assert.Empty(minter.Mints);
+        Assert.Null(carry.Mailboxes);
     }
 
     /// <summary>The same miss with nothing at the index at all.</summary>
@@ -380,7 +435,7 @@ public class MintMailboxTests
         FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxDeclarationNotFound", failed.ExceptionType);
-        Assert.Contains("from the stage at index 1", failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.Contains("an external stage at index 1", failed.ErrorMessage, StringComparison.Ordinal);
         Assert.Empty(minter.Mints);
     }
 

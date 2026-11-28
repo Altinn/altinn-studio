@@ -32,8 +32,6 @@ public sealed partial class AltinnTestAppFixture : BaseFixture
 
     public IDisposable WithDiscardedEFormidlingBuilder() => WithAddedDocument(Content.DiscardedEFormidlingBuilder);
 
-    public IDisposable WithMailboxHandleConsumption() => WithAddedDocument(Content.MailboxHandleConsumption);
-
     /// <summary>
     /// Adds a source file to the project for the duration of the modification. Restoring the
     /// fixture's captured snapshots alone is not enough on dispose: the workspace's *current*

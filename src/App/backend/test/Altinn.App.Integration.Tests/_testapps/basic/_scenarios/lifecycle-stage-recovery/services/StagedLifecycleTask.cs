@@ -24,8 +24,7 @@ public sealed class StagedLifecycleTask : IProcessTask
 
     public string Type => "staged-lifecycle";
 
-    public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) =>
-        pipeline.Stage(RecordStageA).Stage(GateStageB).Build();
+    public void DefineStart(PipelineBuilder.Lifecycle pipeline) => pipeline.Stage(RecordStageA).Stage(GateStageB);
 
     private static Task<StageResult> RecordStageA(StageContext context)
     {

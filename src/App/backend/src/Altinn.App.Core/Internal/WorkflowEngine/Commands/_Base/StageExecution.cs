@@ -53,7 +53,7 @@ internal static class StageExecution
         string? altinnTaskType
     )
     {
-        IReadOnlyList<PipelineStage.Plain> stages = pipeline.Stages;
+        IReadOnlyList<LifecycleStage> stages = pipeline.Stages;
         StageContext stageContext = CreateContext(context);
 
         if (payload.StageIndex is not { } stageIndex)
@@ -98,7 +98,7 @@ internal static class StageExecution
         }
         return await RunStage(stage, stageIndex, stageContext);
 
-        async Task<WorkflowEngineCommandResult> RunStage(PipelineStage.Plain stage, int index, StageContext context) =>
+        async Task<WorkflowEngineCommandResult> RunStage(LifecycleStage stage, int index, StageContext context) =>
             MapResult(
                 await stage.Work(context),
                 message => $"Task type '{altinnTaskType}' {phase.Name()} stage {index} failed: {message}",

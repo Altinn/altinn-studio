@@ -54,7 +54,7 @@ internal interface IProcessEngine
     /// </summary>
     /// <remarks>
     /// <c>idempotencyKey</c> defaults to one derived from <c>dependsOnWorkflowId</c>; the mailbox
-    /// relay passes its own, derived from the step that concluded the exchange, so every call it
+    /// relay passes its own, derived from the step that ended the task, so every call it
     /// makes from inside one callback keys off the same executing step.
     /// The callback's <c>executionReferenceTime</c> supplies event and process timestamps so retries
     /// reconstruct the same logical transition.

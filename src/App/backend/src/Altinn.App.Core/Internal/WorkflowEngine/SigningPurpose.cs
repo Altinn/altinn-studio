@@ -56,9 +56,9 @@ internal readonly record struct SigningDomain
     public static SigningDomain CallbackState => new(SigningPurpose.CallbackState, binding: null);
 
     /// <summary>
-    /// Bound to the reply address (no replay into another exchange), the handler's service task (no other task
-    /// of the same app can read and conclude this exchange), and the source's message id (authenticated, and no
-    /// re-delivery under a fresh key).
+    /// Bound to the reply address (no replay to another one), the handler's service task (no other task of the same
+    /// app can read the message and act on it), and the source's message id (authenticated, and no re-delivery under
+    /// a fresh key).
     /// </summary>
     public static SigningDomain MailboxDelivery(Guid mailboxId, string serviceTaskType, string idempotencyKey) =>
         new(SigningPurpose.MailboxDeliveryV1, new DeliveryBinding(mailboxId, serviceTaskType, idempotencyKey));
