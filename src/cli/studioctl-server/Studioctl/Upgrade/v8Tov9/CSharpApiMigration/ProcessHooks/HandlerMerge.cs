@@ -26,8 +26,8 @@ internal sealed record MergeGroup(HookFamily Family, IReadOnlyList<Handler> Memb
 
 /// <summary>What the merge decided for one hook family.</summary>
 /// <param name="Held">
-/// Classes the port could move but leaves as they are, because a class that runs at the same task calls Storage or is
-/// blocked: moved alone, the two would be two handlers for one task.
+/// Classes the port could move but leaves as they are, because a class that runs at the same task is blocked: moved
+/// alone, the two would be two handlers for one task.
 /// </param>
 /// <param name="Duplicates">Registrations of a class that is registered already, which v9 would count twice.</param>
 internal sealed record MergePlan(
@@ -565,17 +565,14 @@ internal static class HandlerMerge
         ProcessHookPortContext context
     )
     {
-        // The assembly version says nothing about the package's (Dibk.Ftpb.Common.AltinnApps 1.7.0 is assembly 0.0.1),
-        // so the version is the app's reference to the package named as the assembly; a transitive one has none.
-        var name = package.Type.ContainingAssembly.Name;
-        var packageName = context.PackageVersions.TryGetValue(name, out var version) ? $"{name} {version}" : name;
         return PortReport.Anchored(
             package.File,
             package.Anchor,
             UpgradeMessageStatus.Todo,
             $"{context.AppId}: {group.Count} handlers run {Where(family, group, context)} "
                 + $"({string.Join(", ", group.Select(static handler => handler.Type.Name))}); v9 starts only with one "
-                + $"{(family.FiltersTasks ? "per task" : "registered")}. {packageName} "
+                + $"{(family.FiltersTasks ? "per task" : "registered")}. "
+                + $"{context.PackageName(package.Type.ContainingAssembly.Name)} "
                 + $"registers {package.Type.Name}; a v9 version of the package is needed, then combine its check with "
                 + $"{Join(apps.Select(static app => app.Type.Name))}."
         );

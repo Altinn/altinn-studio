@@ -120,16 +120,13 @@ public sealed class ProcessHookPortMigrationTests : IDisposable
         WriteProject();
         _app.Write(HookPath, _hook);
         _app.Write(
-            "logic/Storage.cs",
+            "logic/Blocked.cs",
             InApp(
                 """
-                public class Storage(Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient) : IProcessTaskEnd
+                public partial class Blocked : IProcessTaskStart
                 {
-                    public async Task End(string taskId, Instance instance)
-                    {
-                        if (taskId != "Task_2") return;
-                        await instanceClient.UpdateDataValues(instance, new() { ["Fagsystem"] = "hego" });
-                    }
+                    public Task Start(string taskId, Instance instance, Dictionary<string, string> prefill) =>
+                        Task.CompletedTask;
                 }
                 """
             )
@@ -138,7 +135,7 @@ public sealed class ProcessHookPortMigrationTests : IDisposable
             "Program.cs",
             Program(
                 "services.AddTransient<IProcessTaskEnd, Hook>();",
-                "services.AddTransient<IProcessTaskEnd, Storage>();"
+                "services.AddTransient<IProcessTaskStart, Blocked>();"
             )
         );
         var output = new StringWriter();
@@ -150,8 +147,8 @@ public sealed class ProcessHookPortMigrationTests : IDisposable
 
         // The removed-API check prints the scanner's paths, which have the OS's separator.
         var text = output.ToString().Replace('\\', '/');
-        Assert.Contains("logic/Storage.cs:11: Storage : IProcessTaskEnd", text);
-        Assert.Contains("Program.cs:12: IProcessTaskEnd", text);
+        Assert.Contains("logic/Blocked.cs:11: Blocked : IProcessTaskStart", text);
+        Assert.Contains("Program.cs:12: IProcessTaskStart", text);
         Assert.DoesNotContain("Hook : IProcessTaskEnd", text);
         Assert.DoesNotContain("Program.cs:11: IProcessTaskEnd", text);
     }
