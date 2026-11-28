@@ -107,6 +107,13 @@ internal sealed class ProcessNextRequestFactory
     /// </summary>
     internal const string MailboxContinueOperationIdPrefix = "Mailbox continue:";
 
+    /// <summary>
+    /// How long the engine retries one step of the workflow that creates an instance. The request that creates the
+    /// instance waits <see cref="WorkflowEngineService.WorkflowPollingTimeoutMs"/> for that workflow, so a step that
+    /// keeps failing gives up well inside the wait and the request answers with the failure.
+    /// </summary>
+    internal static readonly TimeSpan InstantiationRetryBudget = TimeSpan.FromSeconds(60);
+
     private readonly AppImplementationFactory _appImplementationFactory;
     private readonly IAuthenticationContext _authenticationContext;
     private readonly AppIdentifier _appIdentifier;
@@ -316,7 +323,8 @@ internal sealed class ProcessNextRequestFactory
                     })
                     .ToList(),
             };
-            auxiliary.Add(CreateEnqueueAuxiliaryWorkflowsStep(auxiliaryEnqueueRequest));
+            StepRequest enqueueAuxiliary = CreateEnqueueAuxiliaryWorkflowsStep(auxiliaryEnqueueRequest);
+            auxiliary.Add(isInstantiation ? WithInstantiationRetryBudget(enqueueAuxiliary) : enqueueAuxiliary);
         }
 
         // Auxiliary workflows announce a transition once it is complete. A task transition is complete
@@ -492,9 +500,19 @@ internal sealed class ProcessNextRequestFactory
 
         // The last step releases the instance, unless a service task follows: its continuation workflow
         // carries on the transition and releases when it finishes.
-        if (!serviceTaskFollowsCommit)
+        StepRequest? release = serviceTaskFollowsCommit ? null : CreateStep(ReleaseProcessingStatus.Key);
+
+        // A service task's steps keep their own retries: the instance exists once its first task has started, and
+        // the task may take as long as any other.
+        if (isInstantiation)
         {
-            primaryPostCommitSteps.Add(CreateStep(ReleaseProcessingStatus.Key));
+            throughTaskStart = throughTaskStart.ConvertAll(WithInstantiationRetryBudget);
+            release = release is null ? null : WithInstantiationRetryBudget(release);
+        }
+
+        if (release is not null)
+        {
+            primaryPostCommitSteps.Add(release);
         }
 
         return new AssembledSteps(throughTaskStart, primaryPostCommitSteps, auxiliarySteps, endsProcess);
@@ -664,6 +682,22 @@ internal sealed class ProcessNextRequestFactory
             },
             _ => throw new InvalidOperationException($"Unknown authentication type: {currentAuth.GetType().Name}"),
         };
+    }
+
+    /// <summary>
+    /// The step with its retries cut off at <see cref="InstantiationRetryBudget"/>. A step with no retry strategy of
+    /// its own gets one that fits several attempts into the budget.
+    /// </summary>
+    private static StepRequest WithInstantiationRetryBudget(StepRequest step)
+    {
+        RetryStrategy strategy =
+            step.RetryStrategy
+            ?? RetryStrategy.Exponential(TimeSpan.FromSeconds(1), maxDelay: TimeSpan.FromSeconds(10));
+        TimeSpan budget =
+            strategy.MaxDuration is { } declared && declared < InstantiationRetryBudget
+                ? declared
+                : InstantiationRetryBudget;
+        return step with { RetryStrategy = strategy with { MaxDuration = budget } };
     }
 
     private StepRequest CreateCommitProcessStateStep(ProcessStateChange processStateChange) =>

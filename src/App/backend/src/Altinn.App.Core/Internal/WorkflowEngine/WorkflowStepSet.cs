@@ -74,7 +74,10 @@ internal sealed class WorkflowStepSet
         var group = new WorkflowStepSet()
             .AddStep(CleanupGeneratedFromTask.Key)
             .AddHookStep(OnTaskStartingHook.Key, context.StartingHook)
-            .AddStep(CommonTaskInitialization.Key, new CommonTaskInitializationPayload(context.Prefill))
+            .AddStep(
+                CommonTaskInitialization.Key,
+                new CommonTaskInitializationPayload(context.Prefill, context.IsInstantiation)
+            )
             .AddProcessTaskStages(StartTask.Key, context.StartPipeline);
 
         if (context.RegisterEvents)

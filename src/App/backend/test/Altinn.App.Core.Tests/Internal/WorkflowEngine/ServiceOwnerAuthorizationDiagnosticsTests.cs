@@ -108,6 +108,15 @@ public class ServiceOwnerAuthorizationDiagnosticsTests
     }
 
     [Fact]
+    public void A_Permanent_Result_From_An_Exception_Flags_The_Denial_Too()
+    {
+        var result = FailedWorkflowEngineCommandResult.Permanent(Platform(HttpStatusCode.Forbidden), "data creation");
+
+        Assert.True(result.ServiceOwnerAuthorizationDenied);
+        Assert.True(result.NonRetryable);
+    }
+
+    [Fact]
     public void A_Failed_Result_From_Any_Other_Exception_Is_Not_Flagged()
     {
         Assert.False(

@@ -65,6 +65,12 @@ and returns the re-signed state.
 - Every command is idempotent, because the engine retries steps.
 - A command reports a failure as a result. The callback does not catch a command's exception, so the engine gets a 500
   and retries it as transient.
+- `CommonTaskInitialization` runs the app's `IInstantiationProcessor.DataCreation`, which has no result to say whether
+  a retry would help. In the workflow that creates an instance, an exception from it fails the step permanently. The
+  request then gets its answer at once, as it did in v8, instead of after a minute of retries that app code rarely gets
+  past by itself. Everything else the step runs, such as prefill, is retried for [that minute](#waiting-and-failures).
+  `DataCreation` at any later task start is retried as any other step, also one that follows a service task in the
+  same chain, since a deploy of fixed code then lets the instance go on by itself.
 - Commands and app hooks stage changes on the instance data unit of work and never write to Storage. While the
   instance is processing, Storage rejects data and process writes that do not come from the workflow's own save.
 - A deferral saves nothing and returns the incoming state, so the next attempt starts where this one did. A deferring
@@ -210,7 +216,13 @@ and the [ADR](../../../../docs/adr/2026-07-10-workflow-engine-noncritical-side-e
 A request that enqueues a transition polls the collection until its chain settles, and then reads the instance from
 Storage. The chain is the workflow it enqueued and every later primary workflow.
 
-- The wait answers 504 after a fixed time.
+- The wait answers 504 after a fixed time. The workflow goes on, so the answer to an instantiation says that it is
+  still running and tells the caller to read the instance instead of creating another.
+- The engine retries each step of the workflow that creates an instance for a minute, not for its default of a day. A
+  step that keeps failing then fails the workflow while the request still waits, and the request answers with the
+  failure. A step that declares a shorter retry budget keeps it. The steps of a service task keep their own retries,
+  since the instance exists once its first task has started. An instantiation still gets the 504 when the engine does
+  not reach the workflow in time, or when single attempts take most of the wait.
 - When every active workflow in the chain is parked, on a deferring service task or as a receive workflow, the wait
   returns on the first poll that sees it. The transition has committed by then, and the task goes on without the
   request: process/next and process/resume answer 202 with the process state, and instantiation answers 201 as usual.

@@ -658,6 +658,92 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase
         TestData.DeleteInstanceAndData(org, app, instanceId);
     }
 
+    [Fact]
+    public async Task PostNewInstance_Simplified_WhenTheWaitTimesOut_AnswersThatTheWorkflowIsStillRunning()
+    {
+        string org = "tdd";
+        string app = "permissive-app";
+        int instanceOwnerPartyId = 501337;
+        var workflowEngineService = new Mock<IWorkflowEngineService>();
+        workflowEngineService
+            .Setup(x =>
+                x.EnqueueAndWaitForInitialProcessState(
+                    It.IsAny<Instance>(),
+                    It.IsAny<StorageVersionMetadata>(),
+                    It.IsAny<ProcessStateChange>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<Dictionary<string, string>?>(),
+                    It.IsAny<InstantiationNotification?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns(
+                (
+                    Instance instance,
+                    StorageVersionMetadata versions,
+                    ProcessStateChange _,
+                    string? _,
+                    bool _,
+                    Dictionary<string, string>? _,
+                    InstantiationNotification? _,
+                    string? _,
+                    CancellationToken _
+                ) =>
+                    Task.FromResult(
+                        new ProcessNextWorkflowResult(
+                            instance,
+                            versions,
+                            new WorkflowFailure { Kind = WorkflowFailureKind.Timeout },
+                            ProcessStateCommitted: false
+                        )
+                    )
+            );
+        using HttpClient client = GetRootedClient(
+            org,
+            app,
+            configureServices: services =>
+            {
+                services.RemoveAll<IWorkflowEngineService>();
+                services.AddSingleton(workflowEngineService.Object);
+            }
+        );
+        string token = TestAuthentication.GetUserToken(userId: 1337, partyId: instanceOwnerPartyId);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
+
+        var body = $$"""
+                {
+                    "instanceOwner": {
+                        "partyId": "{{instanceOwnerPartyId}}"
+                    }
+                }
+            """;
+        using var content = new StringContent(body, Encoding.UTF8, "application/json");
+
+        using HttpResponseMessage createResponse = await client.PostAsync($"{org}/{app}/instances/create", content);
+        string createResponseContent = await createResponse.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(createResponseContent);
+
+        createResponse.StatusCode.Should().Be(HttpStatusCode.GatewayTimeout);
+        using JsonDocument document = JsonDocument.Parse(createResponseContent);
+        JsonElement root = document.RootElement;
+        root.GetProperty("status").GetInt32().Should().Be(StatusCodes.Status504GatewayTimeout);
+        root.GetProperty("detail").GetString().Should().Contain("it may still complete");
+        root.GetProperty("initializationState").GetString().Should().Be("workflowStillRunning");
+        root.GetProperty("workflowAccepted").GetBoolean().Should().BeTrue();
+        root.GetProperty("recommendedAction").GetString().Should().Be("inspectInstance");
+        root.GetProperty("workflowFailure").GetProperty("kind").GetString().Should().Be("timeout");
+        root.TryGetProperty("resumeEndpoint", out _).Should().BeFalse();
+
+        string instanceId = root.GetProperty("instanceId").GetString()!;
+        Guid instanceGuid = Guid.Parse(instanceId.Split('/')[1]);
+        Instance storedInstance = await TestData.GetInstance(org, app, instanceOwnerPartyId, instanceGuid);
+        storedInstance.Status?.IsHardDeleted.Should().NotBe(true);
+
+        TestData.DeleteInstanceAndData(org, app, instanceId);
+    }
+
     [Theory]
     [InlineData(
         "INVALID XML",
