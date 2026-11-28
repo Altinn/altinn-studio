@@ -403,7 +403,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase
         using HttpClient client = GetRootedClient(Org, App);
         Assert.NotNull(client);
 
-        Assert.NotNull(Services.GetRequiredService<MailboxRelay>());
+        Assert.NotNull(Services.GetRequiredService<ServiceTaskRelay>());
     }
 
     // ---------------------------------------------------------------------------------------------

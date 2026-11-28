@@ -441,8 +441,8 @@ public class ExecuteServiceTaskReplyTests
 
         SuccessfulWorkflowEngineCommandResult success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.Null(success.ProcessNextContinuation);
-        MailboxContinuation.AwaitNextMessage awaiting = Assert.IsType<MailboxContinuation.AwaitNextMessage>(
-            success.MailboxContinuation
+        ServiceTaskContinuation.AwaitNextMessage awaiting = Assert.IsType<ServiceTaskContinuation.AwaitNextMessage>(
+            success.ServiceTaskContinuation
         );
         Assert.Equal(_mailboxId, awaiting.MailboxId);
         Assert.Equal("archiving", awaiting.ServiceTaskType);
@@ -468,11 +468,10 @@ public class ExecuteServiceTaskReplyTests
 
         SuccessfulWorkflowEngineCommandResult success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.Null(success.ProcessNextContinuation);
-        MailboxContinuation.ConcludeAndContinue continuing = Assert.IsType<MailboxContinuation.ConcludeAndContinue>(
-            success.MailboxContinuation
+        ServiceTaskContinuation.CloseAndContinue continuing = Assert.IsType<ServiceTaskContinuation.CloseAndContinue>(
+            success.ServiceTaskContinuation
         );
         Assert.Equal(_mailboxId, continuing.MailboxId);
-        Assert.Equal("archiving", continuing.ServiceTaskType);
         Assert.Equal(StageIndex, continuing.Handover.AfterItemIndex);
         Assert.Null(continuing.Handover.Target);
         Assert.Equal([$"{ExecuteServiceTask.Key}: 1"], continuing.Handover.Steps.Select(step => step.OperationId));
@@ -492,8 +491,8 @@ public class ExecuteServiceTaskReplyTests
         SuccessfulWorkflowEngineCommandResult success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.NotNull(success.ProcessNextContinuation);
         Assert.Null(success.ProcessNextContinuation.Action);
-        MailboxContinuation.Conclude conclude = Assert.IsType<MailboxContinuation.Conclude>(
-            success.MailboxContinuation
+        ServiceTaskContinuation.CloseAndEndTask conclude = Assert.IsType<ServiceTaskContinuation.CloseAndEndTask>(
+            success.ServiceTaskContinuation
         );
         Assert.Equal(_mailboxId, conclude.MailboxId);
         Assert.Null(carry.Mailboxes);
@@ -517,8 +516,8 @@ public class ExecuteServiceTaskReplyTests
         SuccessfulWorkflowEngineCommandResult success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.NotNull(success.ProcessNextContinuation);
         Assert.Equal(action, success.ProcessNextContinuation.Action);
-        MailboxContinuation.Conclude conclude = Assert.IsType<MailboxContinuation.Conclude>(
-            success.MailboxContinuation
+        ServiceTaskContinuation.CloseAndEndTask conclude = Assert.IsType<ServiceTaskContinuation.CloseAndEndTask>(
+            success.ServiceTaskContinuation
         );
         Assert.Equal(_mailboxId, conclude.MailboxId);
         Assert.Null(carry.Mailboxes);
@@ -663,8 +662,8 @@ public class ExecuteServiceTaskReplyTests
 
         SuccessfulWorkflowEngineCommandResult success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.Null(success.ProcessNextContinuation);
-        MailboxContinuation.ConcludeAndContinue continuing = Assert.IsType<MailboxContinuation.ConcludeAndContinue>(
-            success.MailboxContinuation
+        ServiceTaskContinuation.CloseAndContinue continuing = Assert.IsType<ServiceTaskContinuation.CloseAndContinue>(
+            success.ServiceTaskContinuation
         );
         Assert.Equal(_mailboxId, continuing.MailboxId);
         Assert.Equal([$"{ExecuteServiceTask.Key}: 1"], continuing.Handover.Steps.Select(step => step.OperationId));
@@ -685,7 +684,10 @@ public class ExecuteServiceTaskReplyTests
         SuccessfulWorkflowEngineCommandResult success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.NotNull(success.ProcessNextContinuation);
         Assert.Null(success.ProcessNextContinuation.Action);
-        Assert.Equal(_mailboxId, Assert.IsType<MailboxContinuation.Conclude>(success.MailboxContinuation).MailboxId);
+        Assert.Equal(
+            _mailboxId,
+            Assert.IsType<ServiceTaskContinuation.CloseAndEndTask>(success.ServiceTaskContinuation).MailboxId
+        );
     }
 
     [Fact]
@@ -698,7 +700,10 @@ public class ExecuteServiceTaskReplyTests
 
         SuccessfulWorkflowEngineCommandResult success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.Equal("reject", success.ProcessNextContinuation?.Action);
-        Assert.Equal(_mailboxId, Assert.IsType<MailboxContinuation.Conclude>(success.MailboxContinuation).MailboxId);
+        Assert.Equal(
+            _mailboxId,
+            Assert.IsType<ServiceTaskContinuation.CloseAndEndTask>(success.ServiceTaskContinuation).MailboxId
+        );
         Assert.Null(carry.Mailboxes);
         Assert.Equal(["HandleArchiveTimeout"], task.Ran);
     }

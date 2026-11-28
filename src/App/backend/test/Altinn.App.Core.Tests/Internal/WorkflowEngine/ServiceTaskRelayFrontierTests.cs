@@ -31,7 +31,7 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine;
 /// app-lib's own <see cref="WorkflowEngineService.ResolveWorkflowTaskStatus"/>, and the walk asserts both that the
 /// answer is processing and <em>which</em> workflow holds it open.
 /// </remarks>
-public class MailboxRelayFrontierTests
+public class ServiceTaskRelayFrontierTests
 {
     private const string Org = "ttd";
     private const string App = "test-app";
@@ -237,7 +237,7 @@ public class MailboxRelayFrontierTests
     /// The relay, wired to the model; the after-workflow is intercepted at the same <see cref="IProcessEngine"/>
     /// entry point production uses and enqueued with the shape it gives it.
     /// </summary>
-    private static MailboxRelay CreateRelay(CollectionModel collection)
+    private static ServiceTaskRelay CreateRelay(CollectionModel collection)
     {
         var processEngine = new Mock<IProcessEngine>(MockBehavior.Strict);
         processEngine
@@ -281,7 +281,7 @@ public class MailboxRelayFrontierTests
                     )
             );
 
-        return new MailboxRelay(
+        return new ServiceTaskRelay(
             collection,
             Mock.Of<IWorkflowCallbackTokenGenerator>(g =>
                 g.GenerateToken(It.IsAny<Guid>(), It.IsAny<Actor>(), It.IsAny<IEnumerable<WorkflowRequest>>())
@@ -313,7 +313,7 @@ public class MailboxRelayFrontierTests
         return new(factory, collection, Mock.Of<IInstanceClientWithStorageMetadata>(), new AppIdentifier(Org, App));
     }
 
-    private static MailboxRelayRequest CreateRequest(
+    private static ServiceTaskRelayRequest CreateRequest(
         Guid runningWorkflowId,
         Guid stepId,
         ProcessNextContinuation? processNext
@@ -371,7 +371,7 @@ public class MailboxRelayFrontierTests
     /// frontier.
     /// </summary>
     private static async Task<Guid> Hop(
-        MailboxRelay relay,
+        ServiceTaskRelay relay,
         WorkflowEngineService reader,
         CollectionModel collection,
         WorkflowEngineCommandResult decided,
@@ -380,11 +380,11 @@ public class MailboxRelayFrontierTests
     )
     {
         SuccessfulWorkflowEngineCommandResult success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(decided);
-        Assert.NotNull(success.MailboxContinuation);
+        Assert.NotNull(success.ServiceTaskContinuation);
 
         int before = collection.EnqueuedByTheRelay.Count;
         await relay.Continue(
-            success.MailboxContinuation,
+            success.ServiceTaskContinuation,
             CreateRequest(running, Guid.NewGuid(), success.ProcessNextContinuation),
             CancellationToken.None
         );
@@ -401,7 +401,7 @@ public class MailboxRelayFrontierTests
     public async Task TwoExternalStages_NeverLetTheCollectionReadAllSettled()
     {
         var collection = new CollectionModel();
-        MailboxRelay relay = CreateRelay(collection);
+        ServiceTaskRelay relay = CreateRelay(collection);
         WorkflowEngineService reader = CreateReader(collection);
         var carry = new WorkflowCallbackStateCarry();
 
@@ -412,7 +412,7 @@ public class MailboxRelayFrontierTests
             relay,
             reader,
             collection,
-            MailboxRelay.DecideStage(
+            ServiceTaskRelay.DecideStage(
                 ServiceTaskResult.Completed(),
                 ServiceTaskType,
                 Guid.NewGuid(),
@@ -430,7 +430,7 @@ public class MailboxRelayFrontierTests
             relay,
             reader,
             collection,
-            MailboxRelay.DecideSend(
+            ServiceTaskRelay.DecideSend(
                 ServiceTaskResult.Completed(),
                 ServiceTaskType,
                 Guid.NewGuid(),
@@ -450,7 +450,7 @@ public class MailboxRelayFrontierTests
                 relay,
                 reader,
                 collection,
-                MailboxRelay.DecideReply(
+                ServiceTaskRelay.DecideReply(
                     ServiceTaskReplyResult.AwaitNextReply(),
                     ServiceTaskType,
                     Guid.NewGuid(),
@@ -470,7 +470,7 @@ public class MailboxRelayFrontierTests
             relay,
             reader,
             collection,
-            MailboxRelay.DecideReply(
+            ServiceTaskRelay.DecideReply(
                 ServiceTaskReplyResult.Completed(),
                 ServiceTaskType,
                 Guid.NewGuid(),
@@ -494,7 +494,7 @@ public class MailboxRelayFrontierTests
             relay,
             reader,
             collection,
-            MailboxRelay.DecideSend(
+            ServiceTaskRelay.DecideSend(
                 ServiceTaskResult.Completed(),
                 ServiceTaskType,
                 Guid.NewGuid(),
@@ -512,7 +512,7 @@ public class MailboxRelayFrontierTests
             relay,
             reader,
             collection,
-            MailboxRelay.DecideReply(
+            ServiceTaskRelay.DecideReply(
                 ServiceTaskResult.Completed(),
                 ServiceTaskType,
                 Guid.NewGuid(),
@@ -535,7 +535,7 @@ public class MailboxRelayFrontierTests
     public async Task SendThatEndsTheTask_HandsTheFrontierToTheNextTransition()
     {
         var collection = new CollectionModel();
-        MailboxRelay relay = CreateRelay(collection);
+        ServiceTaskRelay relay = CreateRelay(collection);
         WorkflowEngineService reader = CreateReader(collection);
         var carry = new WorkflowCallbackStateCarry();
         carry.RecordMailbox(ArchiveIndex, _archiveMailboxId, _deadline);
@@ -546,7 +546,7 @@ public class MailboxRelayFrontierTests
             relay,
             reader,
             collection,
-            MailboxRelay.DecideSend(
+            ServiceTaskRelay.DecideSend(
                 ServiceTaskResult.EndTask("reject"),
                 ServiceTaskType,
                 Guid.NewGuid(),
@@ -571,7 +571,7 @@ public class MailboxRelayFrontierTests
     public async Task Stages_EachHoldTheFrontierUntilTheNextItemsWorkflowExists()
     {
         var collection = new CollectionModel();
-        MailboxRelay relay = CreateRelay(collection);
+        ServiceTaskRelay relay = CreateRelay(collection);
         WorkflowEngineService reader = CreateReader(collection);
         ServiceTaskPipeline pipeline = new PipelineBuilder.ServiceTask()
             .Stage(Plain)
@@ -587,7 +587,7 @@ public class MailboxRelayFrontierTests
                 relay,
                 reader,
                 collection,
-                MailboxRelay.DecideStage(
+                ServiceTaskRelay.DecideStage(
                     ServiceTaskResult.Completed(),
                     ServiceTaskType,
                     Guid.NewGuid(),

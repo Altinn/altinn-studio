@@ -316,7 +316,7 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
         // Both instants are stamped by the engine on the two hops' own rows, so this is the ordering itself
         // rather than an inference from when a poller happened to look: the mailbox stopped accepting
         // messages before the workflow that runs the next item existed at all. Reversing the two calls
-        // in the relay's ConcludeAndContinue arm fails here, and *only* here - the receiver the hand-over
+        // in the relay's CloseAndContinue arm fails here, and *only* here - the receiver the hand-over
         // sampler watches for is enqueued by the continuation's last step, a whole engine hop later, so a
         // swapped close and enqueue is invisible to any amount of sampling.
         Assert.NotNull(archiveMailbox.DisposedAt);

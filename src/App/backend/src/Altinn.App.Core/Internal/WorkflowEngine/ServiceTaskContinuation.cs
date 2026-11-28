@@ -7,15 +7,15 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 /// member that enqueues a receiver or the next item has a path to a closure it did not name.
 /// </summary>
 /// <remarks>
-/// <see cref="Conclude"/> always travels with the next transition's action on the same result: the task ends, so its
-/// open mailbox closes first.
+/// <see cref="CloseAndEndTask"/> always travels with the next transition's action on the same result: the task ends,
+/// so its open mailbox closes first.
 /// </remarks>
-internal abstract record MailboxContinuation
+internal abstract record ServiceTaskContinuation
 {
-    private MailboxContinuation() { }
+    private ServiceTaskContinuation() { }
 
     /// <summary>Enqueue the receiver for the next message; nothing is closed or started.</summary>
-    internal sealed record AwaitNextMessage : MailboxContinuation
+    internal sealed record AwaitNextMessage : ServiceTaskContinuation
     {
         public AwaitNextMessage(
             Guid mailboxId,
@@ -66,27 +66,23 @@ internal abstract record MailboxContinuation
     /// An item is done and nothing closes: start what follows it — an external stage's receive workflow after its
     /// send, or the next item's workflow after a stage.
     /// </summary>
-    internal sealed record ContinueAfterStage : MailboxContinuation
+    internal sealed record ContinueAfterStage : ServiceTaskContinuation
     {
-        public ContinueAfterStage(string serviceTaskType, MailboxHandover handover)
+        public ContinueAfterStage(ServiceTaskHandover handover)
         {
-            ServiceTaskType = serviceTaskType;
             Handover = handover;
         }
 
-        /// <summary>The service task whose pipeline the hand-over belongs to.</summary>
-        public string ServiceTaskType { get; }
-
         /// <summary>What the pipeline runs next, decided and planned at the result this came from.</summary>
-        public MailboxHandover Handover { get; }
+        public ServiceTaskHandover Handover { get; }
     }
 
     /// <summary>
     /// The task ends with a mailbox open: close it, then start the after-workflow.
     /// </summary>
-    internal sealed record Conclude : MailboxContinuation
+    internal sealed record CloseAndEndTask : ServiceTaskContinuation
     {
-        public Conclude(Guid mailboxId)
+        public CloseAndEndTask(Guid mailboxId)
         {
             MailboxId = mailboxId;
         }
@@ -97,29 +93,25 @@ internal abstract record MailboxContinuation
 
     /// <summary>
     /// An external stage is done with its replies while the task carries on: close its mailbox, then start the
-    /// next item's workflow. Not <see cref="Conclude"/> with a flag: what follows a closing is a shape the relay
+    /// next item's workflow. Not <see cref="CloseAndEndTask"/> with a flag: what follows a closing is a shape the relay
     /// dispatches on, so no arm can drift into performing the other's move.
     /// </summary>
-    internal sealed record ConcludeAndContinue : MailboxContinuation
+    internal sealed record CloseAndContinue : ServiceTaskContinuation
     {
-        public ConcludeAndContinue(Guid mailboxId, string serviceTaskType, MailboxHandover handover)
+        public CloseAndContinue(Guid mailboxId, ServiceTaskHandover handover)
         {
             MailboxId = mailboxId;
-            ServiceTaskType = serviceTaskType;
             Handover = handover;
         }
 
         /// <summary>The stage's mailbox, closed before the next item starts.</summary>
         public Guid MailboxId { get; }
 
-        /// <summary>The service task whose pipeline the hand-over belongs to.</summary>
-        public string ServiceTaskType { get; }
-
         /// <summary>
         /// What the pipeline runs once the mailbox is closed, decided and planned at the result this continuation
         /// came from.
         /// </summary>
-        public MailboxHandover Handover { get; }
+        public ServiceTaskHandover Handover { get; }
     }
 }
 
@@ -127,12 +119,12 @@ internal abstract record MailboxContinuation
 /// What the pipeline runs after the step a relay hop just ran: the steps that hop planned, carried whole so the
 /// enqueue re-derives nothing, and for a receive workflow the mailbox it parks on.
 /// </summary>
-internal sealed record MailboxHandover
+internal sealed record ServiceTaskHandover
 {
     /// <summary>
     /// Hands over to the workflow of the next item.
     /// </summary>
-    public MailboxHandover(int afterItemIndex, IReadOnlyList<PlannedStep> steps)
+    public ServiceTaskHandover(int afterItemIndex, IReadOnlyList<PlannedStep> steps)
     {
         AfterItemIndex = afterItemIndex;
         Steps = steps;
@@ -143,7 +135,7 @@ internal sealed record MailboxHandover
     /// the engine hands the mailbox receipt to a workflow's first step only, so a second step would run without it,
     /// as the send.
     /// </summary>
-    public MailboxHandover(int afterItemIndex, PlannedStep replyStep, MailboxTarget target)
+    public ServiceTaskHandover(int afterItemIndex, PlannedStep replyStep, MailboxTarget target)
     {
         AfterItemIndex = afterItemIndex;
         Steps = [replyStep];

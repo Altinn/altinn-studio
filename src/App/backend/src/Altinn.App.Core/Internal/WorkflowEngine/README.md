@@ -16,7 +16,7 @@ kind of step.
   [callback authentication](../../../Altinn.App.Api/Infrastructure/Authentication/WorkflowEngineCallbackAuthenticationHandler.cs)
   checks the token it sends.
 - A service task runs each step of its pipeline as the last step of a workflow of its own, and
-  [`MailboxRelay`](MailboxRelay.cs) enqueues the next workflow when one completes. The
+  [`ServiceTaskRelay`](ServiceTaskRelay.cs) enqueues the next workflow when one completes. The
   [authoring guide](../../../../docs/service-task-pipelines.md) describes service tasks for app developers. A channel
   that receives an external system's answer hands it to
   [`IServiceTaskReplyForwarder`](../../Features/Process/IServiceTaskReplyForwarder.cs), which delivers it to the

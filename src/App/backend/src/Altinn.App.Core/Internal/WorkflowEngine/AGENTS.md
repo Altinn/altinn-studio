@@ -13,7 +13,7 @@
   from a read while the instance is `processing` and enqueue with it: its versions would let it run between a
   service task's stages. `WorkflowEngineService` refuses a chain start that does not claim first, and
   `WorkflowEnqueueRulesTests` lists the places that enqueue; check a new one against this rule before adding it.
-- After you change the steps a transition plans, the callbacks or the mailbox relay, run the
+- After you change the steps a transition plans, the callbacks or the service task relay, run the
   [integration tests](README.md).
 
 ## Mailboxes

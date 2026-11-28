@@ -153,8 +153,7 @@ public class ExecuteServiceTaskStageTests
 
         var success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.Null(success.ProcessNextContinuation);
-        var continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(success.MailboxContinuation);
-        Assert.Equal("shipping", continuing.ServiceTaskType);
+        var continuing = Assert.IsType<ServiceTaskContinuation.ContinueAfterStage>(success.ServiceTaskContinuation);
         Assert.Equal(0, continuing.Handover.AfterItemIndex);
         Assert.Equal(
             [$"{ExecuteServiceTask.Key}: {LastIndex}"],
@@ -230,7 +229,7 @@ public class ExecuteServiceTaskStageTests
         var success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.NotNull(success.ProcessNextContinuation);
         Assert.Null(success.ProcessNextContinuation.Action);
-        Assert.Null(success.MailboxContinuation);
+        Assert.Null(success.ServiceTaskContinuation);
     }
 
     /// <summary>
@@ -249,7 +248,10 @@ public class ExecuteServiceTaskStageTests
         var success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.Null(success.ProcessNextContinuation?.Action);
         Assert.NotNull(success.ProcessNextContinuation);
-        Assert.Equal(mailboxId, Assert.IsType<MailboxContinuation.Conclude>(success.MailboxContinuation).MailboxId);
+        Assert.Equal(
+            mailboxId,
+            Assert.IsType<ServiceTaskContinuation.CloseAndEndTask>(success.ServiceTaskContinuation).MailboxId
+        );
         Assert.Null(context.StateCarry.OpenMailbox);
     }
 
@@ -289,7 +291,7 @@ public class ExecuteServiceTaskStageTests
 
         var success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.Equal("reject", success.ProcessNextContinuation?.Action);
-        Assert.Null(success.MailboxContinuation);
+        Assert.Null(success.ServiceTaskContinuation);
         Assert.False(awaitRan);
     }
 
