@@ -94,7 +94,11 @@ import type { SharedResourcesResponse } from 'app-shared/types/api/SharedResourc
 import type { CustomTemplateList } from 'app-shared/types/CustomTemplate';
 import type { AppTemplate } from 'app-shared/types/AppTemplate';
 import type { AppSettings } from 'app-shared/types/AppSettings';
-import type { PreviewSession, PreviewSessionInstance } from 'app-shared/types/api/PreviewSession';
+import type {
+  PreviewFormData,
+  PreviewSession,
+  PreviewSessionInstance,
+} from 'app-shared/types/api/PreviewSession';
 
 export const queriesMock: ServicesContextProps = {
   // Queries
@@ -424,6 +428,10 @@ export const queriesMock: ServicesContextProps = {
   createPreviewSessionInstance: vi
     .fn()
     .mockImplementation(() => Promise.resolve<PreviewSessionInstance>({ instanceId: '' })),
+  readPreviewFormData: vi
+    .fn()
+    .mockImplementation(() => Promise.resolve<PreviewFormData>({ dataElements: [] })),
+  updatePreviewFormData: vi.fn().mockImplementation(() => Promise.resolve()),
 
   // Mutations - ProcessEditor
   updateBpmnXml: vi.fn().mockImplementation(() => Promise.resolve()),

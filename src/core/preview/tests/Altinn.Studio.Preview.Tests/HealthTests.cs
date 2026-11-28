@@ -52,7 +52,7 @@ public sealed class HealthTests
     /// </summary>
     private sealed class HangingSessionStore : ISessionStore
     {
-        public Task<SessionId> Start(WorkingCopy workingCopy, CancellationToken cancellationToken) =>
+        public Task<SessionId> Start(WorkingCopy workingCopy, int partyId, CancellationToken cancellationToken) =>
             new TaskCompletionSource<SessionId>().Task;
 
         public Task<PreviewSession?> FindAndRenew(SessionId sessionId, CancellationToken cancellationToken) =>

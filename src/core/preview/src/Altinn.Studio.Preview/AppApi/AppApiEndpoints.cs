@@ -23,7 +23,11 @@ internal static partial class AppApiEndpoints
     {
         // The frontend keeps the platform session alive, which preview doesn't have.
         app.MapGet("/api/authentication/keepAlive", () => Results.Ok());
-        app.MapGet("/api/v1/parties", () => Results.Json(new JsonArray(MockUser.Party())));
+        app.MapGet(
+            "/api/v1/parties",
+            (HttpContext context) =>
+                Results.Json(new JsonArray(MockUser.SelectedParty(Session(context).Session.PartyId)))
+        );
         app.MapPut("/api/v1/parties/{partyId:int}", () => Results.Ok());
         app.MapGet("/api/v1/texts/{language}", GetTexts);
 

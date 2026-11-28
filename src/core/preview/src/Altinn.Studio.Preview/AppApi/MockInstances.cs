@@ -5,10 +5,22 @@ using Json.Patch;
 
 namespace Altinn.Studio.Preview.AppApi;
 
-/// <summary>The app's process and data types, which decide what happens to an instance.</summary>
-internal sealed record AppDefinition(ProcessDefinition? Process, IReadOnlyList<DataType> DataTypes)
+/// <summary>
+/// The app's process and data types, which decide what happens to an instance, and the data a new form data element
+/// starts with.
+/// </summary>
+internal sealed record AppDefinition(
+    ProcessDefinition? Process,
+    IReadOnlyList<DataType> DataTypes,
+    Func<DataType, int, JsonObject>? NewFormData = null
+)
 {
-    public static AppDefinition Read(AppFiles files) => new(files.Process(), DataType.Of(files));
+    public static AppDefinition Read(AppFiles files) =>
+        new(
+            files.Process(),
+            DataType.Of(files),
+            (dataType, partyId) => Prefill.Data(files.Prefill(dataType.Id), files.Schema(dataType.Id), partyId)
+        );
 }
 
 /// <summary>
@@ -172,7 +184,7 @@ internal static class MockInstances
             )
         )
         {
-            AddFormData(instance, instanceGuid, dataType, now);
+            AddFormData(instance, instanceGuid, dataType, app, now);
         }
     }
 
@@ -190,7 +202,13 @@ internal static class MockInstances
         }
     }
 
-    private static void AddFormData(MockInstance instance, Guid instanceGuid, DataType dataType, DateTimeOffset now)
+    private static void AddFormData(
+        MockInstance instance,
+        Guid instanceGuid,
+        DataType dataType,
+        AppDefinition app,
+        DateTimeOffset now
+    )
     {
         Guid dataElementGuid = Guid.NewGuid();
         string user = MockUser.Id;
@@ -208,7 +226,8 @@ internal static class MockInstances
                 LastChangedBy = user,
             }
         );
-        instance.FormData[dataElementGuid] = new JsonObject();
+        int partyId = int.Parse(instance.Instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
+        instance.FormData[dataElementGuid] = app.NewFormData?.Invoke(dataType, partyId) ?? [];
     }
 }
 

@@ -41,6 +41,8 @@ export enum QueryKey {
   OptionListIds = 'OptionListIds',
   Organizations = 'Organizations',
   Prefill = 'Prefill',
+  PreviewFormData = 'PreviewFormData',
+  PreviewParty = 'PreviewParty',
   PreviewSession = 'PreviewSession',
   PreviewSessionInstance = 'PreviewSessionInstance',
   OrgCodeLists = 'OrgCodeLists',

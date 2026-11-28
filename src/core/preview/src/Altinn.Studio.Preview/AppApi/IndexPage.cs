@@ -32,13 +32,14 @@ internal static class IndexPage
         SessionId sessionId,
         WorkingCopy workingCopy,
         Uri studioOrigin,
-        string? requestedLanguage
+        string? requestedLanguage,
+        int partyId
     )
     {
         string assets = $"{studioOrigin.GetLeftPart(UriPartial.Authority)}/designer/app-dist/{appLibVersion}";
         string org = Json(JsonValue.Create($"{sessionId}/{workingCopy.Org}"));
         string app = Json(JsonValue.Create(workingCopy.App));
-        string globalData = Json(GlobalData(files, workingCopy.Org, requestedLanguage));
+        string globalData = Json(GlobalData(files, workingCopy.Org, requestedLanguage, partyId));
         string title = WebUtility.HtmlEncode($"{workingCopy.Org} - {workingCopy.App}");
 
         return $$"""
@@ -69,7 +70,7 @@ internal static class IndexPage
     /// What the app frontend starts with, as the app library's <c>BootstrapGlobalService</c> gathers it, with preview's
     /// user and party.
     /// </summary>
-    private static JsonObject GlobalData(AppFiles files, string org, string? requestedLanguage)
+    private static JsonObject GlobalData(AppFiles files, string org, string? requestedLanguage, int partyId)
     {
         IReadOnlyList<string> languages = files.Languages();
         string language = ChooseLanguage(languages, requestedLanguage);
@@ -105,7 +106,7 @@ internal static class IndexPage
                 .. languages.Select(available => (JsonNode)new JsonObject { ["language"] = available }),
             ]),
             ["userProfile"] = MockUser.Profile(language),
-            ["selectedParty"] = MockUser.Party(),
+            ["selectedParty"] = MockUser.SelectedParty(partyId),
             // A real app has the org's names from Altinn's CDN, which preview doesn't reach. The app's appOwner and
             // appReceiver texts still name the org where the app has them.
             ["orgName"] = new JsonObject

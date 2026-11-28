@@ -7,4 +7,5 @@ namespace Altinn.Studio.Preview.Sessions;
 /// </summary>
 /// <param name="WorkingCopy">The working copy the session reads.</param>
 /// <param name="StartedAt">When Designer started the session.</param>
-internal sealed record PreviewSession(WorkingCopy WorkingCopy, DateTimeOffset StartedAt);
+/// <param name="PartyId">The party the user acts for, of those <see cref="AppApi.MockUser"/> can act for.</param>
+internal sealed record PreviewSession(WorkingCopy WorkingCopy, DateTimeOffset StartedAt, int PartyId);

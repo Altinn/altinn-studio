@@ -26,7 +26,8 @@ public class PreviewServiceClientTests : IDisposable
             .Given(Request.Create().WithPath("/sessions").UsingPost())
             .RespondWith(Response.Create().WithStatusCode(200).WithBodyAsJson(new { url = SessionUrl }));
 
-        Uri url = await Client().StartSession("developer", "ttd", "my-app", CancellationToken.None);
+        Uri url = await Client()
+            .StartSession("developer", "ttd", "my-app", PreviewParty.Person, CancellationToken.None);
 
         Assert.Equal(new Uri(SessionUrl), url);
         string body = Assert.Single(_server.LogEntries).RequestMessage.Body;
@@ -34,6 +35,7 @@ public class PreviewServiceClientTests : IDisposable
         Assert.Equal("developer", request.RootElement.GetProperty("developer").GetString());
         Assert.Equal("ttd", request.RootElement.GetProperty("org").GetString());
         Assert.Equal("my-app", request.RootElement.GetProperty("app").GetString());
+        Assert.Equal("person", request.RootElement.GetProperty("party").GetString());
     }
 
     [Fact]
@@ -43,7 +45,8 @@ public class PreviewServiceClientTests : IDisposable
             .Given(Request.Create().WithPath("/sessions").UsingPost())
             .RespondWith(Response.Create().WithStatusCode(404));
 
-        Uri url = await Client().StartSession("developer", "ttd", "my-app", CancellationToken.None);
+        Uri url = await Client()
+            .StartSession("developer", "ttd", "my-app", PreviewParty.Person, CancellationToken.None);
 
         Assert.Null(url);
     }
@@ -56,7 +59,7 @@ public class PreviewServiceClientTests : IDisposable
             .RespondWith(Response.Create().WithStatusCode(500));
 
         await Assert.ThrowsAsync<HttpRequestException>(() =>
-            Client().StartSession("developer", "ttd", "my-app", CancellationToken.None)
+            Client().StartSession("developer", "ttd", "my-app", PreviewParty.Person, CancellationToken.None)
         );
     }
 
@@ -66,7 +69,7 @@ public class PreviewServiceClientTests : IDisposable
         var client = new PreviewServiceClient(new HttpClient(), new PreviewServiceSettings());
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            client.StartSession("developer", "ttd", "my-app", CancellationToken.None)
+            client.StartSession("developer", "ttd", "my-app", PreviewParty.Person, CancellationToken.None)
         );
         Assert.Empty(_server.LogEntries.ToList());
     }
@@ -102,6 +105,68 @@ public class PreviewServiceClientTests : IDisposable
             .CreateInstance("developer", "ttd", "my-app", new Uri(SessionUrl), "Task_1", CancellationToken.None);
 
         Assert.Null(instanceId);
+    }
+
+    [Fact]
+    public async Task ReadFormData_AsksForTheInstancesDataInTheDevelopersSession()
+    {
+        _server
+            .Given(Request.Create().WithPath("/sessions/form-data").UsingPost())
+            .RespondWith(
+                Response
+                    .Create()
+                    .WithStatusCode(200)
+                    .WithBodyAsJson(
+                        new
+                        {
+                            dataElements = new[]
+                            {
+                                new
+                                {
+                                    id = "element",
+                                    dataType = "model",
+                                    data = new { name = "Kari" },
+                                },
+                            },
+                        }
+                    )
+            );
+
+        var dataElements = await Client()
+            .ReadFormData("developer", "ttd", "my-app", new Uri(SessionUrl), "51001/guid", CancellationToken.None);
+
+        var element = Assert.Single(dataElements);
+        Assert.Equal("model", element.DataType);
+        Assert.Equal("Kari", (string)element.Data?["name"]);
+        string body = Assert.Single(_server.LogEntries).RequestMessage.Body;
+        using JsonDocument request = JsonDocument.Parse(body);
+        Assert.Equal(SessionUrl, request.RootElement.GetProperty("sessionUrl").GetString());
+        Assert.Equal("51001/guid", request.RootElement.GetProperty("instanceId").GetString());
+    }
+
+    [Fact]
+    public async Task WriteFormData_SendsTheDataAndReturnsFalseWithoutTheSession()
+    {
+        _server
+            .Given(Request.Create().WithPath("/sessions/form-data").UsingPut())
+            .RespondWith(Response.Create().WithStatusCode(404));
+
+        bool written = await Client()
+            .WriteFormData(
+                "developer",
+                "ttd",
+                "my-app",
+                new Uri(SessionUrl),
+                "51001/guid",
+                Guid.Empty,
+                new System.Text.Json.Nodes.JsonObject { ["name"] = "Kari" },
+                CancellationToken.None
+            );
+
+        Assert.False(written);
+        string body = Assert.Single(_server.LogEntries).RequestMessage.Body;
+        using JsonDocument request = JsonDocument.Parse(body);
+        Assert.Equal("Kari", request.RootElement.GetProperty("data").GetProperty("name").GetString());
     }
 
     public void Dispose()

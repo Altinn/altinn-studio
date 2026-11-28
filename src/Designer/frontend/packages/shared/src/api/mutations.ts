@@ -51,6 +51,7 @@ import {
   selectedMaskinportenScopesPath,
   appSettingsPath,
   createInstancePath,
+  previewFormDataPath,
   previewSessionInstancesPath,
   previewSessionsPath,
   dataTypePath,
@@ -145,7 +146,7 @@ import type { AddUserApiKeyResponse } from 'app-shared/types/api/AddUserApiKeyRe
 import type { StudioctlAuthCallback } from 'app-shared/types/api/StudioctlAuth';
 import type { ContactPoint, ContactPointPayload } from 'app-shared/types/ContactPoint';
 import type { CreateBotAccountRequest, CreateBotAccountResponse, CreateBotAccountApiKeyRequest, CreateBotAccountApiKeyResponse } from 'app-shared/types/BotAccount';
-import type { PreviewSession, PreviewSessionInstance } from 'app-shared/types/api/PreviewSession';
+import type { PreviewFormData, PreviewParty, PreviewSession, PreviewSessionInstance } from 'app-shared/types/api/PreviewSession';
 
 const headers = {
   Accept: 'application/json',
@@ -240,8 +241,11 @@ export const updateResource = (org: string, repo: string, payload: Resource) => 
 
 // Preview
 export const createPreviewInstance = (org: string, app: string, partyId: number, taskId: string) => post<any>(createInstancePath(org, app, partyId, taskId), {}, { headers });
-export const startPreviewSession = (org: string, app: string) => post<PreviewSession>(previewSessionsPath(org, app));
+export const startPreviewSession = (org: string, app: string, party: PreviewParty = 'person') => post<PreviewSession>(`${previewSessionsPath(org, app)}?party=${party}`);
 export const createPreviewSessionInstance = (org: string, app: string, sessionUrl: string, taskId: string) => post<PreviewSessionInstance>(previewSessionInstancesPath(org, app), { sessionUrl, taskId });
+// The session's URL holds its secret ID, so reading the form data is a POST that has it in the body.
+export const readPreviewFormData = (org: string, app: string, sessionUrl: string, instanceId: string) => post<PreviewFormData>(previewFormDataPath(org, app), { sessionUrl, instanceId });
+export const updatePreviewFormData = (org: string, app: string, sessionUrl: string, instanceId: string, dataElementId: string, data: object) => put(previewFormDataPath(org, app), { sessionUrl, instanceId, dataElementId, data });
 
 // ProcessEditor
 

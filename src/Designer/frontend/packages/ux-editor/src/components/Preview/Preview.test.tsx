@@ -53,6 +53,56 @@ describe('Preview', () => {
     expect(startPreviewSession).toHaveBeenCalledTimes(1);
   });
 
+  it('shows the form data of the instance in preview from its menu', async () => {
+    const user = userEvent.setup();
+    const readPreviewFormData = vi.fn().mockResolvedValue({
+      dataElements: [{ id: 'element', dataType: 'model', data: { name: 'Kari' } }],
+    });
+    render({ queries: { readPreviewFormData } });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('preview.loading_preview_controller')),
+    );
+
+    await user.click(screen.getByRole('button', { name: textMock('ux_editor.preview.options') }));
+    await user.click(
+      screen.getByRole('menuitem', { name: textMock('ux_editor.preview.edit_form_data') }),
+    );
+
+    expect(
+      await screen.findByRole('textbox', {
+        name: textMock('ux_editor.preview.form_data.data', { dataType: 'model' }),
+      }),
+    ).toBeInTheDocument();
+    expect(readPreviewFormData).toHaveBeenCalledWith(org, app, mockSessionUrl, mockInstanceId);
+  });
+
+  it('loads the preview again once the developer saves the form data', async () => {
+    const user = userEvent.setup();
+    const doReloadPreview = vi.fn();
+    render({
+      queries: {
+        readPreviewFormData: vi.fn().mockResolvedValue({
+          dataElements: [{ id: 'element', dataType: 'model', data: { name: 'Kari' } }],
+        }),
+      },
+      previewContextProps: { doReloadPreview },
+    });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('preview.loading_preview_controller')),
+    );
+    await user.click(screen.getByRole('button', { name: textMock('ux_editor.preview.options') }));
+    await user.click(
+      screen.getByRole('menuitem', { name: textMock('ux_editor.preview.edit_form_data') }),
+    );
+    await screen.findByRole('textbox', {
+      name: textMock('ux_editor.preview.form_data.data', { dataType: 'model' }),
+    });
+
+    await user.click(screen.getByRole('button', { name: textMock('general.save') }));
+
+    await waitFor(() => expect(doReloadPreview).toHaveBeenCalledTimes(1));
+  });
+
   it('Renders an iframe with the ref from AppContext', async () => {
     render();
     await waitForElementToBeRemoved(() =>

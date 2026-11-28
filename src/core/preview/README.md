@@ -9,6 +9,9 @@ as the user in Designer and Gitea, so the service runs on a domain of its own.
 - Designer starts a session on the service's internal port, for the developer who is logged in to Studio. The
   service answers with a URL on the public port: `/{sessionId}/{org}/{app}/`. Designer's page shows that URL in a
   frame.
+- On the internal port, Designer can also create an instance at a task in the developer's session, and read and
+  replace the form data of an instance there. The developer edits the form data in Studio, as for fields the app's
+  code fills in.
 - The session ID in the URL is the only thing that identifies the session. Preview sets no cookies, because the
   preview domain's cookies would be third-party cookies in Studio's page, and Safari blocks those.
 - A session reads one developer's working copy of one app. The service reads the working copies from the share that
@@ -28,6 +31,11 @@ Preview serves a v9 app as the app backend serves it, with a mock of the backend
   so every request from the frontend carries the session ID, and published versions of the frontend work unchanged.
 - The user is a mock person who may do everything. The instances the app creates, and their form data, are the
   session's state, which Redis keeps in the same key as the session, so they end together.
+- The person acts for themself, or for an organization, as Studio chooses when it starts the session. The page selects
+  that party, and the instances the frontend and the editors create belong to it.
+- A new form data element gets the prefill in `models/{dataType}.prefill.json` from the person's profile and from the
+  register data about the party, as in an app: the national register's for the person, the organization register's
+  for the organization.
 - Preview follows the process without evaluating its gateways, and moves past service tasks, as the process engine
   runs them without the user.
 - The mock follows the latest v9 prerelease. Its tests run an app from the [v9 template](../../App/template/v9)
