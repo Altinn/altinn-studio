@@ -3,6 +3,7 @@ import { EditNumberValue } from '../editModal/EditNumberValue';
 import type { SchemaConfigProps } from './types';
 import { componentComparison } from './ConfigPropertiesUtils';
 import { useConfigProperty } from './useConfigProperty';
+import { validateNumberOfAttachments } from '@altinn/ux-editor-v4/utils/component';
 import { useComponentPropertyLabel } from '@altinn/ux-editor-v4/hooks';
 
 export interface ConfigNumberPropertiesProps extends SchemaConfigProps {
@@ -81,7 +82,10 @@ const ConfigNumberProperty = ({
       className={className}
       onSave={() => handleComponentUpdate(currentComponent)}
       onCancel={() => setCurrentPropertyValue(initialPropertyValue)}
-      isSaveDisabled={componentComparison({ initialComponent, currentComponent })}
+      isSaveDisabled={
+        componentComparison({ initialComponent, currentComponent }) ||
+        !!validateNumberOfAttachments(currentComponent, propertyKey, currentComponent[propertyKey])
+      }
     >
       <EditNumberValue
         component={currentComponent}
