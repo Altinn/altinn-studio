@@ -13,6 +13,11 @@ import {
   type ValidationSeverity,
 } from 'src/features/validation';
 import { deriveNodes, withCurrentDataModelPath } from 'src/features/validation/deriveNodes';
+import {
+  deriveRepeatingGroupRowValidations,
+  getRepeatingGroupRowValidations,
+  type RepeatingGroupRowValidations,
+} from 'src/features/validation/repeatingGroupRowValidations';
 import { getInitialMaskFromItem, selectValidations } from 'src/features/validation/utils';
 import {
   type CompDef,
@@ -23,7 +28,11 @@ import {
   type ValidationFilter,
 } from 'src/layout';
 import { getDerivedNodeDescendantIds } from 'src/utils/layout/derivedNodeTraversal';
-import { getCurrentDataModelPath, getIndexedDataModelBindings } from 'src/utils/layout/rowContext';
+import {
+  getCurrentDataModelPath,
+  getIndexedDataModelBindings,
+  getRepeatingGroupRowIndex,
+} from 'src/utils/layout/rowContext';
 import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { DerivedValidationNode, DeriveNodesInputs } from 'src/features/validation/deriveNodes';
@@ -50,6 +59,7 @@ export type DerivedValidationState = {
   nodeIdsByRowId: Map<string, string[]>;
   rawValidationsByNode: Map<string, AnyValidation[]>;
   visibleBreakdownByNode: Map<string, ValidationVisibilityBreakdown>;
+  repeatingGroupRowsByNode: Map<string, RepeatingGroupRowValidations[]>;
 };
 
 export interface DerivedValidationStateInputs extends DeriveNodesInputs {
@@ -267,6 +277,18 @@ function getRawValidationsForNode(
   }
 
   for (const { validation, dataType } of backendValidationsByComponentId.get(node.id) ?? emptyArray) {
+    if (
+      item.type === 'RepeatingGroup' &&
+      'field' in validation &&
+      bindings.some(
+        ([key, reference]) =>
+          key === 'group' &&
+          reference.dataType === dataType &&
+          getRepeatingGroupRowIndex(validation.field, reference) !== undefined,
+      )
+    ) {
+      continue;
+    }
     const binding =
       'field' in validation
         ? bindings.find(([, reference]) => reference.dataType === dataType && reference.field === validation.field)
@@ -331,6 +353,7 @@ export function buildDerivedValidationState(
   const nodeIdsByRowId = new Map<string, string[]>();
   const rawValidationsByNode = new Map<string, AnyValidation[]>();
   const visibleBreakdownByNode = new Map<string, ValidationVisibilityBreakdown>();
+  const repeatingGroupRowsByNode = new Map<string, RepeatingGroupRowValidations[]>();
 
   for (const node of nodes) {
     const item = state.bootstrap.layoutLookups.getComponent(node.baseId);
@@ -352,7 +375,12 @@ export function buildDerivedValidationState(
         backendValidationsByComponentId,
       ),
     );
-    visibleBreakdownByNode.set(node.id, getVisibilityBreakdown(state, node, item));
+    const visibility = getVisibilityBreakdown(state, node, item);
+    visibleBreakdownByNode.set(node.id, visibility);
+    const rowValidations = deriveRepeatingGroupRowValidations(state, node, item, inputs, visibility.effective);
+    if (rowValidations.length > 0) {
+      repeatingGroupRowsByNode.set(node.id, rowValidations);
+    }
   }
 
   return {
@@ -362,6 +390,7 @@ export function buildDerivedValidationState(
     nodeIdsByRowId,
     rawValidationsByNode,
     visibleBreakdownByNode,
+    repeatingGroupRowsByNode,
   };
 }
 
@@ -404,11 +433,23 @@ export function getNodeRefValidations(
   severity?: ValidationSeverity,
   includeHidden = false,
 ): NodeRefValidation[] {
+  return [
+    ...getOwnNodeRefValidations(derived, nodeId, mask, severity, includeHidden),
+    ...getRepeatingGroupRowValidations(derived, nodeId, { mask, severity, includeHidden }),
+  ];
+}
+
+function getOwnNodeRefValidations(
+  derived: DerivedValidationState,
+  nodeId: string,
+  mask: NodeVisibility,
+  severity?: ValidationSeverity,
+  includeHidden = false,
+): NodeRefValidation[] {
   const node = derived.nodeById.get(nodeId);
   if (!node) {
     return emptyArray;
   }
-
   return getValidationsForNode(derived, nodeId, mask, severity, includeHidden).map((validation) => ({
     ...validation,
     baseComponentId: node.baseId,
@@ -426,4 +467,28 @@ export function getValidationDescendantIds(
   restriction?: number,
 ): string[] {
   return getDerivedNodeDescendantIds(derived.nodes, nodeId, restriction);
+}
+
+interface DeepValidationQuery {
+  mask: NodeVisibility;
+  severity?: ValidationSeverity;
+  /** Includes the node's own messages, not only those of its rows and descendants. */
+  includeSelf: boolean;
+  /** Limits a repeating group to one of its rows. */
+  rowIndex?: number;
+}
+
+/** Includes object validations owned by rows without including the array's own messages in row-only scopes. */
+export function getDeepNodeRefValidations(
+  derived: DerivedValidationState,
+  nodeId: string,
+  { mask, severity, includeSelf, rowIndex }: DeepValidationQuery,
+): NodeRefValidation[] {
+  return [
+    ...(includeSelf ? getOwnNodeRefValidations(derived, nodeId, mask, severity) : []),
+    ...getRepeatingGroupRowValidations(derived, nodeId, { mask, severity, rowIndex }),
+    ...getValidationDescendantIds(derived, nodeId, rowIndex).flatMap((id) =>
+      getNodeRefValidations(derived, id, mask, severity),
+    ),
+  ];
 }

@@ -7,6 +7,38 @@ import type { CompExternal } from 'src/layout/layout';
 const appFrontend = new AppFrontend();
 const mui = new Common();
 
+const rowIndicator = '[data-testid="row-validation-indicator"]';
+const fieldIndicator = '[data-testid="table-field-validation-indicator"]';
+const rowPanel = '[data-testid="table-row-validation-messages"]';
+const showcaseRow = (variant: string, index: number) =>
+  `#group-validation-${variant}-table-body > tr[data-row-num="${index}"]`;
+const rowMessages = () => cy.findByRole('dialog', { name: 'Meldinger' });
+
+function openRowMessages(variant: string, index: number) {
+  cy.get(showcaseRow(variant, index)).find(rowIndicator).click({ scrollBehavior: 'center' });
+  rowMessages().should('be.visible').and('have.css', 'opacity', '1');
+}
+
+/** The arrow of each field with a message must point from the field to the one panel under the row. */
+function assertPanelArrowsPointAtFields(variant: string, index: number) {
+  cy.get(showcaseRow(variant, index)).should(($row) => {
+    const panel = $row[0].nextElementSibling?.querySelector('td > ul');
+    expect(panel, 'one shared row panel').to.exist;
+    const fields = $row[0].querySelectorAll('[data-validation-field]:has([data-validation-arrow])');
+    expect(fields).to.have.length(2);
+    for (const field of fields) {
+      const target = field.getBoundingClientRect();
+      const arrow = field.querySelector('[data-validation-arrow]')!;
+      const bounds = arrow.getBoundingClientRect();
+      const panelTop = panel!.getBoundingClientRect().top;
+      expect(Math.abs(bounds.left + bounds.width / 2 - target.left - target.width / 2)).to.be.lessThan(2);
+      expect(bounds.top, 'arrow overlaps panel border').to.be.lessThan(panelTop);
+      expect(bounds.bottom).to.be.greaterThan(panelTop);
+      expect(arrow.getAttribute('data-color')).to.equal(panel!.getAttribute('data-color'));
+    }
+  });
+}
+
 describe('Group', () => {
   const init = () => {
     cy.goto('group');
@@ -153,6 +185,128 @@ describe('Group', () => {
     cy.get(appFrontend.fieldValidation('mainGroup')).should('not.exist');
     cy.get(appFrontend.group.saveSubGroup).clickAndGone();
     cy.get(appFrontend.group.saveMainGroup).clickAndGone();
+
+    // The validation showcase shows the same example rows in three layouts, with messages from the real backend validator
+    cy.gotoNavPage('Validering i grupper');
+    cy.findByRole('button', { name: 'Last eksempeldata' }).click();
+    cy.get('#group-validation-default-table-body > tr[data-row-num]').should('have.length', 7);
+    cy.waitUntilSaved();
+    cy.findByRole('button', { name: /Neste/ }).click();
+    cy.navPage('Validering i grupper').should('have.attr', 'aria-current', 'page');
+    cy.get(appFrontend.errorReport).should('be.visible');
+
+    // Every row has an indicator for its most severe message, and the row without messages has none
+    const severities = ['danger', 'warning', 'info', 'success', 'danger'];
+    for (const variant of ['default', 'mixed', 'table']) {
+      for (const [index, color] of severities.entries()) {
+        cy.get(showcaseRow(variant, index)).find(rowIndicator).should('have.attr', 'data-color', color);
+      }
+      cy.get(showcaseRow(variant, 5)).find(rowIndicator).should('not.exist');
+    }
+
+    // Table-only rows share one panel under the row, with an arrow from each field that has a message
+    cy.get(showcaseRow('table', 4)).find(fieldIndicator).should('have.length', 2);
+    cy.get(showcaseRow('table', 4)).next().find('td > ul > li').should('have.length', 2);
+    cy.get(showcaseRow('table', 4)).next().should('contain.text', 'Oppgi navnet slik det står i registeret.');
+    assertPanelArrowsPointAtFields('table', 4);
+    cy.viewport(1050, 768);
+    assertPanelArrowsPointAtFields('table', 4);
+    cy.viewport(1536, 768);
+
+    // The cell copy of a message is only visually hidden, so screen readers read it where the field is
+    cy.get('[data-validation="validation-table-name-4"]')
+      .should('contain.text', 'Oppgi navnet slik det står i registeret.')
+      .and('have.css', 'clip-path', 'inset(50%)');
+    cy.get('#validation-table-name-4').should('have.attr', 'aria-invalid', 'true');
+
+    // Rows with fields outside the table (mixed layout) keep the panel for the table fields only
+    cy.get(showcaseRow('mixed', 4)).next().should('have.attr', 'data-testid', 'table-row-validation-messages');
+
+    // A message in the popover leads to its field, also for a later row and a field only shown when the row is open
+    openRowMessages('default', 4);
+    rowMessages().findAllByRole('listitem').should('have.length', 2);
+    rowMessages().find('[role="link"][data-target-node="validation-default-age-4"]').click();
+    cy.get('#validation-default-age-4').should('have.focus');
+    openRowMessages('default', 6);
+    rowMessages().find('[role="link"][data-target-node="validation-default-name-6"]').first().click();
+    cy.get('#validation-default-name-6').should('have.focus');
+    openRowMessages('mixed', 2);
+    rowMessages().find('[role="link"][data-target-node="validation-mixed-age-2"]').click();
+    cy.get('#validation-mixed-age-2').should('have.focus');
+    cy.get(appFrontend.errorReport)
+      .findAllByRole('button', { name: 'Navnet stemmer ikke med opplysningene i registeret.' })
+      .first()
+      .click();
+    cy.get('#validation-default-name-0').should('have.focus');
+
+    cy.visualTesting('group:validation-showcase');
+
+    // On a phone the messages stay in the cells, next to the fields they belong to
+    cy.viewport(390, 844);
+    cy.document().should((document) => expect(document.documentElement.scrollWidth).to.be.at.most(390));
+    cy.get(showcaseRow('table', 4)).should('contain.text', 'Oppgi navnet slik det står i registeret.');
+    cy.get(showcaseRow('table', 4)).should('contain.text', 'Alderen er høyere enn ved forrige innrapportering.');
+    cy.get(`#group-validation-table ${rowPanel}`).should('not.exist');
+    cy.get(showcaseRow('table', 4))
+      .find('button')
+      .each(($button) => {
+        expect($button[0].getBoundingClientRect().width).to.be.at.least(44);
+        expect($button[0].getBoundingClientRect().height).to.be.at.least(44);
+      });
+    openRowMessages('default', 4);
+    rowMessages().should(($dialog) => {
+      const bounds = $dialog[0].getBoundingClientRect();
+      expect(bounds.left).to.be.at.least(0);
+      expect(bounds.right).to.be.at.most(390);
+    });
+    rowMessages().find('[role="link"][data-target-node="validation-default-age-4"]').click();
+    cy.get('#validation-default-age-4').should('have.focus');
+    cy.viewport(1536, 768);
+
+    // A message for the row object itself is only shown in the panel, and blocks Next and saving of that row
+    cy.findByRole('checkbox', { name: 'På feltene' }).uncheck();
+    cy.findByRole('checkbox', { name: 'På raden samlet' }).check();
+    cy.waitUntilSaved();
+    cy.findByRole('button', { name: /Neste/ }).click();
+    cy.navPage('Validering i grupper').should('have.attr', 'aria-current', 'page');
+    // The message names its pet, so every place it shows has to read it in the context of its row
+    const rowObjectMessage = (pet: string) => `Opplysningene om ${pet} må kontrolleres samlet.`;
+    cy.get(appFrontend.errorReport).should('contain.text', rowObjectMessage('Balder'));
+    cy.get(appFrontend.errorReport).should('contain.text', rowObjectMessage('Milo'));
+    cy.get(showcaseRow('table', 4)).next().should('contain.text', rowObjectMessage('Milo'));
+    cy.get(showcaseRow('default', 4)).find(rowIndicator).click({ scrollBehavior: 'center' });
+    rowMessages().should('contain.text', rowObjectMessage('Milo')).type('{esc}');
+    // Without editable cells, the panel shows the row's own message only while the row is open
+    cy.get(showcaseRow('default', 4)).next().should('contain.text', rowObjectMessage('Milo'));
+    cy.get(showcaseRow('default', 4)).findByTestId('repeating-group-edit-button').click();
+    cy.get(showcaseRow('default', 4)).next().should('not.contain.text', rowObjectMessage('Milo'));
+    cy.get(showcaseRow('mixed', 0)).findByTestId('repeating-group-edit-button').click();
+    cy.get('#group-validation-mixed')
+      .find(appFrontend.group.editContainer)
+      .findByRole('button', { name: 'Lagre og lukk' })
+      .click();
+    cy.get('#group-validation-mixed').find(appFrontend.group.editContainer).should('be.visible');
+    cy.get(showcaseRow('mixed', 0)).next().next().find(appFrontend.group.editContainer).should('be.visible');
+    cy.get(showcaseRow('mixed', 0)).next().should('contain.text', rowObjectMessage('Balder'));
+
+    // Pagination counts visible rows, so hiding Balder moves Milo's error onto the second page.
+    cy.changeLayout((component) => {
+      if (component.type === 'RepeatingGroup' && component.id === 'validation-default') {
+        component.pagination = { rowsPerPage: 2 };
+        component.hiddenRow = ['equals', ['dataModel', 'Pets.Name'], 'Balder'];
+      }
+    });
+    cy.get('[data-pagination-id="validation-default"]').findByRole('button', { name: 'Side 1' }).should('exist');
+    cy.get('[data-pagination-id="validation-default"]').findByRole('button', { name: 'Rett feil her: Side 2' }).click();
+    cy.get(showcaseRow('default', 4)).should('contain.text', 'Milo');
+    cy.get('[data-pagination-id="validation-default"]')
+      .findByRole('button', { name: 'Rett feil her: Side 3' })
+      .should('exist');
+
+    // A message for the whole array is not tied to a row, so it only shows in the error report
+    cy.findByRole('checkbox', { name: 'På hele gruppen' }).check();
+    cy.waitUntilSaved();
+    cy.get(appFrontend.errorReport).should('contain.text', 'Kontroller kjæledyrene i denne gruppen samlet.');
   });
 
   it('Validation on repeating group for minCount', () => {
@@ -469,7 +623,8 @@ describe('Group', () => {
 
     cy.gotoNavPage('repeating (store endringer)');
     cy.get('[data-validation="currentValue2-5"]').should('contain.text', 'Det er teit å endre fra 88889');
-    cy.get('[data-validation="currentValue2-5"]').findByRole('link', { name: 'Trykk for å endre det' }).click();
+    // The message is shown once, in the row's validation panel. Its copy in the cell is only for screen readers.
+    cy.get('[data-testid="table-row-validation-messages"] a').contains('Trykk for å endre det').click();
 
     // The openByDefault setting should have no effect here, as we
     // are navigating to a different component via linkToComponent.
@@ -478,7 +633,7 @@ describe('Group', () => {
 
     cy.gotoNavPage('repeating (store endringer)');
     cy.get('[data-validation="newValue2-5"]').should('contain.text', 'Det er teit å endre til 55554');
-    cy.get('[data-validation="newValue2-5"]').findByRole('link', { name: 'Trykk for å gjøre noe helt annet' }).click();
+    cy.get('[data-testid="table-row-validation-messages"] a').contains('Trykk for å gjøre noe helt annet').click();
 
     // Now we should have focussed outside the repeating group
     cy.get('#reduxOptions-expressions-radiobuttons').find('input[type="radio"]').first().should('be.focused');
@@ -707,7 +862,7 @@ describe('Group', () => {
     cy.get('#group-mainGroup table th').eq(1).should('have.text', 'newValue title');
 
     const getRows = () => cy.get(appFrontend.group.mainGroupTableBody).find('tr');
-    getRows().eq(0).find('td').last().should('contain.text', 'Rediger');
+    getRows().eq(0).findByTestId('repeating-group-edit-button').should('contain.text', 'Rediger');
     getRows().eq(3).find('td').eq(4).should('contain.text', 'Lagre og lukk');
     getRows().eq(3).find('td').eq(5).should('contain.text', 'Slett');
 

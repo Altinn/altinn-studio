@@ -8,6 +8,7 @@ import type { UsePaginationProps } from '@digdir/designsystemet-react';
 
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { getRowObjectIndex } from 'src/features/validation/repeatingGroupRowValidations';
 import { useVisibleValidationsDeep } from 'src/features/validation/validationHooks';
 import classes from 'src/layout/RepeatingGroup/Pagination/RepeatingGroupPagination.module.css';
 import {
@@ -206,17 +207,21 @@ function usePagesWithErrors(rowsPerPage: number | undefined, baseComponentId: st
     }
 
     const { depth } = splitDashedKey(indexedId);
+    // Nested groups' row-object validations carry the nested group's id, whose depth already holds this group's row.
     const rowsWithErrors = new Set<number>(
-      deepValidations.map((v) => splitDashedKey(v.nodeId).depth.slice(depth.length)[0]),
+      deepValidations.map(
+        (v) => getRowObjectIndex(v, indexedId) ?? splitDashedKey(v.nodeId).depth.slice(depth.length)[0],
+      ),
     );
 
     const pagesWithErrors = new Set<number>();
     for (const i of rowsWithErrors) {
-      if (!rows.some((row) => row.index === i)) {
+      const visibleIndex = rows.findIndex((row) => row.index === i);
+      if (visibleIndex === -1) {
         continue;
       }
 
-      const pageNumber = Math.floor(i / rowsPerPage);
+      const pageNumber = Math.floor(visibleIndex / rowsPerPage);
       pagesWithErrors.add(pageNumber);
     }
 

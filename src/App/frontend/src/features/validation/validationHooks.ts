@@ -17,10 +17,11 @@ import { createValidationStateDeriver } from 'src/features/validation/createVali
 import {
   buildDerivedValidationState,
   emptyBreakdown,
+  getDeepNodeRefValidations,
   getNodeRefValidations,
-  getValidationDescendantIds,
   getValidationsForNode,
 } from 'src/features/validation/deriveValidationState';
+import { hasRepeatingGroupRowErrors } from 'src/features/validation/repeatingGroupRowValidations';
 import { useAllNavigationParams } from 'src/hooks/navigation';
 import { useIsPdf } from 'src/hooks/useIsPdf';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
@@ -185,9 +186,9 @@ export function useVisibleValidationsDeep(
     const derived = derive(state, {
       ...inputs,
       includedPageKeys: pageKey ? [pageKey] : undefined,
-      descendantScope: { nodeId: indexedId, includeSelf, restriction },
+      descendantScope: { nodeId: indexedId, includeSelf: true, restriction },
     });
-    return derived.nodes.flatMap((node) => getNodeRefValidations(derived, node.id, mask, severity));
+    return getDeepNodeRefValidations(derived, indexedId, { mask, severity, includeSelf, rowIndex: restriction });
   });
 }
 
@@ -206,11 +207,7 @@ export function useVisibleValidationsDeepSelector() {
       severity?: ValidationSeverity,
     ): NodeRefValidation[] => {
       const freshDerived = buildFreshDerivedState();
-      const nodeIds = [
-        ...(includeSelf ? [indexedId] : emptyArray),
-        ...getValidationDescendantIds(freshDerived, indexedId, restriction),
-      ];
-      return nodeIds.flatMap((nodeId) => getNodeRefValidations(freshDerived, nodeId, mask, severity));
+      return getDeepNodeRefValidations(freshDerived, indexedId, { mask, severity, includeSelf, rowIndex: restriction });
     },
     [buildFreshDerivedState],
   );
@@ -239,8 +236,8 @@ export function usePageValidations(pageKeys: string[]) {
       return [
         pageKey,
         {
-          visibleErrors: nodeIds.flatMap((nodeId) => getValidationsForNode(derived, nodeId, 'visible', 'error')),
-          allErrors: nodeIds.flatMap((nodeId) => getValidationsForNode(derived, nodeId, ValidationMask.All, 'error')),
+          visibleErrors: nodeIds.flatMap((nodeId) => getNodeRefValidations(derived, nodeId, 'visible', 'error')),
+          allErrors: nodeIds.flatMap((nodeId) => getNodeRefValidations(derived, nodeId, ValidationMask.All, 'error')),
         },
       ];
     }),
@@ -259,7 +256,7 @@ export function useGetNodesWithErrors() {
     (mask: NodeVisibility, severity?: ValidationSeverity, includeHidden = false) => {
       const freshDerived = buildFreshDerivedState();
       return freshDerived.nodes.flatMap((node) =>
-        getValidationsForNode(freshDerived, node.id, mask, severity, includeHidden),
+        getNodeRefValidations(freshDerived, node.id, mask, severity, includeHidden),
       );
     },
     [buildFreshDerivedState],
@@ -285,14 +282,14 @@ export function usePruneValidationMasks() {
   const hasFormErrors =
     !formMask ||
     !derived ||
-    derived.nodes.some((node) => getValidationsForNode(derived, node.id, formMask, 'error').length > 0);
+    derived.nodes.some((node) => getNodeRefValidations(derived, node.id, formMask, 'error').length > 0);
   const stalePages = useShallowMemo(
     derived
       ? Object.entries(pageMasks)
           .filter(
             ([pageKey, mask]) =>
               !(derived.nodeIdsByPage.get(pageKey) ?? emptyArray).some(
-                (nodeId) => getValidationsForNode(derived, nodeId, mask, 'error').length > 0,
+                (nodeId) => getNodeRefValidations(derived, nodeId, mask, 'error').length > 0,
               ),
           )
           .map(([pageKey]) => pageKey)
@@ -304,8 +301,8 @@ export function usePruneValidationMasks() {
           .filter(
             ([rowId, mask]) =>
               !(derived.nodeIdsByRowId.get(rowId) ?? emptyArray).some(
-                (nodeId) => getValidationsForNode(derived, nodeId, mask, 'error').length > 0,
-              ),
+                (nodeId) => getNodeRefValidations(derived, nodeId, mask, 'error').length > 0,
+              ) && !hasRepeatingGroupRowErrors(derived, rowId, mask),
           )
           .map(([rowId]) => rowId)
       : emptyArray,

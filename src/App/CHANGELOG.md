@@ -10,6 +10,15 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- Repeating group rows show an icon for their most severe validation message. The icon lists the row's messages, each leading to its field, and rows edited in the table show them in a panel below the row. ([#19853](https://github.com/Altinn/altinn-studio/issues/19853), [#19946](https://github.com/Altinn/altinn-studio/issues/19946))
+
+### Changed
+
+- Repeating group rows with errors keep their configured edit-button text. ([#19853](https://github.com/Altinn/altinn-studio/issues/19853))
+- Validations on the data object of a repeating group row, such as `Pets[2]`, now show on that row and in the error summary, and stop **Next** and saving the row. ([#19853](https://github.com/Altinn/altinn-studio/issues/19853))
+
 ### Fixed
 
 - Deleting a row in a repeating group deletes the attachments uploaded in that row and its nested rows, instead of leaving them in the instance. ([#22139](https://github.com/Altinn/altinn-studio/pull/22139))

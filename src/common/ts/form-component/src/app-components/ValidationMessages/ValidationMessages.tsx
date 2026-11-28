@@ -16,7 +16,7 @@ export interface ValidationMessageItem {
 export interface ValidationMessagesProps {
   /** Rendered as the wrapper div id  */
   id?: string;
-  /** Rendered as the `data-validation` attribute */
+  /** Rendered as the `data-validation` attribute. `visuallyHiddenValidations` in the app frontend depends on it to hide the message in repeating-group table cells. */
   dataValidation?: string;
   validations: ValidationMessageItem[];
 }

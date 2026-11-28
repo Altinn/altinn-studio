@@ -15,6 +15,8 @@ import {
   replaceAndPreventResetOptions,
 } from 'src/features/navigation/navigationOptions';
 import { useOnSubformExitValidation } from 'src/features/validation/callbacks/onSubformExitValidation';
+import { getRepeatingGroupRowFocusTarget } from 'src/features/validation/repeatingGroupRowValidations';
+import { useGetDerivedValidationState } from 'src/features/validation/validationHooks';
 import {
   getLiveInstanceNavigationParams,
   useAllNavigationParams,
@@ -512,6 +514,7 @@ export function useVisitedPages() {
 const emptyArray = [];
 
 export function useNavigateToComponent() {
+  const getDerivedValidationState = useGetDerivedValidationState();
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const navigateToPage = useNavigateToPage();
   const currentPageId = useCurrentView();
@@ -522,6 +525,14 @@ export function useNavigateToComponent() {
     baseComponentId: string,
     options: Omit<NavigateToComponentOptions, 'shouldFocus'> | undefined,
   ) => {
+    const row = options?.error?.repeatingGroupRow;
+    if (row) {
+      const target = getRepeatingGroupRowFocusTarget(getDerivedValidationState(), layoutLookups, indexedId, row);
+      if (!target) {
+        return;
+      }
+      indexedId = target;
+    }
     const targetPage = layoutLookups.componentToPage[baseComponentId];
     const errorBindingKey = options?.error?.['bindingKey'] ?? null;
     if (targetPage === currentPageId && tryFocusComponent({ nodeId: indexedId, errorBinding: errorBindingKey })) {

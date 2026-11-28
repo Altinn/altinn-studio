@@ -54,6 +54,7 @@ function snapshot({
       ['Later', ['later-node']],
     ]),
     nodeIdsByRowId: new Map(),
+    repeatingGroupRowsByNode: new Map(),
     rawValidationsByNode: new Map(
       nodes.map((node) => [
         node.id,

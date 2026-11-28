@@ -107,6 +107,8 @@ function fillOutGroup() {
   cy.gotoNavPage('hide');
   cy.get(appFrontend.group.sendersName).type('automation');
   cy.findByRole('button', { name: /Neste/ }).click();
+  cy.navPage('Validering i grupper').should('have.attr', 'aria-current', 'page');
+  cy.findByRole('button', { name: /Neste/ }).click();
   cy.get(appFrontend.group.summaryText).should('be.visible');
 }
 

@@ -5,7 +5,12 @@
   box-shadow: 0 0 0 var(--ds-border-width-focus) var(--ds-color-focus-inner);
 }
 
-.visuallyHidden {
+/*
+ * .visuallyHiddenValidations hides the validation messages inside an element the same way. A message is shown again
+ * while it has focus, so a keyboard user who tabs to a link in it does not focus something invisible.
+ */
+.visuallyHidden,
+.visuallyHiddenValidations [data-validation]:not(:focus-within) {
   border: none;
   padding: 0;
   margin: 0;

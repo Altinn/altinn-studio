@@ -30,9 +30,19 @@ interface IRender {
   numRows?: number;
   validationIssues?: BackendValidationIssue[];
   onServiceTaskPage?: boolean;
+  showField1Validations?: boolean;
+  /** Adds a repeating group `Group.Nested` with one row in every row of the group, as a child of the group. */
+  withNestedGroup?: boolean;
 }
 
-async function render({ container, numRows = 3, validationIssues = [], onServiceTaskPage = false }: IRender = {}) {
+async function render({
+  container,
+  numRows = 3,
+  validationIssues = [],
+  onServiceTaskPage = false,
+  showField1Validations = false,
+  withNestedGroup = false,
+}: IRender = {}) {
   window.altinnAppGlobalData.textResources!.resources = [
     { id: 'option.label', value: 'Value to be shown' },
     { id: 'button.open', value: 'New open text' },
@@ -47,7 +57,7 @@ async function render({ container, numRows = 3, validationIssues = [], onService
       dataModelBindings: {
         simpleBinding: { dataType: defaultDataTypeMock, field: 'Group.prop1' },
       },
-      showValidations: [],
+      showValidations: showField1Validations ? ['AllExceptRequired'] : [],
       textResourceBindings: {
         title: 'Title1',
       },
@@ -96,6 +106,24 @@ async function render({ container, numRows = 3, validationIssues = [], onService
     },
   ];
 
+  const nestedComponents: ILayout = withNestedGroup
+    ? [
+        getFormLayoutRepeatingGroupMock({
+          id: 'nestedGroup',
+          children: ['nestedField'],
+          dataModelBindings: { group: { dataType: defaultDataTypeMock, field: 'Group.Nested' } },
+        }),
+        {
+          id: 'nestedField',
+          type: 'Input',
+          dataModelBindings: { simpleBinding: { dataType: defaultDataTypeMock, field: 'Group.Nested.value' } },
+          showValidations: [],
+          readOnly: false,
+          required: false,
+        },
+      ]
+    : [];
+
   const group = getFormLayoutRepeatingGroupMock({
     ...mockContainer,
     ...container,
@@ -120,7 +148,7 @@ async function render({ container, numRows = 3, validationIssues = [], onService
           obj.layouts = {
             FormLayout: {
               data: {
-                layout: [group, ...mockComponents],
+                layout: [group, ...mockComponents, ...nestedComponents],
               },
             },
           };
@@ -129,6 +157,7 @@ async function render({ container, numRows = 3, validationIssues = [], onService
               [ALTINN_ROW_ID]: uuidv4(),
               prop1: `value${index + 1}`,
               checkboxBinding: ['option.value'],
+              ...(withNestedGroup ? { Nested: [{ [ALTINN_ROW_ID]: uuidv4(), value: `nested${index + 1}` }] } : {}),
             })),
           };
           obj.dataModels[defaultDataTypeMock].initialValidationIssues = validationIssues;
@@ -421,6 +450,228 @@ describe('RepeatingGroupContainer', () => {
 
     const closeButtons = screen.getAllByText('New close text');
     expect(closeButtons).toHaveLength(1);
+  });
+
+  it('keeps expression-based edit labels while row errors are visible', async () => {
+    await render({
+      container: {
+        validateOnSaveRow: ['All'],
+        textResourceBindings: {
+          editButtonOpen: ['if', ['equals', ['dataModel', 'Group.prop1'], 'value1'], 'button.open', 'else', ''],
+          editButtonClose: 'button.close',
+        },
+      },
+      validationIssues: [
+        {
+          customTextKey: 'Feltet er feil',
+          field: 'Group[0].prop1',
+          dataElementId: defaultMockDataElementId,
+          severity: BackendValidationSeverity.Error,
+          source: 'custom',
+        },
+      ],
+    });
+
+    // Empty evaluated labels still fall back to the default for the other rows.
+    expect(screen.getAllByRole('button', { name: /Rediger/i })).toHaveLength(2);
+    await userEvent.click(screen.getByRole('button', { name: /New open text/i }));
+    await userEvent.click(screen.getByRole('button', { name: /New close text/i }));
+    expect(await screen.findByRole('button', { name: 'Vis feil value1' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /New close text/i })).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.queryByRole('button', { name: /Rett feil her/i })).not.toBeInTheDocument();
+  });
+
+  it('marks the pagination page of a row with a row-object error', async () => {
+    await render({
+      numRows: 4,
+      container: { pagination: { rowsPerPage: 2 } },
+      validationIssues: [
+        {
+          customTextKey: 'Raden er feil',
+          field: 'Group[2]',
+          dataElementId: defaultMockDataElementId,
+          severity: BackendValidationSeverity.Error,
+          source: 'custom',
+        },
+      ],
+    });
+
+    // Row 2 is the first row on page 2. Its error is bound to the row object, not to a child field.
+    expect(await screen.findByRole('button', { name: /Rett feil her: Side 2/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Rett feil her: Side 1/i })).not.toBeInTheDocument();
+  });
+
+  it('marks the outer pagination page of a row-object error in a nested group', async () => {
+    await render({
+      numRows: 4,
+      withNestedGroup: true,
+      container: { pagination: { rowsPerPage: 2 }, children: ['field1', 'nestedGroup'] },
+      validationIssues: [
+        {
+          customTextKey: 'Den nestede raden er feil',
+          field: 'Group[2].Nested[0]',
+          dataElementId: defaultMockDataElementId,
+          severity: BackendValidationSeverity.Error,
+          source: 'custom',
+        },
+      ],
+    });
+
+    // The error is on the first nested row of outer row 2, so the outer page is 2. The nested row index (0) is not a page.
+    expect(await screen.findByRole('button', { name: /Rett feil her: Side 2/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Rett feil her: Side 1/i })).not.toBeInTheDocument();
+  });
+
+  describe('row panel messages and screen readers', () => {
+    const fieldIssue: BackendValidationIssue = {
+      customTextKey: 'Feltet er feil',
+      field: 'Group[0].prop1',
+      dataElementId: defaultMockDataElementId,
+      severity: BackendValidationSeverity.Error,
+      source: 'custom',
+    };
+    const rowObjectIssue: BackendValidationIssue = {
+      customTextKey: 'Raden er feil',
+      field: 'Group[0]',
+      dataElementId: defaultMockDataElementId,
+      severity: BackendValidationSeverity.Error,
+      source: 'custom',
+    };
+    const onlyTable = { edit: { ...mockContainer.edit, mode: 'onlyTable' as const } };
+
+    it('shows a field message in a screen-reader-hidden panel item and keeps the cell copy for screen readers', async () => {
+      await render({ numRows: 1, showField1Validations: true, container: onlyTable, validationIssues: [fieldIssue] });
+
+      const panel = await screen.findByTestId('table-row-validation-messages');
+      const panelMessage = within(panel).getByText(/Feltet er feil/);
+      expect(panelMessage.closest('li')).toHaveAttribute('aria-hidden', 'true');
+
+      const cellCopy = document.querySelector('[data-validation]');
+      expect(cellCopy).toHaveTextContent('Feltet er feil');
+      expect(panel).not.toContainElement(cellCopy as HTMLElement);
+      expect(cellCopy?.closest('[aria-hidden]')).toBeNull();
+      expect(screen.getAllByText(/Feltet er feil/)).toHaveLength(2);
+    });
+
+    it('keeps a row-object message in the panel readable and hides its field message', async () => {
+      await render({
+        numRows: 1,
+        showField1Validations: true,
+        container: onlyTable,
+        validationIssues: [fieldIssue, rowObjectIssue],
+      });
+
+      const panel = await screen.findByTestId('table-row-validation-messages');
+      expect(
+        within(panel)
+          .getByText(/Raden er feil/)
+          .closest('li'),
+      ).not.toHaveAttribute('aria-hidden');
+      expect(
+        within(panel)
+          .getByText(/Feltet er feil/)
+          .closest('li'),
+      ).toHaveAttribute('aria-hidden', 'true');
+      expect(panel).not.toHaveAttribute('aria-hidden');
+    });
+
+    it('takes links in a hidden panel message out of the tab order but leaves the cell copy focusable', async () => {
+      await render({
+        numRows: 1,
+        showField1Validations: true,
+        container: onlyTable,
+        validationIssues: [{ ...fieldIssue, customTextKey: 'Les [mer](https://www.altinn.no/)' }],
+      });
+
+      const panel = await screen.findByTestId('table-row-validation-messages');
+      const panelLink = panel.querySelector('a');
+      expect(panelLink).toHaveAttribute('tabindex', '-1');
+      const cellLink = document.querySelector('[data-validation] a');
+      expect(cellLink).not.toHaveAttribute('tabindex', '-1');
+    });
+
+    it('hides a message row with only field messages from screen readers', async () => {
+      await render({ numRows: 1, showField1Validations: true, container: onlyTable, validationIssues: [fieldIssue] });
+
+      const panel = await screen.findByTestId('table-row-validation-messages');
+      expect(panel).toHaveAttribute('aria-hidden', 'true');
+    });
+  });
+
+  describe('row validation indicator', () => {
+    const issue = (
+      field: string,
+      severity: BackendValidationSeverity,
+      customTextKey: string,
+    ): BackendValidationIssue => ({
+      customTextKey,
+      field,
+      dataElementId: defaultMockDataElementId,
+      severity,
+      source: 'custom',
+    });
+    const mixedSeverities = [
+      issue('Group[0].prop1', BackendValidationSeverity.Warning, 'Advarsel i feltet'),
+      issue('Group[0].prop1', BackendValidationSeverity.Error, 'Feil i feltet'),
+      issue('Group[1].prop1', BackendValidationSeverity.Informational, 'Info om feltet'),
+    ];
+
+    it('labels each row by its most severe message and leaves a row without messages alone', async () => {
+      await render({ numRows: 3, showField1Validations: true, validationIssues: mixedSeverities });
+
+      expect(await screen.findByRole('button', { name: 'Vis feil value1' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Vis informasjon value2' })).toBeInTheDocument();
+      expect(screen.getAllByTestId('row-validation-indicator')).toHaveLength(2);
+    });
+
+    it('lists every message of the row in a popover that closes and returns focus to the indicator', async () => {
+      await render({ numRows: 1, showField1Validations: true, validationIssues: mixedSeverities.slice(0, 2) });
+
+      const indicator = await screen.findByTestId('row-validation-indicator');
+      await userEvent.click(indicator);
+      const dialog = await screen.findByRole('dialog', { name: 'Meldinger' });
+      expect(within(dialog).getAllByRole('listitem')).toHaveLength(2);
+      expect(dialog).toHaveTextContent('Feil i feltet');
+      expect(dialog).toHaveTextContent('Advarsel i feltet');
+
+      await userEvent.click(within(dialog).getByRole('button', { name: 'Lukk' }));
+      expect(screen.queryByRole('dialog', { name: 'Meldinger' })).not.toBeInTheDocument();
+      expect(indicator).toHaveFocus();
+    });
+
+    it('closes the popover when keyboard focus leaves it', async () => {
+      await render({ numRows: 1, showField1Validations: true, validationIssues: mixedSeverities.slice(0, 2) });
+
+      await userEvent.click(await screen.findByTestId('row-validation-indicator'));
+      await screen.findByRole('dialog', { name: 'Meldinger' });
+      await userEvent.click(screen.getByRole('button', { name: /Legg til ny/ }));
+      await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Meldinger' })).not.toBeInTheDocument());
+    });
+
+    it('renders a link in a message as a real link that does not navigate away from the popover', async () => {
+      await render({
+        numRows: 1,
+        showField1Validations: true,
+        validationIssues: [
+          issue('Group[0].prop1', BackendValidationSeverity.Warning, 'Kontroller [registeret](https://www.altinn.no/)'),
+        ],
+      });
+
+      await userEvent.click(await screen.findByTestId('row-validation-indicator'));
+      const dialog = await screen.findByRole('dialog', { name: 'Meldinger' });
+      const link = within(dialog).getByRole('link', { name: 'registeret' });
+      expect(link).toHaveAttribute('href', 'https://www.altinn.no/');
+      expect(link.closest('button')).toBeNull();
+    });
+
+    it.each([
+      { name: 'only the table', edit: { mode: 'onlyTable' as const } },
+      { name: 'no edit or delete buttons', edit: { ...mockContainer.edit, editButton: false, deleteButton: false } },
+    ])('keeps the indicator when the row has $name', async ({ edit }) => {
+      await render({ numRows: 1, showField1Validations: true, container: { edit }, validationIssues: mixedSeverities });
+
+      expect(await screen.findByRole('button', { name: 'Vis feil value1' })).toBeInTheDocument();
+    });
   });
 
   it('should notify screen readers via a live region when a row is deleted', async () => {

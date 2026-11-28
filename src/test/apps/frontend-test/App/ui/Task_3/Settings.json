@@ -10,6 +10,7 @@
       "option-comp",
       "hide",
       "calculations",
+      "validation-showcase",
       "summary"
     ],
     "excludeFromPdf": ["summary"],

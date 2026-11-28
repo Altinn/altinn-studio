@@ -8,6 +8,7 @@ import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { createValidationStateDeriver } from 'src/features/validation/createValidationStateDeriver';
 import {
+  getDeepNodeRefValidations,
   getNodeRefValidations,
   getValidationDescendantIds,
   getValidationsForNode,
@@ -868,5 +869,159 @@ describe('consumer validation snapshot cache', () => {
     for (const changed of changes) {
       expect(derive(changed, inputs)).not.toBe(snapshot);
     }
+  });
+});
+
+describe('validations on repeating arrays and row objects', () => {
+  function objectFixture() {
+    const { state, inputs } = descendantFixture();
+    state.validation.formMask = 0;
+    for (const id of ['group', 'nested']) {
+      const component = state.bootstrap.layoutLookups.getComponent(id, 'RepeatingGroup');
+      component.showValidations = [];
+      component.minCount = undefined;
+    }
+    for (const id of ['child', 'nested-child', 'unrelated']) {
+      const component = state.bootstrap.layoutLookups.getComponent(id, 'Input');
+      component.showValidations = [];
+      component.required = false;
+    }
+    const model = state.data.models[defaultDataTypeMock];
+    for (const field of [
+      'Group',
+      'Group[0]',
+      'Group[1]',
+      'Group[0].Value',
+      'Group[0].Nested',
+      'Group[0].Nested[1]',
+      'Group[1].Nested[0]',
+    ]) {
+      model.validations.backend[field] = [
+        {
+          field,
+          dataElementId: 'data-id',
+          source: 'Custom',
+          severity: 'error',
+          category: ValidationMask.CustomBackend,
+          message: { key: field },
+          backendValidationId: field,
+        },
+      ];
+    }
+    return { state, inputs };
+  }
+
+  it('uses the group initial mask for its array and exact row objects without revealing child fields', () => {
+    const { state, inputs } = objectFixture();
+    state.bootstrap.layoutLookups.getComponent('group', 'RepeatingGroup').showValidations = ['CustomBackend'];
+    const derived = createValidationStateDeriver()(state, inputs);
+    expect(getValidationsForNode(derived, 'group', 'visible').map((v) => v.message.key)).toEqual(['Group']);
+    expect(getNodeRefValidations(derived, 'group', 'visible').map((v) => v.message.key)).toEqual([
+      'Group',
+      'Group[0]',
+      'Group[1]',
+    ]);
+    expect(getValidationsForNode(derived, 'child-0', 'visible')).toEqual([]);
+    expect(
+      getDeepNodeRefValidations(derived, 'group', { mask: 'visible', includeSelf: false, rowIndex: 0 }).map(
+        (v) => v.message.key,
+      ),
+    ).toEqual(['Group[0]']);
+    expect(
+      getDeepNodeRefValidations(derived, 'group', { mask: 'visible', includeSelf: false, rowIndex: 1 }).map(
+        (v) => v.message.key,
+      ),
+    ).toEqual(['Group[1]']);
+  });
+
+  it('reveals array, row and child errors on Next while a row save exposes only that row', () => {
+    const { state, inputs } = objectFixture();
+    const derive = createValidationStateDeriver();
+    const initial = derive(state, inputs);
+    expect(getNodeRefValidations(initial, 'group', 'visible')).toEqual([]);
+    expect(
+      getDeepNodeRefValidations(initial, 'group', {
+        mask: ValidationMask.CustomBackend,
+        includeSelf: false,
+        rowIndex: 0,
+      }).map((v) => v.message.key),
+    ).toEqual(['Group[0]', 'Group[0].Value', 'Group[0].Nested', 'Group[0].Nested[1]']);
+    const saved = derive(
+      { ...state, validation: { ...state.validation, rowMasks: { 'row-0': ValidationMask.CustomBackend } } },
+      inputs,
+    );
+    expect(getNodeRefValidations(saved, 'group', 'visible').map((v) => v.message.key)).toEqual(['Group[0]']);
+    expect(getValidationsForNode(saved, 'child-0', 'visible')).toHaveLength(1);
+    expect(getNodeRefValidations(saved, 'nested-1', 'visible')).toEqual([]);
+    const next = derive(
+      { ...state, validation: { ...state.validation, pageMasks: { Form: ValidationMask.CustomBackend } } },
+      inputs,
+    );
+    expect(getNodeRefValidations(next, 'group', 'visible').map((v) => v.message.key)).toEqual([
+      'Group',
+      'Group[0]',
+      'Group[1]',
+    ]);
+    expect(getValidationsForNode(next, 'child-0', 'visible')).toHaveLength(1);
+  });
+
+  it('keeps nested row-object targets isolated by both parent and child index', () => {
+    const { state, inputs } = objectFixture();
+    state.validation.pageMasks = { Form: ValidationMask.CustomBackend };
+    const derived = createValidationStateDeriver()(state, inputs);
+    expect(
+      getDeepNodeRefValidations(derived, 'nested-0', { mask: 'visible', includeSelf: false, rowIndex: 1 }).map(
+        (v) => v.message.key,
+      ),
+    ).toEqual(['Group[0].Nested[1]']);
+    expect(
+      getDeepNodeRefValidations(derived, 'nested-0', { mask: 'visible', includeSelf: false, rowIndex: 0 }),
+    ).toEqual([]);
+    expect(
+      getDeepNodeRefValidations(derived, 'nested-1', { mask: 'visible', includeSelf: false, rowIndex: 0 }).map(
+        (v) => v.message.key,
+      ),
+    ).toEqual(['Group[1].Nested[0]']);
+    const scoped = createValidationStateDeriver()(state, {
+      ...inputs,
+      descendantScope: { nodeId: 'group', includeSelf: true, restriction: 1 },
+    });
+    expect(scoped.repeatingGroupRowsByNode.get('group')?.map((row) => row.context.rowIndex)).toEqual([1]);
+    expect(
+      getDeepNodeRefValidations(scoped, 'group', { mask: 'visible', includeSelf: false, rowIndex: 1 }).map(
+        (v) => v.message.key,
+      ),
+    ).toEqual(['Group[1]', 'Group[1].Nested[0]']);
+  });
+
+  it('suppresses hidden row-object errors and keeps the array message below the group', () => {
+    const { state, inputs } = objectFixture();
+    state.bootstrap.layoutLookups.getComponent('group', 'RepeatingGroup').hiddenRow = true;
+    state.validation.pageMasks = { Form: ValidationMask.CustomBackend };
+    const derived = createValidationStateDeriver()(state, inputs);
+    expect(getNodeRefValidations(derived, 'group', 'visible').map((v) => v.message.key)).toEqual(['Group']);
+    expect(getDeepNodeRefValidations(derived, 'group', { mask: 'visible', includeSelf: false, rowIndex: 0 })).toEqual(
+      [],
+    );
+    expect(getNodeRefValidations(derived, 'group', 'visible', undefined, true).map((v) => v.message.key)).toEqual([
+      'Group',
+      'Group[0]',
+      'Group[1]',
+    ]);
+  });
+
+  it('maps an explicitly linked row object once and leaves unknown row targets unbound', () => {
+    const { state, inputs } = objectFixture();
+    const model = state.data.models[defaultDataTypeMock];
+    model.validations.backend['Group[0]'][0].componentId = 'group';
+    model.validations.backend['Group[8]'] = [{ ...model.validations.backend['Group[0]'][0], field: 'Group[8]' }];
+    state.validation.pageMasks = { Form: ValidationMask.CustomBackend };
+    const derived = createValidationStateDeriver()(state, inputs);
+    expect(getValidationsForNode(derived, 'group', 'visible').map((v) => v.message.key)).toEqual(['Group']);
+    expect(getNodeRefValidations(derived, 'group', 'visible').map((v) => v.message.key)).toEqual([
+      'Group',
+      'Group[0]',
+      'Group[1]',
+    ]);
   });
 });

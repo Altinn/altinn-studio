@@ -1,4 +1,5 @@
 using Altinn.App.Core.Models.UserAction;
+using Altinn.App.logic.Validation;
 using Altinn.App.Models;
 
 namespace Altinn.App.Actions;
@@ -15,6 +16,20 @@ public class GeneratePetsAction : IUserAction
             originalData as NestedGroup
             ?? throw new InvalidOperationException(
                 "Expected the 'nested-group' data element to hold a NestedGroup model");
+
+        if (context.ButtonId == "load-validation-examples")
+        {
+            data.Pets = RepeatingGroupShowcaseValidator.CreateExamplePets();
+            data.NumPets = data.Pets.Count;
+            data.ForceShowPets = true;
+            data.Endringsmeldinggrp9786 ??= new();
+            data.Endringsmeldinggrp9786.Avgivergrp9787 ??= new();
+            data.Endringsmeldinggrp9786.Avgivergrp9787.OppgavegiverNavndatadef68 = new()
+            {
+                value = RepeatingGroupShowcaseValidator.FieldMessages,
+            };
+            return UserActionResult.SuccessResult([]);
+        }
 
         if (context.ButtonId == "generatePets")
         {
