@@ -204,6 +204,27 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
                         System.Threading.CancellationToken cancellationToken = default
                     );
                 }
+
+                public abstract record HandlerResult
+                {
+                    private protected HandlerResult() { }
+
+                    public static HandlerResult Success() => new SuccessfulHandlerResult();
+
+                    public static HandlerResult FailedPermanent(string errorMessage) => new FailedHandlerResult(errorMessage);
+                }
+
+                public sealed record SuccessfulHandlerResult : HandlerResult
+                {
+                    internal SuccessfulHandlerResult() { }
+                }
+
+                public sealed record FailedHandlerResult : HandlerResult
+                {
+                    internal FailedHandlerResult(string errorMessage) => ErrorMessage = errorMessage;
+
+                    public string ErrorMessage { get; }
+                }
         """;
 
     /// <summary>
@@ -2663,6 +2684,47 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             "FailedServiceTaskResult failed = ServiceTaskResult.FailedPermanent(\"No archive\");",
             migrated
         );
+    }
+
+    [Fact]
+    public async Task HandlerResultCasesCreatedOrHeld_AreReportedAtTheirLines_AndTypeTestsAreLeft()
+    {
+        var handler = Write(
+            "logic/EndingHandler.cs",
+            """
+            public static class EndingHandler
+            {
+                public static HandlerResult Done() => new SuccessfulHandlerResult();
+
+                public static bool Failed(HandlerResult result) => result is FailedHandlerResult { ErrorMessage: not "" };
+
+                public static HandlerResult Ok() => HandlerResult.Success();
+
+                public static string Message()
+                {
+                    FailedHandlerResult failed = HandlerResult.FailedPermanent("No archive");
+                    return failed.ErrorMessage;
+                }
+            }
+            """
+        );
+
+        var result = Migrate();
+
+        var file = Path.Combine("logic", "EndingHandler.cs");
+        Assert.Equal(
+            [
+                $"{file}:8: if this creates or holds a SuccessfulHandlerResult, it has no public constructor now. "
+                    + "Create it with HandlerResult.Success(), and hold it as HandlerResult.",
+                $"{file}:16: if this creates or holds a FailedHandlerResult, it has no public constructor now. "
+                    + "Create it with HandlerResult.FailedPermanent or FailedRetryable, and hold it as HandlerResult.",
+            ],
+            result.Todos
+        );
+        var migrated = await ReadMigrated(handler);
+        Assert.Contains("=> new SuccessfulHandlerResult();", migrated);
+        Assert.Contains("public static HandlerResult Ok() => HandlerResult.Success();", migrated);
+        Assert.Contains("result is FailedHandlerResult { ErrorMessage: not \"\" };", migrated);
     }
 
     [Fact]

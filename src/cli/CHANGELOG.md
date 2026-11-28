@@ -22,6 +22,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `studioctl app upgrade v9` writes service tasks and process tasks for the current v9 pipeline API ([#22104](https://github.com/Altinn/altinn-studio/pull/22104)):
     - run again, it rewrites code written for an earlier v9 preview, such as `Finally` and `ConcludeOnReplies` to `Stage` and `ExternalStage`, and reports what it cannot rewrite
     - the `DefineStart`, `DefineEnd` or `DefineAbandon` it adds for v8 work takes `PipelineBuilder.Lifecycle`
+- `studioctl app upgrade v9` reports preview code that names `SuccessfulHandlerResult` or `FailedHandlerResult`, which are no longer public, and the factory to use instead. ([#22131](https://github.com/Altinn/altinn-studio/pull/22131))
 
 ### Fixed
 
