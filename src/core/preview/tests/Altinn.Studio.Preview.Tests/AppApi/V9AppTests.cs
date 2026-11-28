@@ -145,6 +145,41 @@ public sealed class V9AppTests : IDisposable
     }
 
     [Fact]
+    public async Task Form_StartsWithThePrefill_OfThePreviewUser()
+    {
+        RepositoryRoot.AddFile(_workingCopy, "App/models/model.prefill.json", """{ "DSF": { "Name": "name" } }""");
+        Uri appRoot = await StartSession();
+        JsonObject instance = await Send(HttpMethod.Post, new Uri(appRoot, "instances?instanceOwnerPartyId=51001"));
+
+        JsonObject form = await Send(
+            HttpMethod.Get,
+            new Uri(appRoot, $"instances/{instance["id"]}/bootstrap-form/Task_1")
+        );
+
+        Assert.Equal("Test Testesen", (string?)form["dataModels"]?["model"]?["initialData"]?["name"]);
+    }
+
+    [Fact]
+    public async Task Session_ActsForTheOrganization_StudioChose()
+    {
+        RepositoryRoot.AddFile(_workingCopy, "App/models/model.prefill.json", """{ "ER": { "Name": "name" } }""");
+        Uri appRoot = await StartSession(party: "organization");
+
+        using HttpResponseMessage page = await Get(appRoot);
+        string html = await page.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        using HttpResponseMessage response = await CreateEditorInstance("developer", appRoot, "Task_1");
+        var created = await response.Content.ReadFromJsonAsync<JsonObject>(TestContext.Current.CancellationToken);
+        string instanceId = Value(created?["instanceId"]);
+        JsonObject instance = await Send(HttpMethod.Get, new Uri(appRoot, $"instances/{instanceId}"));
+        JsonObject form = await Send(HttpMethod.Get, new Uri(appRoot, $"instances/{instanceId}/bootstrap-form/Task_1"));
+
+        Assert.Contains("\"selectedParty\":{\"partyId\":51002", html, StringComparison.Ordinal);
+        Assert.Equal("314752007", (string?)instance["instanceOwner"]?["organisationNumber"]);
+        Assert.Equal("Testbedrift AS", (string?)instance["instanceOwner"]?["party"]?["name"]);
+        Assert.Equal("Testbedrift AS", (string?)form["dataModels"]?["model"]?["initialData"]?["name"]);
+    }
+
+    [Fact]
     public async Task Patch_ChangesNothing_WhenOnePatchFails()
     {
         Uri appRoot = await StartSession();
@@ -279,13 +314,14 @@ public sealed class V9AppTests : IDisposable
             </Project>
             """;
 
-    private async Task<Uri> StartSession()
+    private async Task<Uri> StartSession(string? party = null)
     {
         using HttpResponseMessage response = await SessionApiTests.Start(
             _factory.CreateInternalClient(),
             "developer",
             "ttd",
-            "my-app"
+            "my-app",
+            party
         );
         response.EnsureSuccessStatusCode();
         var body = await response.Content.ReadFromJsonAsync<StartSessionResponse>(

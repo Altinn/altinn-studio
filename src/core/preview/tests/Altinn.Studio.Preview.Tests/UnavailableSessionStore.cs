@@ -6,7 +6,7 @@ namespace Altinn.Studio.Preview.Tests;
 /// <summary>A session store that is down.</summary>
 internal sealed class UnavailableSessionStore : ISessionStore
 {
-    public Task<SessionId> Start(WorkingCopy workingCopy, CancellationToken cancellationToken) =>
+    public Task<SessionId> Start(WorkingCopy workingCopy, int partyId, CancellationToken cancellationToken) =>
         throw new InvalidOperationException("Redis is down.");
 
     public Task<PreviewSession?> FindAndRenew(SessionId sessionId, CancellationToken cancellationToken) =>

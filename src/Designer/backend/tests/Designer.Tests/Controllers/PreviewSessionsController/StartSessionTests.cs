@@ -37,7 +37,9 @@ public class StartSessionTests
     public async Task StartSession_ReturnsTheUrlThatPreviewsTheAuthenticatedDevelopersWorkingCopy()
     {
         _previewServiceClient
-            .Setup(client => client.StartSession("testUser", "ttd", "apps-test", It.IsAny<CancellationToken>()))
+            .Setup(client =>
+                client.StartSession("testUser", "ttd", "apps-test", PreviewParty.Person, It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(new Uri(SessionUrl));
 
         using var request = new HttpRequestMessage(HttpMethod.Post, Url);
@@ -52,10 +54,46 @@ public class StartSessionTests
     }
 
     [Fact]
+    public async Task StartSession_ActsForTheOrganization_WhenAskedTo()
+    {
+        _previewServiceClient
+            .Setup(client =>
+                client.StartSession(
+                    "testUser",
+                    "ttd",
+                    "apps-test",
+                    PreviewParty.Organization,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new Uri(SessionUrl));
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, Url + "?party=organization");
+        using HttpResponseMessage response = await HttpClient.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData("1")]
+    [InlineData("Organization")]
+    [InlineData("bankruptcyEstate")]
+    public async Task StartSession_RefusesAPartyItDoesntKnow(string party)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"{Url}?party={party}");
+        using HttpResponseMessage response = await HttpClient.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        _previewServiceClient.VerifyNoOtherCalls();
+    }
+
+    [Fact]
     public async Task StartSession_WithoutAWorkingCopy_IsNotFound()
     {
         _previewServiceClient
-            .Setup(client => client.StartSession("testUser", "ttd", "apps-test", It.IsAny<CancellationToken>()))
+            .Setup(client =>
+                client.StartSession("testUser", "ttd", "apps-test", PreviewParty.Person, It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync((Uri)null);
 
         using var request = new HttpRequestMessage(HttpMethod.Post, Url);
@@ -74,7 +112,8 @@ public class StartSessionTests
         using HttpResponseMessage response = await HttpClient.SendAsync(request);
 
         _previewServiceClient.Verify(
-            client => client.StartSession("testUser", "ttd", "apps-test", It.IsAny<CancellationToken>()),
+            client =>
+                client.StartSession("testUser", "ttd", "apps-test", PreviewParty.Person, It.IsAny<CancellationToken>()),
             Times.Once
         );
         _previewServiceClient.VerifyNoOtherCalls();

@@ -29,10 +29,10 @@ internal sealed partial class SessionStore(IConnectionMultiplexer redis, TimePro
 
     private IDatabase Database => redis.GetDatabase();
 
-    public async Task<SessionId> Start(WorkingCopy workingCopy, CancellationToken cancellationToken)
+    public async Task<SessionId> Start(WorkingCopy workingCopy, int partyId, CancellationToken cancellationToken)
     {
         var sessionId = SessionId.New();
-        var session = new PreviewSession(workingCopy, timeProvider.GetUtcNow());
+        var session = new PreviewSession(workingCopy, timeProvider.GetUtcNow(), partyId);
         RedisKey key = Key(sessionId);
 
         ITransaction transaction = Database.CreateTransaction();
@@ -151,15 +151,28 @@ internal sealed partial class SessionStore(IConnectionMultiplexer redis, TimePro
         return (state, (long)values[1]);
     }
 
-    internal sealed record StoredSession(string Developer, string Org, string App, DateTimeOffset StartedAt)
+    /// <param name="PartyId">The party, which sessions started before it was stored don't have.</param>
+    internal sealed record StoredSession(
+        string Developer,
+        string Org,
+        string App,
+        DateTimeOffset StartedAt,
+        int? PartyId
+    )
     {
         public static StoredSession From(PreviewSession session) =>
-            new(session.WorkingCopy.Developer, session.WorkingCopy.Org, session.WorkingCopy.App, session.StartedAt);
+            new(
+                session.WorkingCopy.Developer,
+                session.WorkingCopy.Org,
+                session.WorkingCopy.App,
+                session.StartedAt,
+                session.PartyId
+            );
 
         /// <summary>The session, or <c>null</c> when the entry names no valid working copy.</summary>
         public PreviewSession? ToSession() =>
             WorkingCopy.TryCreate(Developer, Org, App, out WorkingCopy? workingCopy)
-                ? new PreviewSession(workingCopy, StartedAt)
+                ? new PreviewSession(workingCopy, StartedAt, PartyId ?? AppApi.MockUser.PartyId)
                 : null;
     }
 

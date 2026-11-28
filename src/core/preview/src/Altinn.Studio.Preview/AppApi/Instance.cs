@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace Altinn.Studio.Preview.AppApi;
 
 // Storage's instance model, in the app API's JSON, which is camelCase.
@@ -44,9 +46,9 @@ internal sealed class Instance
 
 internal sealed record InstanceOwner(string PartyId)
 {
-    public string? PersonNumber => null;
+    public string? PersonNumber => MockUser.PersonNumber(int.Parse(PartyId, CultureInfo.InvariantCulture));
 
-    public string? OrganisationNumber => null;
+    public string? OrganisationNumber => MockUser.OrganizationNumber(int.Parse(PartyId, CultureInfo.InvariantCulture));
 
     public string? Username => null;
 }

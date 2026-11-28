@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, waitFor } from '@testing-library/react';
 import { renderHookWithProviders } from '../../mocks/renderHookWithProviders';
 import { usePreviewSessionQuery } from './usePreviewSessionQuery';
+import { usePreviewParty } from '../usePreviewParty';
 import { app, org } from '@designer/testing/testids';
 
 const firstSessionUrl = 'https://preview.example/first/';
@@ -31,6 +32,7 @@ const renderSessionQuery = () => {
 
 describe('usePreviewSessionQuery', () => {
   afterEach(() => {
+    localStorage.clear();
     vi.useRealTimers();
     Object.defineProperty(document, 'visibilityState', { value: 'visible', configurable: true });
   });
@@ -46,6 +48,24 @@ describe('usePreviewSessionQuery', () => {
 
     await waitFor(() => expect(result.current.data?.url).toBe(secondSessionUrl));
     expect(startPreviewSession).toHaveBeenCalledTimes(2);
+  });
+
+  it('starts a session for the party the user acts for, and a new one for another party', async () => {
+    const startPreviewSession = vi
+      .fn()
+      .mockResolvedValueOnce({ url: firstSessionUrl })
+      .mockResolvedValueOnce({ url: secondSessionUrl });
+    const { result } = renderHookWithProviders(
+      () => ({ session: usePreviewSessionQuery(org, app), party: usePreviewParty() }),
+      { queries: { startPreviewSession } },
+    );
+    await waitFor(() => expect(result.current.session.data?.url).toBe(firstSessionUrl));
+
+    act(() => result.current.party.setParty('organization'));
+
+    await waitFor(() => expect(result.current.session.data?.url).toBe(secondSessionUrl));
+    expect(startPreviewSession).toHaveBeenNthCalledWith(1, org, app, 'person');
+    expect(startPreviewSession).toHaveBeenNthCalledWith(2, org, app, 'organization');
   });
 
   it('keeps the session when the page was hidden for a shorter time', async () => {

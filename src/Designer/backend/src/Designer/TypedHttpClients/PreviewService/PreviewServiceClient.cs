@@ -21,10 +21,18 @@ public class PreviewServiceClient(HttpClient httpClient, PreviewServiceSettings 
         );
 
     /// <inheritdoc />
-    public async Task<Uri?> StartSession(string developer, string org, string app, CancellationToken cancellationToken)
+    public async Task<Uri?> StartSession(
+        string developer,
+        string org,
+        string app,
+        PreviewParty party,
+        CancellationToken cancellationToken
+    )
     {
         Uri baseUrl = BaseUrl;
-        using JsonContent content = JsonContent.Create(new StartSessionRequest(developer, org, app));
+        using JsonContent content = JsonContent.Create(
+            new StartSessionRequest(developer, org, app, party == PreviewParty.Organization ? "organization" : "person")
+        );
         using HttpResponseMessage response = await httpClient.PostAsync(
             new Uri(baseUrl, "sessions"),
             content,
@@ -74,7 +82,7 @@ public class PreviewServiceClient(HttpClient httpClient, PreviewServiceSettings 
             ?? throw new InvalidOperationException("The preview service returned no instance ID.");
     }
 
-    private sealed record StartSessionRequest(string Developer, string Org, string App);
+    private sealed record StartSessionRequest(string Developer, string Org, string App, string Party);
 
     private sealed record CreateInstanceRequest(
         string Developer,

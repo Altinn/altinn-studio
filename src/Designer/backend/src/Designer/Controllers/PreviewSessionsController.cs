@@ -30,19 +30,35 @@ public class PreviewSessionsController(IPreviewServiceClient previewServiceClien
     /// </remarks>
     /// <param name="org">The app's service owner.</param>
     /// <param name="app">The app.</param>
+    /// <param name="party">
+    /// Whom the user in preview acts for: <c>person</c>, themself, which is the default, or <c>organization</c>.
+    /// </param>
     /// <param name="cancellationToken">A token to cancel the request.</param>
     /// <returns>The URL that opens the app in preview.</returns>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<PreviewSessionResponse>> StartSession(
         string org,
         string app,
+        [FromQuery] string? party,
         CancellationToken cancellationToken
     )
     {
+        PreviewParty? previewParty = party switch
+        {
+            null or "person" => PreviewParty.Person,
+            "organization" => PreviewParty.Organization,
+            _ => null,
+        };
+        if (previewParty is null)
+        {
+            return BadRequest();
+        }
+
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        Uri? url = await previewServiceClient.StartSession(developer, org, app, cancellationToken);
+        Uri? url = await previewServiceClient.StartSession(developer, org, app, previewParty.Value, cancellationToken);
         return url is null ? NotFound() : Ok(new PreviewSessionResponse(url));
     }
 

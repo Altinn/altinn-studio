@@ -14,7 +14,10 @@ internal static partial class AppApiEndpoints
         app.MapGet("/api/v1/applicationsettings", () => Results.Json(new JsonObject()));
         app.MapGet("/api/v1/applicationlanguages", GetApplicationLanguages);
         app.MapGet("/api/v1/profile/user", GetUserProfile);
-        app.MapGet("/api/authorization/parties/current", () => Results.Json(MockUser.Party()));
+        app.MapGet(
+            "/api/authorization/parties/current",
+            (HttpContext context) => Results.Json(MockUser.SelectedParty(Session(context).Session.PartyId))
+        );
         app.MapGet("/api/v1/footer", (HttpContext context) => JsonOrNoContent(Files(context).Footer()));
 
         app.MapGet("/api/layoutsets", (HttpContext context) => JsonOrNoContent(Files(context).LayoutSets()));

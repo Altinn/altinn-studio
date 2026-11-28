@@ -15,9 +15,16 @@ public interface IPreviewServiceClient
     /// <param name="developer">The developer, as Designer authenticated them.</param>
     /// <param name="org">The app's service owner.</param>
     /// <param name="app">The app.</param>
+    /// <param name="party">Whom the user in preview acts for.</param>
     /// <param name="cancellationToken">A token to cancel the request.</param>
     /// <returns>The URL that opens the app in preview, or <c>null</c> when the developer has no working copy of it.</returns>
-    Task<Uri?> StartSession(string developer, string org, string app, CancellationToken cancellationToken);
+    Task<Uri?> StartSession(
+        string developer,
+        string org,
+        string app,
+        PreviewParty party,
+        CancellationToken cancellationToken
+    );
 
     /// <summary>
     /// Creates an instance at a task in one of the developer's sessions, so the editors can show the task.

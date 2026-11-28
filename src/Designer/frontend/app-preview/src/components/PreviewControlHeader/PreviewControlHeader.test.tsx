@@ -1,5 +1,5 @@
-import { describe, expect, it, vi } from 'vitest';
-import { screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { screen, waitForElementToBeRemoved, within } from '@testing-library/react';
 import { PreviewControlHeader, type PreviewControlHeaderProps } from './PreviewControlHeader';
 import { textMock } from '@designer/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../test/mocks';
@@ -52,6 +52,10 @@ const defaultProps: PreviewControlHeaderProps = {
 };
 
 describe('PreviewControlHeader', () => {
+  afterEach(() => {
+    localStorage.clear();
+  });
+
   it('should render the spinner initially loading the component', () => {
     renderPreviewControlHeader();
     expect(screen.getByText(textMock('preview.loading_preview_controller'))).toBeInTheDocument();
@@ -91,8 +95,8 @@ describe('PreviewControlHeader', () => {
     queryClient.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
     renderPreviewControlHeader({ queryClient });
 
-    const select = screen.getByRole('combobox');
-    const options = screen.getAllByRole('option');
+    const select = screen.getByRole('combobox', { name: textMock('preview.select_task') });
+    const options = within(select).getAllByRole('option');
 
     expect(select).toHaveValue(layoutSetsMock[0].id);
     expect(options).toHaveLength(2);
@@ -107,7 +111,7 @@ describe('PreviewControlHeader', () => {
     queryClient.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
     renderPreviewControlHeader({ queryClient });
 
-    const select = screen.getByRole('combobox');
+    const select = screen.getByRole('combobox', { name: textMock('preview.select_task') });
     await user.selectOptions(select, layoutSetsMock[1].id);
 
     expect(mockHandleChangeLayoutSet).toHaveBeenCalledWith(layoutSetsMock[1].id);
@@ -117,7 +121,23 @@ describe('PreviewControlHeader', () => {
   it('should not render the layout sets dropdown if layoutSets is not available', () => {
     renderPreviewControlHeader();
 
-    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('combobox', { name: textMock('preview.select_task') }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('lets the developer choose whom the user in preview acts for', async () => {
+    const user = userEvent.setup();
+    const queryClient: QueryClient = createQueryClientMock();
+    queryClient.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
+    renderPreviewControlHeader({ queryClient });
+
+    const select = screen.getByRole('combobox', { name: textMock('preview.test_as') });
+    expect(select).toHaveValue('person');
+    await user.selectOptions(select, 'organization');
+
+    expect(select).toHaveValue('organization');
+    expect(localStorage.getItem('previewParty')).toBe('"organization"');
   });
 });
 

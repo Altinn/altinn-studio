@@ -50,6 +50,22 @@ public sealed class SessionApiTests : IDisposable
     }
 
     [Fact]
+    public async Task StartSession_RefusesAPartyItDoesntKnow()
+    {
+        _factory.Root.AddWorkingCopy("developer", "ttd", "my-app");
+
+        using HttpResponseMessage response = await Start(
+            _factory.CreateInternalClient(),
+            "developer",
+            "ttd",
+            "my-app",
+            party: "bankruptcyEstate"
+        );
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
     public async Task StartSession_WithoutAWorkingCopy_IsNotFound()
     {
         using HttpResponseMessage response = await Start(_factory.CreateInternalClient(), "developer", "ttd", "my-app");
@@ -57,10 +73,16 @@ public sealed class SessionApiTests : IDisposable
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
-    internal static Task<HttpResponseMessage> Start(HttpClient client, string? developer, string? org, string? app) =>
+    internal static Task<HttpResponseMessage> Start(
+        HttpClient client,
+        string? developer,
+        string? org,
+        string? app,
+        string? party = null
+    ) =>
         client.PostAsJsonAsync(
             "/sessions",
-            new StartSessionRequest(developer, org, app),
+            new StartSessionRequest(developer, org, app, party),
             TestContext.Current.CancellationToken
         );
 }

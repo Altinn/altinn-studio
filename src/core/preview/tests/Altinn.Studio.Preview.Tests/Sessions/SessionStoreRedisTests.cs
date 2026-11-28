@@ -1,3 +1,4 @@
+using System.Globalization;
 using Altinn.Studio.Preview.AppApi;
 using Altinn.Studio.Preview.Files;
 using Altinn.Studio.Preview.Sessions;
@@ -38,7 +39,7 @@ public sealed class SessionStoreRedisTests : IAsyncLifetime
     [Fact]
     public async Task Start_KeepsTheSessionForItsIdleTime()
     {
-        SessionId sessionId = await Store().Start(MyApp(), TestContext.Current.CancellationToken);
+        SessionId sessionId = await Store().Start(MyApp(), MockUser.PartyId, TestContext.Current.CancellationToken);
 
         TimeSpan timeToLive = await TimeToLive(sessionId);
         Assert.InRange(timeToLive, SessionLifetime.Idle - s_tolerance, SessionLifetime.Idle);
@@ -49,9 +50,37 @@ public sealed class SessionStoreRedisTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Start_KeepsThePartyTheUserActsFor()
+    {
+        SessionId sessionId = await Store()
+            .Start(MyApp(), MockUser.OrganizationPartyId, TestContext.Current.CancellationToken);
+
+        PreviewSession? session = await Store().FindAndRenew(sessionId, TestContext.Current.CancellationToken);
+
+        Assert.Equal(MockUser.OrganizationPartyId, session?.PartyId);
+    }
+
+    [Fact]
+    public async Task FindAndRenew_TakesTheUsersOwnParty_ForASessionStartedWithoutOne()
+    {
+        SessionId sessionId = await Store().Start(MyApp(), MockUser.PartyId, TestContext.Current.CancellationToken);
+        string startedAt = DateTimeOffset.UtcNow.ToString("O", CultureInfo.InvariantCulture);
+        await Database()
+            .HashSetAsync(
+                Key(sessionId),
+                "session",
+                $$"""{"developer":"developer","org":"ttd","app":"my-app","startedAt":"{{startedAt}}"}"""
+            );
+
+        PreviewSession? session = await Store().FindAndRenew(sessionId, TestContext.Current.CancellationToken);
+
+        Assert.Equal(MockUser.PartyId, session?.PartyId);
+    }
+
+    [Fact]
     public async Task FindAndRenew_RestartsTheIdleTime()
     {
-        SessionId sessionId = await Store().Start(MyApp(), TestContext.Current.CancellationToken);
+        SessionId sessionId = await Store().Start(MyApp(), MockUser.PartyId, TestContext.Current.CancellationToken);
         await Database().KeyExpireAsync(Key(sessionId), TimeSpan.FromMinutes(1));
 
         Assert.NotNull(await Store().FindAndRenew(sessionId, TestContext.Current.CancellationToken));
@@ -64,7 +93,8 @@ public sealed class SessionStoreRedisTests : IAsyncLifetime
     {
         TimeSpan left = TimeSpan.FromMinutes(10);
         var startedLongAgo = new FakeTimeProvider(DateTimeOffset.UtcNow - SessionLifetime.Maximum + left);
-        SessionId sessionId = await Store(startedLongAgo).Start(MyApp(), TestContext.Current.CancellationToken);
+        SessionId sessionId = await Store(startedLongAgo)
+            .Start(MyApp(), MockUser.PartyId, TestContext.Current.CancellationToken);
 
         Assert.NotNull(await Store().FindAndRenew(sessionId, TestContext.Current.CancellationToken));
 
@@ -80,7 +110,7 @@ public sealed class SessionStoreRedisTests : IAsyncLifetime
     [Fact]
     public async Task Start_KeepsOnlyAHashOfTheId()
     {
-        SessionId sessionId = await Store().Start(MyApp(), TestContext.Current.CancellationToken);
+        SessionId sessionId = await Store().Start(MyApp(), MockUser.PartyId, TestContext.Current.CancellationToken);
 
         Assert.True(await Database().KeyExistsAsync(Key(sessionId)));
         Assert.False(await Database().KeyExistsAsync(SessionStore.KeyPrefix + sessionId.Value));
@@ -89,7 +119,7 @@ public sealed class SessionStoreRedisTests : IAsyncLifetime
     [Fact]
     public async Task Update_KeepsTheStateInTheSessionsKey()
     {
-        SessionId sessionId = await Store().Start(MyApp(), TestContext.Current.CancellationToken);
+        SessionId sessionId = await Store().Start(MyApp(), MockUser.PartyId, TestContext.Current.CancellationToken);
         Guid instanceGuid = Guid.NewGuid();
 
         StateChange<Guid>? change = await Store()
@@ -104,7 +134,7 @@ public sealed class SessionStoreRedisTests : IAsyncLifetime
     [Fact]
     public async Task Update_KeepsEveryChange_WhenRequestsChangeTheStateAtOnce()
     {
-        SessionId sessionId = await Store().Start(MyApp(), TestContext.Current.CancellationToken);
+        SessionId sessionId = await Store().Start(MyApp(), MockUser.PartyId, TestContext.Current.CancellationToken);
         Guid[] instanceGuids = [.. Enumerable.Range(0, 8).Select(_ => Guid.NewGuid())];
 
         await Task.WhenAll(
@@ -121,7 +151,7 @@ public sealed class SessionStoreRedisTests : IAsyncLifetime
     [Fact]
     public async Task Update_ReturnsNullForASessionThatHasEnded()
     {
-        SessionId sessionId = await Store().Start(MyApp(), TestContext.Current.CancellationToken);
+        SessionId sessionId = await Store().Start(MyApp(), MockUser.PartyId, TestContext.Current.CancellationToken);
         await Database().KeyDeleteAsync(Key(sessionId));
 
         StateChange<Guid>? change = await Store()
