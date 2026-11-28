@@ -349,6 +349,15 @@ internal interface IEngineRepository
     );
 
     /// <summary>
+    /// Gets what <see cref="GetCollection"/> returns for each of <paramref name="collections"/>, in one round of
+    /// queries on one database slot and from one database snapshot. A collection that does not exist has no entry.
+    /// </summary>
+    Task<IReadOnlyDictionary<CollectionId, WorkflowCollectionDetailResponse>> GetCollectionDetails(
+        IReadOnlyCollection<CollectionId> collections,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
     /// Counts <c>Requeued</c> and active (incomplete) workflows per namespace in one
     /// <c>GROUP BY</c> served by the <c>ix_workflows_namespace_status_incomplete</c> partial
     /// index, whose leading columns are exactly what the query reads. The input to the throttle

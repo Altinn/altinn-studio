@@ -247,6 +247,12 @@ public sealed record EngineSettings
     public MailboxBufferSettings MailboxBuffers { get; set; } = new();
 
     /// <summary>
+    /// Settings for the collection event streams.
+    /// </summary>
+    [JsonPropertyName("collectionEvents")]
+    public CollectionEventSettings CollectionEvents { get; set; } = new();
+
+    /// <summary>
     /// Data retention settings.
     /// </summary>
     [JsonPropertyName("retention")]
@@ -357,6 +363,31 @@ public sealed record MailboxBufferSettings
     /// <summary>Buffer for delivering messages into mailboxes.</summary>
     [JsonPropertyName("delivery")]
     public BatchBufferSettings Delivery { get; set; } = new();
+}
+
+/// <summary>
+/// Settings for the collection event streams, which one replica serves from one batched read loop.
+/// </summary>
+public sealed record CollectionEventSettings
+{
+    /// <summary>
+    /// The most collections one batched read covers.
+    /// </summary>
+    [JsonPropertyName("maxBatchSize")]
+    public int MaxBatchSize { get; set; }
+
+    /// <summary>
+    /// How often every subscribed collection is read again and its snapshot sent, changed or not. Covers lost
+    /// notifications and is the streams' keepalive, so clients that guard against silence depend on it.
+    /// </summary>
+    [JsonPropertyName("sweepInterval")]
+    public TimeSpan SweepInterval { get; set; }
+
+    /// <summary>
+    /// The most event streams one replica serves at once. Another is refused with <c>429</c>.
+    /// </summary>
+    [JsonPropertyName("maxStreams")]
+    public int MaxStreams { get; set; }
 }
 
 /// <summary>

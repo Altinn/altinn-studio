@@ -133,6 +133,38 @@ public class EngineSettingsConfigurationTests
     }
 
     [Fact]
+    public void CollectionEventSettings_BindFromJson_AndZeroesGetDefaulted()
+    {
+        var configured = Resolve(
+            """
+            {
+              "EngineSettings": {
+                "collectionEvents": { "maxBatchSize": 7, "sweepInterval": "00:00:02", "maxStreams": 9 }
+              }
+            }
+            """
+        );
+
+        Assert.Equal(7, configured.CollectionEvents.MaxBatchSize);
+        Assert.Equal(TimeSpan.FromSeconds(2), configured.CollectionEvents.SweepInterval);
+        Assert.Equal(9, configured.CollectionEvents.MaxStreams);
+
+        var zeroed = Resolve(
+            """
+            {
+              "EngineSettings": {
+                "collectionEvents": { "maxBatchSize": 0, "sweepInterval": "00:00:00", "maxStreams": 0 }
+              }
+            }
+            """
+        );
+
+        Assert.Equal(100, zeroed.CollectionEvents.MaxBatchSize);
+        Assert.Equal(TimeSpan.FromSeconds(5), zeroed.CollectionEvents.SweepInterval);
+        Assert.Equal(5_000, zeroed.CollectionEvents.MaxStreams);
+    }
+
+    [Fact]
     public void PartialConfig_ProvidedValuesHonored_RestDefaulted()
     {
         var settings = Resolve(

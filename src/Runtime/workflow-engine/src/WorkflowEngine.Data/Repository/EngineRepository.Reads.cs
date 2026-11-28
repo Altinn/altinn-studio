@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using NpgsqlTypes;
 using WorkflowEngine.Data.Constants;
+using WorkflowEngine.Data.Context;
+using WorkflowEngine.Data.Entities;
 using WorkflowEngine.Models;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
@@ -238,6 +240,12 @@ internal sealed partial class EngineRepository
             await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
             var normalizedNs = WorkflowNamespace.Normalize(ns);
 
+            // One database snapshot for the heads and their statuses, for the reason GetCollectionDetails gives
+            await using var transaction = await context.Database.BeginTransactionAsync(
+                IsolationLevel.RepeatableRead,
+                cancellationToken
+            );
+
             var entity = await context.WorkflowCollections.FirstOrDefaultAsync(
                 c => c.Key == key && c.Namespace == normalizedNs,
                 cancellationToken
@@ -246,54 +254,9 @@ internal sealed partial class EngineRepository
             if (entity is null)
                 return null;
 
-            // Fetch statuses for the head workflow IDs. The step counts are correlated subqueries
-            // (cheap for a head set) giving consumers a progress indication without a per-workflow
-            // lookup.
-            var headStatuses =
-                entity.Heads.Length > 0
-                    ? await context
-                        .Workflows.Where(w => entity.Heads.Contains(w.Id))
-                        .Select(w => new CollectionHeadStatus
-                        {
-                            DatabaseId = w.Id,
-                            Status = w.Status,
-                            Labels = w.Labels,
-                            StepsCompleted = w.Steps.Count(s => s.Status == PersistentItemStatus.Completed),
-                            StepsTotal = w.Steps.Count,
-                            CreatedAt = w.CreatedAt,
-                            ResumedAt = w.ResumedAt,
-                            WaitingReason =
-                                w.Status == PersistentItemStatus.Waiting
-                                    ? w
-                                        .Steps.Where(s => s.Status == PersistentItemStatus.Waiting)
-                                        .OrderBy(s => s.ProcessingOrder)
-                                        .Select(s => s.LastDeferReason)
-                                        .FirstOrDefault()
-                                    : null,
-                            FailedAttempts =
-                                w.Steps.Where(s => s.Status != PersistentItemStatus.Completed)
-                                    .OrderBy(s => s.ProcessingOrder)
-                                    .Select(s => (int?)s.RequeueCount)
-                                    .FirstOrDefault()
-                                ?? 0,
-                            FirstFailedAt = w
-                                .Steps.Where(s => s.Status != PersistentItemStatus.Completed)
-                                .OrderBy(s => s.ProcessingOrder)
-                                .Select(s => s.FirstFailedAt)
-                                .FirstOrDefault(),
-                        })
-                        .ToListAsync(cancellationToken)
-                    : [];
-
-            return new WorkflowCollectionDetailResponse
-            {
-                Key = entity.Key,
-                Namespace = entity.Namespace,
-                Heads = headStatuses,
-                CurrentTime = timeProvider.GetUtcNow(),
-                CreatedAt = entity.CreatedAt,
-                UpdatedAt = entity.UpdatedAt,
-            };
+            var heads = await GetHeadStatuses(context, entity.Heads, cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+            return ToDetailResponse(entity, heads, timeProvider.GetUtcNow());
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -306,6 +269,121 @@ internal sealed partial class EngineRepository
             throw;
         }
     }
+
+    /// <inheritdoc/>
+    public async Task<IReadOnlyDictionary<CollectionId, WorkflowCollectionDetailResponse>> GetCollectionDetails(
+        IReadOnlyCollection<CollectionId> collections,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using var activity = Metrics.Source.StartActivity(
+            "EngineRepository.GetCollectionDetails",
+            tags: [(TelemetryAttributes.BatchSize, collections.Count)]
+        );
+        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        try
+        {
+            await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+            // The heads and their statuses are two statements. Under READ COMMITTED a head could be replaced by a
+            // continuation and complete between them, which would show the collection settled while it still runs.
+            await using var transaction = await context.Database.BeginTransactionAsync(
+                IsolationLevel.RepeatableRead,
+                cancellationToken
+            );
+
+            var (keys, namespaces) = collections.Select(c => (c.Key, c.Namespace)).Distinct().ToArray().Unzip();
+            var entities = await context
+                .WorkflowCollections.FromSql(
+                    $"""
+                    SELECT wc.*
+                    FROM unnest({keys}, {namespaces})
+                        AS t(key, namespace)
+                    JOIN engine.workflow_collections wc USING (key, namespace)
+                    """
+                )
+                .AsNoTracking()
+                .ToListAsync(cancellationToken);
+
+            var heads = await GetHeadStatuses(context, [.. entities.SelectMany(e => e.Heads)], cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+            var now = timeProvider.GetUtcNow();
+            return entities.ToDictionary(
+                e => new CollectionId(e.Namespace, e.Key),
+                e => ToDetailResponse(e, heads, now)
+            );
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            logger.FailedToFetchWorkflows(ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// The step counts are correlated subqueries (cheap for a head set) giving consumers a progress indication
+    /// without a per-workflow lookup.
+    /// </summary>
+    private static async Task<Dictionary<Guid, CollectionHeadStatus>> GetHeadStatuses(
+        EngineDbContext context,
+        Guid[] headIds,
+        CancellationToken cancellationToken
+    ) =>
+        headIds.Length > 0
+            ? await context
+                .Workflows.Where(w => headIds.Contains(w.Id))
+                .Select(w => new CollectionHeadStatus
+                {
+                    DatabaseId = w.Id,
+                    Status = w.Status,
+                    Labels = w.Labels,
+                    StepsCompleted = w.Steps.Count(s => s.Status == PersistentItemStatus.Completed),
+                    StepsTotal = w.Steps.Count,
+                    CreatedAt = w.CreatedAt,
+                    ResumedAt = w.ResumedAt,
+                    WaitingReason =
+                        w.Status == PersistentItemStatus.Waiting
+                            ? w
+                                .Steps.Where(s => s.Status == PersistentItemStatus.Waiting)
+                                .OrderBy(s => s.ProcessingOrder)
+                                .Select(s => s.LastDeferReason)
+                                .FirstOrDefault()
+                            : null,
+                    FailedAttempts =
+                        w.Steps.Where(s => s.Status != PersistentItemStatus.Completed)
+                            .OrderBy(s => s.ProcessingOrder)
+                            .Select(s => (int?)s.RequeueCount)
+                            .FirstOrDefault()
+                        ?? 0,
+                    FirstFailedAt = w
+                        .Steps.Where(s => s.Status != PersistentItemStatus.Completed)
+                        .OrderBy(s => s.ProcessingOrder)
+                        .Select(s => s.FirstFailedAt)
+                        .FirstOrDefault(),
+                })
+                .ToDictionaryAsync(h => h.DatabaseId, cancellationToken)
+            : [];
+
+    private static WorkflowCollectionDetailResponse ToDetailResponse(
+        WorkflowCollectionEntity entity,
+        Dictionary<Guid, CollectionHeadStatus> heads,
+        DateTimeOffset now
+    ) =>
+        new()
+        {
+            Key = entity.Key,
+            Namespace = entity.Namespace,
+            Heads = [.. entity.Heads.Where(heads.ContainsKey).Select(id => heads[id])],
+            CurrentTime = now,
+            CreatedAt = entity.CreatedAt,
+            UpdatedAt = entity.UpdatedAt,
+        };
 
     /// <inheritdoc/>
     public async Task<CursorPaginatedResult> GetActiveWorkflows(

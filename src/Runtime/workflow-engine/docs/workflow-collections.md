@@ -377,6 +377,11 @@ use the list endpoint's rollup; to enumerate a collection's failures, use
 `GET /workflows?collectionKey={key}&role=Auxiliary&status=Failed&status=Canceled&status=DependencyFailed`
 (drop the `role` filter for all of them).
 
+**`GET /api/v1/{namespace}/collections/{key}/events`** — the frontier view as a stream.
+Server-Sent Events whose data is the body the detail endpoint returns, sent when the collection changes and at a fixed
+interval. [Collection events](technical-guide.md#collection-events) says which changes send an event, how the stream
+ends and what the endpoint answers when it opens none.
+
 ---
 
 ## Key Rules Summary

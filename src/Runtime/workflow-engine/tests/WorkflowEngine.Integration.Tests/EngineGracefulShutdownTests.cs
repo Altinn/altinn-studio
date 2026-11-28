@@ -25,6 +25,7 @@ namespace WorkflowEngine.Integration.Tests;
 public sealed class EngineGracefulShutdownTests : IAsyncLifetime
 {
     private const string TestNamespace = "ttd:shutdown-tests";
+    private const string CollectionKey = "shutdown-collection";
 
     private static string WorkflowsPath => $"/api/v1/{Uri.EscapeDataString(TestNamespace)}/workflows";
 
@@ -132,6 +133,31 @@ public sealed class EngineGracefulShutdownTests : IAsyncLifetime
         Assert.Equal(PersistentItemStatus.Requeued, step.Status);
     }
 
+    [Fact]
+    public async Task Shutdown_EndsTheCollectionEventStreams()
+    {
+        await using var factory = CreateFactory();
+        await EnqueueWorkflow(factory, CreateWebhookStep("/hook"));
+        using var client = factory.CreateClient();
+        using var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            $"/api/v1/{Uri.EscapeDataString(TestNamespace)}/collections/{CollectionKey}/events"
+        );
+        await using var stream = await CollectionEventStream.Open(
+            await client.SendAsync(
+                request,
+                HttpCompletionOption.ResponseHeadersRead,
+                TestContext.Current.CancellationToken
+            )
+        );
+        await stream.Next();
+
+        await factory.Services.GetRequiredService<IHost>().StopAsync(TestContext.Current.CancellationToken);
+
+        // The workflow may have completed just before the stop, and that snapshot is sent ahead of the stream's end
+        await stream.ReadToEnd(TimeSpan.FromSeconds(10));
+    }
+
     // -- Helpers --
 
     private EngineWebApplicationFactory<Program> CreateFactory() =>
@@ -158,6 +184,7 @@ public sealed class EngineGracefulShutdownTests : IAsyncLifetime
             Content = JsonContent.Create(request),
         };
         msg.Headers.Add(WorkflowMetadataConstants.Headers.IdempotencyKey, $"idem-{Guid.NewGuid()}");
+        msg.Headers.Add(WorkflowMetadataConstants.Headers.CollectionKey, CollectionKey);
 
         var response = await client.SendAsync(msg);
         response.EnsureSuccessStatusCode();

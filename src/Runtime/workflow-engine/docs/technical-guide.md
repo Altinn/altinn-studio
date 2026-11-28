@@ -199,7 +199,9 @@ three [mailbox write buffers](#the-three-write-paths-are-batched). Each holds on
 their flush concurrencies bound them instead of `MaxDbOperations`, and the `slot.db.*` gauges do not count them. The
 write-back buffer flushes one batch at a time. The Npgsql pool is sized to `MaxDbOperations`, so the flushes draw from
 the same pool as the slot holders. Everything else takes a slot, mailbox work included: the deadline sweep's scan and
-closes, and every mailbox read.
+closes, and every mailbox read. [Collection events](#collection-events) read in one loop per instance, one batch at a
+time, so every event stream on an instance together holds at most one slot. The instance's `LISTEN` connection is one
+more pooled connection without a slot.
 
 ## Heartbeat & stale recovery
 
@@ -433,8 +435,9 @@ makes that state impossible. The tests check it by transaction id (`xmin`), beca
 rows stays green when someone splits the transaction.
 
 Both releases lock workflow rows while they hold the mailbox row. **Mailbox row, then workflow row** is the feature's
-only compound lock order. The releasing transaction issues one `NOTIFY status_changed`, which PostgreSQL sends only on
-commit. **It only speeds things up**: a release that commits without it is claimed on the next fetch cycle.
+only compound lock order. The releasing transaction issues one statement that notifies `status_changed` and, for the
+receivers' collections, `collection_changed` (see [collection events](#collection-events)). PostgreSQL sends both only
+on commit. **They only speed things up**: a release that commits without them is claimed on the next fetch cycle.
 
 ### The receiver's meaning is frozen before it can run
 
@@ -618,6 +621,86 @@ will depend on now. A primary workflow leaves the frontier once a later workflow
 
 Do not call the concept visible or invisible, side effect, side chain, non-critical or fire-and-forget. Keep "head"
 for the frontier and the `isHead` directive.
+
+## Collection events
+
+`GET /api/v1/{namespace}/collections/{key}/events` streams a collection as Server-Sent Events, for a caller that waits
+for its work to settle. Each event's data is the body [get collection](#get-collection) returns: the collection with
+its heads. An event means that something in the collection changed, and shows the frontier it has now. A caller that
+needs more, such as the failure of a workflow behind the heads, lists the collection's workflows when an event arrives.
+Polling get collection costs a database slot per call, so its cost grows with waiters times time. The stream's cost
+grows with the changes instead: all event streams on an instance share one read loop, and so at most one database
+slot.
+
+A write sends a `collection_changed` notification naming the collection when it changes something a waiter acts on:
+the status write-back when it takes a workflow out of `Processing`, so when the workflow settles, parks, is requeued
+or is canceled, and resume, fail, abandon and the mailbox releases. That holds for every workflow in the collection,
+head or not, primary or auxiliary. The same statement sends the dashboard's `status_changed`, inside the write's
+transaction. The payload is the JSON array `[namespace, key]`. PostgreSQL delivers it on commit to the `LISTEN`
+connection of every instance. An instance where no stream follows the collection drops it after one lookup. Otherwise
+it marks the collection dirty, and the read loop reads the dirty collections in batches of up to
+`CollectionEvents.MaxBatchSize` and sends each stream its snapshot.
+
+The rest of what get collection returns reaches a stream with the next notification for the collection or with the
+sweep:
+
+- **A running workflow's progress.** The write-backs that keep a workflow in `Processing`, such as a step starting or
+  completing, send no `collection_changed`: a transition has about ten steps, and a read per step would cost more than
+  the polling the stream replaces. So `stepsCompleted` and the move from `Enqueued` to `Processing` show only with the
+  workflow's next status change or the sweep.
+- **An enqueue.** A `NOTIFY` makes its transaction's commit take a database-wide lock, so commits that notify run one
+  at a time. The enqueue flushes commit in parallel, and notifying would make the engine's ingress take turns on that
+  lock. A caller subscribes after its own enqueue has committed, so its first snapshot already holds the new
+  workflows.
+- **The engine's own housekeeping:** a fetch claiming a workflow, the stale reclaim with its poisoned failures,
+  dependency recovery and retention.
+
+Three rules make the stream correct across instances:
+
+1. **An event is a snapshot, never a delta.** There are no event ids and no `Last-Event-ID`. A client that reconnects,
+   to the same instance or another, starts from a fresh snapshot, so nothing an instance holds in memory has to
+   outlive it.
+2. **PostgreSQL is the only fan-out between instances.** A write on one instance reaches a stream on another through
+   its notification, never through process memory.
+3. **A notification is a hint.** Losing one costs latency, not correctness. Notifications sent while the `LISTEN`
+   connection is down are gone, so on every connect and reconnect the instance marks every subscribed collection
+   dirty, and the sweep covers the rest.
+
+The sweep marks every subscribed collection dirty every `CollectionEvents.SweepInterval`, 5 seconds by default. It
+covers lost notifications, the writes that send none, and instances of an older version that send none during a
+rolling deploy. Every read is delivered, also when nothing changed, so the sweep is also the stream's keepalive: a
+stream that stays silent for several intervals is broken, and the engine sends no heartbeat besides. The loop reads
+the collections that a notification or a new subscription marked ahead of the ones only the sweep marked, so a change
+never waits behind a sweep's reads. Up to a quarter of each batch stays the sweep's, so that it goes on when changes
+alone would fill every batch.
+
+A subscription marks its collection dirty, and its first snapshot comes from a read the loop takes after that, never
+from one already in flight. So the first event never predates the subscription, and the loop sends it with its next
+batch: normally at once, but only after the backoff while reads are failing. The loop clears a collection's mark
+before it reads it, so a notification that arrives during the read causes another. Like get collection, it reads the
+heads and their statuses from one database snapshot, so a head that a continuation replaces and that then completes
+never shows as a completed head. Each stream holds at most one pending snapshot, and a newer one replaces it: a slow
+client misses the snapshots in between and never holds up the loop or another client. A failed read keeps its
+collections dirty and is retried after a backoff that doubles from 1 second up to 5, while the streams stay open. The
+streams are silent while reads fail, and a client gives up a silent stream, so a longer backoff would keep clients
+reconnecting after the database is back.
+
+The stream ends:
+
+- When the client closes it.
+- With `?until=Settled`, after the first snapshot in which the collection is settled: it has a head, and every head is
+  terminal. `Waiting` and `Held` heads are not, since a deferred step or a receive workflow still owns the process. A
+  collection that is settled when the client subscribes gives one event. A response the engine ends leaves the
+  client's connection open for its next request, where a client that hangs up closes it.
+- When the collection is deleted, and when the instance stops, so that the stream does not hold up a shutdown. A
+  client sees a stream that ends before a settled snapshot as the instance going away, and opens it again.
+
+The engine answers `400 Bad Request` for any other `until` value and `404 Not Found` when the namespace has no
+collection with that key, both before any event. An instance serves at most `CollectionEvents.MaxStreams` streams, and
+refuses another with `429`. The limit counts the streams of all namespaces together, as the instance's workers and
+database slots serve all of them: the namespaces on an engine are the apps of one service owner
+([where it runs](../../workflow-engine-app/README.md#where-it-runs)). A refusal costs no database work, so a client
+waits a moment and opens the stream again. The app backend never polls instead.
 
 ## Telemetry & observability
 
@@ -876,7 +959,8 @@ and lists the requested keys with no collection in `unmatchedKeys`, since retent
 `failedAttempts`, `firstFailedAt` and `waitingReason` as [retry](#retry--error-handling) and
 [deferral](#deferral-durable-yield) describe. `404 Not Found` means the namespace has no collection with that key.
 A slash in the key is percent-encoded like the namespace's, and the engine decodes it. A key that holds a literal `%2F`
-cannot be read here: ASP.NET Core turns `%252F` into `%2F` before the engine sees it.
+cannot be read here: ASP.NET Core turns `%252F` into `%2F` before the engine sees it. To wait for a collection to
+change rather than poll it, use [collection events](#collection-events).
 
 It is a frontier view by contract: auxiliary workflows never appear in it, and it carries no `workflowCounts` rollup,
 since it sits on the app's hot path. Read health from [list collections](#list-collections), and a collection's
@@ -978,6 +1062,9 @@ Some settings constrain each other:
 - **Mailbox flush concurrency.** The close buffer flushes one batch at a time, because a close locks mailbox rows and
   their receivers' workflow rows. The delivery buffer's concurrency is low on purpose, since a storm aimed at one
   mailbox queues on that mailbox's row lock anyway.
+- **The collection events sweep.** The app backend gives up on an event stream that stays silent for 15 seconds and
+  opens it again, which leaves room for two missed sweeps at the default `CollectionEvents.SweepInterval`. Raising the
+  interval towards that makes quiet streams reconnect for nothing.
 - **Throttling** ships off. The App host turns it on (see
   [its README](../../workflow-engine-app/README.md#namespace-circuit-breaker)).
 

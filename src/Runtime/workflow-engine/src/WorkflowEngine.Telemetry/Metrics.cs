@@ -403,6 +403,33 @@ public static class Metrics
     );
 
     /// <summary>
+    /// The collection event streams this process serves.
+    /// </summary>
+    public static readonly UpDownCounter<long> CollectionEventStreams = Meter.CreateUpDownCounter<long>(
+        "altinn.workflow_engine.collection_event.streams",
+        unit: "{stream}",
+        description: "Number of collection event streams open on this process"
+    );
+
+    /// <summary>
+    /// One recording per batched read of subscribed collections, failed reads included.
+    /// </summary>
+    public static readonly Histogram<double> CollectionEventReadDuration = Meter.CreateHistogram<double>(
+        "altinn.workflow_engine.collection_event.read.duration",
+        "s",
+        "Seconds one batched read of subscribed collections took, failed reads included"
+    );
+
+    /// <summary>
+    /// Collections read by the batched reads that succeeded.
+    /// </summary>
+    public static readonly Counter<long> CollectionEventCollectionsRead = Meter.CreateCounter<long>(
+        "altinn.workflow_engine.collection_event.read.collections",
+        unit: "{collection}",
+        description: "Number of subscribed collections read by successful batched reads"
+    );
+
+    /// <summary>
     /// Counter of redundant status updates eliminated by deduplication in the update buffer.
     /// </summary>
     public static readonly Counter<long> UpdateBufferDeduplicatedItems = Meter.CreateCounter<long>(
