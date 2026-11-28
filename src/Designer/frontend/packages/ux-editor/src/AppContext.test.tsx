@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, renderHook, screen, waitFor } from '@testing-library/react';
 import type { AppContextProps, SelectedItem } from './AppContext';
 import { AppContextProvider } from './AppContext';
 import userEvent from '@testing-library/user-event';
@@ -10,11 +10,11 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useAppContext } from './hooks';
-import { layout1NameMock } from './testing/layoutMock';
+import { component1IdMock, layout1NameMock, layout2NameMock } from './testing/layoutMock';
 import { app, layoutSet, org } from '@designer/testing/testids';
 import { PreviewContext, type PreviewContextProps } from 'app-shared/contexts/PreviewContext';
 import { AppRouter } from './testing/mocks';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { ItemType } from './components/Properties/ItemType';
 
 vi.mock('react-router-dom', async () => ({
@@ -223,3 +223,103 @@ describe('AppContext', () => {
     await waitFor(() => expect(doReloadPreview).toHaveBeenCalledTimes(1));
   });
 });
+
+describe('AppContext selection in the URL', () => {
+  const selectedComponent: SelectedItem = { type: ItemType.Component, id: component1IdMock };
+
+  beforeEach(async () => {
+    const actualRouter = await vi.importActual('react-router-dom');
+    mockUseSearchParams.mockImplementation(actualRouter.useSearchParams as typeof useSearchParams);
+  });
+
+  it('restores the selected component after remounting at the same URL', async () => {
+    const { result, unmount } = renderAppContextAtUrl(`?layout=${layout1NameMock}`);
+    act(() => result.current.appContext.setSelectedItem(selectedComponent));
+    const { search } = result.current.location;
+    unmount();
+
+    const { result: remountedResult } = renderAppContextAtUrl(search);
+    await waitFor(() =>
+      expect(remountedResult.current.appContext.selectedFormLayoutName).toBe(layout1NameMock),
+    );
+    expect(remountedResult.current.appContext.selectedItem).toEqual(selectedComponent);
+  });
+
+  it('adds the selected component to the URL and keeps the other query parameters', () => {
+    const { result } = renderAppContextAtUrl(`?layout=${layout1NameMock}&other=value`);
+    act(() => result.current.appContext.setSelectedItem(selectedComponent));
+    expect(result.current.location.search).toBe(
+      `?component=${component1IdMock}&layout=${layout1NameMock}&other=value`,
+    );
+  });
+
+  it('removes the component and keeps the page change when the same event selects the page', () => {
+    const { result } = renderAppContextAtUrl(
+      `?component=${component1IdMock}&layout=${layout1NameMock}`,
+    );
+    act(() => {
+      result.current.appContext.setSelectedFormLayoutName(layout2NameMock);
+      result.current.appContext.setSelectedItem({ type: ItemType.Page, id: layout2NameMock });
+    });
+    expect(result.current.location.search).toBe(`?layout=${layout2NameMock}`);
+  });
+
+  it('removes the component and the page when the same event closes the page', () => {
+    const { result } = renderAppContextAtUrl(
+      `?component=${component1IdMock}&layout=${layout1NameMock}`,
+    );
+    act(() => {
+      result.current.appContext.setSelectedFormLayoutName(undefined);
+      result.current.appContext.setSelectedItem(null);
+    });
+    expect(result.current.location.search).toBe('');
+  });
+
+  it('restores the page, not an earlier component, after returning to that page', async () => {
+    const { result, unmount } = renderAppContextAtUrl(`?layout=${layout1NameMock}`);
+    act(() => result.current.appContext.setSelectedItem(selectedComponent));
+    act(() => result.current.appContext.setSelectedFormLayoutName(layout2NameMock));
+    act(() => result.current.appContext.setSelectedFormLayoutName(layout1NameMock));
+    const { search } = result.current.location;
+    unmount();
+
+    const { result: remountedResult } = renderAppContextAtUrl(search);
+    expect(remountedResult.current.appContext.selectedItem).toEqual({
+      type: ItemType.Page,
+      id: layout1NameMock,
+    });
+  });
+});
+
+const renderAppContextAtUrl = (search: string) => {
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData([QueryKey.LayoutSets, org, app], [{ id: layoutSet }]);
+  queryClient.setQueryData([QueryKey.FormLayoutSettings, org, app, layoutSet], {
+    pages: { order: [layout1NameMock, layout2NameMock] },
+  });
+  queryClient.setQueryData([QueryKey.Pages, org, app, layoutSet], {
+    pages: [{ id: layout1NameMock }, { id: layout2NameMock }],
+  });
+  const previewContextValue: PreviewContextProps = {
+    shouldReloadPreview: false,
+    doReloadPreview: vi.fn(),
+    previewHasLoaded: vi.fn(),
+  };
+  return renderHook(() => ({ appContext: useAppContext(), location: useLocation() }), {
+    wrapper: ({ children }) => (
+      <AppRouter params={{ org, app, layoutSet }} search={search}>
+        <ServicesContextProvider {...queriesMock} client={queryClient}>
+          <PreviewContext.Provider value={previewContextValue}>
+            <AppContextProvider
+              shouldReloadPreview={false}
+              previewHasLoaded={vi.fn()}
+              onLayoutSetNameChange={vi.fn()}
+            >
+              {children}
+            </AppContextProvider>
+          </PreviewContext.Provider>
+        </ServicesContextProvider>
+      </AppRouter>
+    ),
+  });
+};
