@@ -16,6 +16,7 @@ public class DesignerdbContext : DbContext
     public virtual DbSet<AppScopesDbModel> AppScopes { get; set; }
     public virtual DbSet<AppSettingsDbModel> AppSettings { get; set; }
     public virtual DbSet<AppActivityDbModel> AppActivity { get; set; }
+    public virtual DbSet<AppDailyMetricsDbModel> AppDailyMetrics { get; set; }
     public virtual DbSet<ChatThreadDbModel> ChatThreads { get; set; }
     public virtual DbSet<ChatMessageDbModel> ChatMessages { get; set; }
     public virtual DbSet<UserAccountDbModel> UserAccounts { get; set; }
@@ -34,6 +35,7 @@ public class DesignerdbContext : DbContext
         modelBuilder.ApplyConfiguration(new AppScopesConfiguration());
         modelBuilder.ApplyConfiguration(new AppSettingsConfiguration());
         modelBuilder.ApplyConfiguration(new AppActivityConfiguration());
+        modelBuilder.ApplyConfiguration(new AppDailyMetricsConfiguration());
         modelBuilder.ApplyConfiguration(new ChatThreadConfiguration());
         modelBuilder.ApplyConfiguration(new ChatMessageConfiguration());
         modelBuilder.ApplyConfiguration(new UserAccountConfiguration());
