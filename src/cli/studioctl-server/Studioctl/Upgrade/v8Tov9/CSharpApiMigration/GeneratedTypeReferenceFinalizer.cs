@@ -132,7 +132,7 @@ internal static class GeneratedTypeReferenceFinalizer
 
             // Once the file is opened for writing, cancellation must not leave truncated source behind.
             cancellationToken.ThrowIfCancellationRequested();
-            await File.WriteAllTextAsync(file.Path, proposedText, CancellationToken.None);
+            Utf8TextFile.Overwrite(file.Path, proposedText);
             for (var i = 0; i < projects.Length; i++)
             {
                 projects[i] = proposals[i].Project;

@@ -15,6 +15,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `studioctl app upgrade v9` names the custom task types in your process, such as `sftp`. Keep each one's `Type` string when you port its task class, or instances started under v8 can't finish that task. ([#21979](https://github.com/Altinn/altinn-studio/pull/21979))
 - `studioctl app upgrade v9` sets `"onProcessEnd": { "confirm": true }` in `applicationmetadata.json` for apps whose eFormidling task, or Fiks Arkiv task with `markInstanceComplete` on, confirmed instances as complete in v8. The v9 tasks no longer confirm by themselves. The upgrade removes `markInstanceComplete` from `appsettings*.json`. ([#21944](https://github.com/Altinn/altinn-studio/pull/21944))
 - `studioctl app upgrade v9` removes code in `ProcessDataRead` that unlocks, writes and locks the form being read, which v9 refuses while it creates the payment receipt. Changes the method makes to the form are still shown, but no longer saved. ([#21480](https://github.com/Altinn/altinn-studio/pull/21480))
+- `studioctl app upgrade v9` moves classes that implement the removed `IProcessEnd`, `IProcessTaskStart`, `IProcessTaskEnd` and `IProcessTaskAbandon` to the v9 handlers, such as `IOnProcessEndedHandler`, with their registrations, and lists the classes it could not move. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 
 ### Changed
 

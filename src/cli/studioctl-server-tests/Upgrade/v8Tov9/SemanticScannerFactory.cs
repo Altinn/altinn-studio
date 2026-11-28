@@ -1,6 +1,7 @@
 using Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Studioctl.Tests.Upgrade.v8Tov9;
 
@@ -23,13 +24,20 @@ internal static class SemanticScannerFactory
             .ToList()
     );
 
-    /// <summary>Compiles <paramref name="source"/> into an in-memory assembly reference named <paramref name="assemblyName"/>.</summary>
-    public static MetadataReference EmitStubAssembly(string assemblyName, string source)
+    /// <summary>
+    /// Compiles <paramref name="source"/> into an in-memory assembly reference named <paramref name="assemblyName"/>,
+    /// against the runtime and <paramref name="references"/>, such as the stub SDK a package stub builds on.
+    /// </summary>
+    public static MetadataReference EmitStubAssembly(
+        string assemblyName,
+        string source,
+        params MetadataReference[] references
+    )
     {
         var compilation = CSharpCompilation.Create(
             assemblyName,
             [CSharpSyntaxTree.ParseText(source)],
-            _runtimeReferences.Value,
+            _runtimeReferences.Value.Concat(references),
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
         );
 
@@ -99,11 +107,17 @@ internal static class SemanticScannerFactory
             .Select(path => CSharpSyntaxTree.ParseText(File.ReadAllText(path), parseOptions, path: path))
             .ToList();
 
+        // An app is an executable, which only matters to the compiler when its Program has top-level statements.
+        var outputKind = trees.Exists(static tree =>
+            tree.GetCompilationUnitRoot().Members.OfType<GlobalStatementSyntax>().Any()
+        )
+            ? OutputKind.ConsoleApplication
+            : OutputKind.DynamicallyLinkedLibrary;
         return CSharpCompilation.Create(
             "Altinn.Application",
             trees,
             _runtimeReferences.Value.Concat(sdkReferences),
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+            new CSharpCompilationOptions(outputKind)
         );
     }
 }
