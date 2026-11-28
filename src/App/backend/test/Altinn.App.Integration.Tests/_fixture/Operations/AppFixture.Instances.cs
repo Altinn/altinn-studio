@@ -236,7 +236,8 @@ public partial class AppFixture : IAsyncDisposable
             ReadApiResponse<Instance> instanceData,
             ProcessNext? processNext = null,
             string? elementId = null,
-            string? language = null
+            string? language = null,
+            CancellationToken cancellationToken = default
         )
         {
             var client = _fixture.GetAppClient();
@@ -265,7 +266,7 @@ public partial class AppFixture : IAsyncDisposable
                 request.Content = new StringContent(payload, new MediaTypeHeaderValue("application/json"));
             }
 
-            var response = await client.SendAsync(request);
+            var response = await client.SendAsync(request, cancellationToken);
             return new ApiResponse(_fixture, response);
         }
 
@@ -281,6 +282,29 @@ public partial class AppFixture : IAsyncDisposable
 
             using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.SendAsync(request);
+            return new ApiResponse(_fixture, response);
+        }
+
+        public async Task<ApiResponse> PerformAction(
+            string token,
+            ReadApiResponse<Instance> instanceData,
+            string action
+        )
+        {
+            var client = _fixture.GetAppClient();
+            if (instanceData.Data.Model is null)
+                throw new InvalidOperationException(CreateNullInstanceMessage(instanceData));
+            var instance = instanceData.Data.Model;
+            var instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
+            var instanceGuid = Guid.Parse(instance.Id.Split('/')[1]);
+            var endpoint = $"{_fixture.AppPath}/instances/{instanceOwnerPartyId}/{instanceGuid}/actions";
+
+            using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            var payload = JsonSerializer.Serialize(new UserActionRequest { Action = action }, _jsonSerializerOptions);
+            request.Content = new StringContent(payload, new MediaTypeHeaderValue("application/json"));
 
             var response = await client.SendAsync(request);
             return new ApiResponse(_fixture, response);
