@@ -110,7 +110,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     /// <param name="instance">The instance the workflow is enqueued for.</param>
     /// <param name="createEnvelope">Builds the enqueue request.</param>
     /// <param name="cancellationToken">Cancels the enqueue and the wait.</param>
-    private async Task<ProcessNextWorkflowResult> EnqueueAndWaitForWorkflow(
+    internal async Task<ProcessNextWorkflowResult> EnqueueAndWaitForWorkflow(
         Instance instance,
         Func<Task<WorkflowEnqueueEnvelope>> createEnvelope,
         CancellationToken cancellationToken
@@ -128,6 +128,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 innerException: exception
             );
         }
+
+        EnsureChainStartClaimsTheInstance(bundle.Request);
 
         string? collectionKey = bundle.CollectionKey;
         if (string.IsNullOrWhiteSpace(collectionKey))
@@ -686,12 +688,47 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         return ExtractTargetTask(workflow?.Labels);
     }
 
+    /// <summary>
+    /// Refuses a chain start whose primary workflow does not claim the instance first. Only a callback of the chain
+    /// that holds the instance may enqueue other work on it; see <c>AGENTS.md</c> in this folder.
+    /// </summary>
+    internal static void EnsureChainStartClaimsTheInstance(WorkflowEnqueueRequest request)
+    {
+        foreach (WorkflowRequest workflow in request.Workflows.Where(static workflow => workflow.IsHead is not false))
+        {
+            string? firstCommand = workflow.Steps.FirstOrDefault()?.Command is { Type: "app", Data: { } data }
+                ? data.Deserialize<AppCommandData>()?.CommandKey
+                : null;
+            if (firstCommand != ProcessingStatusAcquirer.Key)
+            {
+                throw new InvalidOperationException(
+                    $"Workflow '{workflow.OperationId}' would start a chain on the instance without "
+                        + $"{ProcessingStatusAcquirer.Key} as its first step."
+                );
+            }
+        }
+    }
+
+    /// <summary>
+    /// Whether the transition the chain belongs to has committed its process state: a completed
+    /// <see cref="CommitProcessState"/> step, or a workflow a service task step enqueued, which only runs after the
+    /// commit. A resumed later item's chain holds only the latter, since its transition committed in an older workflow.
+    /// </summary>
     private static bool HasCommittedProcessState(IReadOnlyList<WorkflowStatusResponse> hierarchyWorkflows) =>
         hierarchyWorkflows.Any(workflow =>
-            workflow.Steps.Any(step =>
-                step.OperationId == CommitProcessState.Key && step.Status == PersistentItemStatus.Completed
-            )
+            IsServiceTaskSuccessor(workflow)
+            || workflow.Steps.Any(step => IsCommitStep(step) && step.Status == PersistentItemStatus.Completed)
         );
+
+    /// <summary>
+    /// A workflow the relay enqueued for a service task's later pipeline item or a reply: it runs a service task step
+    /// and commits no transition of its own. Told by its steps, not by its operation ID, which is a display name.
+    /// </summary>
+    private static bool IsServiceTaskSuccessor(WorkflowStatusResponse workflow) =>
+        workflow.Steps.Any(step => step.OperationId.StartsWith($"{ExecuteServiceTask.Key}:", StringComparison.Ordinal))
+        && !workflow.Steps.Any(IsCommitStep);
+
+    private static bool IsCommitStep(StepStatusResponse step) => step.OperationId == CommitProcessState.Key;
 
     internal static WorkflowFailure? BuildWorkflowFailure(IReadOnlyList<WorkflowStatusResponse> hierarchyWorkflows)
     {

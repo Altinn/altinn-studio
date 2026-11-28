@@ -35,8 +35,8 @@ namespace Altinn.App.Integration.Tests.WorkflowEngine;
 /// <c>Task_Upfront</c> — both sends up front and neither handler concluding the task:
 /// <c>Stage(Alpha) → Stage(Beta) → HandleReplies(Alpha) → HandleReplies(Beta) → Stage(RecordOutcome) →
 /// Finally</c>. Three things only this shape can show: a conclusion choosing one of <em>two</em> carried
-/// mailboxes to close, a continuation whose segment is empty, and a continuation that concludes the task
-/// itself and advances the process from there.
+/// mailboxes to close, two handlers back to back with no continuation between them, and a continuation that
+/// concludes the task itself and advances the process from there.
 /// </description>
 /// </item>
 /// </list>
@@ -64,7 +64,7 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
 
     private const string PrimaryOperationIdPrefix = "Process next:";
     private const string MailboxReceiveOperationIdPrefix = "Mailbox receive:";
-    private const string MailboxContinueOperationIdPrefix = "Mailbox continue:";
+    private const string ServiceTaskStageOperationIdPrefix = "Service task stage:";
 
     private const string AckPayload = """{"kind":"ack","reference":"ark-1"}""";
     private const string ReceiptPayload = """{"kind":"receipt","reference":"ark-1"}""";
@@ -145,7 +145,7 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
         // Task_Upfront asks for on purpose and this one must not have.
         Assert.Equal(new List<string> { "MintMailbox: 0", "ExecuteServiceTask: 0" }, PipelineSteps(sequentialPrimary));
 
-        // The primary workflow ends with the segment's last stage, whose completion enqueues the first receiver from
+        // The primary workflow ends with the send, whose completion enqueues the first receiver from
         // inside the still-unsettled step, so the frontier is never empty while the exchange is open. Read off the full
         // step list, not the pipeline subset: a transition step appended after the hand-over would break this and be
         // invisible to the assertion above.
@@ -258,16 +258,16 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
             ns,
             collectionKey,
             // Named for the item it follows: the handler that concluded exchange A, at item index 1.
-            $"{MailboxContinueOperationIdPrefix} {SequentialTaskId} · after 1"
+            $"{ServiceTaskStageOperationIdPrefix} {SequentialTaskId} · 2"
         );
 
         // Each step performs at most one keyed enqueue, so the bare executing step id is the whole key -
         // here the step of the receiver whose handler concluded the exchange, so a retried attempt of that
-        // step continues onto the same workflow instead of starting a second segment.
+        // step continues onto the same workflow instead of starting a second one.
         Assert.Equal(concludingStep.DatabaseId.ToString(), continuation.IdempotencyKey);
 
-        // The segment planned from the pipeline at this hop: the stage composed after the handler, its mint
-        // hugging it. That stage is the segment's last step and carries the next exchange, so completing it
+        // The workflow planned from the pipeline at this hop: the stage composed after the handler, its mint
+        // hugging it. That stage is the workflow's last step and opens the next exchange, so completing it
         // is what enqueues the receiver - from inside the still-unsettled step, so the continuation cannot
         // settle before that receiver exists.
         Assert.Equal(new List<string> { "MintMailbox: 2", "ExecuteServiceTask: 2" }, OperationIds(continuation));
@@ -313,7 +313,7 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
         // ---- Invariant 4, close-before-continue, exactly ----
         // Both instants are stamped by the engine on the two hops' own rows, so this is the ordering itself
         // rather than an inference from when a poller happened to look: the mailbox stopped accepting
-        // messages before the workflow that starts the next segment existed at all. Reversing the two calls
+        // messages before the workflow that runs the next item existed at all. Reversing the two calls
         // in the relay's ConcludeAndContinue arm fails here, and *only* here - the receiver the hand-over
         // sampler watches for is enqueued by the continuation's last step, a whole engine hop later, so a
         // swapped close and enqueue is invisible to any amount of sampling.
@@ -407,7 +407,7 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
             engineClient,
             ns,
             collectionKey,
-            $"{MailboxContinueOperationIdPrefix} {UpfrontTaskId} · after 0"
+            $"{ServiceTaskStageOperationIdPrefix} {UpfrontTaskId} · 1"
         );
         Assert.Equal(new List<string> { "MintMailbox: 1", "ExecuteServiceTask: 1" }, OperationIds(upfrontSecondSend));
         Assert.Equal(upfrontPrimary.Steps[^1].DatabaseId.ToString(), upfrontSecondSend.IdempotencyKey);
@@ -465,9 +465,9 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
         Assert.Equal("Open", betaStillOpen.Status);
         Assert.Null(betaStillOpen.DisposedReason);
 
-        // An empty segment: nothing is composed between the two handlers, so there is no continuation
-        // workflow to run it - the next exchange's receiver is enqueued directly from the concluding
-        // receiver's hop, keyed on that hop's own step id like every relay enqueue.
+        // Nothing is composed between the two handlers, so there is no continuation workflow between them -
+        // the next exchange's receiver is enqueued directly from the concluding receiver's hop, keyed on that
+        // hop's own step id like every relay enqueue.
         string betaReceiverOperationId = $"{MailboxReceiveOperationIdPrefix} {UpfrontTaskId} · 1";
         await WaitForWorkflow(engineClient, ns, collectionKey, betaReceiverOperationId);
         List<EngineWorkflow> upfrontWorkflows = await ListWorkflows(engineClient, ns, collectionKey);
@@ -475,7 +475,7 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
             upfrontWorkflows,
             // The handler that just concluded sits at item index 2, so this is the name a continuation of
             // its own would have had. The one named "after 0" above is the *first send's*, a hop earlier.
-            w => w.OperationId == $"{MailboxContinueOperationIdPrefix} {UpfrontTaskId} · after 2"
+            w => w.OperationId == $"{ServiceTaskStageOperationIdPrefix} {UpfrontTaskId} · 3"
         );
         EngineWorkflow betaReceiver = Single(upfrontWorkflows, betaReceiverOperationId);
         EngineWorkflow alphaConcludingReceiver = Single(
@@ -493,17 +493,19 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
         EngineWorkflow betaContinuation = Single(
             finalWorkflows,
             // Beta's handler is the pipeline's item 3.
-            $"{MailboxContinueOperationIdPrefix} {UpfrontTaskId} · after 3"
+            $"{ServiceTaskStageOperationIdPrefix} {UpfrontTaskId} · 4"
         );
 
-        // The last segment ends in the pipeline's Finally rather than an exchange, so the concluding step
-        // runs here, on a continuation - and the process advanced off it through the ordinary controller
-        // path, which is what reaching EndEvent_1 above proves. No receive-enqueue step trails it.
-        Assert.Equal(
-            new List<string> { "ExecuteServiceTask: 4", "ExecuteServiceTask: 5" },
-            OperationIds(betaContinuation)
-        );
+        // RecordOutcome runs alone on the continuation Beta's conclusion starts, and its completion starts
+        // the one the pipeline's Finally runs on - keyed on RecordOutcome's step. The process advanced off
+        // that concluding step through the ordinary controller path, which is what reaching EndEvent_1 above
+        // proves.
+        Assert.Equal(new List<string> { "ExecuteServiceTask: 4" }, OperationIds(betaContinuation));
         Assert.Equal("Completed", betaContinuation.OverallStatus);
+        EngineWorkflow conclusion = Single(finalWorkflows, $"{ServiceTaskStageOperationIdPrefix} {UpfrontTaskId} · 5");
+        Assert.Equal(new List<string> { "ExecuteServiceTask: 5" }, OperationIds(conclusion));
+        Assert.Equal("Completed", conclusion.OverallStatus);
+        Assert.Equal(betaContinuation.Steps[^1].DatabaseId.ToString(), conclusion.IdempotencyKey);
 
         EngineMailbox betaAfterTask = await GetMailbox(engineClient, ns, betaId);
         Assert.Equal("Disposed", betaAfterTask.Status);

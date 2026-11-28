@@ -350,6 +350,45 @@ public class WorkflowEngineServiceTests
     }
 
     [Fact]
+    public async Task EnqueueAndWaitForWorkflow_ChainStartThatDoesNotClaimTheInstance_IsRefusedBeforeTheEngineSeesIt()
+    {
+        var instance = CreateInstance(Guid.NewGuid());
+        var envelope = new WorkflowEnqueueEnvelope(
+            new WorkflowEnqueueRequest
+            {
+                Workflows =
+                [
+                    new WorkflowRequest
+                    {
+                        OperationId = "Process next: Task_1 -> Task_2",
+                        Steps =
+                        [
+                            new StepRequest
+                            {
+                                OperationId = CommitProcessState.Key,
+                                Command = CommandDefinition.Create(
+                                    "app",
+                                    new AppCommandData { CommandKey = CommitProcessState.Key }
+                                ),
+                            },
+                        ],
+                    },
+                ],
+            },
+            Namespace,
+            IdempotencyKey: "key",
+            CollectionKey: new InstanceIdentifier(instance).InstanceGuid.ToString()
+        );
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        var service = CreateService(client, Mock.Of<IInstanceClientWithStorageMetadata>());
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.EnqueueAndWaitForWorkflow(instance, () => Task.FromResult(envelope), CancellationToken.None)
+        );
+        client.VerifyNoOtherCalls();
+    }
+
+    [Fact]
     public void CreateProcessNextIdempotencyKey_UsesExactInstanceGuidAndAuthoritativeVersion()
     {
         Guid instanceGuid = Guid.Parse("173a5bda-f76c-454c-840f-dea11a0c98b9");
@@ -969,6 +1008,237 @@ public class WorkflowEngineServiceTests
         Assert.Equal(WorkflowFailureKind.Timeout, result.WorkflowFailure.Kind);
         Assert.False(result.ProcessStateCommitted);
         Assert.False(result.Parked);
+    }
+
+    [Fact]
+    public async Task ResumeAndWaitForWorkflow_LaterStageWorkflowThatDefersAfterResume_ReleasesEarlyAsParked()
+    {
+        // Every service task item after the first runs in a workflow of its own, so a failed later
+        // stage (eFormidling's delivery poll, after SendShipment) is resumed in a workflow that holds no
+        // CommitProcessState step. The transition committed in the primary workflow, which is older than the
+        // resumed one and so outside the scoped chain. When the resumed stage defers, as a poll does, the
+        // chain is parked exactly as after a first process/next, and the wait must release at once rather
+        // than hold process/resume for its whole budget and report a timeout.
+        Guid primaryWorkflowId = Guid.NewGuid();
+        Guid stageWorkflowId = Guid.NewGuid();
+        var instance = CreateInstance(Guid.NewGuid());
+        string collectionKey = new InstanceIdentifier(instance).InstanceGuid.ToString();
+
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(c => c.ResumeWorkflow(Namespace, stageWorkflowId, true, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ResumeWorkflowResponse(stageWorkflowId, DateTimeOffset.UtcNow, []));
+        client
+            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateCollection(collectionKey, stageWorkflowId, PersistentItemStatus.Waiting));
+        client
+            .Setup(c =>
+                c.ListWorkflows(
+                    Namespace,
+                    collectionKey,
+                    It.IsAny<Dictionary<string, string>?>(),
+                    It.IsAny<IReadOnlyList<PersistentItemStatus>?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([
+                CreateWorkflowStatus(
+                    DateTimeOffset.UtcNow.AddSeconds(-1),
+                    status: PersistentItemStatus.Completed,
+                    databaseId: primaryWorkflowId,
+                    steps:
+                    [
+                        CreateStep(CommitProcessState.Key, PersistentItemStatus.Completed),
+                        CreateStep($"{ExecuteServiceTask.Key}: 0", PersistentItemStatus.Completed),
+                    ]
+                ),
+                CreateWorkflowStatus(
+                    DateTimeOffset.UtcNow,
+                    status: PersistentItemStatus.Waiting,
+                    databaseId: stageWorkflowId,
+                    steps: [CreateStep($"{ExecuteServiceTask.Key}: 1", PersistentItemStatus.Waiting)]
+                ),
+            ]);
+
+        var instanceClient = new Mock<IInstanceClientWithStorageMetadata>(MockBehavior.Strict);
+        instanceClient
+            .Setup(c =>
+                c.GetInstanceWithStorageMetadata(
+                    instance,
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new InstanceWithStorageMetadata(instance, StorageVersionMetadata.Empty));
+
+        var service = new WorkflowEngineService(
+            processNextRequestFactory: null!,
+            client.Object,
+            instanceClient.Object,
+            new AppIdentifier(Org, App),
+            new TimeSkippingTimeProvider()
+        )
+        {
+            WorkflowPollingTimeoutMs = 500,
+        };
+
+        ProcessNextWorkflowResult result = await service
+            .ResumeAndWaitForWorkflow(instance, stageWorkflowId, CancellationToken.None)
+            .WaitAsync(TimeSpan.FromSeconds(10));
+
+        Assert.Null(result.WorkflowFailure);
+        Assert.True(result.Parked);
+        client.Verify(
+            c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()),
+            Times.Once,
+            "a parked chain releases on the first poll that observes it, without waiting"
+        );
+    }
+
+    [Fact]
+    public async Task ResumeAndWaitForWorkflow_LaterStageWorkflowThatFailsAgain_ReportsTheCommittedProcess()
+    {
+        // A resumed later stage that fails again reports its failure together with the process state, which its
+        // transition committed in an older workflow.
+        Guid primaryWorkflowId = Guid.NewGuid();
+        Guid stageWorkflowId = Guid.NewGuid();
+        var instance = CreateInstance(Guid.NewGuid());
+        string collectionKey = new InstanceIdentifier(instance).InstanceGuid.ToString();
+
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(c => c.ResumeWorkflow(Namespace, stageWorkflowId, true, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ResumeWorkflowResponse(stageWorkflowId, DateTimeOffset.UtcNow, []));
+        client
+            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateCollection(collectionKey, stageWorkflowId, PersistentItemStatus.Failed));
+        client
+            .Setup(c =>
+                c.ListWorkflows(
+                    Namespace,
+                    collectionKey,
+                    It.IsAny<Dictionary<string, string>?>(),
+                    It.IsAny<IReadOnlyList<PersistentItemStatus>?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([
+                CreateWorkflowStatus(
+                    DateTimeOffset.UtcNow.AddSeconds(-1),
+                    status: PersistentItemStatus.Completed,
+                    databaseId: primaryWorkflowId,
+                    steps:
+                    [
+                        CreateStep(CommitProcessState.Key, PersistentItemStatus.Completed),
+                        CreateStep($"{ExecuteServiceTask.Key}: 0", PersistentItemStatus.Completed),
+                    ]
+                ),
+                CreateWorkflowStatus(
+                    DateTimeOffset.UtcNow,
+                    status: PersistentItemStatus.Failed,
+                    databaseId: stageWorkflowId,
+                    steps: [CreateStep($"{ExecuteServiceTask.Key}: 1", PersistentItemStatus.Failed)]
+                ),
+            ]);
+
+        var instanceClient = new Mock<IInstanceClientWithStorageMetadata>(MockBehavior.Strict);
+        instanceClient
+            .Setup(c =>
+                c.GetInstanceWithStorageMetadata(
+                    instance,
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new InstanceWithStorageMetadata(instance, StorageVersionMetadata.Empty));
+
+        var service = new WorkflowEngineService(
+            processNextRequestFactory: null!,
+            client.Object,
+            instanceClient.Object,
+            new AppIdentifier(Org, App),
+            new TimeSkippingTimeProvider()
+        )
+        {
+            WorkflowPollingTimeoutMs = 500,
+        };
+
+        ProcessNextWorkflowResult result = await service
+            .ResumeAndWaitForWorkflow(instance, stageWorkflowId, CancellationToken.None)
+            .WaitAsync(TimeSpan.FromSeconds(10));
+
+        Assert.NotNull(result.WorkflowFailure);
+        Assert.True(result.ProcessStateCommitted);
+    }
+
+    [Fact]
+    public async Task ResumeAndWaitForWorkflow_TransitionThatFailsAgainBeforeItsCommit_ReportsNoCommittedProcess()
+    {
+        // A transition's own workflow plans its first service task step after the commit. Failing before the
+        // commit, it holds that step unrun, and must not count as a workflow that only runs after a commit.
+        Guid workflowId = Guid.NewGuid();
+        var instance = CreateInstance(Guid.NewGuid());
+        string collectionKey = new InstanceIdentifier(instance).InstanceGuid.ToString();
+
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(c => c.ResumeWorkflow(Namespace, workflowId, true, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ResumeWorkflowResponse(workflowId, DateTimeOffset.UtcNow, []));
+        client
+            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateCollection(collectionKey, workflowId, PersistentItemStatus.Failed));
+        client
+            .Setup(c =>
+                c.ListWorkflows(
+                    Namespace,
+                    collectionKey,
+                    It.IsAny<Dictionary<string, string>?>(),
+                    It.IsAny<IReadOnlyList<PersistentItemStatus>?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([
+                CreateWorkflowStatus(
+                    DateTimeOffset.UtcNow,
+                    status: PersistentItemStatus.Failed,
+                    databaseId: workflowId,
+                    steps:
+                    [
+                        CreateStep("SomePreCommitStep", PersistentItemStatus.Failed),
+                        CreateStep(CommitProcessState.Key, PersistentItemStatus.Enqueued),
+                        CreateStep($"{ExecuteServiceTask.Key}: 0", PersistentItemStatus.Enqueued),
+                    ]
+                ),
+            ]);
+
+        var instanceClient = new Mock<IInstanceClientWithStorageMetadata>(MockBehavior.Strict);
+        instanceClient
+            .Setup(c =>
+                c.GetInstanceWithStorageMetadata(
+                    instance,
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new InstanceWithStorageMetadata(instance, StorageVersionMetadata.Empty));
+
+        var service = new WorkflowEngineService(
+            processNextRequestFactory: null!,
+            client.Object,
+            instanceClient.Object,
+            new AppIdentifier(Org, App),
+            new TimeSkippingTimeProvider()
+        )
+        {
+            WorkflowPollingTimeoutMs = 500,
+        };
+
+        ProcessNextWorkflowResult result = await service
+            .ResumeAndWaitForWorkflow(instance, workflowId, CancellationToken.None)
+            .WaitAsync(TimeSpan.FromSeconds(10));
+
+        Assert.NotNull(result.WorkflowFailure);
+        Assert.False(result.ProcessStateCommitted);
     }
 
     [Fact]

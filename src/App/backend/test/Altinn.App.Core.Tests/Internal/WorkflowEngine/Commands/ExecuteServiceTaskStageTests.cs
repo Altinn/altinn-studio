@@ -1,6 +1,7 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Models;
@@ -133,8 +134,12 @@ public class ExecuteServiceTaskStageTests
         Assert.Contains("returned null", failed.ErrorMessage, StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// A stage is its workflow's last step, so completing it starts the conclusion's workflow and concludes
+    /// nothing itself.
+    /// </summary>
     [Fact]
-    public async Task Stage_Completed_DoesNotConcludeTheTask()
+    public async Task Stage_Completed_StartsTheConclusionsWorkflow_AndDoesNotConcludeTheTask()
     {
         var command = CreateCommand(new ShippingTask());
 
@@ -142,6 +147,55 @@ public class ExecuteServiceTaskStageTests
 
         var success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.Null(success.ProcessNextContinuation);
+        var continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(success.MailboxContinuation);
+        Assert.Equal(0, continuing.Handover.AfterItemIndex);
+        Assert.Equal(
+            [$"{ExecuteServiceTask.Key}: {ConclusionIndex}"],
+            continuing.Handover.Plan.Steps.Select(step => step.OperationId)
+        );
+        Assert.Null(continuing.Handover.Target);
+    }
+
+    /// <summary>Two stages and the conclusion in a row: each stage hands over to the next item's workflow.</summary>
+    private sealed class TwoStageTask : IServiceTask
+    {
+        public string Type => "shipping";
+
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+            pipeline
+                .Stage(_ => Task.FromResult(StageResult.Completed()))
+                .Stage(_ => Task.FromResult(StageResult.Completed()))
+                .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+    }
+
+    [Fact]
+    public async Task Stage_FollowedByAPlainStage_Completed_HandsOverToThatStage()
+    {
+        var command = CreateCommand(new TwoStageTask());
+
+        var result = await command.Execute(CreateContext(), Payload(0));
+
+        var success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
+        Assert.Null(success.ProcessNextContinuation);
+        var continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(success.MailboxContinuation);
+        Assert.Equal("shipping", continuing.ServiceTaskType);
+        Assert.Equal(0, continuing.Handover.AfterItemIndex);
+        Assert.Equal([$"{ExecuteServiceTask.Key}: 1"], continuing.Handover.Plan.Steps.Select(step => step.OperationId));
+        Assert.Null(continuing.Handover.Target);
+    }
+
+    [Fact]
+    public async Task Stage_Completed_WithoutAStepId_FailsPermanently()
+    {
+        var command = CreateCommand(new ShippingTask());
+        WorkflowEngineCommandContext context = CreateContext();
+        context = context with { Payload = context.Payload with { StepId = Guid.Empty } };
+
+        var result = await command.Execute(context, Payload(0));
+
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("MailboxStepIdMissing", failed.ExceptionType);
     }
 
     [Fact]

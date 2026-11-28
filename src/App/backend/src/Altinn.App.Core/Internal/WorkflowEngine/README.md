@@ -15,8 +15,10 @@ kind of step.
   in Altinn.App.Api for each step, and the
   [callback authentication](../../../Altinn.App.Api/Infrastructure/Authentication/WorkflowEngineCallbackAuthenticationHandler.cs)
   checks the token it sends.
-- Service tasks run as steps. The [authoring guide](../../../../docs/service-task-pipelines.md) describes them for app
-  developers. A channel that receives an external system's answer hands it to
+- A service task runs each item of its pipeline as the last step of a workflow of its own, and
+  [`MailboxRelay`](MailboxRelay.cs) enqueues the next item's workflow when one completes. The
+  [authoring guide](../../../../docs/service-task-pipelines.md) describes service tasks for app developers. A channel
+  that receives an external system's answer hands it to
   [`IServiceTaskReplyForwarder`](../../Features/Process/IServiceTaskReplyForwarder.cs), which delivers it to the
   mailbox the service task waits on.
 - The models in `Models/` are the app's copies of the engine's wire contract.

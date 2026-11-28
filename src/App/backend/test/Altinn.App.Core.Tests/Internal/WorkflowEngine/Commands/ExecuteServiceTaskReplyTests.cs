@@ -682,7 +682,7 @@ public class ExecuteServiceTaskReplyTests
         );
         Assert.Equal(_mailboxId, continuing.MailboxId);
         Assert.Equal("archiving", continuing.ServiceTaskType);
-        // The hand-over is the segment this handler's decide planned, named for the handler it follows.
+        // The hand-over is the workflow this handler's decide planned, named for the handler it follows.
         Assert.Equal(ContinuingSegmentIndex, continuing.Handover.AfterItemIndex);
         Assert.NotEmpty(continuing.Handover.Plan.Steps);
     }

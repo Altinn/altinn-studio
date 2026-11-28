@@ -95,17 +95,17 @@ internal sealed class ProcessNextRequestFactory
 
     /// <summary>
     /// OperationId prefix for a receive workflow — enqueued by <see cref="MailboxRelay"/>, never by this
-    /// factory; the constant lives here beside its siblings. A naming convention for ops and logs; nothing
-    /// identifies a receiver by it.
+    /// factory; the constant lives here beside its siblings. A display name: the waits tell these workflows by
+    /// their steps, not by this string.
     /// </summary>
     internal const string MailboxReceiveOperationIdPrefix = "Mailbox receive:";
 
     /// <summary>
-    /// OperationId prefix for a workflow running a pipeline segment after an exchange concluded — enqueued by
-    /// <see cref="MailboxRelay"/>, never by this factory. A naming convention for ops and logs; nothing
-    /// identifies a continuation by it.
+    /// OperationId prefix for the workflow of a service task's pipeline item after the first, unless the item
+    /// is a reply handler, followed by the task and the item's index — enqueued by <see cref="MailboxRelay"/>,
+    /// never by this factory. A display name, like the receive prefix above.
     /// </summary>
-    internal const string MailboxContinueOperationIdPrefix = "Mailbox continue:";
+    internal const string ServiceTaskStageOperationIdPrefix = "Service task stage:";
 
     private readonly AppImplementationFactory _appImplementationFactory;
     private readonly IAuthenticationContext _authenticationContext;

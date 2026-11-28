@@ -48,12 +48,11 @@ internal abstract class PipelineItem
 
 /// <summary>
 /// What a <strong>reply handler</strong> is, whichever of the two kinds it is: an item that answers the
-/// exchange the stage at <see cref="OpeningIndex"/> opened, and that is therefore alone in its workflow.
-/// Implemented by exactly <see cref="ReplySegment"/> and <see cref="PipelineConclusion.ReplyExchange"/>, and
-/// it exists so that "this item is a reply handler" has one definition: the expansion splits runs on it, a
-/// stage's completion reads it to know whether it is its workflow's last step, and dispatch refuses a handler
-/// handed no message by it. Three type tests spelled out separately would be three places to forget a third
-/// kind of handler.
+/// exchange the stage at <see cref="OpeningIndex"/> opened, and whose workflow is therefore parked on that
+/// exchange's mailbox. Implemented by exactly <see cref="ReplySegment"/> and
+/// <see cref="PipelineConclusion.ReplyExchange"/>, and it exists so that "this item is a reply handler" has one
+/// definition: the expansion plans a receive workflow on it, and dispatch refuses a handler handed no message
+/// by it. Type tests spelled out separately would be places to forget a third kind of handler.
 /// </summary>
 /// <remarks>
 /// An interface and not a base class because a base class is not available:

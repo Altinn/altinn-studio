@@ -10,6 +10,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Changed
+
+- Each stage of a service task runs in a workflow of its own, listed as `Service task stage` after the first in the workflow engine and Studio's admin panel. A task no longer stalls when a redeploy adds a stage while it runs. ([#22101](https://github.com/Altinn/altinn-studio/pull/22101))
+
 ### Fixed
 
 - Deleting a row in a repeating group deletes the attachments uploaded in that row and its nested rows, instead of leaving them in the instance. ([#22139](https://github.com/Altinn/altinn-studio/pull/22139))

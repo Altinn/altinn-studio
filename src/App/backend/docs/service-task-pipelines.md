@@ -83,9 +83,11 @@ completes, the way a waiting service task holds it. Stages are dispatched by pos
 ## Stages: durability and idempotency
 
 Each stage runs as its own workflow-engine step, with its own retry budget, timeout, wait budget and
-idempotency key. A completed stage **never runs again**: a retry or an operational resume re-enters the
-pipeline at the failed stage, not at the beginning. That step ledger — not anything you track yourself —
-is the durable guard for send-then-poll and send-then-receive work: give the send its own stage.
+idempotency key. A service task's stage is also the last step of a workflow of its own, so its completion
+starts the workflow of whatever the pipeline composes next. A completed stage **never runs again**: a retry
+or an operational resume re-enters the pipeline at the failed stage, not at the beginning. That step
+ledger — not anything you track yourself — is the durable guard for send-then-poll and send-then-receive
+work: give the send its own stage.
 
 - **Every stage may be retried on failure, so its work MUST be idempotent.** Use
   `StageContext.StepId` as the idempotency key for an outbound call the stage must not repeat — it
@@ -201,8 +203,8 @@ Exactly one handler answers each mailbox, named by the handle the opening `Stage
   `AwaitNextReply()` to be called again on the next message.
 - `HandleReplies(handle, onMessage, onClosed)` — an exchange the pipeline **carries on past**. `onMessage`
   returns `StageExchangeResult`: any `StageResult`, or `AwaitNextReply()`.
-  `Completed()` here means _this exchange is concluded, run the pipeline's next segment_ — concluding the
-  task and advancing the process are deliberately not in this vocabulary.
+  `Completed()` here means _this exchange is concluded, run what the pipeline composes next_ — concluding
+  the task and advancing the process are deliberately not in this vocabulary.
 
 `onMessage` runs once per message, each as its own durable unit of work. Messages arrive one at a time in
 accepted order, each starting from the state its predecessor published — on `AwaitNextReply()`, data
@@ -288,10 +290,6 @@ BPMN file mid-flight, and it is the app developer's to manage: drain or resume i
 code that enqueued them, or abandon them deliberately.
 
 Nothing detects a reshape as such: every step reads the composition it finds, so a reshape can also change
-what an in-flight step goes on to do without failing at all. **One case of that loses work silently.** A
-step that was its workflow's last because a reply handler was composed after it stops being its workflow's
-last if the redeploy removes that exchange — so it completes, starts nothing, and its workflow settles
-with the items composed after it never run. The task neither concludes nor fails: the transition is simply
-over, with part of the pipeline dropped. Only a plain stage can end this way. A mailbox-opening stage
-always starts what follows it, so it either continues the pipeline or fails saying why, never silently
-drops the rest.
+what an in-flight step goes on to do without failing at all. Every item runs as its own workflow's last
+step, though, so completing one always starts what the pipeline now composes after it, or fails saying
+why: a reshape never drops the rest of the pipeline silently.

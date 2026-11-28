@@ -16,7 +16,7 @@ namespace Altinn.App.Integration.Tests.Scenarios.WorkflowEngineMailboxMulti;
 /// <summary>
 /// Two mailbox exchanges in one task, answered one after the other: "SendToArchive" opens the first,
 /// a <see cref="PipelineBuilder.HandleReplies"/> handler answers it <em>without</em>
-/// concluding the task, and the segment that handler's conclusion starts opens the second
+/// concluding the task, and the workflow that handler's conclusion starts opens the second
 /// ("SendToJournal") which <see cref="PipelineBuilder.ConcludeOnReplies"/> ends the task on.
 /// </summary>
 /// <remarks>
@@ -177,13 +177,13 @@ public sealed class SequentialExchangesServiceTask : IServiceTask
 /// </item>
 /// <item>
 /// <description>
-/// <strong>An empty segment.</strong> Nothing is composed between the two handlers, so the continuation
-/// Alpha's conclusion starts consists of nothing but the step that enqueues Beta's first receiver.
+/// <strong>Two handlers back to back.</strong> Nothing is composed between them, so Alpha's conclusion
+/// enqueues Beta's first receiver directly, with no continuation between the two.
 /// </description>
 /// </item>
 /// <item>
 /// <description>
-/// <strong>A continuation that concludes the task itself.</strong> The last segment ends in
+/// <strong>A continuation that concludes the task itself.</strong> The pipeline ends in
 /// <see cref="PipelineBuilder.Finally"/> rather than an exchange, so the concluding step runs
 /// on a continuation workflow and the process advances from there — the path the plan expects to work
 /// with no controller change.
@@ -207,7 +207,7 @@ public sealed class UpfrontExchangesServiceTask : IServiceTask
     /// <summary>The stage that opens the second exchange — before either is answered.</summary>
     public const string BetaStageLabel = "SendBeta";
 
-    /// <summary>A plain stage in the last segment, so that segment is not just its conclusion.</summary>
+    /// <summary>A plain stage after the last handler, so the conclusion is not what that handler starts.</summary>
     public const string RecordStageLabel = "RecordOutcome";
 
     /// <summary>Same budget as the sequential task's, for the same reason.</summary>
@@ -247,7 +247,7 @@ public sealed class UpfrontExchangesServiceTask : IServiceTask
         return Task.FromResult(StageResult.Completed());
     }
 
-    /// <summary>The pipeline's conclusion, running on the continuation that Beta's conclusion started.</summary>
+    /// <summary>The pipeline's conclusion, running on the continuation that RecordOutcome's completion started.</summary>
     private Task<ServiceTaskResult> ConfirmBoth(StageContext context)
     {
         int run = MultiExchangeRecorder.NextRun("ConfirmBoth");

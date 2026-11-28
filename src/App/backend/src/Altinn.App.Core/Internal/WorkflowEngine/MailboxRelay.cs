@@ -50,14 +50,12 @@ internal sealed class MailboxRelay
     }
 
     /// <summary>
-    /// Maps the completion of a stage that was its workflow's <em>last</em> step to the continuation that
-    /// starts what the pipeline composes after it — the receive leg of the exchange the handler composed next
-    /// answers, or otherwise the workflow carrying the items that are composed next. The exchange belongs to
-    /// that handler and not to this stage: on up-front sends the stage completing here opened a <em>later</em>
-    /// exchange than the one the handler after it answers. Which stages are their workflow's last is derived
-    /// by the caller from the pipeline it resolved: a mailbox-opening stage always is one, and a plain stage
-    /// is one when a reply handler follows it. Nothing closes here — neither this stage's exchange nor an
-    /// earlier one's.
+    /// Maps a stage's completion to the continuation that starts what the pipeline composes after it — the
+    /// receive leg of the exchange the handler composed next answers, or otherwise the workflow of the item
+    /// composed next. Every stage, plain or mailbox-opening, is its workflow's last step and ends here. The
+    /// exchange belongs to that handler and not to this stage: on up-front sends the stage completing here
+    /// opened a <em>later</em> exchange than the one the handler after it answers. Nothing closes here —
+    /// neither this stage's exchange nor an earlier one's.
     /// </summary>
     internal static WorkflowEngineCommandResult DecideStageEnd(
         string serviceTaskType,
@@ -319,7 +317,7 @@ internal sealed class MailboxRelay
     /// <summary>
     /// The same decision for a handler the pipeline <em>carries on past</em>: the verdict is the stage
     /// vocabulary, so concluding the task and advancing the process are not among the moves, and a concluded
-    /// exchange starts the pipeline's next segment rather than an after-workflow. A separate method because
+    /// exchange starts the next item's workflow rather than an after-workflow. A separate method because
     /// the two vocabularies are unrelated roots — merging them behind a supertype would put
     /// <c>Success(action)</c> back within reach of a handler that must not have it. A concluding verdict plans
     /// what follows from <paramref name="pipeline"/> — the same resolution dispatch just ran the handler from
@@ -357,7 +355,7 @@ internal sealed class MailboxRelay
                 };
 
             case CompletedStageResult
-                when StepIdMissing(stepId, serviceTaskType, "start the pipeline's next segment") is { } noContinueKey:
+                when StepIdMissing(stepId, serviceTaskType, "start the pipeline's next item") is { } noContinueKey:
                 return noContinueKey;
 
             case CompletedStageResult:
@@ -439,7 +437,7 @@ internal sealed class MailboxRelay
 
         return FailedWorkflowEngineCommandResult.Permanent(
             $"Service task '{serviceTaskType}' must {wouldDo}, but the workflow engine supplied no step id to key "
-                + "that on. An enqueue keyed on an empty id would be shared by every mailbox exchange in this "
+                + "that on. An enqueue keyed on an empty id would be shared by every service task step in this "
                 + "application. Upgrade the workflow engine to a version that sends stepId.",
             "MailboxStepIdMissing"
         );
@@ -593,12 +591,10 @@ internal sealed class MailboxRelay
     }
 
     /// <summary>
-    /// The pipeline's next segment, as one workflow: the plan the deciding hop made, carried here whole and
-    /// enqueued — the items composed after the one that hop ran (the reply handler that concluded its
-    /// exchange, or the stage that was its own workflow's last step), ended by the step whose completion
-    /// starts what follows <em>it</em>, or by the pipeline's conclusion when nothing is left. This hop resolves
-    /// nothing about the pipeline: the plan is authoritative, and the only thing left to do to it is resolve
-    /// each step's options, which the resolver does from the step's own identity.
+    /// The workflow of the item composed after the one the deciding hop ran (a completed stage, or the reply
+    /// handler that concluded its exchange): the plan that hop made, carried here whole and enqueued. This hop
+    /// resolves nothing about the pipeline: the plan is authoritative, and the only thing left to do to it is
+    /// resolve each step's options, which the resolver does from the step's own identity.
     /// </summary>
     private async Task EnqueueContinuation(
         string serviceTaskType,
@@ -613,11 +609,10 @@ internal sealed class MailboxRelay
 
         var continuationWorkflow = new WorkflowRequest
         {
-            // Named for the item it follows: with an opening stage ending a run too, an exchange's
-            // opening index no longer tells two continuations apart.
+            // Named for the item it runs, as that item's ExecuteServiceTask step is.
             OperationId =
-                $"{ProcessNextRequestFactory.MailboxContinueOperationIdPrefix} {taskId} · after "
-                + handover.AfterItemIndex.ToString(CultureInfo.InvariantCulture),
+                $"{ProcessNextRequestFactory.ServiceTaskStageOperationIdPrefix} {taskId} · "
+                + (handover.AfterItemIndex + 1).ToString(CultureInfo.InvariantCulture),
             Steps = steps,
             State = PublishedState(request),
             IsHead = true,

@@ -300,7 +300,7 @@ public class ExecuteServiceTaskMailboxTests
     /// The reply terminal reached with nothing to answer — a step naming an item that answers messages,
     /// handed no target. One general rule, whichever route produced it: an engine that omitted the
     /// target, or a redeploy that turned a <c>Finally</c> into a reply terminal while this workflow was
-    /// in flight, so its primary workflow's concluding step now names a handler.
+    /// in flight, so its concluding step now names a handler.
     /// </summary>
     [Fact]
     public async Task ReplyHandlerOfAnExchangePipeline_WithoutARendezvous_FailsPermanentlyAndNeverRuns()
@@ -352,7 +352,7 @@ public class ExecuteServiceTaskMailboxTests
     }
 
     // ---------------------------------------------------------------------------------------------
-    // A segment's last stage: completing it starts the receive leg or the next segment, and — for a
+    // A stage's completion starts the receive leg or the next item's workflow, and — for a
     // mailbox-opening stage — concluding from it ends the whole task.
     // ---------------------------------------------------------------------------------------------
 
@@ -375,9 +375,8 @@ public class ExecuteServiceTaskMailboxTests
     }
 
     /// <summary>
-    /// A send followed by two plain stages, then the terminal that answers: the shape that separates a plain
-    /// stage which is its workflow's last step (item 2, with the handler composed next) from one which is not
-    /// (item 1, with a stage composed next).
+    /// A send followed by two plain stages, then the terminal that answers: one plain stage hands over to a
+    /// stage (item 1), the other to the handler's receive workflow (item 2).
     /// </summary>
     private sealed class SendThenTwoStagesTask : IServiceTask
     {
@@ -428,9 +427,9 @@ public class ExecuteServiceTaskMailboxTests
     }
 
     /// <summary>
-    /// The workflow's last stage need not be the one that opened the exchange: a plain stage composed between
-    /// the send and the handler is its workflow's last step too, because the handler after it must be alone —
-    /// and that is derived from the pipeline, since nothing rides in the step's payload.
+    /// The stage that starts the receive workflow need not be the one that opened the exchange: a plain stage
+    /// composed between the send and the handler starts it — derived from the pipeline, since nothing rides in
+    /// the step's payload.
     /// </summary>
     [Fact]
     public async Task PlainStageBeforeAHandler_Completed_AsksForThatExchangesReceiver()
@@ -453,25 +452,30 @@ public class ExecuteServiceTaskMailboxTests
     }
 
     /// <summary>
-    /// The other half of that derivation: a plain stage the pipeline follows with another stage starts
-    /// nothing. The steps after it are already in this workflow's step list, so the engine simply runs the
-    /// next one — enqueuing anything here would duplicate them.
+    /// The redeploy case: the step for item 1 was enqueued when the handler came right after it, so it is its
+    /// workflow's only step, and a redeploy has since inserted the plain stage at item 2. Completing item 1
+    /// must start item 2's workflow, or the task would wait forever with nothing running and nothing failed.
     /// </summary>
     [Fact]
-    public async Task MidSegmentPlainStage_Completed_StartsNothing()
+    public async Task PlainStageNowFollowedByAnInsertedStage_Completed_StartsThatStagesWorkflow()
     {
         var task = new SendThenTwoStagesTask();
 
-        // An empty carry on purpose: a stage that starts nothing reads nothing from it.
-        WorkflowEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(), Payload(itemIndex: 1));
+        WorkflowEngineCommandResult result = await CreateCommand(task)
+            .Execute(CreateContext(MintedCarry()), Payload(itemIndex: 1));
 
         SuccessfulWorkflowEngineCommandResult success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
-        Assert.Null(success.MailboxContinuation);
+        Assert.Null(success.ProcessNextContinuation);
+        MailboxContinuation.ContinueAfterStage continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(
+            success.MailboxContinuation
+        );
+        Assert.Equal(1, continuing.Handover.AfterItemIndex);
+        Assert.Equal([$"{ExecuteServiceTask.Key}: 2"], OperationIds(continuing.Handover));
+        Assert.Null(continuing.Handover.Target);
     }
 
     /// <summary>
-    /// And the stage after it, on the same pipeline, does hand over: what separates the two is only the shape
-    /// of the item composed next.
+    /// The stage after it, on the same pipeline, starts the receive workflow of the handler composed next.
     /// </summary>
     [Fact]
     public async Task LastPlainStageOfTheSamePipeline_Completed_AsksForTheReceiver()
@@ -490,13 +494,12 @@ public class ExecuteServiceTaskMailboxTests
     }
 
     /// <summary>
-    /// A mailbox-opening stage is always its workflow's last step, so completing one with the exchange's
-    /// handler further off hands the pipeline over to the workflow carrying the items in between — the shape
-    /// <see cref="ArchivingTask"/> has, with a plain stage composed between the send and the terminal. No
-    /// target: that workflow receives nothing.
+    /// Completing a mailbox-opening stage with the exchange's handler further off hands the pipeline over to
+    /// the workflow of the item composed next — the shape <see cref="ArchivingTask"/> has, with a plain stage
+    /// composed between the send and the terminal. No target: that workflow receives nothing.
     /// </summary>
     [Fact]
-    public async Task MidPipelineOpeningStage_Completed_AsksForTheNextSegment()
+    public async Task MidPipelineOpeningStage_Completed_AsksForTheNextItemsWorkflow()
     {
         var task = new ArchivingTask();
         WorkflowCallbackStateCarry carry = MintedCarry();
@@ -572,7 +575,7 @@ public class ExecuteServiceTaskMailboxTests
 
     /// <summary>
     /// The conclusion an opening stage with items composed after it returns: honored exactly as one from the
-    /// stage a handler follows, because that stage ended its workflow too — the items after it are a segment
+    /// stage a handler follows, because that stage ends its workflow too — the items after it are workflows
     /// this verdict never starts rather than steps it would have to cancel. No continuation is asked for, the
     /// mailbox closes, and the process advances per the carried result.
     /// </summary>

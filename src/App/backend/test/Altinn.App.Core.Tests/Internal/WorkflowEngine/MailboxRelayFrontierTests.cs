@@ -235,7 +235,7 @@ public class MailboxRelayFrontierTests
 
     /// <summary>
     /// Both sends up front, so the first send's own step ends the primary workflow and the second rides a continuation
-    /// — the hop where a workflow hands over to the next segment with no exchange in between.
+    /// — the hop where a workflow hands over to the next item with no exchange in between.
     /// </summary>
     private sealed class UpFrontSendsTask : IServiceTask
     {
@@ -254,8 +254,8 @@ public class MailboxRelayFrontierTests
     }
 
     /// <summary>
-    /// The hand-over a deciding hop would have made: the segment planned after that item. Both call sites
-    /// pass an item the plan after which is an ordinary continuation, so no target rides along.
+    /// The hand-over a deciding hop would have made: the workflow planned after that item. Every call site
+    /// passes an item the plan after which is an ordinary continuation, so no target rides along.
     /// </summary>
     private static MailboxHandover Handover(ServiceTaskPipeline pipeline, int afterItemIndex) =>
         new(afterItemIndex, WorkflowStepSet.PlanSegment(ServiceTaskType, pipeline, afterItemIndex), target: null);
@@ -455,7 +455,7 @@ public class MailboxRelayFrontierTests
                 _mailboxId,
                 ServiceTaskType,
                 // ArchiveThenJournalTask answers exchange A with the handler at item index 1, and the hop
-                // that concludes it carries the segment it planned.
+                // that concludes it carries the workflow it planned.
                 Handover(new ArchiveThenJournalTask().ResolvePipeline(), afterItemIndex: 1)
             ),
             CreateRequest(receiver, Guid.NewGuid()),
@@ -486,7 +486,7 @@ public class MailboxRelayFrontierTests
 
     /// <summary>
     /// The invariant on the hop that has no exchange to lean on: a mailbox-opening stage ends its workflow, so
-    /// the segment carrying what follows it is enqueued from inside that stage's still-unsettled step. Get the
+    /// the workflow carrying what follows it is enqueued from inside that stage's still-unsettled step. Get the
     /// order wrong and the primary workflow settles with no head at all while a mailbox it just opened is waiting for a
     /// receiver nothing will enqueue.
     /// </summary>
@@ -529,6 +529,56 @@ public class MailboxRelayFrontierTests
             continuation,
             "retention purged the primary workflow"
         );
+    }
+
+    /// <summary>Two plain stages and a conclusion, with no mailbox anywhere.</summary>
+    private sealed class TwoStagesTask : IServiceTask
+    {
+        public string Type => ServiceTaskType;
+
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+            pipeline
+                .Stage(PlainStage)
+                .Stage(PlainStage)
+                .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+    }
+
+    /// <summary>
+    /// The same invariant along a pipeline of plain stages: each stage ends its workflow and enqueues the next
+    /// item's from inside its still-unsettled step, so the collection never reads all-settled between them.
+    /// </summary>
+    [Fact]
+    public async Task PlainStages_EachHoldTheFrontierUntilTheNextItemsWorkflowExists()
+    {
+        var collection = new CollectionModel();
+        MailboxRelay relay = CreateRelay(collection, new TwoStagesTask());
+        WorkflowEngineService reader = CreateReader(collection);
+        ServiceTaskPipeline pipeline = new TwoStagesTask().ResolvePipeline();
+
+        Guid running = collection.Seed("Process next: Task_1 -> Task_2", PersistentItemStatus.Processing);
+
+        for (int stage = 0; stage < 2; stage++)
+        {
+            int headsBefore = collection.EnqueuedByTheRelay.Count;
+            await relay.Continue(
+                new MailboxContinuation.ContinueAfterStage(ServiceTaskType, Handover(pipeline, stage)),
+                CreateRequest(running, Guid.NewGuid()),
+                CancellationToken.None
+            );
+            Assert.Equal(headsBefore + 1, collection.EnqueuedByTheRelay.Count);
+            Guid next = collection.EnqueuedByTheRelay[^1];
+
+            collection.Settle(running);
+            await AssertFrontierHeldOpenBy(
+                reader,
+                collection,
+                CreateInstance(),
+                next,
+                $"the workflow of the stage at {stage} settled"
+            );
+
+            running = next;
+        }
     }
 
     private static async Task AssertFrontierHeldOpenBy(

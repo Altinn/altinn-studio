@@ -69,10 +69,9 @@ internal abstract record MailboxContinuation
     }
 
     /// <summary>
-    /// A stage that was its workflow's last step completed: start what the pipeline composes after it — the
-    /// receive leg of the exchange the handler composed next answers, or otherwise the workflow carrying the
-    /// items that are composed next. Which exchange that is belongs to the handler, not to this stage: on
-    /// up-front sends the stage that just sent opened a <em>later</em> exchange than the one the handler after
+    /// A stage completed: start what the pipeline composes after it — the receive leg of the exchange the
+    /// handler composed next answers, or otherwise the workflow of the item composed next. Which exchange that is
+    /// belongs to the handler, not to this stage: on up-front sends the stage that just sent opened a <em>later</em> exchange than the one the handler after
     /// it answers. Nothing is closed: no exchange of this task has been answered here, neither one this stage
     /// opened nor one an earlier stage did.
     /// </summary>
@@ -110,7 +109,7 @@ internal abstract record MailboxContinuation
 
     /// <summary>
     /// A mid-pipeline handler concluded <em>its</em> exchange while the task carries on: close that one
-    /// mailbox, then start the pipeline's next segment. Not <see cref="Conclude"/> with a flag: what follows a
+    /// mailbox, then start the next item's workflow. Not <see cref="Conclude"/> with a flag: what follows a
     /// closing is a shape the relay dispatches on, so no arm can drift into performing the other's move.
     /// </summary>
     internal sealed record ConcludeAndContinue : MailboxContinuation
@@ -192,8 +191,8 @@ internal sealed record MailboxHandover
     }
 
     /// <summary>
-    /// The item the plan follows — the reply handler that concluded its exchange, or the stage that was its
-    /// own workflow's last step. What a continuation workflow's operation id names.
+    /// The item the plan follows — the reply handler that concluded its exchange, or the stage that completed.
+    /// What a continuation workflow's operation id names.
     /// </summary>
     public int AfterItemIndex { get; }
 

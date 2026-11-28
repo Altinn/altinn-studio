@@ -1432,8 +1432,12 @@ public class ProcessNextRequestFactoryTests
             .Where(x => x != default)
             .ToList();
 
+    /// <summary>
+    /// The primary workflow carries the pipeline's first item only: the stage's completion starts the
+    /// conclusion's own workflow.
+    /// </summary>
     [Fact]
-    public async Task Create_PipelineServiceTask_ExpandsToOneEngineStepPerStage_ThenTheConclusion()
+    public async Task Create_PipelineServiceTask_PrimaryWorkflowCarriesTheFirstItemOnly()
     {
         // Arrange
         var factory = CreateFactory(serviceTasks: new SigningTask());
@@ -1448,24 +1452,19 @@ public class ProcessNextRequestFactoryTests
         );
 
         // Assert
-        var serviceTaskSteps = ExtractServiceTaskSteps(bundle);
-        Assert.Equal(2, serviceTaskSteps.Count);
+        var stageStep = Assert.Single(ExtractServiceTaskSteps(bundle));
+        Assert.Equal(0, stageStep.Payload.ItemIndex);
+        Assert.Equal($"{ExecuteServiceTask.Key}: 0", stageStep.OperationId);
+        Assert.Equal("signing", stageStep.Payload.ServiceTaskType);
 
-        Assert.Equal(0, serviceTaskSteps[0].Payload.ItemIndex);
-        Assert.Equal($"{ExecuteServiceTask.Key}: 0", serviceTaskSteps[0].OperationId);
-        Assert.Equal(1, serviceTaskSteps[1].Payload.ItemIndex);
-        Assert.Equal($"{ExecuteServiceTask.Key}: 1", serviceTaskSteps[1].OperationId);
-        Assert.All(serviceTaskSteps, s => Assert.Equal("signing", s.Payload.ServiceTaskType));
-
-        // Both stay primary: in the primary workflow, after the commit boundary and the auxiliary enqueue.
+        // Primary: in the primary workflow, after the commit boundary, and its last step.
         var keys = ExtractCommandKeys(bundle);
-        int saveIndex = keys.IndexOf(CommitProcessState.Key);
-        int firstServiceTaskIndex = keys.IndexOf(ExecuteServiceTask.Key);
-        Assert.True(firstServiceTaskIndex > saveIndex);
+        Assert.True(keys.IndexOf(ExecuteServiceTask.Key) > keys.IndexOf(CommitProcessState.Key));
+        Assert.Equal(ExecuteServiceTask.Key, keys[^1]);
     }
 
     [Fact]
-    public async Task Create_PipelineServiceTask_ResolvesOptionsPerStage()
+    public async Task Create_PipelineServiceTask_ResolvesTheFirstStagesOwnOptions()
     {
         // Arrange
         var factory = CreateFactory(serviceTasks: new SigningTask());
@@ -1479,17 +1478,12 @@ public class ProcessNextRequestFactoryTests
             SignedTestState
         );
 
-        // Assert — each step carries exactly the options its own item declared: the stage's timeout, and the
-        // conclusion's timeout and wait budget. Nothing is shared between them, so the stage, which never
-        // defers, is not handed a budget it could never use.
-        var serviceTaskSteps = ExtractServiceTaskSteps(bundle);
-        var dispatch = serviceTaskSteps.Single(s => s.Payload.ItemIndex == 0).Step;
-        var conclusion = serviceTaskSteps.Single(s => s.Payload.ItemIndex == 1).Step;
+        // Assert — the step carries exactly the options its own item declared: the stage's timeout, and not
+        // the conclusion's wait budget, which the stage, never deferring, could never use.
+        var dispatch = Assert.Single(ExtractServiceTaskSteps(bundle)).Step;
 
         Assert.Equal(TimeSpan.FromMinutes(10), dispatch.Command.MaxExecutionTime);
         Assert.Null(dispatch.Command.WaitBudget);
-        Assert.Equal(TimeSpan.FromMinutes(30), conclusion.Command.MaxExecutionTime);
-        Assert.Equal(TimeSpan.FromHours(48), conclusion.Command.WaitBudget);
     }
 
     private static readonly MailboxOptions _mailboxThreeDays = new() { Timeout = TimeSpan.FromDays(3) };
@@ -1531,9 +1525,8 @@ public class ProcessNextRequestFactoryTests
     }
 
     /// <summary>
-    /// A declaring pipeline with a stage on <em>each</em> side of the one that sends, so "immediately before
-    /// the declaring stage" is distinguishable from both "first" and "last" — the
-    /// <c>send → unrelated stage → reply terminal</c> shape the design supports.
+    /// A declaring pipeline with a stage on <em>each</em> side of the one that sends — the
+    /// <c>send → unrelated stage → reply terminal</c> shape the design supports, with a stage before it.
     /// </summary>
     private sealed class SurroundedSendArchivingTask : IServiceTask
     {
@@ -1553,10 +1546,9 @@ public class ProcessNextRequestFactoryTests
     }
 
     /// <summary>
-    /// Two exchanges, the first answered <em>mid-pipeline</em>: the primary workflow therefore carries only the
-    /// pipeline's first segment and hands over to that exchange's receiver, with the journal's send and the terminal
-    /// belonging to the continuation the archive's conclusion starts. The two handlers declare distinct timeouts so the
-    /// receive step can be shown to resolve the handler that answers <em>it</em>.
+    /// Two exchanges, the first answered <em>mid-pipeline</em>: the primary workflow carries only the archive's send,
+    /// and every later item rides a workflow of its own. The two handlers declare distinct timeouts so the receive
+    /// step can be shown to resolve the handler that answers <em>it</em>.
     /// </summary>
     private sealed class ArchiveThenJournalTask : IServiceTask
     {
@@ -1612,20 +1604,20 @@ public class ProcessNextRequestFactoryTests
         // runs on the receive workflows rather than in the primary workflow.
         Assert.Equal(0, sendStep.Payload.ItemIndex);
 
-        // The primary workflow's last step is the segment's last stage: completing it is what enqueues the first
-        // receiver, from inside the still-unsettled step, so the frontier never reads empty while the exchange is open.
+        // The primary workflow's last step is the send: completing it is what enqueues the first receiver, from
+        // inside the still-unsettled step, so the frontier never reads empty while the exchange is open.
         var keys = ExtractCommandKeys(bundle);
         Assert.Equal(ExecuteServiceTask.Key, keys[^1]);
     }
 
     /// <summary>
-    /// The mint is its own step and hugs the stage that sends: never at the transition's start (the deadline
-    /// clock would start before the stages that precede the send) and never after it.
+    /// The mint is its own step and hugs the stage that sends: after the task-start steps and immediately
+    /// before the send, which ends the primary workflow.
     /// </summary>
     [Fact]
     public async Task Create_MailboxPipeline_EmitsTheMintStepImmediatelyBeforeTheDeclaringStage()
     {
-        var factory = CreateFactory(serviceTasks: new SurroundedSendArchivingTask());
+        var factory = CreateFactory(serviceTasks: new ArchivingTask());
         var stateChange = CreateInitialTaskStart(altinnTaskType: "archiving");
 
         var bundle = await factory.CreateChainInitiating(
@@ -1636,19 +1628,13 @@ public class ProcessNextRequestFactoryTests
         );
 
         List<string> operationIds = bundle.Request.Workflows[0].Steps.Select(s => s.OperationId).ToList();
-        int mint = operationIds.IndexOf($"{MintMailbox.Key}: 1");
-        Assert.NotEqual(-1, mint);
-        Assert.Equal($"{ExecuteServiceTask.Key}: 0", operationIds[mint - 1]);
-        Assert.Equal($"{ExecuteServiceTask.Key}: 1", operationIds[mint + 1]);
+        Assert.Equal([$"{MintMailbox.Key}: 0", $"{ExecuteServiceTask.Key}: 0"], operationIds[^2..]);
         Assert.Single(operationIds, id => id.StartsWith(MintMailbox.Key, StringComparison.Ordinal));
-        // The declaring stage ends the primary workflow whether or not the exchange's handler follows it: the unrelated
-        // stage composed after the send rides the continuation that stage's completion enqueues.
-        Assert.DoesNotContain($"{ExecuteServiceTask.Key}: 2", operationIds);
-        Assert.Equal($"{ExecuteServiceTask.Key}: 1", operationIds[^1]);
+        Assert.True(operationIds.IndexOf($"{MintMailbox.Key}: 0") > operationIds.IndexOf(CommitProcessState.Key));
 
         MintMailboxPayload payload = ExtractMintPayload(bundle);
         Assert.Equal("archiving", payload.ServiceTaskType);
-        Assert.Equal(1, payload.StageIndex);
+        Assert.Equal(0, payload.StageIndex);
     }
 
     /// <summary>
@@ -1658,7 +1644,7 @@ public class ProcessNextRequestFactoryTests
     [Fact]
     public async Task Create_MailboxPipeline_LeavesTheMintStepOnTheEngineDefaults()
     {
-        var factory = CreateFactory(serviceTasks: new SurroundedSendArchivingTask());
+        var factory = CreateFactory(serviceTasks: new ArchivingTask());
         var stateChange = CreateInitialTaskStart(altinnTaskType: "archiving");
 
         var bundle = await factory.CreateChainInitiating(
@@ -1668,7 +1654,7 @@ public class ProcessNextRequestFactoryTests
             SignedTestState
         );
 
-        StepRequest mintStep = bundle.Request.Workflows[0].Steps.Single(s => s.OperationId == $"{MintMailbox.Key}: 1");
+        StepRequest mintStep = bundle.Request.Workflows[0].Steps.Single(s => s.OperationId == $"{MintMailbox.Key}: 0");
         Assert.Null(mintStep.Command.MaxExecutionTime);
         Assert.Null(mintStep.Command.WaitBudget);
         Assert.Null(mintStep.RetryStrategy);
@@ -1718,11 +1704,9 @@ public class ProcessNextRequestFactoryTests
     }
 
     /// <summary>
-    /// The assembly half of multi-exchange, and the seam nothing else covers: until the planner learned to split at a
-    /// reply handler, a composed <c>HandleReplies</c> made the primary workflow's planning throw, so this shape could
-    /// not reach the engine at all. The primary workflow carries only the pipeline's <em>first</em> segment — the
-    /// archive's send, whose completion starts that exchange's receive leg — with the journal's send and the terminal
-    /// belonging to the workflows further down the chain.
+    /// The assembly half of multi-exchange: the primary workflow carries only the archive's send, whose completion
+    /// starts that exchange's receive leg, with the journal's send and the terminal belonging to the workflows further
+    /// down the chain.
     /// </summary>
     [Fact]
     public async Task Create_MailboxPipelineAnsweredMidPipeline_EndsMainAtTheFirstSend()
@@ -1737,8 +1721,8 @@ public class ProcessNextRequestFactoryTests
             SignedTestState
         );
 
-        // One stage step, the archive's send: no send for the journal (that stage rides the continuation) and
-        // no concluding step (the conclusion is a later item, and it rides the continuation too).
+        // One stage step, the archive's send: the journal's send and the conclusion are later items, each in a
+        // workflow of its own.
         var serviceTaskSteps = ExtractServiceTaskSteps(bundle);
         (string OperationId, ExecuteServiceTaskPayload Payload, StepRequest Step) sendStep = Assert.Single(
             serviceTaskSteps
@@ -1754,7 +1738,7 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
-    public async Task Create_PipelineWithoutMailbox_RunsTheWholePipelineInMain()
+    public async Task Create_PipelineWithoutMailbox_LeavesTheConclusionToItsOwnWorkflow()
     {
         var factory = CreateFactory(serviceTasks: new SigningTask());
         var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
@@ -1767,18 +1751,16 @@ public class ProcessNextRequestFactoryTests
         );
 
         var serviceTaskSteps = ExtractServiceTaskSteps(bundle);
-        // The signing pipeline's conclusion is its item 1, and the primary workflow runs it as an ordinary step.
-        Assert.Contains(serviceTaskSteps, s => s.Payload.ItemIndex == 1);
+        // The signing pipeline's conclusion is its item 1, which the stage's completion starts.
+        Assert.DoesNotContain(serviceTaskSteps, s => s.Payload.ItemIndex == 1);
     }
 
     /// <summary>
-    /// The primary workflow runs the stages up to and including the first mailbox-opening one and stops there: the
-    /// plain stage composed after the send is a later segment's step, and the handler that answers the exchange — this
-    /// pipeline's terminal, at item index 3 — is the receive workflow's step alone. Nothing hands over to that exchange
-    /// from the primary workflow: the stage between the two is what will, from the continuation it rides.
+    /// A plain stage composed before the send gets the primary workflow to itself: the mint and the send ride the
+    /// continuation its completion enqueues, so the deadline clock starts only when the send is next.
     /// </summary>
     [Fact]
-    public async Task Create_MailboxPipeline_EndsMainAtTheOpeningStage()
+    public async Task Create_MailboxPipeline_WithAStageBeforeTheSend_EndsMainAtThatStage()
     {
         var factory = CreateFactory(serviceTasks: new SurroundedSendArchivingTask());
         var stateChange = CreateInitialTaskStart(altinnTaskType: "archiving");
@@ -1791,10 +1773,11 @@ public class ProcessNextRequestFactoryTests
         );
 
         var serviceTaskSteps = ExtractServiceTaskSteps(bundle);
-        Assert.Equal([0, 1], serviceTaskSteps.Select(s => s.Payload.ItemIndex).ToList());
+        Assert.Equal([0], serviceTaskSteps.Select(s => s.Payload.ItemIndex).ToList());
 
         var keys = ExtractCommandKeys(bundle);
         Assert.Equal(ExecuteServiceTask.Key, keys[^1]);
+        Assert.DoesNotContain(MintMailbox.Key, keys);
     }
 
     [Fact]
