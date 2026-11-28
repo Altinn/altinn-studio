@@ -114,6 +114,7 @@ public static class ServiceRegistration
         services.AddScoped<ICanUseAiAssistantEvaluator, CanUseAiAssistantEvaluator>();
         services.AddTransient<IReleaseService, ReleaseService>();
         services.AddTransient<IDeploymentService, DeploymentService>();
+        services.AddTransient<IDeployWarningsService, DeployWarningsService>();
         services.AddTransient<AppRuntime>();
         services.AddTransient<IAppScopesService, AppScopesService>();
         services.AddTransient<IAppSettingsService, AppSettingsService>();

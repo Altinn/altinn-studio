@@ -3,6 +3,7 @@ export { useAppReleasesQuery } from './useAppReleasesQuery';
 export { useBranchStatusQuery } from './useBranchStatusQuery';
 export { useDataModelGenerationStatusQuery } from './useDataModelGenerationStatusQuery';
 export { useDeployPermissionsQuery } from './useDeployPermissionsQuery';
+export { useDeployWarningsQuery } from './useDeployWarningsQuery';
 export { useEnvironmentsQuery } from './useEnvironmentsQuery';
 export { useLanguagesQuery } from './useLanguagesQuery';
 export { useOrgListQuery } from './useOrgListQuery';

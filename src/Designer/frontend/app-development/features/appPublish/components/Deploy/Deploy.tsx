@@ -63,6 +63,7 @@ export const Deploy = ({
   return (
     <DeployDropdown
       appDeployedVersion={appDeployedVersion}
+      envName={envName}
       disabled={deployInProgress}
       isPending={deployInProgress}
       selectedImageTag={selectedImageTag}

@@ -10,6 +10,16 @@ namespace Altinn.Studio.Designer.Helpers;
 
 public static class PackageVersionHelper
 {
+    /// <summary>
+    /// The packages whose version is the app's version of the app libraries.
+    /// </summary>
+    public static readonly IReadOnlyList<string> AppLibPackageNames = ["Altinn.App.Api", "Altinn.App.Api.Experimental"];
+
+    /// <summary>
+    /// The project file that references the app libraries, relative to the root of the app's repository.
+    /// </summary>
+    public const string AppCsprojPath = "App/App.csproj";
+
     public static bool TryGetPackageVersionFromCsprojFile(
         string csprojFilePath,
         IReadOnlyList<string> packageNames,

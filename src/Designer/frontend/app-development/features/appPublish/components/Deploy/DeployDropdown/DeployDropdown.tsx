@@ -12,6 +12,7 @@ import { filterSucceededReleases, mapAppReleasesToImageOptions } from './utils';
 
 export type DeployDropdownProps = {
   appDeployedVersion: string;
+  envName: string;
   disabled: boolean;
   setSelectedImageTag: (tag: string) => void;
   selectedImageTag: string;
@@ -21,6 +22,7 @@ export type DeployDropdownProps = {
 
 export const DeployDropdown = ({
   appDeployedVersion,
+  envName,
   selectedImageTag,
   setSelectedImageTag,
   disabled,
@@ -81,6 +83,7 @@ export const DeployDropdown = ({
         <DeployPopover
           appDeployedVersion={appDeployedVersion}
           selectedImageTag={selectedImageTag}
+          envName={envName}
           disabled={disabled}
           isPending={isPending}
           onConfirm={startDeploy}
