@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import classes from './ResourceDashboardPage.module.css';
@@ -7,6 +7,7 @@ import { FilterableResourceTable } from '../../components/FilterableResourceTabl
 import { SearchBox } from '../../components/ResourceSearchBox';
 import { useGetResourceListQuery, useOrganizationsQuery } from '../../hooks/queries';
 import { NewResourceModal } from '../../components/NewResourceModal';
+import { getAppName } from '../../utils/stringUtils';
 import { useTranslation } from 'react-i18next';
 import { getResourceDashboardURL, getResourcePageURL } from '../../utils/urlUtils';
 import { getReposLabel } from 'dashboard/utils/repoUtils';
@@ -18,6 +19,7 @@ import type { EnvId } from '../../utils/resourceUtils';
 import type { Resource } from 'app-shared/types/ResourceAdm';
 import { useFeatureFlag, FeatureFlag } from '@designer/feature-flags';
 import { ButtonRouterLink } from 'app-shared/components/ButtonRouterLink/ButtonRouterLink';
+import { useRepoMetadataQuery } from 'app-shared/hooks/queries';
 
 /**
  * @component
@@ -46,6 +48,21 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
     resourceId: string;
     availableEnvs: EnvId[];
   } | null>(null);
+
+  // The metadata endpoint answers 204 with no body when the repository does not exist, so a missing repository shows
+  // up as empty data rather than as an error.
+  const { data: repoMetadata, isPending: isRepoMetadataPending } = useRepoMetadataQuery(
+    org,
+    getAppName(org),
+    { hideDefaultError: true },
+  );
+  const repoIsMissing = !isRepoMetadataPending && !repoMetadata;
+
+  useEffect(() => {
+    if (repoIsMissing) {
+      navigate('/');
+    }
+  }, [repoIsMissing, navigate]);
 
   const {
     data: resourceListData,
@@ -111,6 +128,14 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
       );
     }
   };
+
+  if (isRepoMetadataPending || repoIsMissing) {
+    return (
+      <div className={classes.spinnerWrapper}>
+        <StudioSpinner data-size='xl' aria-label={t('resourceadm.dashboard_spinner')} />
+      </div>
+    );
+  }
 
   return (
     <div className={classes.pageWrapper}>
