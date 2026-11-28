@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Infrastructure.Models;
@@ -131,6 +132,7 @@ public class DeploymentServiceTest : IDisposable
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
+                    It.IsAny<AppStatus>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -142,7 +144,8 @@ public class DeploymentServiceTest : IDisposable
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<string>()
+                    It.IsAny<string>(),
+                    It.IsAny<AppStatus>()
                 )
             )
             .ReturnsAsync(new ResourceRegistryPublishResult(true));
@@ -202,6 +205,7 @@ public class DeploymentServiceTest : IDisposable
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
+                    It.IsAny<AppStatus>(),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once
@@ -212,7 +216,8 @@ public class DeploymentServiceTest : IDisposable
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<string>()
+                    It.IsAny<string>(),
+                    It.IsAny<AppStatus>()
                 ),
             Times.Once
         );
@@ -258,6 +263,7 @@ public class DeploymentServiceTest : IDisposable
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
+                    It.IsAny<AppStatus>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -269,7 +275,8 @@ public class DeploymentServiceTest : IDisposable
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<string>()
+                    It.IsAny<string>(),
+                    It.IsAny<AppStatus>()
                 )
             )
             .ReturnsAsync(new ResourceRegistryPublishResult(true));
@@ -340,7 +347,8 @@ public class DeploymentServiceTest : IDisposable
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<string>()
+                    It.IsAny<string>(),
+                    It.IsAny<AppStatus>()
                 )
             )
             .ReturnsAsync(new ResourceRegistryPublishResult(true));
@@ -433,6 +441,7 @@ public class DeploymentServiceTest : IDisposable
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
+                    It.IsAny<AppStatus>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -444,7 +453,8 @@ public class DeploymentServiceTest : IDisposable
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<string>()
+                    It.IsAny<string>(),
+                    It.IsAny<AppStatus>()
                 )
             )
             .ReturnsAsync(new ResourceRegistryPublishResult(false, "Validation errors: some error"));
@@ -541,6 +551,7 @@ public class DeploymentServiceTest : IDisposable
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
+                    It.IsAny<AppStatus>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -552,7 +563,8 @@ public class DeploymentServiceTest : IDisposable
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<string>()
+                    It.IsAny<string>(),
+                    It.IsAny<AppStatus>()
                 )
             )
             .ReturnsAsync(new ResourceRegistryPublishResult(true));
@@ -645,6 +657,7 @@ public class DeploymentServiceTest : IDisposable
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
+                    It.IsAny<AppStatus>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -656,7 +669,8 @@ public class DeploymentServiceTest : IDisposable
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<string>()
+                    It.IsAny<string>(),
+                    It.IsAny<AppStatus>()
                 )
             )
             .ReturnsAsync(new ResourceRegistryPublishResult(true));
@@ -796,6 +810,7 @@ public class DeploymentServiceTest : IDisposable
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
+                    It.IsAny<AppStatus>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -807,7 +822,8 @@ public class DeploymentServiceTest : IDisposable
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<string>()
+                    It.IsAny<string>(),
+                    It.IsAny<AppStatus>()
                 )
             )
             .ReturnsAsync(new ResourceRegistryPublishResult(true));
@@ -939,6 +955,7 @@ public class DeploymentServiceTest : IDisposable
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
+                    It.IsAny<AppStatus>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -950,7 +967,8 @@ public class DeploymentServiceTest : IDisposable
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<string>()
+                    It.IsAny<string>(),
+                    It.IsAny<AppStatus>()
                 )
             )
             .ReturnsAsync(new ResourceRegistryPublishResult(true));
@@ -1166,6 +1184,103 @@ public class DeploymentServiceTest : IDisposable
         };
     }
 
+    public static TheoryData<string, AppStatus?, AppStatus> AppStatusCases =>
+        new()
+        {
+            // env, status committed in the release, expected status
+            { "at23", null, AppStatus.UnderDevelopment },
+            { "tt02", null, AppStatus.UnderDevelopment },
+            { "production", null, AppStatus.Completed },
+            { "tt02", AppStatus.Completed, AppStatus.Completed },
+            { "production", AppStatus.UnderDevelopment, AppStatus.UnderDevelopment },
+            // A release cannot carry Deprecated or Withdrawn, so a hand-written one falls back to the default
+            { "tt02", AppStatus.Deprecated, AppStatus.UnderDevelopment },
+            { "production", AppStatus.Deprecated, AppStatus.Completed },
+            { "production", AppStatus.Withdrawn, AppStatus.Completed },
+        };
+
+    [Theory]
+    [MemberData(nameof(AppStatusCases))]
+    public async Task CreateAsync_SetsCommittedOrDefaultAppStatusInStorageAndResourceRegistry(
+        string env,
+        AppStatus? committedAppStatus,
+        AppStatus expectedAppStatus
+    )
+    {
+        // Arrange
+        const string org = "ttd";
+        const string app = "apps-test-tba";
+        DeploymentModel deploymentModel = new() { TagName = "1", EnvName = env };
+
+        ReleaseEntity release = GetReleases("updatedRelease.json").First();
+        _releaseRepository
+            .Setup(r => r.GetSucceededReleaseFromDb(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(release);
+        _applicationInformationService
+            .Setup(ais => ais.GetAppStatusAsync(org, app, release.TargetCommitish))
+            .ReturnsAsync(committedAppStatus);
+        _applicationInformationService
+            .Setup(ais =>
+                ais.PublishToResourceRegistryAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<AppStatus>()
+                )
+            )
+            .ReturnsAsync(new ResourceRegistryPublishResult(true));
+        _azureDevOpsBuildClient
+            .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(GetBuild());
+        _deploymentRepository
+            .Setup(r => r.Create(It.IsAny<DeploymentEntity>()))
+            .ReturnsAsync((DeploymentEntity entity) => entity);
+
+        DeploymentService deploymentService = new(
+            GetAzureDevOpsSettings(),
+            _azureDevOpsBuildClient.Object,
+            _httpContextAccessor.Object,
+            _deploymentRepository.Object,
+            _deployEventRepository.Object,
+            _releaseRepository.Object,
+            _environementsService.Object,
+            _applicationInformationService.Object,
+            _mediatrMock.Object,
+            _generalSettings,
+            _fakeTimeProvider,
+            _gitOpsConfigurationManager.Object,
+            _apiKeyService.Object,
+            _notificationService.Object,
+            _hostEnvironment.Object,
+            _metrics.Metrics
+        );
+
+        AltinnAuthenticatedRepoEditingContext authenticatedContext =
+            AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
+
+        // Act
+        await deploymentService.CreateAsync(authenticatedContext, deploymentModel);
+
+        // Assert
+        _applicationInformationService.Verify(
+            ais =>
+                ais.UpdateApplicationMetadataAndPoliciesAsync(
+                    org,
+                    app,
+                    It.IsAny<string>(),
+                    env,
+                    expectedAppStatus,
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+        _applicationInformationService.Verify(
+            ais => ais.PublishToResourceRegistryAsync(org, app, It.IsAny<string>(), env, expectedAppStatus),
+            Times.Once
+        );
+    }
+
     [Theory]
     [InlineData("ttd", "test-app", "at23")]
     public async Task UndeployAsync_GitOpsConfigurationDoesNotExist_ShouldUseGitOpsManagerDefinitionId(
@@ -1255,6 +1370,11 @@ public class DeploymentServiceTest : IDisposable
                     azureDevOpsSettings.GitOpsManagerDefinitionId,
                     It.IsAny<CancellationToken>()
                 ),
+            Times.Once
+        );
+
+        _deploymentRepository.Verify(
+            r => r.Create(It.Is<DeploymentEntity>(d => d.DeploymentType == DeploymentType.Decommission)),
             Times.Once
         );
 
@@ -1719,6 +1839,7 @@ public class DeploymentServiceTest : IDisposable
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
+                    It.IsAny<AppStatus>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -1730,7 +1851,8 @@ public class DeploymentServiceTest : IDisposable
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<string>()
+                    It.IsAny<string>(),
+                    It.IsAny<AppStatus>()
                 )
             )
             .ReturnsAsync(new ResourceRegistryPublishResult(true));

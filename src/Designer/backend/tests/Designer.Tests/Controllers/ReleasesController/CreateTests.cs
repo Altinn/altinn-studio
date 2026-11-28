@@ -1,7 +1,10 @@
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
@@ -32,8 +35,8 @@ public class CreateTests
     {
         _releaseServiceMock = new Mock<IReleaseService>();
         _releaseServiceMock
-            .Setup(rs => rs.CreateAsync(It.IsAny<ReleaseEntity>()))
-            .ReturnsAsync((ReleaseEntity release) => release);
+            .Setup(rs => rs.CreateAsync(It.IsAny<ReleaseEntity>(), It.IsAny<AppStatus?>()))
+            .ReturnsAsync((ReleaseEntity release, AppStatus? _) => release);
         _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(_org)).ReturnsAsync(true);
         _giteaClientMock.Setup(g => g.GetTeams()).ReturnsAsync([CreateTeam("Deploy-tt02", _org)]);
     }
@@ -59,7 +62,8 @@ public class CreateTests
         _releaseServiceMock.Verify(
             rs =>
                 rs.CreateAsync(
-                    It.Is<ReleaseEntity>(r => r.Branch == branch && r.TargetCommitish == createRelease.TargetCommitish)
+                    It.Is<ReleaseEntity>(r => r.Branch == branch && r.TargetCommitish == createRelease.TargetCommitish),
+                    It.IsAny<AppStatus?>()
                 ),
             Times.Once
         );
@@ -73,7 +77,36 @@ public class CreateTests
         using HttpResponseMessage response = await PostRelease(createRelease);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        _releaseServiceMock.Verify(rs => rs.CreateAsync(It.IsAny<ReleaseEntity>()), Times.Never);
+        _releaseServiceMock.Verify(
+            rs => rs.CreateAsync(It.IsAny<ReleaseEntity>(), It.IsAny<AppStatus?>()),
+            Times.Never
+        );
+    }
+
+    [Theory]
+    [InlineData("UnderDevelopment", AppStatus.UnderDevelopment)]
+    [InlineData("Completed", AppStatus.Completed)]
+    [InlineData(null, null)]
+    public async Task Create_PassesAppStatusToReleaseService(string appStatus, AppStatus? expectedAppStatus)
+    {
+        using HttpResponseMessage response = await PostRelease(CreateRequestJson(appStatus));
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        _releaseServiceMock.Verify(rs => rs.CreateAsync(It.IsAny<ReleaseEntity>(), expectedAppStatus), Times.Once);
+    }
+
+    [Theory]
+    [InlineData("Deprecated")]
+    [InlineData("Withdrawn")]
+    public async Task Create_WithAppStatusThatAReleaseCannotCarry_ReturnsBadRequest(string appStatus)
+    {
+        using HttpResponseMessage response = await PostRelease(CreateRequestJson(appStatus));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        _releaseServiceMock.Verify(
+            rs => rs.CreateAsync(It.IsAny<ReleaseEntity>(), It.IsAny<AppStatus?>()),
+            Times.Never
+        );
     }
 
     [Fact]
@@ -85,7 +118,10 @@ public class CreateTests
         using HttpResponseMessage response = await PostRelease(CreateValidRequest(null));
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
-        _releaseServiceMock.Verify(rs => rs.CreateAsync(It.IsAny<ReleaseEntity>()), Times.Never);
+        _releaseServiceMock.Verify(
+            rs => rs.CreateAsync(It.IsAny<ReleaseEntity>(), It.IsAny<AppStatus?>()),
+            Times.Never
+        );
     }
 
     [Fact]
@@ -108,7 +144,10 @@ public class CreateTests
         using HttpResponseMessage response = await PostRelease(CreateValidRequest(null));
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
-        _releaseServiceMock.Verify(rs => rs.CreateAsync(It.IsAny<ReleaseEntity>()), Times.Never);
+        _releaseServiceMock.Verify(
+            rs => rs.CreateAsync(It.IsAny<ReleaseEntity>(), It.IsAny<AppStatus?>()),
+            Times.Never
+        );
     }
 
     private async Task<HttpResponseMessage> PostRelease(CreateReleaseRequestViewModel createRelease)
@@ -118,6 +157,33 @@ public class CreateTests
             Content = JsonContent.Create(createRelease),
         };
         return await HttpClient.SendAsync(httpRequestMessage);
+    }
+
+    // Sends the status as a string, as the frontend does
+    private async Task<HttpResponseMessage> PostRelease(JsonObject createRelease)
+    {
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, $"/designer/api/{_org}/{_app}/releases")
+        {
+            Content = new StringContent(createRelease.ToJsonString(), Encoding.UTF8, "application/json"),
+        };
+        return await HttpClient.SendAsync(httpRequestMessage);
+    }
+
+    private static JsonObject CreateRequestJson(string appStatus)
+    {
+        JsonObject createRelease = new()
+        {
+            ["tagName"] = "1.0.0",
+            ["name"] = "1.0.0",
+            ["body"] = "Release with app status",
+            ["targetCommitish"] = "0123456789abcdef0123456789abcdef01234567",
+        };
+        if (appStatus is not null)
+        {
+            createRelease["appStatus"] = appStatus;
+        }
+
+        return createRelease;
     }
 
     private static CreateReleaseRequestViewModel CreateValidRequest(string branch) =>

@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -393,6 +394,43 @@ public class CreateTests
         Assert.Equal(2, events.Count);
         Assert.Equal(DeployEventType.ResourceRegistryPublishFailed.ToString(), events[0].EventType);
         Assert.Equal(DeployEventType.PipelineScheduled.ToString(), events[1].EventType);
+    }
+
+    [Theory]
+    [InlineData("ttd", "deploy-test-at22", "at22", "5.0.0", "50001", AppStatus.UnderDevelopment)]
+    [InlineData("ttd", "deploy-test-status", "at22", "5.0.1", "50002", AppStatus.Completed)]
+    public async Task Create_SetsAppStatusFromRelease_InStorage(
+        string org,
+        string app,
+        string envName,
+        string tagName,
+        string buildId,
+        AppStatus expectedAppStatus
+    )
+    {
+        // Arrange
+        await PrepareReleaseInDb(org, app, tagName);
+        _mockServerFixture.PrepareDeploymentMockResponses(org, app, buildId);
+
+        string uri = VersionPrefix(org, app);
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri)
+        {
+            Content = JsonContent.Create(new { envName, tagName }),
+        };
+
+        // Act
+        using var response = await HttpClient.SendAsync(httpRequestMessage);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+        var storageRequest = _mockServerFixture.MockApi.LogEntries.Last(entry =>
+            entry.RequestMessage.Path.Contains("/storage/api/v1/applications")
+            && entry.RequestMessage.Method == "POST"
+            && entry.RequestMessage.RawQuery.Contains($"appId={org}/{app}")
+        );
+        var storedApplicationMetadata = JsonSerializer.Deserialize<JsonElement>(storageRequest.RequestMessage.Body);
+        Assert.Equal(expectedAppStatus.ToString(), storedApplicationMetadata.GetProperty("status").GetString());
     }
 
     private async Task PrepareReleaseInDb(string org, string app, string tagName)
