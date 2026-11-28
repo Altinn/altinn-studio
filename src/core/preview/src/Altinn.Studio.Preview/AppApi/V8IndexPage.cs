@@ -8,7 +8,7 @@ namespace Altinn.Studio.Preview.AppApi;
 
 internal static partial class V8IndexPage
 {
-    public static string? Generate(AppFiles files, SessionId sessionId, WorkingCopy workingCopy)
+    public static string? Generate(AppFiles files, SessionId sessionId, WorkingCopy workingCopy, Uri studioOrigin)
     {
         if (files.StartPage() is not { } startPage)
         {
@@ -30,7 +30,12 @@ internal static partial class V8IndexPage
         // are the session ID and the org. This script must run before the page's, wherever that is, so it goes before
         // the html element, from where the HTML parser moves a script into the head. It stays after the doctype, since
         // a page that doesn't start with one renders in quirks mode.
-        return html.Insert(LeadingDoctype().Match(html).Length, AppPathThatThePageCannotChange(sessionId, workingCopy));
+        // The Studio bridge goes with it. The v8 frontend's error logs are not ones the bridge reads, so it reports none.
+        return html.Insert(
+            LeadingDoctype().Match(html).Length,
+            AppPathThatThePageCannotChange(sessionId, workingCopy)
+                + StudioBridge.Element(studioOrigin, componentErrors: false)
+        );
     }
 
     private static string AppPathThatThePageCannotChange(SessionId sessionId, WorkingCopy workingCopy)

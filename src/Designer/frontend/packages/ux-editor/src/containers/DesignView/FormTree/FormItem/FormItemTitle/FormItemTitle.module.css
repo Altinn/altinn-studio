@@ -28,3 +28,8 @@
 .deprecatedComponent {
   background-color: var(--ds-color-warning-surface-tinted);
 }
+
+.previewErrorsButton {
+  border-radius: 0;
+  color: var(--ds-color-danger-text-default);
+}

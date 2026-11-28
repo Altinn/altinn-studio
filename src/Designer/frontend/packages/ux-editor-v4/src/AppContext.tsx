@@ -1,18 +1,14 @@
 import type { MutableRefObject, ReactElement, ReactNode } from 'react';
 import React, { createContext, useCallback, useMemo, useRef, useState } from 'react';
-import type { QueryClient, QueryKey } from '@tanstack/react-query';
 import { useSelectedFormLayoutName } from 'app-shared/hooks/useSelectedFormLayoutName';
-import { AppsQueryKey } from 'app-shared/types/AppsQueryKey';
+import { usePreviewContext } from 'app-shared/contexts/PreviewContext';
+import { postPreviewChange, type PreviewChange } from 'app-shared/utils/studioBridge';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { StudioPageSpinner } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import type { ItemType } from './components/Properties/ItemType';
 import useUxEditorParams from './hooks/useUxEditorParams';
-
-export interface WindowWithQueryClient extends Window {
-  queryClient?: QueryClient;
-}
 
 export type SelectedItem =
   | {
@@ -35,12 +31,14 @@ export interface AppContextProps {
   updateLayoutsForPreview: (layoutSetName: string, resetQueries?: boolean) => Promise<void>;
   updateLayoutSetsForPreview: (resetQueries?: boolean) => Promise<void>;
   updateLayoutSettingsForPreview: (layoutSetName: string, resetQueries?: boolean) => Promise<void>;
-  updateTextsForPreview: (language: string, resetQueries?: boolean) => Promise<void>;
+  updateTextsForPreview: (language?: string, resetQueries?: boolean) => Promise<void>;
   shouldReloadPreview: boolean;
   previewHasLoaded: () => void;
   onLayoutSetNameChange: (layoutSetName: string) => void;
   selectedItem: SelectedItem | null;
   setSelectedItem: (selectedItem: SelectedItem | null) => void;
+  /** The origin of the Studio bridge in the preview frame, once the page in the frame has said it is ready. */
+  previewBridgeOriginRef: MutableRefObject<string | null>;
 }
 
 export const AppContext = createContext<AppContextProps>(null);
@@ -59,6 +57,8 @@ export const AppContextProvider = ({
   onLayoutSetNameChange,
 }: AppContextProviderProps): React.JSX.Element => {
   const previewIframeRef = useRef<HTMLIFrameElement>(null);
+  const previewBridgeOriginRef = useRef<string | null>(null);
+  const { doReloadPreview } = usePreviewContext();
   const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(null);
   const { org, app } = useStudioEnvironmentParams();
   const { layoutSet } = useUxEditorParams();
@@ -67,47 +67,41 @@ export const AppContextProvider = ({
   const { selectedFormLayoutName, setSelectedFormLayoutName } =
     useSelectedFormLayoutName(layoutSet);
 
-  const refetch = useCallback(
-    async (queryKey: QueryKey, resetQueries: boolean = false): Promise<void> => {
-      const contentWindow: WindowWithQueryClient = previewIframeRef?.current?.contentWindow;
-
-      resetQueries
-        ? await contentWindow?.queryClient?.resetQueries({
-            queryKey,
-          })
-        : await contentWindow?.queryClient?.invalidateQueries({
-            queryKey,
-          });
+  // Preview runs on a domain of its own, so the editor can't reach the app frontend's queries. The Studio bridge in the
+  // frame has the frontend fetch changed layouts, page settings and texts again, which keeps the developer's place in
+  // the form. A change that replaces what the frontend has, changed layout sets, and a frame without a ready bridge
+  // reload the frame.
+  const updatePreview = useCallback(
+    (change: PreviewChange, resetQueries: boolean): void => {
+      if (
+        resetQueries ||
+        !postPreviewChange(previewIframeRef.current, previewBridgeOriginRef.current, change)
+      )
+        doReloadPreview();
     },
-    [],
+    [doReloadPreview],
   );
 
   const updateLayoutsForPreview = useCallback(
-    async (layoutSetName: string, resetQueries: boolean = false): Promise<void> => {
-      return await refetch([AppsQueryKey.AppLayouts, layoutSetName], resetQueries);
-    },
-    [refetch],
+    async (_layoutSetName: string, resetQueries: boolean = false): Promise<void> =>
+      updatePreview({ type: 'layoutsChanged' }, resetQueries),
+    [updatePreview],
   );
 
-  const updateLayoutSetsForPreview = useCallback(
-    async (resetQueries: boolean = false): Promise<void> => {
-      return await refetch([AppsQueryKey.AppLayoutSets], resetQueries);
-    },
-    [refetch],
-  );
+  const updateLayoutSetsForPreview = useCallback(async (): Promise<void> => {
+    doReloadPreview();
+  }, [doReloadPreview]);
 
   const updateLayoutSettingsForPreview = useCallback(
-    async (layoutSetName: string, resetQueries: boolean = false): Promise<void> => {
-      return await refetch([AppsQueryKey.AppLayoutSettings, layoutSetName], resetQueries);
-    },
-    [refetch],
+    async (_layoutSetName: string, resetQueries: boolean = false): Promise<void> =>
+      updatePreview({ type: 'layoutSettingsChanged' }, resetQueries),
+    [updatePreview],
   );
 
   const updateTextsForPreview = useCallback(
-    async (language: string, resetQueries: boolean = false): Promise<void> => {
-      return await refetch([AppsQueryKey.AppTextResources, language], resetQueries);
-    },
-    [refetch],
+    async (_language?: string, resetQueries: boolean = false): Promise<void> =>
+      updatePreview({ type: 'textsChanged' }, resetQueries),
+    [updatePreview],
   );
 
   const value = useMemo(
@@ -124,6 +118,7 @@ export const AppContextProvider = ({
       onLayoutSetNameChange,
       selectedItem,
       setSelectedItem,
+      previewBridgeOriginRef,
     }),
     [
       selectedFormLayoutName,

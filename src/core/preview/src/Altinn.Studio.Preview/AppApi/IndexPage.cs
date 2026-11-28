@@ -17,8 +17,11 @@ namespace Altinn.Studio.Preview.AppApi;
 /// </para>
 /// <para>
 /// The frontend comes from Studio's app frontend distributions, in the version of the app library the app references,
-/// as a real app gets it from that package. It is loaded without <c>crossorigin</c>, since Studio sends no CORS
-/// headers for it.
+/// as a real app gets it from that package. Studio lets any origin read the distributions, so the frontend can also
+/// fetch its layout schema from there.
+/// </para>
+/// <para>
+/// The <see cref="StudioBridge"/> runs before the frontend, since it defines functions the frontend then uses.
 /// </para>
 /// </remarks>
 internal static class IndexPage
@@ -35,7 +38,8 @@ internal static class IndexPage
         string? requestedLanguage
     )
     {
-        string assets = $"{studioOrigin.GetLeftPart(UriPartial.Authority)}/designer/app-dist/{appLibVersion}";
+        string studio = studioOrigin.GetLeftPart(UriPartial.Authority);
+        string assets = $"{studio}/designer/app-dist/{appLibVersion}";
         string org = Json(JsonValue.Create($"{sessionId}/{workingCopy.Org}"));
         string app = Json(JsonValue.Create(workingCopy.App));
         string globalData = Json(GlobalData(files, workingCopy.Org, requestedLanguage));
@@ -59,6 +63,7 @@ internal static class IndexPage
                 window.featureToggles = {};
                 window.altinnAppGlobalData = {{globalData}};
               </script>
+              {{StudioBridge.Element(studioOrigin, componentErrors: true)}}
               <script src="{{assets}}/altinn-app-frontend.js"></script>
             </body>
             </html>
@@ -100,6 +105,10 @@ internal static class IndexPage
                 ["altinnLogoUrl"] = "https://altinncdn.no/img/Altinn-logo-blue.svg",
                 ["helpCircleIllustrationUrl"] = "https://altinncdn.no/img/illustration-help-circle.svg",
                 ["postalCodesUrl"] = "https://altinncdn.no/postcodes/registry.json",
+                // Developers test the app here, so the frontend checks the layout and shows the errors and its
+                // developer tools. Versions that don't read this decide from the host name, and the Studio bridge
+                // turns on their layout check.
+                ["development"] = true,
             },
             ["availableLanguages"] = new JsonArray([
                 .. languages.Select(available => (JsonNode)new JsonObject { ["language"] = available }),

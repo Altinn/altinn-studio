@@ -3,8 +3,10 @@ import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { useAppContext } from '../useAppContext';
 
 export const useChangePageGroupOrder = (org: string, app: string, layoutSetName: string) => {
+  const { updateLayoutSettingsForPreview } = useAppContext();
   const queryClient = useQueryClient();
   const { changePageGroups } = useServicesContext();
 
@@ -16,6 +18,7 @@ export const useChangePageGroupOrder = (org: string, app: string, layoutSetName:
       queryClient.invalidateQueries({
         queryKey: [QueryKey.FormLayoutSettings, org, app, layoutSetName],
       });
+      updateLayoutSettingsForPreview(layoutSetName);
     },
   });
 };

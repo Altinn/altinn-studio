@@ -98,4 +98,5 @@ export * from './StudioTreeView';
 export * from './StudioToggleGroup';
 export * from './StudioToggleableTextfield';
 export * from './StudioToggleableTextfieldSchema';
+export * from './StudioTooltip';
 export * from './StudioValidationMessage';

@@ -2,11 +2,11 @@ import type { MouseEvent, ReactNode } from 'react';
 import classes from './PageAccordion.module.css';
 import { NavigationMenu } from './NavigationMenu';
 import { accordionHeaderId, pageAccordionContentId } from '@designer/testing/testids';
-import { FilePdfIcon, TrashIcon } from '@designer/icons';
+import { FilePdfIcon, TrashIcon, XMarkOctagonFillIcon } from '@designer/icons';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../../hooks';
-import { StudioButton, StudioDetails } from '@designer/components';
+import { StudioButton, StudioDetails, StudioTooltip } from '@designer/components';
 import { useDeletePageMutation } from '../../../hooks/mutations/useDeletePageMutation';
 import { usePagesQuery } from 'app-shared/hooks/queries/usePagesQuery';
 import { useChangePageGroupOrder } from '../../../hooks/mutations/useChangePageGroupOrder';
@@ -23,6 +23,8 @@ export type PageAccordionProps = {
   onClick: () => void;
   isInvalid?: boolean;
   hasDuplicatedIds?: boolean;
+  /** Whether preview found errors in any of the page's components. */
+  hasPreviewErrors?: boolean;
   pageIsPdf?: boolean;
   showNavigationMenu?: boolean;
   groupIndex?: number;
@@ -48,6 +50,7 @@ export const PageAccordion = ({
   onClick,
   isInvalid,
   hasDuplicatedIds,
+  hasPreviewErrors,
   pageIsPdf,
   showNavigationMenu = true,
   groupIndex,
@@ -92,6 +95,13 @@ export const PageAccordion = ({
           className={isInvalid || hasDuplicatedIds ? classes.detailsWarning : undefined}
         >
           {pageName || pageId}
+          {hasPreviewErrors && (
+            <StudioTooltip content={t('ux_editor.preview.page_has_errors')}>
+              <span role='img' className={classes.previewErrorIcon}>
+                <XMarkOctagonFillIcon aria-hidden />
+              </span>
+            </StudioTooltip>
+          )}
         </StudioDetails.Summary>
         <StudioDetails.Content
           data-testid={pageAccordionContentId(pageId)}

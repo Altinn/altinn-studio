@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Preview } from './Preview';
-import { screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { act, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import type { ExtendedRenderOptions } from '../../testing/mocks';
 import { renderWithProviders } from '../../testing/mocks';
 import { textMock } from '@designer/testing/mocks/i18nMock';
@@ -178,6 +178,45 @@ describe('Preview', () => {
     expect(appContextMock.previewIframeRef.current.src).toBe(
       `${mockSessionUrl}#/instance/${mockInstanceId}/${taskId}/${appContextMock.selectedFormLayoutName}`,
     );
+  });
+
+  it('sends changes to the bridge in the frame once its page is ready, and only from there', async () => {
+    render();
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('preview.loading_preview_controller')),
+    );
+    const ready = { source: 'altinn-studio-preview', version: 1, type: 'ready' };
+    const post = (origin: string, source: Window | null) =>
+      act(() => window.dispatchEvent(new MessageEvent('message', { data: ready, origin, source })));
+
+    post('https://other.test', appContextMock.previewIframeRef.current.contentWindow);
+    post(new URL(mockSessionUrl).origin, window);
+    expect(appContextMock.previewBridgeOriginRef.current).toBeNull();
+
+    post(new URL(mockSessionUrl).origin, appContextMock.previewIframeRef.current.contentWindow);
+    expect(appContextMock.previewBridgeOriginRef.current).toBe(new URL(mockSessionUrl).origin);
+  });
+
+  it('keeps the bridge ready when the frame shows another page, which only changes the fragment', async () => {
+    const view = render();
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('preview.loading_preview_controller')),
+    );
+    const ready = { source: 'altinn-studio-preview', version: 1, type: 'ready' };
+    const origin = new URL(mockSessionUrl).origin;
+    const source = appContextMock.previewIframeRef.current.contentWindow;
+    act(() => window.dispatchEvent(new MessageEvent('message', { data: ready, origin, source })));
+    const page = appContextMock.selectedFormLayoutName;
+
+    try {
+      appContextMock.selectedFormLayoutName = 'anotherPage';
+      view.rerender(<Preview collapsed={false} onCollapseToggle={collapseToggle} />);
+
+      expect(appContextMock.previewIframeRef.current.src).toMatch(/#\/instance\/.+\/anotherPage$/);
+      expect(appContextMock.previewBridgeOriginRef.current).toBe(origin);
+    } finally {
+      appContextMock.selectedFormLayoutName = page;
+    }
   });
 });
 

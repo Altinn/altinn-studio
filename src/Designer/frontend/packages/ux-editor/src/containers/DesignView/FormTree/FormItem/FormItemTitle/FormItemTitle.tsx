@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useRef } from 'react';
-import { StudioButton } from '@designer/components';
+import { StudioButton, StudioTooltip } from '@designer/components';
 import { useTranslation } from 'react-i18next';
-import { TrashIcon } from '@designer/icons';
+import { TrashIcon, XMarkOctagonFillIcon } from '@designer/icons';
 import classes from './FormItemTitle.module.css';
 import type { FormComponent } from '../../../../../types/FormComponent';
 import type { FormContainer } from '../../../../../types/FormContainer';
@@ -24,10 +24,11 @@ export interface FormItemTitleProps {
 export const FormItemTitle = ({ children, formItem, duplicateComponents }: FormItemTitleProps) => {
   const { t } = useTranslation();
   const deleteItem = useDeleteItem(formItem);
-  const { updateLayoutsForPreview } = useAppContext();
+  const { updateLayoutsForPreview, previewComponentErrors } = useAppContext();
   const { layoutSet } = useUxEditorParams();
   const layout = useSelectedFormLayout();
   const { formItemId: selectedItemId, handleDiscard } = useFormItemContext();
+  const previewErrors = previewComponentErrors.get(formItem.id);
   const selectedItemIdRef = useRef(selectedItemId);
 
   useEffect(() => {
@@ -58,6 +59,16 @@ export const FormItemTitle = ({ children, formItem, duplicateComponents }: FormI
       })}
     >
       <div className={classes.label}>{children}</div>
+      {previewErrors && (
+        <StudioTooltip content={previewErrors.join(' • ')}>
+          <StudioButton
+            className={classes.previewErrorsButton}
+            icon={<XMarkOctagonFillIcon />}
+            aria-label={t('ux_editor.preview.component_has_errors')}
+            variant='tertiary'
+          />
+        </StudioTooltip>
+      )}
       <StudioButton
         className={classes.deleteButton}
         icon={<TrashIcon />}

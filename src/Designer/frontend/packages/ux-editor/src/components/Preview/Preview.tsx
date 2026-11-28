@@ -18,7 +18,21 @@ import { usePreviewSessionInstanceQuery } from 'app-shared/hooks/queries/usePrev
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useStartPreviewOver } from 'app-shared/hooks/useStartPreviewOver';
 import { PreviewActions } from './PreviewActions/PreviewActions';
+import { noPreviewComponentErrors } from 'app-shared/utils/studioBridge';
+import { useStudioBridge } from 'app-shared/hooks/useStudioBridge';
 import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
+import { FeatureFlag, useFeatureFlag } from '@designer/feature-flags';
+
+// The bridge only takes messages from the frame's origin, so a URL that doesn't parse leaves it without one.
+const originOf = (url: string): string | undefined => {
+  try {
+    return new URL(url).origin;
+  } catch {
+    return undefined;
+  }
+};
+
+const ignoreComponentErrors = (): void => {};
 
 export type PreviewProps = {
   collapsed: boolean;
@@ -77,9 +91,16 @@ const NoSelectedPageMessage = () => {
 const PreviewFrame = () => {
   const { org, app } = useStudioEnvironmentParams();
   const { layoutSet } = useUxEditorParams();
-  const { previewIframeRef, selectedFormLayoutName, shouldReloadPreview, previewHasLoaded } =
-    useAppContext();
+  const {
+    previewIframeRef,
+    selectedFormLayoutName,
+    shouldReloadPreview,
+    previewHasLoaded,
+    setPreviewComponentErrors,
+    previewBridgeOriginRef,
+  } = useAppContext();
   const { t } = useTranslation();
+  const showsComponentErrors = useFeatureFlag(FeatureFlag.PreviewComponentErrors);
   const checksum = useChecksum(shouldReloadPreview);
   const { isPending: isLayoutSetsPending } = useLayoutSetsQuery(org, app);
   const currentLayoutSet = useGetLayoutSetByName({ name: layoutSet, org, app });
@@ -96,6 +117,27 @@ const PreviewFrame = () => {
       previewIframeRef.current = null;
     };
   }, [previewIframeRef]);
+
+  const previewURL =
+    session && instance
+      ? previewSessionPage(session.url, instance.instanceId, layoutSet, selectedFormLayoutName)
+      : undefined;
+  useStudioBridge(
+    previewIframeRef,
+    session ? originOf(session.url) : undefined,
+    showsComponentErrors ? setPreviewComponentErrors : ignoreComponentErrors,
+    previewBridgeOriginRef,
+  );
+  // Each page in the frame reports the errors it finds and says when it is ready for changes, so what the page before
+  // said goes, also when a page can't report.
+  useEffect(() => {
+    previewBridgeOriginRef.current = null;
+    setPreviewComponentErrors(noPreviewComponentErrors);
+    return () => {
+      previewBridgeOriginRef.current = null;
+      setPreviewComponentErrors(noPreviewComponentErrors);
+    };
+  }, [previewURL, checksum, setPreviewComponentErrors, previewBridgeOriginRef]);
 
   if (isSessionError || isInstanceError) {
     return (
@@ -114,12 +156,6 @@ const PreviewFrame = () => {
   }
 
   const isSubform = currentLayoutSet?.type === 'subform';
-  const previewURL = previewSessionPage(
-    session.url,
-    instance.instanceId,
-    layoutSet,
-    selectedFormLayoutName,
-  );
 
   return (
     <div className={classes.root}>

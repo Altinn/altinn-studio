@@ -2,8 +2,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { useAppContext } from '../useAppContext';
 
 export const useChangePageOrderMutation = (org: string, app: string, layoutSetName: string) => {
+  const { updateLayoutSettingsForPreview } = useAppContext();
   const { changePageOrder } = useServicesContext();
   const queryClient = useQueryClient();
 
@@ -15,6 +17,7 @@ export const useChangePageOrderMutation = (org: string, app: string, layoutSetNa
       queryClient.invalidateQueries({
         queryKey: [QueryKey.FormLayoutSettings, org, app, layoutSetName],
       });
+      updateLayoutSettingsForPreview(layoutSetName);
     },
   });
 };

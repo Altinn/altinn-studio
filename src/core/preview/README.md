@@ -30,6 +30,8 @@ Preview serves a v9 app as the app backend serves it, with a mock of the backend
   session's state, which Redis keeps in the same key as the session, so they end together.
 - Preview follows the process without evaluating its gateways, and moves past service tasks, as the process engine
   runs them without the user.
+- Preview makes no PDFs, since it has no PDF service. It answers the developer tools' PDF preview with a message that
+  says so.
 - The mock follows the latest v9 prerelease. Its tests run an app from the [v9 template](../../App/template/v9)
   through the frontend's requests, and compare the answers with the app API's description, which the app backend's
   tests keep up to date. The [workflow](../../../.github/workflows/core-preview-build-test.yaml) runs them when either
@@ -51,6 +53,48 @@ mock user, the instances and the process are the same as for a v9 app.
   form. It decides which of the backend's features to use from the app library version in the application metadata,
   so preview names the version the app references.
 - A code list that the app makes in code is empty, since preview doesn't run the app.
+
+## The Studio bridge
+
+Each app's page runs a script of preview's, [studio-bridge.js](src/Altinn.Studio.Preview/AppApi/studio-bridge.js).
+Studio's page tells it when the app's layouts, page settings or texts change, and it has the frontend show the change
+without reloading the page, so the developer keeps their place in the form. On a v9 app's page it also tells Studio's
+page which components the frontend found errors in. The UI editor shows them by the components to users who have
+turned on the feature under development "Vis feil fra forhåndsvisningen i Utforming" in their settings. The script
+needs nothing new from the frontends, so it works with each published version, and it is never part of a published
+app.
+
+- It has the frontend fetch the changed layouts, page settings or texts again. The v9 frontend keeps layouts in its
+  form bootstrap, and takes the texts in the page's language from the page's `altinnAppGlobalData`, so for changed
+  texts the script first replaces those. When the frontend has none of the queries a change needs, as the v9 frontend
+  for page settings, which it has from the page, the script reloads the page.
+- On a v9 app's page it runs before the frontend. It turns on the frontend's validation of the layout, which the
+  frontend otherwise runs only on hosts it knows as Studio's or a test environment's. The page also says that
+  developers test the app here (`platformFrontendSettings.development`), which turns on the validation, the errors in
+  place of a component and the developer tools in frontend versions that read it (#21860). Older versions leave out a
+  component with errors.
+- It defines `window.logError` and `window.logErrorOnce` before the v9 frontend, which then logs through them. The
+  frontend logs each error in a component's configuration with the component's ID. A layout change starts the errors
+  over, since the frontend validates the new layouts and logs again what is still wrong.
+- The v9 frontend reads the layout schema from Studio's app frontend distributions, which Designer lets any origin
+  read.
+- It catches its own errors, so preview works without it. The app's own scripts run on the same page and can send the
+  same messages, so Studio checks each message as untrusted input and only shows what it says.
+
+The messages in both directions have a `source`, a `version` and a `type`:
+
+| From     | `source`                | `type`                  | Meaning                                                                                            |
+| -------- | ----------------------- | ----------------------- | -------------------------------------------------------------------------------------------------- |
+| The page | `altinn-studio-preview` | `ready`                 | The page has started: Studio forgets the errors of the page before, and sends changes from now on. |
+| The page | `altinn-studio-preview` | `componentErrors`       | The errors the frontend has logged so far, by component ID. Only a v9 app's page sends them.       |
+| Studio   | `altinn-studio`         | `layoutsChanged`        | The app's layouts changed.                                                                         |
+| Studio   | `altinn-studio`         | `layoutSettingsChanged` | The settings of the app's pages changed, such as their order.                                      |
+| Studio   | `altinn-studio`         | `textsChanged`          | The app's texts changed.                                                                           |
+
+Each side takes messages only from the other's window and origin. The script limits the size of what it sends, and
+Studio's [studioBridge.ts](../../Designer/frontend/packages/shared/src/utils/studioBridge.ts) checks it. Studio
+reloads the frame for other changes, such as a component's new ID or the layout sets, and until the page in the frame
+is ready.
 
 ## Security rules
 
@@ -84,6 +128,7 @@ WSL. From this directory:
 dotnet csharpier check .
 dotnet build
 dotnet test
+node --test tests/studio-bridge/studio-bridge.test.mjs
 ```
 
 The session lifetime tests run against a real Redis when `PREVIEW_TEST_REDIS` names one, and are skipped otherwise:

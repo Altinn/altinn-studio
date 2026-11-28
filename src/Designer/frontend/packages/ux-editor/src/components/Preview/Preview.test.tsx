@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Preview } from './Preview';
-import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
+import { act, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import type { ExtendedRenderOptions } from '../../testing/mocks';
 import { renderWithProviders } from '../../testing/mocks';
 import { textMock } from '@designer/testing/mocks/i18nMock';
@@ -9,6 +9,7 @@ import { appContextMock } from '../../testing/appContextMock';
 import { previewSessionPage } from 'app-shared/api/paths';
 import { app, layoutSet, org } from '@designer/testing/testids';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { FeatureFlag } from '@designer/feature-flags';
 
 describe('Preview', () => {
   afterEach(() => {
@@ -189,6 +190,81 @@ describe('Preview', () => {
     expect(screen.getByText(textMock('general.page_error_title'))).toBeInTheDocument();
   });
 
+  it('keeps the component errors that the bridge in the frame reports', async () => {
+    render({ featureFlags: [FeatureFlag.PreviewComponentErrors] });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('preview.loading_preview_controller')),
+    );
+    vi.mocked(appContextMock.setPreviewComponentErrors).mockClear();
+
+    postFromFrame({
+      ...fromBridge,
+      type: 'componentErrors',
+      errors: { name: ['Must be boolean'] },
+    });
+
+    expect(appContextMock.setPreviewComponentErrors).toHaveBeenCalledWith(
+      new Map([['name', ['Must be boolean']]]),
+    );
+  });
+
+  it('forgets the component errors when a new page in the frame is ready', async () => {
+    render({ featureFlags: [FeatureFlag.PreviewComponentErrors] });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('preview.loading_preview_controller')),
+    );
+    vi.mocked(appContextMock.setPreviewComponentErrors).mockClear();
+
+    postFromFrame({ ...fromBridge, type: 'ready' });
+
+    expect(appContextMock.setPreviewComponentErrors).toHaveBeenCalledWith(new Map());
+  });
+
+  it('leaves the component errors out of the editor unless the user has turned them on', async () => {
+    render();
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('preview.loading_preview_controller')),
+    );
+    vi.mocked(appContextMock.setPreviewComponentErrors).mockClear();
+
+    postFromFrame({
+      ...fromBridge,
+      type: 'componentErrors',
+      errors: { name: ['Must be boolean'] },
+    });
+
+    expect(appContextMock.setPreviewComponentErrors).not.toHaveBeenCalled();
+  });
+
+  it('sends changes to the bridge in the frame once its page is ready', async () => {
+    render();
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('preview.loading_preview_controller')),
+    );
+    expect(appContextMock.previewBridgeOriginRef.current).toBeNull();
+
+    postFromFrame({ ...fromBridge, type: 'ready' });
+
+    expect(appContextMock.previewBridgeOriginRef.current).toBe(new URL(mockSessionUrl).origin);
+  });
+
+  it('ignores messages from other windows, from other origins, and of other kinds', async () => {
+    render({ featureFlags: [FeatureFlag.PreviewComponentErrors] });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('preview.loading_preview_controller')),
+    );
+    vi.mocked(appContextMock.setPreviewComponentErrors).mockClear();
+    const errors = { ...fromBridge, type: 'componentErrors', errors: { name: ['error'] } };
+
+    postFromFrame(errors, { origin: 'https://other.test' });
+    postFromFrame(errors, { source: window });
+    postFromFrame({ ...errors, source: 'app' });
+    postFromFrame({ ...fromBridge, type: 'ready' }, { origin: 'https://other.test' });
+
+    expect(appContextMock.setPreviewComponentErrors).not.toHaveBeenCalled();
+    expect(appContextMock.previewBridgeOriginRef.current).toBeNull();
+  });
+
   it("points the iframe at the layout set's task in the preview session", async () => {
     const createPreviewSessionInstance = vi
       .fn()
@@ -209,6 +285,15 @@ const collapseToggle = vi.fn();
 const mockSessionUrl = 'https://preview.test/0123456789abcdef0123456789abcdef/ttd/app/';
 const mockInstanceId = '51001/7b1b0d6c-1d4e-4c1f-9d0a-2b9b8e1f2a3c';
 const newInstanceId = '51001/0f4e2a1d-8c3b-4b6e-a5d7-9e1c2b3a4f5d';
+const fromBridge = { source: 'altinn-studio-preview', version: 1 };
+
+const postFromFrame = (
+  data: unknown,
+  {
+    origin = new URL(mockSessionUrl).origin,
+    source = appContextMock.previewIframeRef.current?.contentWindow,
+  }: { origin?: string; source?: Window | null } = {},
+) => act(() => window.dispatchEvent(new MessageEvent('message', { data, origin, source })));
 
 export const render = (options: Partial<ExtendedRenderOptions> = {}) => {
   const defaultQueries = {

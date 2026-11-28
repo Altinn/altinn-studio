@@ -17,6 +17,7 @@ import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
 import { usePreviewSessionQuery } from 'app-shared/hooks/queries/usePreviewSessionQuery';
 import { usePreviewSessionInstanceQuery } from 'app-shared/hooks/queries/usePreviewSessionInstanceQuery';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
+import { useStudioBridge } from 'app-shared/hooks/useStudioBridge';
 import { PreviewActions } from './PreviewActions/PreviewActions';
 import useUxEditorParams from '@altinn/ux-editor-v4/hooks/useUxEditorParams';
 
@@ -69,6 +70,17 @@ const NoSelectedPageMessage = () => {
 };
 
 // The actual preview frame that displays the selected page
+// The bridge only takes messages from the frame's origin, so a URL that doesn't parse leaves it without one.
+const originOf = (url: string | undefined): string | undefined => {
+  try {
+    return url ? new URL(url).origin : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+const ignoreComponentErrors = (): void => {};
+
 const PreviewFrame = () => {
   const { org, app } = useStudioEnvironmentParams();
   const { previewIframeRef, selectedFormLayoutName } = useAppContext();
@@ -76,7 +88,7 @@ const PreviewFrame = () => {
   const taskId = useSelectedTaskId(layoutSet);
   const { t } = useTranslation();
 
-  const { shouldReloadPreview, previewHasLoaded } = useAppContext();
+  const { shouldReloadPreview, previewHasLoaded, previewBridgeOriginRef } = useAppContext();
   const checksum = useChecksum(shouldReloadPreview);
   const { isPending: isLayoutSetsPending } = useLayoutSetsQuery(org, app);
   const { data: session, isError: isSessionError } = usePreviewSessionQuery(org, app);
@@ -97,6 +109,27 @@ const PreviewFrame = () => {
     };
   }, [previewIframeRef]);
 
+  const previewURL =
+    session && instance
+      ? previewSessionHashPage(session.url, instance.instanceId, taskId, selectedFormLayoutName)
+      : undefined;
+  // The v8 editor shows no errors, so the bridge in a v8 app's page reports none.
+  useStudioBridge(
+    previewIframeRef,
+    originOf(session?.url),
+    ignoreComponentErrors,
+    previewBridgeOriginRef,
+  );
+  // The bridge says once per document when it is ready for changes. The frontend's routes are in the URL's fragment,
+  // so another page or task in the frame keeps the document, and only a new one starts over.
+  const previewDocument = previewURL?.split('#')[0];
+  useEffect(() => {
+    previewBridgeOriginRef.current = null;
+    return () => {
+      previewBridgeOriginRef.current = null;
+    };
+  }, [previewDocument, checksum, previewBridgeOriginRef]);
+
   if (isSessionError || isInstanceError) {
     return (
       <StudioCenter>
@@ -112,12 +145,6 @@ const PreviewFrame = () => {
       </StudioCenter>
     );
   }
-  const previewURL = previewSessionHashPage(
-    session.url,
-    instance.instanceId,
-    taskId,
-    selectedFormLayoutName,
-  );
 
   return (
     <div className={classes.root}>

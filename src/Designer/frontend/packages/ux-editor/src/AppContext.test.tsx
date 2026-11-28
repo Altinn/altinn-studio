@@ -222,4 +222,67 @@ describe('AppContext', () => {
     await clickButton();
     await waitFor(() => expect(doReloadPreview).toHaveBeenCalledTimes(1));
   });
+
+  describe('when the Studio bridge in the frame is ready', () => {
+    const previewOrigin = 'https://preview.test';
+    const frameWindow = (): Window =>
+      (screen.getByTestId('previewIframeRef') as HTMLIFrameElement).contentWindow;
+
+    it('tells it that the layouts changed, in place of reloading the frame', async () => {
+      const { doReloadPreview } = renderAppContext(
+        ({ updateLayoutsForPreview, previewBridgeOriginRef }: AppContextProps) => (
+          <Button
+            onClick={() => {
+              previewBridgeOriginRef.current = previewOrigin;
+              updateLayoutsForPreview(layoutSet);
+            }}
+          />
+        ),
+      );
+      const postMessage = vi.spyOn(frameWindow(), 'postMessage');
+      await clickButton();
+      expect(postMessage).toHaveBeenCalledWith(
+        { type: 'layoutsChanged', source: 'altinn-studio', version: 1 },
+        previewOrigin,
+      );
+      expect(doReloadPreview).not.toHaveBeenCalled();
+    });
+
+    it('tells it that the texts changed, in place of reloading the frame', async () => {
+      const { doReloadPreview } = renderAppContext(
+        ({ updateTextsForPreview, previewBridgeOriginRef }: AppContextProps) => (
+          <Button
+            onClick={() => {
+              previewBridgeOriginRef.current = previewOrigin;
+              updateTextsForPreview();
+            }}
+          />
+        ),
+      );
+      const postMessage = vi.spyOn(frameWindow(), 'postMessage');
+      await clickButton();
+      expect(postMessage).toHaveBeenCalledWith(
+        { type: 'textsChanged', source: 'altinn-studio', version: 1 },
+        previewOrigin,
+      );
+      expect(doReloadPreview).not.toHaveBeenCalled();
+    });
+
+    it('reloads the frame when the change replaces what the frontend has', async () => {
+      const { doReloadPreview } = renderAppContext(
+        ({ updateLayoutsForPreview, previewBridgeOriginRef }: AppContextProps) => (
+          <Button
+            onClick={() => {
+              previewBridgeOriginRef.current = previewOrigin;
+              updateLayoutsForPreview(layoutSet, true);
+            }}
+          />
+        ),
+      );
+      const postMessage = vi.spyOn(frameWindow(), 'postMessage');
+      await clickButton();
+      expect(postMessage).not.toHaveBeenCalled();
+      await waitFor(() => expect(doReloadPreview).toHaveBeenCalledTimes(1));
+    });
+  });
 });

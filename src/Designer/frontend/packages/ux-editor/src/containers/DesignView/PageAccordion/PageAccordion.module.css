@@ -32,3 +32,9 @@
 .pdfIcon {
   font-size: var(--ds-size-7);
 }
+
+.previewErrorIcon {
+  flex-shrink: 0;
+  font-size: var(--ds-size-5);
+  color: var(--ds-color-danger-text-default);
+}
