@@ -24,8 +24,8 @@ public interface IInstantiationProcessor
     /// </summary>
     /// <remarks>
     /// <para>
-    /// Prefer this overload. Data elements added through <paramref name="instanceDataMutator"/> are committed
-    /// together with the task's own aggregate save, whereas the instance rejects direct writes through
+    /// Data elements added through <paramref name="instanceDataMutator"/> are committed together with the task's own
+    /// aggregate save, whereas the instance rejects direct writes through
     /// <see cref="Altinn.App.Core.Internal.Data.IDataClient"/> while its process is transitioning.
     /// </para>
     /// <para>
@@ -41,4 +41,24 @@ public interface IInstantiationProcessor
         object data,
         Dictionary<string, string>? prefill
     ) => DataCreation(instanceDataMutator.Instance, data, prefill);
+
+    /// <summary>
+    /// Run events related to instantiation, with access to the mutator that is creating the data element and to the
+    /// actor it is created for
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Prefer this overload. In a workflow-engine callback, such as the start of a task that creates its data,
+    /// <see cref="Altinn.App.Core.Features.Auth.IAuthenticationContext.Current"/> is the app, and
+    /// <see cref="DataCreationContext.Actor"/> is the actor who started the transition.
+    /// </para>
+    /// <para>
+    /// The default implementation forwards to
+    /// <see cref="DataCreation(IInstanceDataMutator, object, Dictionary{string, string})"/>, so existing
+    /// implementations keep working unchanged.
+    /// </para>
+    /// </remarks>
+    /// <param name="context">The data object created, the mutator for its instance and the actor</param>
+    public Task DataCreation(DataCreationContext context) =>
+        DataCreation(context.InstanceDataMutator, context.Data, context.Prefill);
 }

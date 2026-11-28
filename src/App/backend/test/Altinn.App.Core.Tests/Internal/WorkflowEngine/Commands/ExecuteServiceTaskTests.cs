@@ -179,7 +179,7 @@ public class ExecuteServiceTaskTests
     }
 
     [Fact]
-    public async Task Execute_ForwardsWorkflowIdToServiceTaskContext()
+    public async Task Execute_ForwardsWorkflowIdAndActorToServiceTaskContext()
     {
         // Arrange
         var serviceTask = Succeeding();
@@ -192,6 +192,7 @@ public class ExecuteServiceTaskTests
         // Assert
         Assert.NotNull(serviceTask.Observed);
         Assert.Equal(context.Payload.WorkflowId, serviceTask.Observed.WorkflowId);
+        Assert.Equal(context.Payload.Actor, serviceTask.Observed.Actor);
     }
 
     [Fact]
