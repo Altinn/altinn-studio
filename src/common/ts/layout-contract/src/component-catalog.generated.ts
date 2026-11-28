@@ -8576,16 +8576,16 @@ const generatedContract = {
         elements: {
           type: 'object',
           properties: {
-            dateSent: { type: 'boolean', required: false },
-            sender: { type: 'boolean', required: false },
-            receiver: { type: 'boolean', required: false },
-            referenceNumber: { type: 'boolean', required: false },
+            dateSent: { type: 'boolean', default: true, required: false },
+            sender: { type: 'boolean', default: true, required: false },
+            receiver: { type: 'boolean', default: true, required: false },
+            referenceNumber: { type: 'boolean', default: true, required: false },
           },
           additionalProperties: false,
           title: { en: 'Elements', nb: 'Elementer' },
           description: {
-            en: 'Which elements to show in the instance information',
-            nb: 'Angir hvilke elementer som skal vises i instansinformasjonen.',
+            en: 'Which elements to show in the instance information. All elements are shown by default. Set an element to false to hide it.',
+            nb: 'Angir hvilke elementer som skal vises i instansinformasjonen. Alle elementene vises som standard. Sett et element til false for å skjule det.',
           },
           required: false,
         },

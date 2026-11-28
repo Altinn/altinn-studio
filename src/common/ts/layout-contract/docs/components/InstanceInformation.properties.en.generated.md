@@ -47,13 +47,14 @@ The component also supports the [common component properties](../common-properti
     </span>
   </summary>
   <div class="component-property-group-content">
-    <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Which elements to show in the instance information</div></div>
+    <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Which elements to show in the instance information. All elements are shown by default. Set an element to false to hide it.</div></div>
     <div class="component-property-list">
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="elements.datesent">
         <div class="component-property-summary">
           <span class="component-property-name" title="elements.dateSent">elements.dateSent</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Optional</span>
+            <span class="component-property-default">Default: <span class="component-property-value">true</span></span>
             <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
           </span>
         </div>
@@ -64,6 +65,7 @@ The component also supports the [common component properties](../common-properti
           <span class="component-property-name" title="elements.sender">elements.sender</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Optional</span>
+            <span class="component-property-default">Default: <span class="component-property-value">true</span></span>
             <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
           </span>
         </div>
@@ -74,6 +76,7 @@ The component also supports the [common component properties](../common-properti
           <span class="component-property-name" title="elements.receiver">elements.receiver</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Optional</span>
+            <span class="component-property-default">Default: <span class="component-property-value">true</span></span>
             <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
           </span>
         </div>
@@ -84,6 +87,7 @@ The component also supports the [common component properties](../common-properti
           <span class="component-property-name" title="elements.referenceNumber">elements.referenceNumber</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Optional</span>
+            <span class="component-property-default">Default: <span class="component-property-value">true</span></span>
             <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
           </span>
         </div>

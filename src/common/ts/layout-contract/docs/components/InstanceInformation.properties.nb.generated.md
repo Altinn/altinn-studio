@@ -47,13 +47,14 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
     </span>
   </summary>
   <div class="component-property-group-content">
-    <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Angir hvilke elementer som skal vises i instansinformasjonen.</div></div>
+    <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Angir hvilke elementer som skal vises i instansinformasjonen. Alle elementene vises som standard. Sett et element til false for å skjule det.</div></div>
     <div class="component-property-list">
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="elements.datesent">
         <div class="component-property-summary">
           <span class="component-property-name" title="elements.dateSent">elements.dateSent</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Valgfri</span>
+            <span class="component-property-default">Standardverdi: <span class="component-property-value">true</span></span>
             <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
           </span>
         </div>
@@ -64,6 +65,7 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
           <span class="component-property-name" title="elements.sender">elements.sender</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Valgfri</span>
+            <span class="component-property-default">Standardverdi: <span class="component-property-value">true</span></span>
             <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
           </span>
         </div>
@@ -74,6 +76,7 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
           <span class="component-property-name" title="elements.receiver">elements.receiver</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Valgfri</span>
+            <span class="component-property-default">Standardverdi: <span class="component-property-value">true</span></span>
             <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
           </span>
         </div>
@@ -84,6 +87,7 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
           <span class="component-property-name" title="elements.referenceNumber">elements.referenceNumber</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Valgfri</span>
+            <span class="component-property-default">Standardverdi: <span class="component-property-value">true</span></span>
             <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
           </span>
         </div>
