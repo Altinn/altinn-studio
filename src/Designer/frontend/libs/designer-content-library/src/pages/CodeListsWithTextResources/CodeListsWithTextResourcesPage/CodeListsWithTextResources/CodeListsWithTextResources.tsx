@@ -19,6 +19,7 @@ export type CodeListsWithTextResourcesProps = {
   codeListInEditMode: string | undefined;
   codeListNames: string[];
   codeListsUsages?: CodeListReference[];
+  codeListsUsagesUnknown?: boolean;
   textResources?: TextResource[];
 };
 

@@ -1,4 +1,3 @@
-#nullable disable
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,6 +19,18 @@ public interface IOptionListReferenceService
     /// <returns>A list of <see cref="OptionListReference"/> with task data.</returns>
     Task<List<OptionListReference>> GetAllOptionListReferences(
         AltinnRepoEditingContext editingContext,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Returns whether a component in the app uses the option list.
+    /// </summary>
+    /// <param name="editingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
+    /// <param name="optionListId">The id of the option list.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    Task<bool> IsOptionListInUse(
+        AltinnRepoEditingContext editingContext,
+        string optionListId,
         CancellationToken cancellationToken = default
     );
 }
