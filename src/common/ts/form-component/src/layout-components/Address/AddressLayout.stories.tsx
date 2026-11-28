@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 import { withComponentGrid } from '@app/form-component/layout-components/common/storybook';
-import { useArgs } from 'storybook/preview-api';
+import { renderWithImmediateArgs } from '@app/storybook/renderWithImmediateArgs';
 import { fn } from 'storybook/test';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
+import type { StoryArgsProps } from '@app/storybook/renderWithImmediateArgs';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { AddressLayout } from './AddressLayout';
@@ -62,39 +63,8 @@ function mockPostPlaceLookup(zipCode: string): string {
   return /^\d{4}$/.test(zipCode) ? POST_PLACE_BY_REGION[Number(zipCode[0])] : '';
 }
 
-/**
- * Like `useArgs`, but updates show immediately. Args update asynchronously, so a controlled input
- * rendered from args alone drops fast keystrokes. The draft covers the gap until args catch up.
- */
-function useArgsDraft<TArgs extends object>(
-  args: TArgs,
-  updateArgs: (update: Partial<TArgs>) => void,
-) {
-  const [draft, setDraft] = useState<Partial<TArgs> | null>(null);
-  const caughtUp =
-    draft !== null &&
-    (Object.keys(draft) as (keyof TArgs)[]).every((key) => draft[key] === args[key]);
-  if (caughtUp) {
-    setDraft(null);
-  }
-  const values: TArgs = { ...args, ...draft };
-
-  function updateValues(update: Partial<TArgs>) {
-    setDraft((prev) => ({ ...prev, ...update }));
-    updateArgs(update);
-  }
-
-  return [values, updateValues] as const;
-}
-
-interface EditableAddressProps {
-  args: AddressLayoutProps;
-  updateArgs: (update: Partial<AddressLayoutProps>) => void;
-}
-
-function EditableAddress({ args, updateArgs }: EditableAddressProps) {
-  const [values, updateValues] = useArgsDraft(args, updateArgs);
-  const postPlace = mockPostPlaceLookup(values.zipCode ?? '');
+function EditableAddress({ args, updateArgs }: StoryArgsProps<AddressLayoutProps>) {
+  const postPlace = mockPostPlaceLookup(args.zipCode ?? '');
 
   // Keep the postPlace control in sync, whether the zip code came from the input or Controls.
   useEffect(() => {
@@ -105,11 +75,11 @@ function EditableAddress({ args, updateArgs }: EditableAddressProps) {
 
   return (
     <AddressLayout
-      {...values}
+      {...args}
       postPlace={postPlace}
       onChange={(field, value) => {
         args.onChange?.(field, value);
-        updateValues({ [field]: value });
+        updateArgs({ [field]: value });
       }}
     />
   );
@@ -137,10 +107,7 @@ const meta = {
     onChange: fn(),
     onBlur: fn(),
   },
-  render: function Render(args) {
-    const [, updateArgs] = useArgs();
-    return <EditableAddress args={args} updateArgs={updateArgs} />;
-  },
+  render: renderWithImmediateArgs(EditableAddress),
 } satisfies Meta<typeof AddressLayout>;
 
 export default meta;

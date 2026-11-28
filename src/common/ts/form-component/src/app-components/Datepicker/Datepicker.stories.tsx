@@ -1,11 +1,12 @@
-import { useState } from 'react';
-import type { ComponentProps } from 'react';
 import type { MonthCaptionProps } from 'react-day-picker';
 
+import { renderWithImmediateArgs } from '@app/storybook/renderWithImmediateArgs';
 import { fn } from 'storybook/test';
+import type { StoryArgsProps } from '@app/storybook/renderWithImmediateArgs';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { DatePickerControl } from './Datepicker';
+import type { DatePickerControlProps } from './Datepicker';
 
 import 'react-day-picker/style.css';
 
@@ -15,23 +16,25 @@ const NoopDropdownCaption = ({ calendarMonth }: MonthCaptionProps) => (
   </div>
 );
 
+const Wrapper = ({ args, updateArgs }: StoryArgsProps<DatePickerControlProps>) => (
+  <DatePickerControl
+    {...args}
+    onValueChange={(value) => {
+      args.onValueChange(value);
+      updateArgs({ value });
+    }}
+  />
+);
+
 const meta = {
   title: 'AppComponents/DatePickerControl',
   component: DatePickerControl,
+  render: renderWithImmediateArgs(Wrapper),
 } satisfies Meta<typeof DatePickerControl>;
 
 export default meta;
 
 type Story = StoryObj<typeof meta>;
-
-const Wrapper = (args: ComponentProps<typeof DatePickerControl>) => {
-  const [value, setValue] = useState(args.value);
-  const handleValueChange = (newValue: string) => {
-    args.onValueChange(newValue);
-    setValue(newValue);
-  };
-  return <DatePickerControl {...args} value={value} onValueChange={handleValueChange} />;
-};
 
 export const Preview: Story = {
   args: {
@@ -44,7 +47,6 @@ export const Preview: Story = {
     onValueChange: fn(),
     DropdownCaption: NoopDropdownCaption,
   },
-  render: (args) => <Wrapper {...args} />,
 };
 
 export const ReadOnly: Story = {
@@ -52,7 +54,6 @@ export const ReadOnly: Story = {
     ...Preview.args,
     readOnly: true,
   },
-  render: (args) => <Wrapper {...args} />,
 };
 
 export const WithMinMax: Story = {
@@ -61,5 +62,4 @@ export const WithMinMax: Story = {
     minDate: new Date('2025-01-01'),
     maxDate: new Date('2025-12-31'),
   },
-  render: (args) => <Wrapper {...args} />,
 };

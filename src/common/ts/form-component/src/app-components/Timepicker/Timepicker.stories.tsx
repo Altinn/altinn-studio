@@ -1,13 +1,18 @@
-import { useState } from 'react';
-import type { ComponentProps } from 'react';
-
+import { renderWithImmediateArgs } from '@app/storybook/renderWithImmediateArgs';
+import type { StoryArgsProps } from '@app/storybook/renderWithImmediateArgs';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { TimePicker } from './TimePicker';
+import type { TimePickerProps } from './types';
+
+const Wrapper = ({ args, updateArgs }: StoryArgsProps<TimePickerProps>) => (
+  <TimePicker {...args} onChange={(value) => updateArgs({ value })} />
+);
 
 const meta = {
   title: 'AppComponents/TimePicker',
   component: TimePicker,
+  render: renderWithImmediateArgs(Wrapper),
 } satisfies Meta<typeof TimePicker>;
 
 export default meta;
@@ -16,11 +21,6 @@ type Story = StoryObj<typeof meta>;
 
 const noop = () => undefined;
 
-const Wrapper = (args: ComponentProps<typeof TimePicker>) => {
-  const [value, setValue] = useState(args.value);
-  return <TimePicker {...args} value={value} onChange={setValue} />;
-};
-
 export const Preview: Story = {
   args: {
     id: 'timepicker-preview',
@@ -28,7 +28,6 @@ export const Preview: Story = {
     format: 'HH:mm',
     onChange: noop,
   },
-  render: (args) => <Wrapper {...args} />,
 };
 
 export const TwelveHour: Story = {
@@ -38,7 +37,6 @@ export const TwelveHour: Story = {
     format: 'hh:mm a',
     onChange: noop,
   },
-  render: (args) => <Wrapper {...args} />,
 };
 
 export const WithSeconds: Story = {
@@ -48,7 +46,6 @@ export const WithSeconds: Story = {
     format: 'HH:mm:ss',
     onChange: noop,
   },
-  render: (args) => <Wrapper {...args} />,
 };
 
 export const TwelveHourWithSeconds: Story = {
@@ -58,7 +55,6 @@ export const TwelveHourWithSeconds: Story = {
     format: 'hh:mm:ss a',
     onChange: noop,
   },
-  render: (args) => <Wrapper {...args} />,
 };
 
 export const WithMinMax: Story = {
@@ -70,7 +66,6 @@ export const WithMinMax: Story = {
     maxTime: '17:00',
     onChange: noop,
   },
-  render: (args) => <Wrapper {...args} />,
 };
 
 export const Disabled: Story = {
@@ -78,7 +73,6 @@ export const Disabled: Story = {
     ...Preview.args,
     disabled: true,
   },
-  render: (args) => <Wrapper {...args} />,
 };
 
 export const ReadOnly: Story = {
@@ -86,7 +80,6 @@ export const ReadOnly: Story = {
     ...Preview.args,
     readOnly: true,
   },
-  render: (args) => <Wrapper {...args} />,
 };
 
 export const WithCustomLabels: Story = {
@@ -100,5 +93,4 @@ export const WithCustomLabels: Story = {
     },
     onChange: noop,
   },
-  render: (args) => <Wrapper {...args} />,
 };

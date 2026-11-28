@@ -1,8 +1,8 @@
-import { useState } from 'react';
-
 import { withComponentGrid } from '@app/form-component/layout-components/common/storybook';
+import { renderWithImmediateArgs } from '@app/storybook/renderWithImmediateArgs';
 import { fn } from 'storybook/test';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
+import type { StoryArgsProps } from '@app/storybook/renderWithImmediateArgs';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { TimePickerLayout } from './TimePickerLayout';
@@ -27,6 +27,18 @@ export const TIMEPICKER_PROP_CATEGORIES = {
   validationMessages: 'runtime',
 } satisfies PropCategories<TimePickerLayoutProps>;
 
+function StatefulTimePickerLayout({ args, updateArgs }: StoryArgsProps<TimePickerLayoutProps>) {
+  return (
+    <TimePickerLayout
+      {...args}
+      onChange={(newValue) => {
+        args.onChange?.(newValue);
+        updateArgs({ value: newValue });
+      }}
+    />
+  );
+}
+
 const meta = {
   title: 'LayoutComponents/TimePicker',
   component: TimePickerLayout,
@@ -45,19 +57,7 @@ const meta = {
     format: 'HH:mm',
     onChange: fn(),
   },
-  render: function Render(args) {
-    const [value, setValue] = useState(args.value);
-    return (
-      <TimePickerLayout
-        {...args}
-        value={value}
-        onChange={(newValue) => {
-          args.onChange?.(newValue);
-          setValue(newValue);
-        }}
-      />
-    );
-  },
+  render: renderWithImmediateArgs(StatefulTimePickerLayout),
 } satisfies Meta<typeof TimePickerLayout>;
 
 export default meta;

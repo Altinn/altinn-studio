@@ -1,9 +1,17 @@
-import { useState } from 'react';
-import type { ComponentProps } from 'react';
-
+import { renderWithImmediateArgs } from '@app/storybook/renderWithImmediateArgs';
+import type { StoryArgsProps } from '@app/storybook/renderWithImmediateArgs';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { Pagination } from './Pagination';
+import type { PaginationProps } from './Pagination';
+
+const Wrapper = ({ args, updateArgs }: StoryArgsProps<PaginationProps>) => (
+  <Pagination
+    {...args}
+    setCurrentPage={(currentPage) => updateArgs({ currentPage })}
+    onPageSizeChange={(pageSize) => updateArgs({ pageSize })}
+  />
+);
 
 const meta = {
   title: 'AppComponents/Pagination',
@@ -22,31 +30,17 @@ const meta = {
     setCurrentPage: () => {},
     onPageSizeChange: () => {},
   },
+  render: renderWithImmediateArgs(Wrapper),
 } satisfies Meta<typeof Pagination>;
 
 export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-const Wrapper = (args: ComponentProps<typeof Pagination>) => {
-  const [currentPage, setCurrentPage] = useState(args.currentPage ?? 1);
-  const [pageSize, setPageSize] = useState(args.pageSize);
-  return (
-    <Pagination
-      {...args}
-      currentPage={currentPage}
-      setCurrentPage={setCurrentPage}
-      pageSize={pageSize}
-      onPageSizeChange={setPageSize}
-    />
-  );
-};
-
 export const Default: Story = {
   args: {
     currentPage: 1,
   },
-  render: (args) => <Wrapper {...args} />,
 };
 
 export const Compact: Story = {
@@ -54,7 +48,6 @@ export const Compact: Story = {
     currentPage: 4,
     compact: true,
   },
-  render: (args) => <Wrapper {...args} />,
 };
 
 export const HiddenLabels: Story = {
@@ -62,7 +55,6 @@ export const HiddenLabels: Story = {
     currentPage: 1,
     hideLabels: true,
   },
-  render: (args) => <Wrapper {...args} />,
 };
 
 export const WithRowsPerPageDropdown: Story = {
@@ -70,5 +62,4 @@ export const WithRowsPerPageDropdown: Story = {
     currentPage: 1,
     showRowsPerPageDropdown: true,
   },
-  render: (args) => <Wrapper {...args} />,
 };
