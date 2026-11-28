@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { createStore } from 'zustand';
 import type { IGroupEditProperties } from '@app/layout-contract/generated/components/RepeatingGroup/config.generated';
 
+import { createContext } from 'src/core/contexts/context';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { useAttachmentDeletionInRepGroups } from 'src/features/attachments/useAttachmentDeletionInRepGroups';
 import { FormStore } from 'src/features/form/FormContext';
@@ -15,6 +16,7 @@ import { useOnGroupCloseValidation } from 'src/features/validation/callbacks/onG
 import { useAsRef } from 'src/hooks/useAsRef';
 import { OpenByDefaultProvider } from 'src/layout/RepeatingGroup/Providers/OpenByDefaultProvider';
 import { getRepeatingRowReference, RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useEvalExpressionCallback } from 'src/utils/layout/useEvalExpression';
 import type { ExprResolved } from 'src/features/expressions/types';
@@ -302,11 +304,22 @@ interface Props {
   baseComponentId: string;
 }
 
+/**
+ * The indexed ID of the repeating group itself. Each row renders its own data model location, so calling
+ * useIndexedId() for the group from inside a row (where the row buttons are) would append that row's index to the
+ * group's own ID. The provider is rendered outside the rows, so we resolve the ID there and pass it down.
+ */
+const { Provider: IndexedIdProvider, useCtx: useRepeatingGroupIndexedId } = createContext<string>({
+  name: 'RepeatingGroupIndexedId',
+  required: true,
+});
+
 export function RepeatingGroupProvider({ baseComponentId, children }: PropsWithChildren<Props>) {
   const component = useComponentConfig(baseComponentId, 'RepeatingGroup');
   const pagination = component.pagination;
   const editMode = component.edit?.mode;
   const groupBinding = useDataModelBindingsFor(baseComponentId, 'RepeatingGroup')?.group;
+  const indexedId = useIndexedId(baseComponentId);
   const getFreshRows = FormStore.data.useGetFreshRows();
   const isHidden = useEvalExpressionCallback(component.hiddenRow, Expressions.RepeatingGroup.hiddenRow);
   const canEdit = useEvalExpressionCallback(component.edit?.editButton, Expressions.RepeatingGroup.edit.editButton);
@@ -330,9 +343,11 @@ export function RepeatingGroupProvider({ baseComponentId, children }: PropsWithC
       pagination={pagination}
       editMode={editMode}
     >
-      <EffectCloseEditing />
-      <EffectPagination />
-      <OpenByDefaultProvider baseComponentId={baseComponentId}>{children}</OpenByDefaultProvider>
+      <IndexedIdProvider value={indexedId}>
+        <EffectCloseEditing />
+        <EffectPagination />
+        <OpenByDefaultProvider baseComponentId={baseComponentId}>{children}</OpenByDefaultProvider>
+      </IndexedIdProvider>
     </ZStore.Provider>
   );
 }
@@ -564,7 +579,8 @@ export const RepGroupContext = {
     const groupBinding = useDataModelBindingsFor(baseComponentId, 'RepeatingGroup')?.group;
     const removeFromList = FormStore.data.useRemoveFromListCallback();
     const setRowValidationMask = FormStore.validation.useSetRowValidationMask();
-    const onBeforeRowDeletion = useAttachmentDeletionInRepGroups(baseComponentId);
+    const groupIndexedId = useRepeatingGroupIndexedId();
+    const onBeforeRowDeletion = useAttachmentDeletionInRepGroups(groupIndexedId);
     const instanceLocked = FormStore.useIsInstanceLocked();
     const config = useComponentConfig(baseComponentId, 'RepeatingGroup');
     const getFreshRows = FormStore.data.useGetFreshRows();

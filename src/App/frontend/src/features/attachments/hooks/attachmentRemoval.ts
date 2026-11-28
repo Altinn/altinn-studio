@@ -23,13 +23,19 @@ export const AttachmentRemoval = {
 
     return useCallback(
       async ({ attachment, dataModelBindings, nodeId }: AttachmentActionRemove) => {
+        const dataElementId = attachment.data.id;
         try {
-          await removeAttachment({ nodeId, dataElementId: attachment.data.id });
-          if (dataModelBindings && 'list' in dataModelBindings) {
-            removeValueFromList({ reference: dataModelBindings.list, value: attachment.data.id });
-          } else if (dataModelBindings && 'simpleBinding' in dataModelBindings) {
-            setLeafValue({ reference: dataModelBindings.simpleBinding, newValue: undefined });
-          }
+          await removeAttachment({
+            nodeId,
+            dataElementId,
+            onRemoved: () => {
+              if (dataModelBindings && 'list' in dataModelBindings) {
+                removeValueFromList({ reference: dataModelBindings.list, value: dataElementId });
+              } else if (dataModelBindings && 'simpleBinding' in dataModelBindings) {
+                setLeafValue({ reference: dataModelBindings.simpleBinding, newValue: undefined });
+              }
+            },
+          });
           return true;
         } catch {
           toast(lang('form_filler.file_uploader_validation_error_delete'), { type: 'error' });

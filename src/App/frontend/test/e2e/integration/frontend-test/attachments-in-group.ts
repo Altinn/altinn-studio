@@ -163,6 +163,68 @@ describe('Repeating group attachments', () => {
     cy.wait('@saveInstanceData').its('response.statusCode').should('eq', 200);
   };
 
+  /**
+   * Looks up the data element IDs of uploaded attachments by their (unique) file names
+   */
+  const getAttachmentIds = (fileNames: string[]) =>
+    cy.window().then((win) => {
+      const ids: string[] = [];
+      for (const attachmentList of Object.values(win.CypressState?.attachments || {})) {
+        for (const attachment of attachmentList || []) {
+          if (isAttachmentUploaded(attachment) && fileNames.includes(attachment.data.filename ?? '')) {
+            ids.push(attachment.data.id);
+          }
+        }
+      }
+      expect(ids, `attachment IDs for ${fileNames.join(', ')}`).to.have.length(fileNames.length);
+      return ids;
+    });
+
+  /**
+   * Records the IDs of data elements successfully deleted from the instance. Returns the (live) list of IDs.
+   */
+  const interceptDataElementDeletion = () => {
+    const deletedIds: string[] = [];
+    cy.intercept('DELETE', getInstanceIdRegExp({ prefix: 'instances', postfix: 'data/[a-f0-9-]+' }), (req) => {
+      const dataElementId = new URL(req.url).pathname.split('/').pop();
+      req.on('response', (res) => {
+        if (dataElementId && res.statusCode >= 200 && res.statusCode < 300) {
+          deletedIds.push(dataElementId);
+        }
+      });
+    }).as('deleteDataElement');
+    return deletedIds;
+  };
+
+  const expectDeletedDataElementsToBe = (deletedIds: string[], expectedIds: string[]) => {
+    cy.log('Waiting until deleted data elements equals', expectedIds);
+    cy.wrap(deletedIds).should((actual) => {
+      expect([...actual].sort()).to.deep.equal([...expectedIds].sort());
+    });
+  };
+
+  /**
+   * Fetches the instance from the backend, and verifies that none of the given data elements are still there
+   */
+  const expectDataElementsToBeGoneFromInstance = (ids: string[]) => {
+    cy.url().then((url) => {
+      const instanceId = getInstanceIdRegExp().exec(url)?.[1];
+      expect(instanceId, 'instance ID in URL').to.be.a('string');
+      const { origin, pathname } = new URL(url);
+      const [, org, app] = pathname.split('/');
+      cy.request({
+        method: 'GET',
+        url: `${origin}/${org}/${app}/instances/${instanceId}`,
+        headers: { Accept: 'application/json' },
+      }).then((response) => {
+        const remaining = (response.body.data as { id: string }[]).map((dataElement) => dataElement.id);
+        for (const id of ids) {
+          expect(remaining, 'data elements in the instance').not.to.include(id);
+        }
+      });
+    });
+  };
+
   it('Works when uploading attachments to repeating groups, supports deleting attachments and entire rows', () => {
     cy.intercept('POST', '**/instances/**/data/*').as('upload');
 
@@ -438,12 +500,22 @@ describe('Repeating group attachments', () => {
     }
 
     // Delete the first row of the nested repeating group. This should make the second row in that nested group shift
-    // the attachments upwards.
+    // the attachments upwards, and delete the attachments in the deleted row from the instance.
+    const deletedIds = interceptDataElementDeletion();
+    getAttachmentIds(filenames[0].nested[0]).as('firstNestedRowAttachmentIds');
+    getAttachmentIds([filenames[0].single, filenames[0].multi[0], filenames[0].multi[2], ...filenames[0].nested[1]]).as(
+      'firstRowAttachmentIds',
+    );
+
     cy.get(appFrontend.group.row(0).editBtn).click();
     gotoSecondPage();
     cy.get(appFrontend.group.row(0).nestedGroup.row(0).deleteBtn).click();
 
     waitForFormDataSave();
+    cy.get<string[]>('@firstNestedRowAttachmentIds').then((ids) => {
+      expectDeletedDataElementsToBe(deletedIds, ids);
+      expectDataElementsToBeGoneFromInstance(ids);
+    });
 
     const attachmentStateAfterDeletingFirstNestedRow = {
       [appFrontend.group.row(0).uploadSingle.stateKey]: [filenames[0].single],
@@ -502,6 +574,14 @@ describe('Repeating group attachments', () => {
     verifyPreview(true);
     waitForFormDataSave();
 
+    // All attachments in the deleted row, including those in its nested rows, should be deleted from the instance
+    cy.get<string[]>('@firstNestedRowAttachmentIds').then((nestedIds) => {
+      cy.get<string[]>('@firstRowAttachmentIds').then((rowIds) => {
+        expectDeletedDataElementsToBe(deletedIds, [...nestedIds, ...rowIds]);
+        expectDataElementsToBeGoneFromInstance(rowIds);
+      });
+    });
+
     const attachmentStateAfterDeletingFirstRow = {
       [appFrontend.group.row(0).uploadSingle.stateKey]: [filenames[1].single],
       [appFrontend.group.row(0).uploadMulti.stateKey]: filenames[1].multi,
@@ -540,5 +620,47 @@ describe('Repeating group attachments', () => {
       expectAttachmentsToBe(attachmentStateAfterDeletingFirstRow);
       expectFormDataToBe(formDataAfterDeletingFirstRow);
     }
+
+    // Delete the remaining row while an attachment in it is still being uploaded. The deletion should wait for the
+    // upload to finish, and then delete all attachments in the row (including the one that was being uploaded). The
+    // file name makes sure the uploading attachment is sorted first, so that the other attachments are handled
+    // after it.
+    getAttachmentIds([filenames[1].single, ...filenames[1].multi, ...filenames[1].nested[0]]).then((rowIds) => {
+      getAttachmentIds([filenames[1].nested[1][0], filenames[1].nested[1][2]]).then((nestedIds) => {
+        cy.wrap([...rowIds, ...nestedIds]).as('lastRowAttachmentIds');
+      });
+    });
+    // The upload request is held back until the row deletion has started
+    let releaseUpload: () => void = () => undefined;
+    const uploadReleased = new Promise<void>((resolve) => {
+      releaseUpload = resolve;
+    });
+    cy.intercept('POST', '**/instances/**/data/*', () => uploadReleased).as('slowUpload');
+
+    cy.get(appFrontend.group.row(0).editBtn).click();
+    gotoSecondPage();
+    cy.get(appFrontend.group.row(0).uploadMulti.addMoreBtn).click();
+    cy.get(appFrontend.group.row(0).uploadMulti.dropZone).selectFile(makeTestFile('aaa-uploading-while-deleting.pdf'), {
+      force: true,
+    });
+    cy.get(appFrontend.group.row(0).deleteBtn).click();
+    cy.then(() => releaseUpload());
+
+    cy.wait('@slowUpload').then(({ response }) => {
+      // Newer backends reply with a DataPostResponse, older ones with the new data element itself
+      const uploadedId: string = response?.body?.newDataElementId ?? response?.body?.id;
+      expect(uploadedId, 'ID of the attachment uploaded while deleting the row').to.be.a('string');
+
+      cy.get<string[]>('@firstNestedRowAttachmentIds').then((firstNestedIds) => {
+        cy.get<string[]>('@firstRowAttachmentIds').then((firstRowIds) => {
+          cy.get<string[]>('@lastRowAttachmentIds').then((lastRowIds) => {
+            const removedIds = [...lastRowIds, uploadedId];
+            expectDeletedDataElementsToBe(deletedIds, [...firstNestedIds, ...firstRowIds, ...removedIds]);
+            expectDataElementsToBeGoneFromInstance(removedIds);
+          });
+        });
+      });
+    });
+    cy.get(`${appFrontend.group.mainGroupTableBody} > tr`).should('not.exist');
   });
 });
