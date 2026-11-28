@@ -430,6 +430,16 @@ public class ProcessController : ControllerBase
                         Extensions = extensions,
                     }
                 );
+            case ProcessErrorType.BadRequest:
+                return BadRequest(
+                    new ProblemDetails()
+                    {
+                        Detail = result.ErrorMessage,
+                        Status = StatusCodes.Status400BadRequest,
+                        Title = result.ErrorTitle ?? "Bad request",
+                        Extensions = { ["validationIssues"] = result.ValidationIssues },
+                    }
+                );
             case ProcessErrorType.Internal:
                 return StatusCode(
                     500,

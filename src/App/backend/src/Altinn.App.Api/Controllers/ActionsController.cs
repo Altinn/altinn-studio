@@ -1,4 +1,3 @@
-using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Models;
 using Altinn.App.Core.Features;
@@ -40,18 +39,17 @@ public class ActionsController : ControllerBase
     public ActionsController(
         IAuthorizationService authorization,
         IInstanceClient instanceClient,
-        UserActionService userActionService,
         IValidationService validationService,
         IServiceProvider serviceProvider,
         IAuthenticationContext authenticationContext
     )
     {
         _authorization = authorization;
-        _userActionService = userActionService;
         _validationService = validationService;
         _instanceClientWithStorageMetadata = serviceProvider.GetRequiredService<IInstanceClientWithStorageMetadata>();
         _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
         _authenticationContext = authenticationContext;
+        _userActionService = serviceProvider.GetRequiredService<UserActionService>();
     }
 
     /// <summary>
@@ -149,25 +147,6 @@ public class ActionsController : ControllerBase
             return Forbid();
         }
 
-        var taskId = instance.Process?.CurrentTask?.ElementId;
-        var dataMutator = await _instanceDataUnitOfWorkInitializer.Init(
-            instance,
-            fetchedInstance.Metadata,
-            taskId,
-            language
-        );
-
-        UserActionContext userActionContext = new(
-            dataMutator,
-            null, // let userId be derived from currentAuth
-            actionRequest.ButtonId,
-            actionRequest.Metadata,
-            language,
-            currentAuth,
-            actionRequest.OnBehalfOf,
-            cancellationToken: cancellationToken
-        );
-
         IUserAction? actionHandler = _userActionService.GetActionHandler(action);
         if (actionHandler is null)
         {
@@ -176,7 +155,7 @@ public class ActionsController : ControllerBase
                 new UserActionResponse()
                 {
                     Instance = instance,
-                    Error = new ActionError()
+                    Error = new ActionErrorResponse()
                     {
                         Code = "ActionNotFound",
                         Message = $"Action handler with id {action} not found",
@@ -190,7 +169,24 @@ public class ActionsController : ControllerBase
             return ProcessStatusProblemResult.Create(processStatusProblem);
         }
 
-        UserActionResult result = await actionHandler.HandleAction(userActionContext);
+        var dataMutator = await _instanceDataUnitOfWorkInitializer.Init(
+            instance,
+            fetchedInstance.Metadata,
+            instance.Process?.CurrentTask?.ElementId,
+            language
+        );
+
+        UserActionOutcome outcome = await _userActionService.HandleAction(
+            actionHandler,
+            dataMutator,
+            currentAuth,
+            language,
+            actionRequest.ButtonId,
+            actionRequest.Metadata,
+            actionRequest.OnBehalfOf,
+            cancellationToken
+        );
+        UserActionResult result = outcome.Result;
 
         if (result.ResultType is ResultType.Failure)
         {
@@ -207,33 +203,10 @@ public class ActionsController : ControllerBase
                 {
                     Instance = instance,
                     ClientActions = result.ClientActions,
-                    Error = result.Error,
+                    Error = ActionErrorResponse.From(result.Error, outcome.ValidationIssues),
                 }
             );
         }
-
-        if (dataMutator.GetAbandonResponse() is not null)
-        {
-            throw new NotImplementedException(
-                "return an error response from UserActions instead of abandoning the dataMutator"
-            );
-        }
-
-#pragma warning disable CS0618 // Type or member is obsolete
-
-        // Replace the forms returned in the deprecated UpdatedDataModels, so that they are saved to storage
-        // and the diff against the previous binary data reaches validation and the frontend
-        if (result.UpdatedDataModels is { Count: > 0 })
-        {
-            await Task.WhenAll(
-                result.UpdatedDataModels.Select(async row =>
-                    (await dataMutator.GetFormDataWrapper(new DataElementIdentifier(row.Key))).ReplaceBackingData(
-                        row.Value
-                    )
-                )
-            );
-        }
-#pragma warning restore CS0618 // Type or member is obsolete
 
         var changes = dataMutator.GetDataElementChanges(initializeAltinnRowId: true);
 

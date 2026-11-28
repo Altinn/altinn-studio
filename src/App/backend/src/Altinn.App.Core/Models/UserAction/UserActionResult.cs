@@ -1,4 +1,5 @@
 using Altinn.App.Core.Models.Process;
+using Altinn.App.Core.Models.Validation;
 
 namespace Altinn.App.Core.Models.UserAction;
 
@@ -39,14 +40,6 @@ public sealed class UserActionResult
     public ResultType ResultType { get; set; }
 
     /// <summary>
-    /// Gets or sets a dictionary of updated data models. Key should be elementId and value should be the updated data model
-    /// </summary>
-    [Obsolete(
-        "Updates done to data from UserActionContext.DataMutator is tracked and don't need to be returned in the response"
-    )]
-    public Dictionary<string, object>? UpdatedDataModels { get; set; }
-
-    /// <summary>
     /// Actions for the client to perform after the user action has been handled
     /// </summary>
     public List<ClientAction>? ClientActions { get; set; }
@@ -55,6 +48,12 @@ public sealed class UserActionResult
     /// Validation issues that should be displayed to the user
     /// </summary>
     public ActionError? Error { get; set; }
+
+    /// <summary>
+    /// Validation issues that made the action fail, returned to the client. Their text keys are translated, and the
+    /// first issue becomes the <see cref="Error"/> when that is not set.
+    /// </summary>
+    public List<ValidationIssue>? ValidationIssues { get; set; }
 
     /// <summary>
     /// Error type to return when the user action was not successful
@@ -101,6 +100,35 @@ public sealed class UserActionResult
     }
 
     /// <summary>
+    /// Creates a failure result with validation issues to show the user. The issues are returned to the client with
+    /// their text keys translated, and the first one is also returned as the <see cref="Error"/>.
+    /// </summary>
+    /// <param name="validationIssues">The issues that made the action fail. At least one is required.</param>
+    /// <param name="clientActions">Actions for the client to perform</param>
+    /// <param name="errorType">The type of error, which sets the status code. Defaults to bad request.</param>
+    /// <exception cref="ArgumentException">If <paramref name="validationIssues"/> is empty</exception>
+    public static UserActionResult FailureResult(
+        List<ValidationIssue> validationIssues,
+        List<ClientAction>? clientActions = null,
+        ProcessErrorType errorType = ProcessErrorType.BadRequest
+    )
+    {
+        ArgumentNullException.ThrowIfNull(validationIssues);
+        if (validationIssues.Count == 0)
+        {
+            throw new ArgumentException("At least one validation issue is required", nameof(validationIssues));
+        }
+
+        return new UserActionResult
+        {
+            ResultType = ResultType.Failure,
+            ClientActions = clientActions,
+            ValidationIssues = validationIssues,
+            ErrorType = errorType,
+        };
+    }
+
+    /// <summary>
     /// Creates a redirect result
     /// </summary>
     /// <param name="redirectUrl"></param>
@@ -113,22 +141,5 @@ public sealed class UserActionResult
             ResultType = ResultType.Redirect,
             RedirectUrl = redirectUrl,
         };
-    }
-
-    /// <summary>
-    /// Adds an updated data model to the result
-    /// </summary>
-    /// <param name="dataModelId"></param>
-    /// <param name="dataModel"></param>
-    [Obsolete(
-        "Updates done to data from UserActionContext.DataMutator is tracked and don't need to be returned in the response"
-    )]
-    public void AddUpdatedDataModel(string dataModelId, object dataModel)
-    {
-        if (UpdatedDataModels == null)
-        {
-            UpdatedDataModels = new Dictionary<string, object>();
-        }
-        UpdatedDataModels.Add(dataModelId, dataModel);
     }
 }

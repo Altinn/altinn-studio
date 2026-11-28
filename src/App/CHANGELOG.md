@@ -23,6 +23,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
+- `UserActionResult.FailureResult` takes a list of validation issues. The action fails with status 400, its response lists the issues in `error.validationIssues` with their text keys translated, and unless the action sets its own `Error`, the form shows the first issue as the error. ([#22041](https://github.com/Altinn/altinn-studio/pull/22041))
 - Data processors, process hooks and service tasks can replace a form's whole data model with `await dataMutator.ReplaceFormData(element, model)`. The model is not copied: later reads and data processors get it, and changes to it are saved. ([#22029](https://github.com/Altinn/altinn-studio/pull/22029))
 - `PlatformFrontendSettings:Development` set to `true` turns on the app frontend's developer tools, layout checks and error details, so set it only where developers test. Without it, TT02 and LocalTest still show them. ([#21860](https://github.com/Altinn/altinn-studio/pull/21860))
 - Apps can confirm an instance as complete for the service owner when the process ends: set `"onProcessEnd": { "confirm": true }` in `applicationmetadata.json`. The app owner needs the `complete` action, which the app template's policy grants. ([#21718](https://github.com/Altinn/altinn-studio/pull/21718))
@@ -36,8 +37,15 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Breaking: A process transition that has not passed its `LockTaskData` or `UnlockTaskData` step when the app is upgraded fails at that step, also when resumed. To finish it, resume it on the previous version. ([#22100](https://github.com/Altinn/altinn-studio/pull/22100))
 - After a rollback to v8, data of tasks that ended under v9 is not locked, and v8 accepts changes to it from a later task's form unless `AppSettings:EnforceDataTypeTaskId` is on. ([#22100](https://github.com/Altinn/altinn-studio/pull/22100))
 
+### Changed
+
+- An `IUserAction` that calls `context.DataMutator.AbandonAllChanges` fails as if it returned `FailureResult` with those issues, and saves none of its changes. If the action returns a `FailureResult` of its own, that result is used instead. It failed with a server error before. ([#22041](https://github.com/Altinn/altinn-studio/pull/22041))
+- Breaking: `UserActionResponse.Error` is an `ActionErrorResponse` instead of the `ActionError` the action returned. The JSON keeps `code`, `message` and `metadata`, and adds `validationIssues`. ([#22041](https://github.com/Altinn/altinn-studio/pull/22041))
+- An `IUserAction` that throws fails with status 500 and the error code `ActionFailed`, and saves none of its changes. The exception is logged, and its message is not returned to the client. ([#22041](https://github.com/Altinn/altinn-studio/pull/22041))
+
 ### Fixed
 
+- `process/next` returns 400 with the action's validation issues, instead of 500, when a process action fails with `ProcessErrorType.BadRequest`. ([#22041](https://github.com/Altinn/altinn-studio/pull/22041))
 - An instance that v8 left in a failed service task runs that task again on `process/next` or `process/resume` after the upgrade, instead of moving on without its PDF, shipment or other work. The task starts again, so its start hooks run a second time. ([#21980](https://github.com/Altinn/altinn-studio/pull/21980))
 - A process transition no longer fails when a workflow engine callback reaches a pod still on v8 during a rolling deploy: the engine retries until a v9 pod answers. After a rollback to v8, redeploying v9 within a day lets those transitions continue. ([#21866](https://github.com/Altinn/altinn-studio/issues/21866))
 - Data elements that Storage has marked as deleted but not yet removed are no longer included in eFormidling shipments or other processing in the app. ([#22060](https://github.com/Altinn/altinn-studio/pull/22060))
@@ -46,6 +54,12 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Removed
 
 - Breaking: `IProcessTaskDataLocker` is removed, as the app no longer locks a task's data. ([#22100](https://github.com/Altinn/altinn-studio/pull/22100))
+
+### Removed
+
+- Breaking: `UserActionResult.UpdatedDataModels` and `UserActionResult.AddUpdatedDataModel`. In `IUserAction.HandleAction`, change form data through `context.DataMutator`, such as with `GetFormData` or `ReplaceFormData`. Those changes are saved and returned to the form without being added to the result. `studioctl app upgrade v9` rewrites `AddUpdatedDataModel` calls to `ReplaceFormData`, which you can remove where the model came from `context.DataMutator.GetFormData`, and reports other uses. ([#22041](https://github.com/Altinn/altinn-studio/pull/22041))
+- Breaking: the `UserActionContext` constructor that takes an `Instance`. Pass an `IInstanceDataMutator` instead; in a unit test, a mock whose `Instance` returns your instance is enough. ([#22041](https://github.com/Altinn/altinn-studio/pull/22041))
+- Breaking: `UserActionService` is internal. To run another action from app code, inject the `IUserAction` implementation itself. ([#22041](https://github.com/Altinn/altinn-studio/pull/22041))
 
 ## [9.0.0-preview.14] - 2026-11-20
 

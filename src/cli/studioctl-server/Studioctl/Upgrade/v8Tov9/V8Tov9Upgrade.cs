@@ -212,6 +212,9 @@ internal static class V8Tov9Upgrade
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateAppResourcesParameterNames(scanner));
 
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, MigrateUpdatedDataModels(scanner, projectFile));
+
         // Last of the C# rewrites, so the using directives the steps above leave behind are covered
         // too. The rule migration further down generates its code without the redundant usings.
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -1141,6 +1144,30 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating IAppResources parameter names", ex);
+        }
+    }
+
+    /// <summary>
+    /// Removes UserActionResult.AddUpdatedDataModel(..), removed in v9, for models the action's data mutator tracks,
+    /// rewrites the other calls to ReplaceFormData on the mutator, and reports the uses of AddUpdatedDataModel and
+    /// UpdatedDataModels it cannot rewrite. Runs before the redundant using directives are removed, since it may add
+    /// one, and binds through the live compilation: no earlier step moves the user action types.
+    /// </summary>
+    static int MigrateUpdatedDataModels(CSharpSourceScanner scanner, string projectFile)
+    {
+        UpgradeConsole.BeginStep("UserActionResult.UpdatedDataModels");
+        try
+        {
+            var result = new UpdatedDataModelsMigration(scanner, ProjectGlobalUsings.Read(projectFile)).Migrate();
+            return ReportMigrationResult(
+                result,
+                cleanText: "No UserActionResult.AddUpdatedDataModel or UpdatedDataModels in use",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating UserActionResult.UpdatedDataModels", ex);
         }
     }
 

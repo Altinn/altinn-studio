@@ -28,6 +28,14 @@
     {
       "id": "Side1.Button-Lj0cYG.title",
       "value": "Avvis"
+    },
+    {
+      "id": "action.abandoned",
+      "value": "Endringene ble forkastet"
+    },
+    {
+      "id": "action.missing-name",
+      "value": "Du må fylle ut navn"
     }
   ]
 }

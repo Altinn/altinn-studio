@@ -1,4 +1,12 @@
+using Altinn.App.Core.Features.Auth;
+using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Texts;
+using Altinn.App.Core.Internal.Validation;
+using Altinn.App.Core.Models.Process;
+using Altinn.App.Core.Models.UserAction;
+using Altinn.App.Core.Models.Validation;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Altinn.App.Core.Features.Action;
 
@@ -6,9 +14,11 @@ namespace Altinn.App.Core.Features.Action;
 /// Factory class for resolving <see cref="IUserAction"/> implementations
 /// based on the id of the action.
 /// </summary>
-public class UserActionService
+internal sealed class UserActionService
 {
     private readonly AppImplementationFactory _appImplementationFactory;
+    private readonly ITranslationService _translationService;
+    private readonly ILogger<UserActionService> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UserActionService"/> class.
@@ -17,6 +27,8 @@ public class UserActionService
     public UserActionService(IServiceProvider serviceProvider)
     {
         _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
+        _translationService = serviceProvider.GetRequiredService<ITranslationService>();
+        _logger = serviceProvider.GetRequiredService<ILogger<UserActionService>>();
     }
 
     /// <summary>
@@ -34,4 +46,90 @@ public class UserActionService
 
         return null;
     }
+
+    /// <summary>
+    /// Runs <paramref name="handler"/>. A handler that throws, or that abandons its changes without failing, fails the
+    /// action, and the issues of a failure are translated. Saving the changes is up to the caller.
+    /// </summary>
+    public async Task<UserActionOutcome> HandleAction(
+        IUserAction handler,
+        InstanceDataUnitOfWork dataMutator,
+        Authenticated authentication,
+        string? language,
+        string? buttonId,
+        Dictionary<string, string>? metadata,
+        string? onBehalfOf,
+        CancellationToken cancellationToken
+    )
+    {
+        var context = new UserActionContext(
+            dataMutator,
+            userId: null, // derived from authentication
+            buttonId,
+            metadata,
+            language,
+            authentication,
+            onBehalfOf,
+            cancellationToken
+        );
+
+        UserActionResult result;
+        try
+        {
+            result = await handler.HandleAction(context);
+        }
+        // A conflict with newer stored data keeps its own 409/412 response, which tells the client to reload.
+        catch (Exception ex) when (ex is not (OperationCanceledException or InstanceStateConflictException))
+        {
+            _logger.LogError(ex, "User action {ActionId} failed with an exception", handler.Id);
+            result = UserActionResult.FailureResult(
+                new ActionError { Code = "ActionFailed", Message = "The action failed" },
+                errorType: ProcessErrorType.Internal
+            );
+        }
+
+        if (result.ResultType is not ResultType.Failure && dataMutator.HasAbandonIssues)
+        {
+            result = UserActionResult.FailureResult([.. dataMutator.AbandonIssues]);
+        }
+
+        List<ValidationIssueWithSource>? validationIssues =
+            result.ResultType is ResultType.Failure ? await TranslateFailure(result, language) : null;
+
+        return new UserActionOutcome(result, validationIssues);
+    }
+
+    /// <summary>
+    /// Translates the validation issues of a failed action, as validation does, and sets the first one as the
+    /// result's <see cref="UserActionResult.Error"/> when the action did not set one.
+    /// </summary>
+    /// <returns>The issues to return to the client, or null when the result has none.</returns>
+    private async Task<List<ValidationIssueWithSource>?> TranslateFailure(UserActionResult result, string? language)
+    {
+        if (result.ValidationIssues is not { Count: > 0 } issues)
+        {
+            return null;
+        }
+
+        await _translationService.TranslateValidationIssues(issues, language);
+        var first = issues[0];
+        result.Error ??= new ActionError
+        {
+            Code = first.Code,
+            Message = first.Description ?? first.CustomTextKey ?? first.Code ?? string.Empty,
+        };
+
+        // An action is not a validator: its issues are never re-evaluated by incremental validation, so the client
+        // must not expect a later incremental update to remove them.
+        return issues
+            .Select(issue =>
+                ValidationIssueWithSource.FromIssue(issue, ValidationIssueSources.Custom, noIncrementalUpdates: true)
+            )
+            .ToList();
+    }
 }
+
+/// <summary>
+/// The result of a user action, with the translated issues of a failure.
+/// </summary>
+internal sealed record UserActionOutcome(UserActionResult Result, List<ValidationIssueWithSource>? ValidationIssues);

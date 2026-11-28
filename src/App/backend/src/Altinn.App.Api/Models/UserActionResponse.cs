@@ -43,10 +43,10 @@ public class UserActionResponse
     public List<ClientAction>? ClientActions { get; set; }
 
     /// <summary>
-    /// Validation issues that occurred when processing action
+    /// Why the action failed
     /// </summary>
     [JsonPropertyName("error")]
-    public ActionError? Error { get; set; }
+    public ActionErrorResponse? Error { get; set; }
 
     /// <summary>
     /// If the action requires the client to redirect to another url, this property should be set

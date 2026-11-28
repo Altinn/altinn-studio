@@ -457,36 +457,55 @@ public class ActionsControllerTests : ApiTestBase
             .Should()
             .Contain("Her kommer det data fra backend");
 
-        // Run buttonId "updateObsolete"
-        using var updateObsoleteContent = JsonContent.Create(new { action = "fill", buttonId = "updateObsolete" });
-        using HttpResponseMessage updateObsoleteResponse = await client.PostAsync(
-            $"/{org}/{app}/instances/{instanceOwner}/{instanceGuid}/actions",
-            updateObsoleteContent
+        // Run buttonId "abandon": the change is not saved, and the issue is returned as the error
+        using var abandonContent = JsonContent.Create(new { action = "fill", buttonId = "abandon" });
+        using HttpResponseMessage abandonResponse = await client.PostAsync(
+            $"/{org}/{app}/instances/{instanceOwner}/{instanceGuid}/actions?language=nb",
+            abandonContent
         );
-        var parsedUpdateObsoleteResponse = await VerifyStatusAndDeserialize<UserActionResponse>(
-            updateObsoleteResponse,
-            HttpStatusCode.OK
+        var parsedAbandonResponse = await VerifyStatusAndDeserialize<UserActionResponse>(
+            abandonResponse,
+            HttpStatusCode.BadRequest
         );
-        parsedUpdateObsoleteResponse.ClientActions.Should().BeEmpty();
-        parsedUpdateObsoleteResponse.Instance.Should().NotBeNull();
-        parsedUpdateObsoleteResponse.Instance.Id.Should().Be($"{instanceOwner}/{instanceGuid}");
-        var updatedObsoleteDataElement = parsedUpdateObsoleteResponse.Instance.Data.Should().ContainSingle().Which;
-        var updatedObsoleteSchemeElement = parsedUpdateObsoleteResponse
-            .UpdatedDataModels.Should()
-            .HaveCount(1)
-            .And.ContainKey(updatedObsoleteDataElement.Id)
-            .WhoseValue.Should()
-            .BeOfType<JsonElement>()
-            .Which;
-        var updatedObsoleteScheme =
-            updatedObsoleteSchemeElement.Deserialize<Scheme>(_jsonSerializerOptions)
-            ?? throw new Exception("Failed to deserialize Scheme");
-        updatedObsoleteScheme.description.Should().Be("Obsolete data");
-
+        parsedAbandonResponse.UpdatedDataModels.Should().BeNull();
+        parsedAbandonResponse.Error.Should().NotBeNull();
+        parsedAbandonResponse.Error!.Code.Should().Be("abandon-code");
+        parsedAbandonResponse.Error!.Message.Should().Be("Endringene ble forkastet");
+        var abandonIssue = parsedAbandonResponse.Error!.ValidationIssues.Should().ContainSingle().Which;
+        abandonIssue.Description.Should().Be("Endringene ble forkastet");
+        abandonIssue.NoIncrementalUpdates.Should().BeTrue();
         TestData
             .GetDataElementBlobContnet(org, app, instanceOwner, instanceGuid, Guid.Parse(updatedDataElement.Id))
             .Should()
-            .Contain("Obsolete data");
+            .NotContain("Abandoned data");
+
+        // Run buttonId "throw": the change is not saved, and the exception becomes a generic error
+        using var throwContent = JsonContent.Create(new { action = "fill", buttonId = "throw" });
+        using HttpResponseMessage throwResponse = await client.PostAsync(
+            $"/{org}/{app}/instances/{instanceOwner}/{instanceGuid}/actions",
+            throwContent
+        );
+        var parsedThrowResponse = await VerifyStatusAndDeserialize<UserActionResponse>(
+            throwResponse,
+            HttpStatusCode.InternalServerError
+        );
+        parsedThrowResponse.UpdatedDataModels.Should().BeNull();
+        parsedThrowResponse.Error.Should().NotBeNull();
+        parsedThrowResponse.Error!.ValidationIssues.Should().BeNull();
+        parsedThrowResponse.Error!.Code.Should().Be("ActionFailed");
+        parsedThrowResponse.Error!.Message.Should().NotContain("Thrown data");
+        TestData
+            .GetDataElementBlobContnet(org, app, instanceOwner, instanceGuid, Guid.Parse(updatedDataElement.Id))
+            .Should()
+            .NotContain("Thrown data");
+
+        // Run buttonId "conflict": a conflict with newer stored data keeps its 409, so the client reloads
+        using var conflictContent = JsonContent.Create(new { action = "fill", buttonId = "conflict" });
+        using HttpResponseMessage conflictResponse = await client.PostAsync(
+            $"/{org}/{app}/instances/{instanceOwner}/{instanceGuid}/actions",
+            conflictContent
+        );
+        conflictResponse.StatusCode.Should().Be(HttpStatusCode.Conflict);
 
         // Run buttonId "delete"
         using var deleteContent = JsonContent.Create(new { action = "fill", buttonId = "delete" });
@@ -573,6 +592,49 @@ public class ActionsControllerTests : ApiTestBase
 
         // Cleanup testdata
         TestData.DeleteInstanceAndData(org, app, instanceOwner, instanceGuid);
+    }
+
+    [Fact]
+    public async Task PerformFillAction_FailWithValidationIssues()
+    {
+        var org = "tdd";
+        var app = "task-action";
+        Guid instanceGuid = new Guid("b1135209-628e-4a6e-9efd-e4282068ef41");
+        int instanceOwner = 1337;
+        TestData.PrepareInstance(org, app, 1337, instanceGuid);
+        OverrideServicesForThisTest = (services) =>
+        {
+            services.AddTransient<IUserAction, FillAction>();
+        };
+        var client = GetRootedUserClient(org, app, userId: 1001, authenticationLevel: 3);
+
+        try
+        {
+            using var content = JsonContent.Create(new { action = "fill", buttonId = "failWithIssues" });
+            using HttpResponseMessage response = await client.PostAsync(
+                $"/{org}/{app}/instances/{instanceOwner}/{instanceGuid}/actions?language=nb",
+                content
+            );
+            var parsedResponse = await VerifyStatusAndDeserialize<UserActionResponse>(
+                response,
+                HttpStatusCode.BadRequest
+            );
+
+            // The first issue's translated text becomes the error the frontend shows
+            parsedResponse.Error.Should().NotBeNull();
+            parsedResponse.Error!.Code.Should().Be("missing-name");
+            parsedResponse.Error!.Message.Should().Be("Du må fylle ut navn");
+            parsedResponse.UpdatedDataModels.Should().BeNull();
+            parsedResponse.Error!.ValidationIssues.Should().HaveCount(2);
+            parsedResponse.Error!.ValidationIssues![0].Description.Should().Be("Du må fylle ut navn");
+            parsedResponse.Error!.ValidationIssues![0].CustomTextKey.Should().Be("action.missing-name");
+            parsedResponse.Error!.ValidationIssues![1].Description.Should().Be("Second issue");
+            parsedResponse.Error!.ValidationIssues.Should().OnlyContain(issue => issue.NoIncrementalUpdates);
+        }
+        finally
+        {
+            TestData.DeleteInstanceAndData(org, app, instanceOwner, instanceGuid);
+        }
     }
 
     [Fact]
@@ -749,14 +811,11 @@ public class ActionsControllerTests : ApiTestBase
 public class FillAction : IUserAction
 {
     private readonly ILogger<FillAction> _logger;
-    private readonly IDataClient _dataClient;
-
     public string Id => "fill";
 
-    public FillAction(ILogger<FillAction> logger, IDataClient dataClient)
+    public FillAction(ILogger<FillAction> logger)
     {
         _logger = logger;
-        _dataClient = dataClient;
     }
 
     public async Task<UserActionResult> HandleAction(UserActionContext context)
@@ -784,17 +843,49 @@ public class FillAction : IUserAction
 
                 data.TestCustomButtonReadOnlyInput = "Her kommer det data fra backend";
                 break;
-            case "updateObsolete":
-                var dataElement = context.Instance.Data.Single();
-                var obsoleteData = await _dataClient.GetFormData<Scheme>(context.Instance, dataElement);
-                obsoleteData.description = "Obsolete data";
-                var result = UserActionResult.SuccessResult(new List<ClientAction>());
-                result.AddUpdatedDataModel(dataElement.Id, obsoleteData);
-                return result;
+            case "abandon":
+                var abandonDataElement = context.DataMutator.GetDataElementsForType("Scheme").First();
+                var abandonData = await context.DataMutator.GetFormData<Scheme>(abandonDataElement);
+                abandonData.TestCustomButtonReadOnlyInput = "Abandoned data";
+                context.DataMutator.AbandonAllChanges([
+                    new ValidationIssue
+                    {
+                        Severity = ValidationIssueSeverity.Error,
+                        Code = "abandon-code",
+                        CustomTextKey = "action.abandoned",
+                    },
+                ]);
+                break;
+            case "conflict":
+                throw new DataElementContentConflictException(
+                    context.Instance.Id,
+                    Guid.Parse(context.DataMutator.GetDataElementsForType("Scheme").First().Id),
+                    new Exception("Stored data changed")
+                );
+            case "throw":
+                var throwDataElement = context.DataMutator.GetDataElementsForType("Scheme").First();
+                var throwData = await context.DataMutator.GetFormData<Scheme>(throwDataElement);
+                throwData.TestCustomButtonReadOnlyInput = "Thrown data";
+                throw new InvalidOperationException("Thrown data");
             case "delete":
                 var elementToDelete = context.DataMutator.GetDataElementsForType("Scheme").First();
                 context.DataMutator.RemoveDataElement(elementToDelete);
                 break;
+            case "failWithIssues":
+                return UserActionResult.FailureResult([
+                    new ValidationIssue
+                    {
+                        Severity = ValidationIssueSeverity.Error,
+                        Code = "missing-name",
+                        CustomTextKey = "action.missing-name",
+                    },
+                    new ValidationIssue
+                    {
+                        Severity = ValidationIssueSeverity.Error,
+                        Code = "second",
+                        Description = "Second issue",
+                    },
+                ]);
             case "getClientActions":
                 return UserActionResult.SuccessResult([new ClientAction() { Id = "nextPage" }]);
 

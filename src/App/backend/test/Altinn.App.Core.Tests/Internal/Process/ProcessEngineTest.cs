@@ -669,6 +669,93 @@ public sealed partial class ProcessEngineTest
     }
 
     [Fact]
+    public async Task HandleUserAction_returns_unsuccessful_badrequest_when_action_handler_abandons_changes()
+    {
+        var expectedInstance = new Instance()
+        {
+            Id = _instanceId,
+            AppId = "org/app",
+            InstanceOwner = new InstanceOwner() { PartyId = "1337" },
+            Data = [],
+            Process = new ProcessState()
+            {
+                CurrentTask = null,
+                StartEvent = "StartEvent_1",
+                EndEvent = "EndEvent_1",
+            },
+        };
+
+        var userActionMock = new Mock<IUserAction>(MockBehavior.Strict);
+        userActionMock.Setup(u => u.Id).Returns("sign");
+        userActionMock
+            .Setup(u => u.HandleAction(It.IsAny<UserActionContext>()))
+            .Returns(
+                (UserActionContext context) =>
+                {
+                    context.DataMutator.AbandonAllChanges([
+                        new ValidationIssue { Severity = ValidationIssueSeverity.Error, Code = "abandon-code" },
+                    ]);
+                    return Task.FromResult(UserActionResult.SuccessResult());
+                }
+            );
+
+        await using var fixture = Fixture.Create(userActions: [userActionMock.Object]);
+        fixture
+            .Mock<IAppMetadata>()
+            .Setup(x => x.ApplicationMetadata)
+            .Returns(new ApplicationMetadata("org/app") { DataTypes = [] });
+
+        LegacyProcessEngine processEngine = fixture.ProcessEngine;
+
+        var instance = new Instance()
+        {
+            Id = _instanceId,
+            AppId = "org/app",
+            InstanceOwner = new() { PartyId = "1337" },
+            Data = [],
+            Process = new ProcessState()
+            {
+                StartEvent = "StartEvent_1",
+                CurrentTask = new()
+                {
+                    ElementId = "Task_2",
+                    AltinnTaskType = AltinnTaskTypes.Confirmation,
+                    Flow = 3,
+                    Validated = new() { CanCompleteTask = true },
+                },
+            },
+        };
+
+        ClaimsPrincipal user = new(
+            new ClaimsIdentity(new List<Claim>() { new(AltinnCoreClaimTypes.AuthenticationLevel, "2") })
+        );
+
+        var processNextRequest = new ProcessNextRequest()
+        {
+            Instance = instance,
+            User = user,
+            Action = "sign",
+            Language = null,
+        };
+
+        ProcessChangeResult result = await processEngine.Next(processNextRequest, CancellationToken.None);
+        result.Success.Should().BeFalse();
+        result.ErrorType.Should().Be(ProcessErrorType.BadRequest);
+        result
+            .ValidationIssues.Should()
+            .ContainSingle()
+            .Which.Should()
+            .BeEquivalentTo(
+                new
+                {
+                    Code = "abandon-code",
+                    Source = ValidationIssueSources.Custom,
+                    NoIncrementalUpdates = true,
+                }
+            );
+    }
+
+    [Fact]
     public async Task Next_returns_committed_state_after_task_transition()
     {
         var expectedInstance = new Instance()
