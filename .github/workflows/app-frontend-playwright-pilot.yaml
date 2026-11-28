@@ -1,0 +1,272 @@
+name: App Frontend - Playwright pilot
+
+# Runs the Playwright port of five Cypress specs (src/App/frontend/test/e2e/playwright) once per worker count, to
+# measure how Playwright scales and how flaky the tests are before deciding on a migration. Pull requests only run it
+# when they change the pilot. Scheduled and manual runs repeat each test to collect flake data.
+on:
+  schedule:
+    - cron: '30 4 * * 1-5'
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'src/App/frontend/test/e2e/playwright/**'
+      - 'src/App/frontend/playwright.config.ts'
+      - '.github/workflows/app-frontend-playwright-pilot.yaml'
+  workflow_dispatch:
+    inputs:
+      repeat-each:
+        description: 'How many times to run each test'
+        type: number
+        default: 5
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+# The same platform links as the Cypress workflow, so that the apps render the same way
+env:
+  PlatformFrontendSettings__AllFormsUrl: http://local.altinn.cloud:8000/
+  PlatformFrontendSettings__ArbeidsflateProfileUrl: http://local.altinn.cloud:8000/
+  PlatformFrontendSettings__ArbeidsflatePartiesUrl: http://local.altinn.cloud:8000/
+  PlatformFrontendSettings__AccessManagementUrl: http://local.altinn.cloud:8000/
+  PlatformFrontendSettings__RolesAndRightsHelpUrl: http://local.altinn.cloud:8000/
+  APP_RUN_TARGETS_JSON: '[{"path":"src/test/apps/anonymous-stateless-app"},{"path":"src/test/apps/frontend-test"}]'
+
+jobs:
+  build-frontend:
+    name: Build Frontend
+    # Fork pull requests must not run on self-hosted runners
+    if: |
+      github.repository_owner == 'Altinn' &&
+      (
+        (github.event_name != 'pull_request' && github.event.repository.fork == false) ||
+        (github.event_name == 'pull_request' && !github.event.pull_request.draft && github.event.pull_request.head.repo.fork == false)
+      )
+    runs-on: self-hosted-ubuntu
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build frontend
+        uses: ./.github/actions/app-build-frontend
+
+  build-apps:
+    name: Build the two test apps
+    if: |
+      github.repository_owner == 'Altinn' &&
+      (
+        (github.event_name != 'pull_request' && github.event.repository.fork == false) ||
+        (github.event_name == 'pull_request' && !github.event.pull_request.draft && github.event.pull_request.head.repo.fork == false)
+      )
+    runs-on: self-hosted-ubuntu
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Resolve app build cache key
+        id: cache-key
+        shell: bash
+        run: echo "key=app-process-build-playwright-pilot-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('src/test/apps/anonymous-stateless-app/**', 'src/test/apps/frontend-test/**', 'src/test/apps/global.json', 'src/App/backend/**', '!src/App/backend/test/**', 'src/App/codelists/**', 'src/App/fileanalyzers/**', 'src/App/AppCoreDependency.props', 'src/App/PackageVersioning.props', 'Directory.Build.props', 'Directory.Packages.props', 'global.json') }}" >> "$GITHUB_OUTPUT"
+
+      - name: Cache app build outputs
+        id: cache-apps
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: app-process-build.tar.gz
+          key: ${{ steps.cache-key.outputs.key }}
+
+      - name: Setup .NET
+        if: ${{ steps.cache-apps.outputs.cache-hit != 'true' }}
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+        with:
+          global-json-file: src/test/apps/global.json
+
+      - name: Build and package app outputs
+        if: ${{ steps.cache-apps.outputs.cache-hit != 'true' }}
+        shell: bash
+        run: |
+          for app in anonymous-stateless-app frontend-test; do
+            dotnet build "src/test/apps/${app}/App"
+          done
+
+          mapfile -t build_dirs < <(find \
+            src/test/apps/anonymous-stateless-app \
+            src/test/apps/frontend-test \
+            src/App/backend/src \
+            src/App/codelists/src \
+            src/App/fileanalyzers/src \
+            -type d \( -name bin -o -name obj \) -prune -print | sort)
+          tar -czf app-process-build.tar.gz "${build_dirs[@]}"
+
+      - name: Upload app build outputs
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: app-process-build-playwright-pilot
+          path: app-process-build.tar.gz
+          if-no-files-found: error
+          retention-days: 1
+
+  build-studioctl:
+    name: Prepare studioctl and LocalTest image caches
+    if: |
+      github.repository_owner == 'Altinn' &&
+      (
+        (github.event_name != 'pull_request' && github.event.repository.fork == false) ||
+        (github.event_name == 'pull_request' && !github.event.pull_request.draft && github.event.pull_request.head.repo.fork == false)
+      )
+    permissions: {}
+    runs-on: self-hosted-ubuntu
+    timeout-minutes: 15
+    outputs:
+      localtest-image-cache-key: ${{ steps.localtest-images.outputs.cache-key }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up studioctl dev install
+        uses: ./.github/actions/setup-studioctl
+
+      - name: Populate LocalTest image cache
+        id: localtest-images
+        uses: ./.github/actions/setup-localtest-images
+        with:
+          populate-cache: true
+
+  prepare-app-frontend-dependencies:
+    name: Prepare App Frontend test dependency cache
+    if: |
+      github.repository_owner == 'Altinn' &&
+      (
+        (github.event_name != 'pull_request' && github.event.repository.fork == false) ||
+        (github.event_name == 'pull_request' && !github.event.pull_request.draft && github.event.pull_request.head.repo.fork == false)
+      )
+    permissions: {}
+    runs-on: self-hosted-ubuntu
+    timeout-minutes: 15
+    outputs:
+      cache-key: ${{ steps.dependencies.outputs.cache-key }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Populate App Frontend test dependency cache
+        id: dependencies
+        uses: ./.github/actions/app-frontend-test-dependencies
+        with:
+          populate-cache: true
+
+  playwright:
+    name: Playwright (${{ matrix.workers }} workers)
+    needs: [build-frontend, build-apps, build-studioctl, prepare-app-frontend-dependencies]
+    runs-on: self-hosted-ubuntu
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: src/App/frontend/
+    strategy:
+      fail-fast: false
+      matrix:
+        workers: [1, 2, 3]
+    env:
+      WORKERS: ${{ matrix.workers }}
+      # Pull requests run each test once. Scheduled runs repeat each test five times.
+      REPEAT_EACH: ${{ github.event_name == 'pull_request' && 1 || inputs.repeat-each || 5 }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download app build outputs
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: app-process-build-playwright-pilot
+          path: /tmp/app-process-build
+
+      - name: Extract app build outputs
+        shell: bash
+        run: tar -xzf /tmp/app-process-build/app-process-build.tar.gz -C "${GITHUB_WORKSPACE}"
+
+      - name: Restore App Frontend test dependencies
+        uses: ./.github/actions/app-frontend-test-dependencies
+        with:
+          cache-key: ${{ needs.prepare-app-frontend-dependencies.outputs.cache-key }}
+          require-cache-hit: true
+
+      - name: Run Local Environment
+        uses: ./.github/actions/app-run-local-env
+        with:
+          run-localtest: true
+          app-run-targets-json: ${{ env.APP_RUN_TARGETS_JSON }}
+          skip-app-build: true
+          localtest-image-cache-key: ${{ needs.build-studioctl.outputs.localtest-image-cache-key }}
+
+      - name: Playwright run
+        id: playwright
+        shell: bash
+        timeout-minutes: 45
+        run: |
+          started=$(date +%s)
+          set +e
+          yarn pw:run:localtest --workers="${WORKERS}" --repeat-each="${REPEAT_EACH}"
+          status=$?
+          set -e
+          echo "wall-clock-seconds=$(( $(date +%s) - started ))" >> "$GITHUB_OUTPUT"
+          exit "$status"
+
+      - name: Write job summary
+        if: ${{ always() && steps.playwright.outcome != 'skipped' }}
+        shell: bash
+        env:
+          WALL_CLOCK_SECONDS: ${{ steps.playwright.outputs.wall-clock-seconds }}
+        run: |
+          node --input-type=module <<'EOF' >> "$GITHUB_STEP_SUMMARY"
+          import { existsSync, readFileSync } from 'node:fs';
+          const reportFile = 'test/reports/playwright/results.json';
+          const { WORKERS, REPEAT_EACH, WALL_CLOCK_SECONDS } = process.env;
+          console.log(`### Playwright pilot, ${WORKERS} worker(s)\n`);
+          if (!existsSync(reportFile)) {
+            console.log('No report was written.');
+            process.exit(0);
+          }
+          const { stats } = JSON.parse(readFileSync(reportFile, 'utf8'));
+          console.log('| Workers | Repeat each | Wall clock (s) | Playwright duration (s) | Passed | Failed | Flaky | Skipped |');
+          console.log('| --- | --- | --- | --- | --- | --- | --- | --- |');
+          console.log(
+            `| ${WORKERS} | ${REPEAT_EACH} | ${WALL_CLOCK_SECONDS || '-'} | ${(stats.duration / 1000).toFixed(1)} | ` +
+              `${stats.expected} | ${stats.unexpected} | ${stats.flaky} | ${stats.skipped} |`,
+          );
+          EOF
+
+      - name: Stop localtest
+        if: always()
+        timeout-minutes: 10
+        uses: ./.github/actions/app-stop-local-env
+        with:
+          collect-diagnostics: ${{ steps.playwright.outcome != 'success' }}
+
+      - name: Upload report and traces
+        if: ${{ always() && steps.playwright.outcome != 'success' }}
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        timeout-minutes: 5
+        with:
+          name: app-frontend-playwright-pilot-${{ matrix.workers }}-workers-${{ github.run_attempt }}
+          path: |
+            src/App/frontend/test/reports/playwright/**
+            src/App/frontend/test/playwright-results/**
+            src/App/frontend/frontend-server.log
+            src/App/frontend/local-env-diagnostics.log
+            src/App/frontend/localtest-container.log
+            ${{ env.STUDIOCTL_HOME }}/logs/**

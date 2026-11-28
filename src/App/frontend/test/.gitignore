@@ -11,3 +11,6 @@
 # Various log files produced from running tests
 /redux-history/
 /logs/
+
+# Playwright
+/playwright-results/

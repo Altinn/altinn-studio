@@ -1,0 +1,10 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "sourceMap": false,
+    "rootDir": "../../../../.."
+  },
+  "include": ["./**/*.ts", "../../../playwright.config.ts", "../../../src/vite-env.d.ts"],
+  "exclude": ["../../../node_modules"]
+}

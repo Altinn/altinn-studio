@@ -307,6 +307,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@axe-core/playwright@npm:4.13.0":
+  version: 4.13.0
+  resolution: "@axe-core/playwright@npm:4.13.0"
+  dependencies:
+    axe-core: "npm:~4.13.0"
+  peerDependencies:
+    playwright-core: ">= 1.0.0"
+  checksum: 10/2400e309d6f6d96b3f3f12b00a80e32cb0213726fcfc3c457b36d17f7136a3361f02a7523286024d7e8ceba9045a5f9c18edd8bc352f76b549faedce298fada2
+  languageName: node
+  linkType: hard
+
 "@babel/code-frame@npm:^7.0.0, @babel/code-frame@npm:^7.10.4, @babel/code-frame@npm:^7.29.0, @babel/code-frame@npm:^7.29.7":
   version: 7.29.7
   resolution: "@babel/code-frame@npm:7.29.7"
@@ -6793,6 +6804,7 @@ __metadata:
     "@app/form-engine": "workspace:*"
     "@app/language": "workspace:*"
     "@app/layout-contract": "workspace:*"
+    "@axe-core/playwright": "npm:4.13.0"
     "@babel/core": "npm:7.29.7"
     "@babel/plugin-transform-runtime": "npm:7.29.7"
     "@babel/preset-env": "npm:7.29.7"
@@ -6808,6 +6820,7 @@ __metadata:
     "@navikt/aksel-icons": "npm:8.16.2"
     "@percy/cli": "npm:1.32.10"
     "@percy/cypress": "npm:3.1.8"
+    "@playwright/test": "npm:^1.65.1"
     "@rolldown/plugin-babel": "npm:0.2.4"
     "@studio/http-client": "workspace:*"
     "@tanstack/react-query": "npm:5.101.4"
@@ -7242,7 +7255,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axe-core@npm:4.13.0":
+"axe-core@npm:4.13.0, axe-core@npm:~4.13.0":
   version: 4.13.0
   resolution: "axe-core@npm:4.13.0"
   checksum: 10/b9319bedc705fde00e4abd981d8724202cc20102e4ae6d8edfde33cb5265e0fb8f67f32adcb4ad33fbd4a2c8d7ad7ef5af1d933d9ad859bed90e3eae0ee8c52f

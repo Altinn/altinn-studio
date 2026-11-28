@@ -22,7 +22,9 @@
     "cy:run:localtest": "cypress run --env environment=localtest",
     "cy:parallel": "cypress-parallel -s cy:run -t 3 -d test/e2e/integration",
     "cy:parallel:localtest": "cypress-parallel -s cy:run:localtest -t 3 -d test/e2e/integration",
-    "tsc": "tsc && tsc --project test/tsconfig.json",
+    "pw:run:localtest": "E2E_ENVIRONMENT=localtest playwright test",
+    "pw:open:localtest": "E2E_ENVIRONMENT=localtest playwright test --ui",
+    "tsc": "tsc && tsc --project test/tsconfig.json && tsc --project test/e2e/playwright/tsconfig.json",
     "tsc-strict": "tsc --project tsconfig-strict.json",
     "tsc-strict:error-count": "tsx scripts/tsc-strict-error-count.ts",
     "tsc:watch": "tsc --watch",
@@ -36,6 +38,7 @@
     "k6:browser:headless": "yarn k6:check && K6_BROWSER_HEADLESS=true k6 run test/e2e/k6-browser/browser-script.ts"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
     "@babel/core": "7.29.7",
     "@babel/plugin-transform-runtime": "7.29.7",
     "@babel/preset-env": "7.29.7",
@@ -47,6 +50,7 @@
     "@lhci/cli": "^0.16.1",
     "@percy/cli": "1.32.10",
     "@percy/cypress": "3.1.8",
+    "@playwright/test": "^1.65.1",
     "@rolldown/plugin-babel": "0.2.4",
     "@tanstack/react-query-devtools": "5.101.4",
     "@testing-library/cypress": "10.1.3",

@@ -165,7 +165,32 @@ export default defineConfig([
   },
   {
     files: ['test/e2e/**/*.ts'],
+    ignores: ['test/e2e/playwright/**'],
     ...pluginCypress.configs.recommended,
+  },
+  {
+    // Playwright calls return promises. A missing await lets a test go on before an action or assertion has finished,
+    // so these rules use type information to find promises that are not awaited.
+    files: ['test/e2e/playwright/**/*.ts', 'playwright.config.ts'],
+    languageOptions: {
+      parserOptions: {
+        project: './test/e2e/playwright/tsconfig.json',
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    rules: {
+      '@typescript-eslint/no-floating-promises': 'error',
+      '@typescript-eslint/await-thenable': 'error',
+      '@typescript-eslint/no-misused-promises': 'error',
+      'no-restricted-properties': [
+        'error',
+        {
+          property: 'waitForTimeout',
+          message: 'Wait for a state the app shows or a response instead of a fixed time.',
+        },
+        { property: 'pause', message: 'page.pause() is for debugging only.' },
+      ],
+    },
   },
   {
     files: ['src/**/*.test.ts', 'src/**/*.test.tsx', 'src/**/test/**/*.ts', 'src/**/test/**/*.tsx'],
@@ -198,7 +223,14 @@ export default defineConfig([
   {
     // Config files loaded directly by their own tool: each tool reads a default export, and
     // reads the file before tsconfig path aliases are in play, so their imports must be relative.
-    files: ['vite.config*.ts', 'vitest.config.ts', 'cypress.config.js', 'prettier.config.js', 'eslint.config.mjs'],
+    files: [
+      'vite.config*.ts',
+      'vitest.config.ts',
+      'cypress.config.js',
+      'playwright.config.ts',
+      'prettier.config.js',
+      'eslint.config.mjs',
+    ],
     rules: {
       'import/no-default-export': 'off',
       'no-relative-import-paths/no-relative-import-paths': 'off',
