@@ -67,6 +67,12 @@ public class ProcessAuthorizer : IProcessAuthorizer
         CancellationToken cancellationToken
     ) => AuthorizeWithSyncAdapterBypass(instance, cancellationToken);
 
+    /// <inheritdoc/>
+    public Task<bool> AuthorizeCallerResult(
+        Instance instance,
+        CancellationToken cancellationToken
+    ) => Task.FromResult(IsCalledByApp(instance));
+
     /// <summary>
     /// Get all actions that allow process next for the given task type.
     /// </summary>

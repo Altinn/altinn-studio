@@ -14,6 +14,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `studioctl auth token [--env ENV]` prints the API key you logged in with, so scripts and other tools can call Studio as you, for example with `$(studioctl auth token)`. ([#21867](https://github.com/Altinn/altinn-studio/pull/21867))
 - `studioctl app upgrade v9` names the custom task types in your process, such as `sftp`. Keep each one's `Type` string when you port its task class, or instances started under v8 can't finish that task. ([#21979](https://github.com/Altinn/altinn-studio/pull/21979))
 - `studioctl app upgrade v9` sets `"onProcessEnd": { "confirm": true }` in `applicationmetadata.json` for apps whose eFormidling task, or Fiks Arkiv task with `markInstanceComplete` on, confirmed instances as complete in v8. The v9 tasks no longer confirm by themselves. The upgrade removes `markInstanceComplete` from `appsettings*.json`. ([#21944](https://github.com/Altinn/altinn-studio/pull/21944))
+- Localtest keeps the result a workflow step saves with its changes and returns it when the step runs again, as Altinn Storage does. ([#22176](https://github.com/Altinn/altinn-studio/pull/22176))
 
 ### Changed
 

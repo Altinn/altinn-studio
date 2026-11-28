@@ -51,4 +51,10 @@ public interface IProcessAuthorizer
     /// Has a bypass for the sync adapter scope.
     /// </summary>
     Task<bool> AuthorizeDataValuesUpdate(Instance instance, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Determines if the user may store a caller result with an instance mutation. Admits only the
+    /// instance's own organization.
+    /// </summary>
+    Task<bool> AuthorizeCallerResult(Instance instance, CancellationToken cancellationToken);
 }

@@ -42,6 +42,7 @@ public class InstanceMutationsController(
 {
     private const long RequestSizeLimit = 2000 * 1024 * 1024;
     private const long MaxMutationJsonSize = 1024 * 1024 * 4;
+    private const int MaxCallerResultLength = 4096;
     private static readonly FormOptions _defaultFormOptions = new();
 
     private readonly IDataRepository _dataRepository = dataRepository;
@@ -62,17 +63,23 @@ public class InstanceMutationsController(
     /// Commits a batch of mutations for a single instance.
     /// </summary>
     /// <remarks>
-    /// Idempotent replay is admitted after the request body is parsed and the current instance is
-    /// read, but before delete authorization and current-state data element validation. Replayed
-    /// responses use the instance snapshot returned by LocalTest's mutation repository. A version
-    /// precondition that differs from the instance's versions is answered with 412 next, before
-    /// delete, confirmation, process and data-type authorization.
+    /// Idempotent replay of a mutation that raised the instance version is checked after the request
+    /// body is parsed and the current instance is read, but before delete, confirmation,
+    /// caller-result, process and data-type authorization and current-state data element validation.
+    /// A mutation that raised no version, such as one that carries only a caller result, is found to
+    /// be a replay when it is applied, after authorization. Replayed responses use the instance
+    /// snapshot returned by LocalTest's mutation repository. A version precondition that differs from
+    /// the instance's versions is answered with 412 next, before delete, confirmation, caller-result,
+    /// process and data-type authorization.
     /// Delete-instance mutations check instance existence before delete authorization, so a missing
     /// instance returns 404 before a possible delete-policy 403. A complete confirmation is subject
     /// to the <c>InstanceComplete</c> policy and is recorded for the calling organization only; an
     /// organization that already has a confirmation keeps the one it has, and the remaining
     /// operations commit either way. A mutation that sets the process state cannot also create,
     /// update, or delete data elements (400), so every data element write is made in the current task.
+    /// Only the instance's own organization can store a caller result. A mutation that carries only a
+    /// caller result writes its idempotency record and nothing else: it raises no version and writes
+    /// no event.
     /// </remarks>
     [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
     [HttpPost]
@@ -135,6 +142,12 @@ public class InstanceMutationsController(
         if (processStateRequestError is not null)
         {
             return processStateRequestError;
+        }
+
+        ObjectResult callerResultError = ValidateCallerResult(mutationRequest, idempotencyKey);
+        if (callerResultError is not null)
+        {
+            return callerResultError;
         }
 
         ActionResult instanceEventError = ValidateMutationInstanceEvents(
@@ -237,6 +250,14 @@ public class InstanceMutationsController(
         if (completeConfirmationAuthorizationError is not null)
         {
             return completeConfirmationAuthorizationError;
+        }
+
+        if (
+            mutationRequest.CallerResult is not null
+            && !await _processAuthorizer.AuthorizeCallerResult(instance, cancellationToken)
+        )
+        {
+            return Forbid();
         }
 
         if (
@@ -789,7 +810,8 @@ public class InstanceMutationsController(
                 mutationInstanceEvents,
                 idempotencyKey,
                 mutationLastChanged,
-                mutationLastChangedBy
+                mutationLastChangedBy,
+                mutationRequest.CallerResult
             );
 
             applyResult = await _instanceMutationRepository.Apply(
@@ -878,6 +900,7 @@ public class InstanceMutationsController(
                 Instance = updatedInstance,
                 CreatedDataElementIds = [.. applyResult.CreatedDataElementIds],
                 Replayed = applyResult.Replayed,
+                CallerResult = applyResult.CallerResult,
             }
         );
     }
@@ -1091,7 +1114,8 @@ public class InstanceMutationsController(
         || request.PresentationTexts?.Count > 0
         || request.AddCompleteConfirmation
         || request.ProcessState?.State is not null
-        || request.ProcessState?.Events?.Count > 0;
+        || request.ProcessState?.Events?.Count > 0
+        || request.CallerResult is not null;
 
     private static JsonResult ProcessStatusConflict(ProcessStatusConflictException exception) =>
         new(
@@ -1165,6 +1189,44 @@ public class InstanceMutationsController(
         {
             return BadRequest(
                 "deleteInstance cannot be combined with other aggregate mutation operations."
+            );
+        }
+
+        return null;
+    }
+
+    private ObjectResult ValidateCallerResult(
+        InstanceMutationRequest request,
+        string idempotencyKey
+    )
+    {
+        if (request.CallerResult is null)
+        {
+            return null;
+        }
+
+        if (idempotencyKey is null)
+        {
+            return Problem(
+                detail: $"callerResult requires {StorageHeaders.IdempotencyKey}.",
+                statusCode: StatusCodes.Status400BadRequest
+            );
+        }
+
+        if (request.CallerResult.Length is 0 or > MaxCallerResultLength)
+        {
+            return Problem(
+                detail: $"callerResult must be 1 to {MaxCallerResultLength} characters long.",
+                statusCode: StatusCodes.Status400BadRequest
+            );
+        }
+
+        // Storage keeps the value in a PostgreSQL text column, which cannot hold a NUL character.
+        if (request.CallerResult.Contains('\0'))
+        {
+            return Problem(
+                detail: "callerResult must not contain a NUL character.",
+                statusCode: StatusCodes.Status400BadRequest
             );
         }
 

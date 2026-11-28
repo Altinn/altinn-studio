@@ -43,21 +43,24 @@ public sealed record InstanceMutationCommit(
     IReadOnlyList<InstanceEvent> InstanceEvents = null,
     string IdempotencyKey = null,
     DateTime? LastChanged = null,
-    string LastChangedBy = null
+    string LastChangedBy = null,
+    string CallerResult = null
 );
 
 public sealed record InstanceMutationApplyResult(
     bool Replayed,
     IReadOnlyList<string> CreatedDataElementIds,
     Instance Instance,
-    InstanceVersionResult Versions
+    InstanceVersionResult Versions,
+    string CallerResult
 )
 {
     public static InstanceMutationApplyResult ReplayWithCreatedDataElementIds(
         IReadOnlyList<string> createdDataElementIds,
         Instance instance,
-        InstanceVersionResult versions
-    ) => new(true, createdDataElementIds, instance, versions);
+        InstanceVersionResult versions,
+        string callerResult
+    ) => new(true, createdDataElementIds, instance, versions, callerResult);
 }
 
 public sealed record InstanceMutationDataElementUpdate(

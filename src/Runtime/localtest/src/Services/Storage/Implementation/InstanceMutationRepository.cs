@@ -106,12 +106,15 @@ public sealed class InstanceMutationRepository(
                 && mutation.ExpectedInstanceVersion is { } previousInstanceVersion
             )
             {
-                int producedInstanceVersion = currentVersions.InstanceVersion + 1;
+                int producedInstanceVersion = ChangesInstance(mutation)
+                    ? currentVersions.InstanceVersion + 1
+                    : currentVersions.InstanceVersion;
                 var freshRecord = new InstanceMutationIdempotencyRecord(
                     instanceGuid,
                     previousInstanceVersion,
                     producedInstanceVersion,
-                    GetCreatedDataElementIds(mutation)
+                    GetCreatedDataElementIds(mutation),
+                    mutation.CallerResult
                 );
 
                 (bool inserted, string path) = await TryWriteIdempotencyRecord(
@@ -132,10 +135,10 @@ public sealed class InstanceMutationRepository(
                 }
             }
 
-            InstanceVersionResult producedVersions;
-            if (HasStoredInstanceUpdate(mutation))
-            {
-                producedVersions = await _localInstanceRepository.RunWithInstanceLock(
+            // Every instance writer takes the instance lock before the version lock, so a mutation
+            // takes it too, even one that leaves the instance as it is.
+            InstanceVersionResult producedVersions =
+                await _localInstanceRepository.RunWithInstanceLock(
                     mutation.InstanceUpdates,
                     () =>
                         ApplyVersionedMutation(
@@ -148,25 +151,13 @@ public sealed class InstanceMutationRepository(
                             cancellationToken
                         )
                 );
-            }
-            else
-            {
-                producedVersions = await ApplyVersionedMutation(
-                    instanceGuid,
-                    instanceInternalId,
-                    mutation,
-                    mutationLastChanged,
-                    mutationLastChangedBy,
-                    instanceLockHeld: false,
-                    cancellationToken
-                );
-            }
 
             result = await BuildMutationResult(
                 replayed: false,
                 instanceGuid,
                 GetCreatedDataElementIds(mutation),
                 producedVersions,
+                mutation.CallerResult,
                 cancellationToken
             );
         }
@@ -198,17 +189,13 @@ public sealed class InstanceMutationRepository(
     private static bool HasInstanceUpdate(InstanceMutationCommit mutation) =>
         mutation.InstanceUpdateProperties?.Count > 0;
 
-    private static bool HasStoredInstanceUpdate(InstanceMutationCommit mutation) =>
+    // As in applyinstancemutation, a mutation that only adds instance events or carries a caller result
+    // leaves the instance, its version and lastChanged as they are.
+    private static bool ChangesInstance(InstanceMutationCommit mutation) =>
         HasInstanceUpdate(mutation)
         || mutation.CreateDataElements?.Count > 0
         || mutation.UpdateDataElements?.Count > 0
-        || mutation.DeleteDataElements?.Count > 0
-        || HasExplicitMutationStamp(mutation);
-
-    private static bool HasExplicitMutationStamp(InstanceMutationCommit mutation) =>
-        mutation.LastChanged is not null
-        || mutation.LastChangedBy is not null
-        || mutation.InstanceUpdates?.LastChangedBy is not null;
+        || mutation.DeleteDataElements?.Count > 0;
 
     private async Task EnsureIdleProcessStatusWithoutVersionFence(
         Guid instanceGuid,
@@ -255,7 +242,7 @@ public sealed class InstanceMutationRepository(
             instanceGuid,
             mutation.ExpectedInstanceVersion,
             mutation.ExpectedProcessStateVersion,
-            bumpInstanceVersion: true,
+            bumpInstanceVersion: ChangesInstance(mutation),
             bumpProcessStateVersion: HasProcessUpdate(mutation),
             async () =>
             {
@@ -390,8 +377,7 @@ public sealed class InstanceMutationRepository(
         CancellationToken cancellationToken
     )
     {
-        bool shouldWriteInstanceMetadata = HasStoredInstanceUpdate(mutation);
-        if (updateProperties.Count == 0 && !shouldWriteInstanceMetadata)
+        if (!ChangesInstance(mutation))
         {
             return;
         }
@@ -441,13 +427,7 @@ public sealed class InstanceMutationRepository(
         CancellationToken cancellationToken
     )
     {
-        bool shouldWriteInstanceMetadata = HasStoredInstanceUpdate(mutation);
-        if (
-            (
-                mutation.InstanceUpdateProperties is null
-                || mutation.InstanceUpdateProperties.Count == 0
-            ) && !shouldWriteInstanceMetadata
-        )
+        if (!ChangesInstance(mutation))
         {
             return mutation.InstanceUpdates;
         }
@@ -531,11 +511,8 @@ public sealed class InstanceMutationRepository(
             existingInstance.Status.Substatus = mutation.InstanceUpdates.Status?.Substatus;
         }
 
-        if (shouldWriteInstanceMetadata)
-        {
-            existingInstance.LastChanged = mutationLastChanged;
-            existingInstance.LastChangedBy = mutationLastChangedBy;
-        }
+        existingInstance.LastChanged = mutationLastChanged;
+        existingInstance.LastChangedBy = mutationLastChangedBy;
 
         return existingInstance;
     }
@@ -853,6 +830,7 @@ public sealed class InstanceMutationRepository(
             instanceGuid,
             record.CreatedDataElementIds ?? [],
             currentVersions,
+            record.CallerResult,
             cancellationToken
         );
     }
@@ -862,6 +840,7 @@ public sealed class InstanceMutationRepository(
         Guid instanceGuid,
         IReadOnlyList<string> createdDataElementIds,
         InstanceVersionResult versions,
+        string callerResult,
         CancellationToken cancellationToken
     )
     {
@@ -882,9 +861,16 @@ public sealed class InstanceMutationRepository(
             ? InstanceMutationApplyResult.ReplayWithCreatedDataElementIds(
                 createdDataElementIds,
                 instance,
-                versions
+                versions,
+                callerResult
             )
-            : new InstanceMutationApplyResult(false, createdDataElementIds, instance, versions);
+            : new InstanceMutationApplyResult(
+                false,
+                createdDataElementIds,
+                instance,
+                versions,
+                callerResult
+            );
     }
 
     private async Task ThrowIfInstanceNotFound(
@@ -1133,7 +1119,8 @@ public sealed class InstanceMutationRepository(
         Guid InstanceGuid,
         int PreviousInstanceVersion,
         int ProducedInstanceVersion,
-        IReadOnlyList<string> CreatedDataElementIds
+        IReadOnlyList<string> CreatedDataElementIds,
+        string CallerResult
     );
 
     private sealed record MutationSnapshot(

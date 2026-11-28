@@ -433,6 +433,82 @@ public sealed class InstanceMutationRepositoryTests
         Assert.Equal("patching-party", updatedElement.LastChangedBy);
     }
 
+    [Fact]
+    public async Task Apply_WhenAnotherWriterHoldsTheInstanceLock_LeavesTheVersionLockFree()
+    {
+        await using var storage = new LocalStorageFixture();
+        Instance instance = await storage.InstanceRepository.Create(
+            CreateInstance(
+                lastChanged: new DateTime(2026, 1, 1, 3, 4, 5, DateTimeKind.Utc),
+                lastChangedBy: "seed-actor"
+            ),
+            CancellationToken.None
+        );
+        Guid instanceGuid = GetInstanceGuid(instance);
+        // Without a version fence the mutation reads the instance to check the process status, and
+        // with nothing but process events it changes neither the instance nor its version.
+        var eventsOnly = new InstanceMutationCommit(
+            CreateDataElements: [],
+            UpdateDataElements: [],
+            DeleteDataElements: [],
+            InstanceUpdates: CreateMutationInstance(
+                instance,
+                lastChanged: null,
+                lastChangedBy: null
+            ),
+            InstanceUpdateProperties: [],
+            ExpectedInstanceVersion: null,
+            ExpectedProcessStateVersion: null,
+            InstanceEvents:
+            [
+                new InstanceEvent { EventType = "process_StartTask", InstanceId = instance.Id },
+            ],
+            LastChanged: new DateTime(2026, 1, 2, 3, 4, 5, DateTimeKind.Utc),
+            LastChangedBy: "events-actor"
+        );
+
+        // The test plays a writer that holds the instance lock and then asks for the version lock.
+        // How far the mutation gets before the writer asks is a race, so the writer asks many times.
+        for (int round = 0; round < 20; round++)
+        {
+            Task<InstanceMutationApplyResult>? apply = null;
+            bool versionLockStayedFree = await storage.InstanceRepository.RunWithInstanceLock(
+                instance,
+                async () =>
+                {
+                    apply = Task.Run(() =>
+                        storage.MutationRepository.Apply(
+                            instanceGuid,
+                            instanceInternalId: 0,
+                            eventsOnly,
+                            CancellationToken.None
+                        )
+                    );
+                    for (int read = 0; read < 20; read++)
+                    {
+                        Task<InstanceVersionResult> versions =
+                            storage.InstanceRepository.ReadVersions(instanceGuid);
+                        if (
+                            await Task.WhenAny(versions, Task.Delay(TimeSpan.FromSeconds(5)))
+                            != versions
+                        )
+                        {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                }
+            );
+            await apply!;
+
+            Assert.True(
+                versionLockStayedFree,
+                $"The mutation held the version lock in round {round}."
+            );
+        }
+    }
+
     private static Instance CreateInstance(
         DateTime lastChanged,
         string? lastChangedBy,
