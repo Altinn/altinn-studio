@@ -90,23 +90,42 @@ public class LayoutService(
             editingContext.Developer
         );
 
-        appRepository.DeleteLayout(layoutSetId, pageId);
+        // Settings.json can name a page without a layout file when the repository was edited outside Designer.
+        // Removing the page from the settings is all there is left to do.
+        if (appRepository.LayoutFileExistsByExactName(layoutSetId, pageId))
+        {
+            appRepository.DeleteLayout(layoutSetId, pageId);
+        }
 
         LayoutSettings layoutSettings = await appRepository.GetLayoutSettings(layoutSetId);
-        if (layoutSettings.Pages is not PagesWithOrder pages)
+        bool isPdfPage = false;
+        if (layoutSettings.Pages is { } pages && pages.PdfLayoutName == pageId)
+        {
+            // The PDF page is usually in neither the order nor a group, but an app can list it in the order too.
+            pages.PdfLayoutName = null;
+            isPdfPage = true;
+        }
+
+        string lastPageName = null;
+        if (layoutSettings.Pages is PagesWithOrder pagesWithOrder)
+        {
+            if (pagesWithOrder.Order.Remove(pageId) && pagesWithOrder.Order.Count == 1)
+            {
+                lastPageName = pagesWithOrder.Order[0];
+            }
+        }
+        else if (!isPdfPage)
         {
             throw new InvalidOperationException("Cannot delete order page from layout using groups.");
         }
-        pages.Order.Remove(pageId);
         await appRepository.SaveLayoutSettings(layoutSetId, layoutSettings);
 
-        if (pages.Order.Count == 1)
+        if (lastPageName is not null)
         {
-            string lastLayoutName = pages.Order.First();
-            JsonNode lastLayout = await appRepository.GetLayout(layoutSetId, lastLayoutName);
+            JsonNode lastLayout = await appRepository.GetLayout(layoutSetId, lastPageName);
             AltinnPageLayout lastPage = new(lastLayout.AsObject());
             lastPage.RemoveAllComponentsOfType("NavigationButtons");
-            await appRepository.SaveLayout(layoutSetId, lastLayoutName, lastPage.Structure);
+            await appRepository.SaveLayout(layoutSetId, lastPageName, lastPage.Structure);
         }
 
         await mediatr.Publish(

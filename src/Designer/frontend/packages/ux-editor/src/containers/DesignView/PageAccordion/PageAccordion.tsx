@@ -25,6 +25,7 @@ export type PageAccordionProps = {
   hasDuplicatedIds?: boolean;
   pageIsPdf?: boolean;
   showNavigationMenu?: boolean;
+  showDeleteButton?: boolean;
   groupIndex?: number;
 };
 
@@ -50,6 +51,7 @@ export const PageAccordion = ({
   hasDuplicatedIds,
   pageIsPdf,
   showNavigationMenu = true,
+  showDeleteButton = true,
   groupIndex,
 }: PageAccordionProps): ReactNode => {
   const { t } = useTranslation();
@@ -71,7 +73,8 @@ export const PageAccordion = ({
     if (!confirm(t('ux_editor.page_delete_text'))) return;
     if (selectedItem?.id === pageId) setSelectedItem(null);
 
-    if (isUsingGroups) {
+    // The PDF page is in no group, so it is deleted on its own, also when the layout uses groups.
+    if (isUsingGroups && !pageIsPdf) {
       const updatedGroups = getUpdatedGroupsExcludingPage({
         pageId,
         groups: pages.groups,
@@ -108,13 +111,15 @@ export const PageAccordion = ({
             title={t('general.options_for_item', { item: pageName || pageId })}
           />
         )}
-        <StudioButton
-          icon={<TrashIcon aria-hidden />}
-          onClick={handleConfirmDelete}
-          title={t('general.delete_item', { item: pageName || pageId })}
-          variant='tertiary'
-          disabled={isPending}
-        />
+        {showDeleteButton && (
+          <StudioButton
+            icon={<TrashIcon aria-hidden />}
+            onClick={handleConfirmDelete}
+            title={t('general.delete_item', { item: pageName || pageId })}
+            variant='tertiary'
+            disabled={isPending}
+          />
+        )}
       </div>
     </div>
   );
