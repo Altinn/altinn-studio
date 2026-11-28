@@ -1,4 +1,5 @@
 using Altinn.App.Api.Infrastructure.RateLimiting;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
@@ -59,7 +60,7 @@ public class PdfController : ControllerBase
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
     /// <param name="taskId">The PDF or subform PDF service task to preview, also one the instance has not reached yet. Defaults to the current task.</param>
-    /// <param name="dataElementId">The subform data element to preview. Required when previewing a subform PDF service task.</param>
+    /// <param name="dataElementId">The subform data element to preview. Required when previewing a subform PDF service task. Without taskId, it selects the subform PDF service task for its data type.</param>
     /// <param name="language">The language of the preview, such as nb or en. Defaults to the user's language.</param>
     /// <param name="cancellationToken">Cancellation token, populated by the framework</param>
     [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK, "application/pdf")]
@@ -99,6 +100,35 @@ public class PdfController : ControllerBase
             ? await _authenticationContext.Current.GetLanguage()
             : language;
 
+        // Callers that know only the subform, not the app's tasks
+        if (taskId is null && dataElementId is not null)
+        {
+            string elementId = dataElementId.Value.ToString();
+            DataElement? dataElement = instance.Data.Find(element => element.Id == elementId);
+            if (dataElement is null)
+            {
+                return BadRequest("dataElementId must be the id of a data element in the instance");
+            }
+
+            List<ProcessTask> subformPdfTasks = _processReader
+                .GetProcessTasks()
+                .Where(processTask => IsSubformPdfTaskFor(processTask, dataElement))
+                .ToList();
+            if (subformPdfTasks.Count == 0)
+            {
+                return BadRequest($"No subform PDF service task renders data elements of type {dataElement.DataType}");
+            }
+
+            if (subformPdfTasks.Count > 1)
+            {
+                return BadRequest(
+                    $"Several subform PDF service tasks render data elements of type {dataElement.DataType}. Add taskId to choose one"
+                );
+            }
+
+            taskId = subformPdfTasks[0].Id;
+        }
+
         // An instance at a PDF or subform PDF service task previews that task the way the service task renders it
         if (taskId is null && IsPdfOrSubformPdfServiceTask(_processReader.GetFlowElement(currentTaskId)))
         {
@@ -124,7 +154,7 @@ public class PdfController : ControllerBase
 
         // Render the task the same way its PDF service task would
         AltinnTaskExtension? taskExtension = task.ExtensionElements?.TaskExtension;
-        if (taskExtension?.TaskType == "pdf")
+        if (taskExtension?.TaskType == AltinnTaskTypes.Pdf)
         {
             byte[] pdfPreview = await _pdfService.GeneratePdf(
                 instance,
@@ -137,7 +167,7 @@ public class PdfController : ControllerBase
             return File(pdfPreview, "application/pdf");
         }
 
-        if (taskExtension?.TaskType != "subformPdf")
+        if (taskExtension?.TaskType != AltinnTaskTypes.SubformPdf)
         {
             return BadRequest("taskId must identify a PDF or subform PDF service task");
         }
@@ -153,7 +183,7 @@ public class PdfController : ControllerBase
 
         string? subformId = dataElementId?.ToString();
         DataElement? subform = instance.Data.Find(element => element.Id == subformId);
-        if (subform is null || subform.DataType != subformDataType)
+        if (subform is null || !SubformPdfServiceTask.GeneratesPdfFor(_appResources, subformConfig, subform))
         {
             return BadRequest($"dataElementId must be the id of a data element of type {subformDataType}");
         }
@@ -170,5 +200,14 @@ public class PdfController : ControllerBase
     }
 
     private static bool IsPdfOrSubformPdfServiceTask(ProcessElement? element) =>
-        element is ProcessTask { ExtensionElements.TaskExtension.TaskType: "pdf" or "subformPdf" };
+        element
+            is ProcessTask
+            {
+                ExtensionElements.TaskExtension.TaskType: AltinnTaskTypes.Pdf or AltinnTaskTypes.SubformPdf,
+            };
+
+    private bool IsSubformPdfTaskFor(ProcessTask task, DataElement dataElement) =>
+        task.ExtensionElements?.TaskExtension
+            is { TaskType: AltinnTaskTypes.SubformPdf, SubformPdfConfiguration: AltinnSubformPdfConfiguration config }
+        && SubformPdfServiceTask.GeneratesPdfFor(_appResources, config.Validate(), dataElement);
 }

@@ -5423,7 +5423,7 @@
           {
             "name": "dataElementId",
             "in": "query",
-            "description": "The subform data element to preview. Required when previewing a subform PDF service task.",
+            "description": "The subform data element to preview. Required when previewing a subform PDF service task. Without taskId, it selects the subform PDF service task for its data type.",
             "schema": {
               "type": "string",
               "format": "uuid"

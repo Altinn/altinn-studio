@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Helpers;
@@ -43,7 +44,7 @@ internal sealed class PdfServiceTask : IPdfServiceTask
     }
 
     /// <inheritdoc />
-    public string Type => "pdf";
+    public string Type => AltinnTaskTypes.Pdf;
 
     public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
 
