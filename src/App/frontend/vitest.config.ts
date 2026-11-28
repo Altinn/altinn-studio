@@ -51,6 +51,8 @@ export default defineConfig({
     setupFiles: ['./src/setupTests.ts', '@app/form-component/test/popoverPolyfill'],
     testTimeout: Number.parseInt(process.env.VITEST_TIMEOUT ?? '20000', 10),
     vmMemoryLimit: '2GB',
+    // Workers share transformed modules through node_modules/.vitest-cache instead of each transforming them again.
+    fsModuleCache: true,
     coverage: {
       include: ['src/**/*.{ts,tsx}'],
       provider: 'v8',
