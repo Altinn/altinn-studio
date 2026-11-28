@@ -14,13 +14,18 @@ Context.displayName = 'TaskOverridesContext';
 type Props = PropsWithChildren & TaskOverridesContext;
 export function TaskOverrides({ children, ...overrides }: Props) {
   const parentContext = useContext(Context);
+  const dataModelType = overrides.dataModelType ?? parentContext.dataModelType;
+
+  // A data element id names an element of one data type, so it is only inherited while the data type stays the same.
+  const inheritedDataModelElementId =
+    dataModelType === parentContext.dataModelType ? parentContext.dataModelElementId : undefined;
 
   return (
     <Context.Provider
       value={{
         taskId: overrides.taskId ?? parentContext.taskId,
-        dataModelType: overrides.dataModelType ?? parentContext.dataModelType,
-        dataModelElementId: overrides.dataModelElementId ?? parentContext.dataModelElementId,
+        dataModelType,
+        dataModelElementId: overrides.dataModelElementId ?? inheritedDataModelElementId,
         uiFolder: overrides.uiFolder ?? parentContext.uiFolder,
       }}
     >
