@@ -83,6 +83,25 @@ RUN rm -f /app_output/Altinn.Studio.Designer.staticwebassets.runtime.json
 WORKDIR /version
 RUN echo "{\"version\": \"${DESIGNER_VERSION}\"}" > version.json
 
+# Writing the database migrations as one SQL script, from the backend built above. The settings satisfy Designer's
+# startup validation when Entity Framework loads it; nothing reads their values.
+FROM generate-studio-backend AS generate-migrations-script
+WORKDIR /build
+RUN dotnet tool install --version 10.0.10 --global dotnet-ef
+ENV PATH="$PATH:/root/.dotnet/tools"
+ENV StudioOidcLoginSettings__FetchClientIdAndSecretFromRootEnvFile=false
+ENV StudioOidcLoginSettings__ClientId=dummyRequired
+ENV StudioOidcLoginSettings__ClientSecret=dummyRequired
+RUN dotnet ef migrations script --project src/Designer/backend/src/Designer/Designer.csproj \
+  --configuration Release --no-build --idempotent -o /app/migrations.sql
+
+# The migrations image, built with --target migrations. It applies the script to the database and exits.
+FROM alpine:3.24.1@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b AS migrations
+COPY --from=generate-migrations-script /app/migrations.sql migrations.sql
+RUN apk --no-cache add postgresql-client
+
+ENTRYPOINT ["sh", "-c", "psql -h $PGHOST -p $PGPORT -U $PGUSER -d $PGDATABASE -f migrations.sql"]
+
 # Prepare app templates, one release tree per selectable template.
 # The "<id>/src" shape mirrors src/App/template exactly, so a locally run Designer can point straight
 # at the repository folder without a second path convention. rsync will not create intermediate
@@ -99,8 +118,9 @@ COPY ./src/App/template/v9/src /app-template-dotnet-src/v9
 WORKDIR /app-template-dotnet-src/v9
 RUN rsync . -rv --exclude-from=.releaseignore --exclude-from=.gitignore /app-template-release/v9/src
 
-# Building the final image. The chiseled image has no shell or package manager, so this stage only copies files.
-# Its -extra variant adds ICU and time zones, which Designer needs.
+# Building the final image. It is the last stage, so that a build without --target produces Designer. The chiseled
+# image has no shell or package manager, so this stage only copies files. Its -extra variant adds ICU and time zones,
+# which Designer needs.
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-resolute-chiseled-extra@sha256:728d90568c65ec25adf8bacd9da65356a7f5bbeb37eaca1193e6ed082900a1bc AS final
 WORKDIR /app
 # Designer's database connections never use Kerberos. Without this, Npgsql looks for the Kerberos library, which the

@@ -14,6 +14,11 @@ on:
         required: false
         type: string
         default: 'Dockerfile'
+      target:
+        description: The Dockerfile stage to build. The last stage when empty.
+        required: false
+        type: string
+        default: ''
       registry-name:
         required: true
         type: string
@@ -84,6 +89,10 @@ jobs:
           for buildarg in $(echo ${{ secrets.build-args }} | tr ',' '\n'); do
             arguments+=" --build-arg $buildarg"
           done
+
+          if [ -n "${{ inputs.target }}" ]; then
+            arguments+=" --target ${{ inputs.target }}"
+          fi
 
           docker build ${{ inputs.context }} -f ${{ inputs.dockerfile }} $arguments
 
