@@ -14,6 +14,12 @@ internal sealed class RuntimeHealthSettings
     public bool CheckPdf3 { get; set; } = true;
 
     /// <summary>
+    /// Whether to check that apps can reach the Altinn Platform. Off where apps-config gives no Storage address, such
+    /// as the local kind cluster.
+    /// </summary>
+    public bool CheckPlatformAccess { get; set; } = true;
+
+    /// <summary>
     /// How often the checks run.
     /// </summary>
     public TimeSpan Period { get; set; } = TimeSpan.FromSeconds(30);

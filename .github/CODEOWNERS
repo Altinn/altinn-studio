@@ -54,6 +54,7 @@ src/AI/augmenter-agent/**/dockerfile*                                     @Erlin
 .github/workflows/deploy-runtime-observability.yaml                       @altinn/team-altinn-studio-kjoring
 .github/workflows/deploy-runtime-operator.yaml                            @altinn/team-altinn-studio-kjoring
 .github/workflows/deploy-runtime-pdf3.yaml                                @altinn/team-altinn-studio-kjoring
+.github/workflows/deploy-runtime-platform-proxy.yaml                      @altinn/team-altinn-studio-kjoring
 .github/workflows/deploy-runtime-syncroot.yaml                            @altinn/team-altinn-studio-kjoring
 .github/workflows/deploy-studio-observability.yaml                        @altinn/team-altinn-studio-kjoring
 .github/workflows/deploy-studio-otel-operator.yaml                        @altinn/team-altinn-studio-kjoring
@@ -74,6 +75,7 @@ src/AI/augmenter-agent/**/dockerfile*                                     @Erlin
 .github/workflows/runtime-localtest-build.yml                             @altinn/team-altinn-studio-kjoring
 .github/workflows/runtime-operator-build.yml                              @altinn/team-altinn-studio-kjoring
 .github/workflows/runtime-pdf3-build.yml                                  @altinn/team-altinn-studio-kjoring
+.github/workflows/runtime-platform-proxy-build.yaml                       @altinn/team-altinn-studio-kjoring
 .github/workflows/template-runtime-construct-environments.yaml            @altinn/team-altinn-studio-kjoring
 .github/workflows/template-studio-construct-environments.yaml             @altinn/team-altinn-studio-kjoring
 .github/workflows/validate-renovate.yaml                                  @altinn/team-altinn-studio-kjoring
@@ -135,6 +137,9 @@ src/Runtime/pdf3/**/go.mod                                                @altin
 src/Runtime/pdf3/**/go.sum                                                @altinn/team-altinn-studio-kjoring
 src/Runtime/pdf3/**/package.json                                          @altinn/team-altinn-studio-kjoring
 src/Runtime/pdf3/**/yarn.lock                                             @altinn/team-altinn-studio-kjoring
+src/Runtime/platform-proxy/**/Dockerfile*                                 @altinn/team-altinn-studio-kjoring
+src/Runtime/platform-proxy/**/go.mod                                      @altinn/team-altinn-studio-kjoring
+src/Runtime/platform-proxy/**/go.sum                                      @altinn/team-altinn-studio-kjoring
 src/test/K6/**/docker-compose.yml                                         @altinn/team-altinn-studio-kjoring
 src/test/K6/**/package.json                                               @altinn/team-altinn-studio-kjoring
 src/test/K6/**/yarn.lock                                                  @altinn/team-altinn-studio-kjoring

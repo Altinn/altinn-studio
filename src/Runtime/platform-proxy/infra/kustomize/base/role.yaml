@@ -1,0 +1,30 @@
+# The proxy signs platform access tokens with the certificate apps mount from the accesstoken Secret. A pod
+# can only mount Secrets from its own namespace, so the proxy reads this one through the Kubernetes API.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: platform-proxy-signing-certificate
+  namespace: default
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    resourceNames:
+      - accesstoken
+    verbs:
+      - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: platform-proxy-signing-certificate
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: platform-proxy-signing-certificate
+subjects:
+  - kind: ServiceAccount
+    name: platform-proxy
+    namespace: runtime-platform-proxy

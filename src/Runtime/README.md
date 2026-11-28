@@ -12,6 +12,8 @@ These services run Altinn apps, in the cloud and on developers' machines. Most o
   clients, secrets, alert routing and databases.
 - [pdf3](pdf3/README.md) generates PDFs for apps. It runs in DIS Core, and each runtime cluster forwards requests to
   it.
+- [Platform proxy](platform-proxy/README.md) forwards apps' requests to the Altinn Platform's APIs, adding a platform
+  access token that shows the request comes from the runtime cluster. It runs in each runtime cluster.
 - [Kubernetes Wrapper](kubernetes-wrapper/README.md) reports the deployments in a cluster. It runs in each runtime
   cluster and each Studio cluster. Designer reads an app's deployments from it.
 - [Localtest](localtest/README.md) emulates the Altinn platform services that apps need to run on a developer's

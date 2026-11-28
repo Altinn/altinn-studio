@@ -1,0 +1,30 @@
+# Anything that reaches the proxy gets requests signed as the cluster's service owner, so only apps may, and the
+# gateway, which checks that apps can reach the platform for the runtime cluster's health.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: platform-proxy-allow-ingress
+  namespace: runtime-platform-proxy
+spec:
+  podSelector:
+    matchLabels:
+      app: platform-proxy
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: default
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: runtime-gateway
+    # The Azure Monitor Agent, to the Linkerd proxy's metrics only.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - port: 4191
+          protocol: TCP
