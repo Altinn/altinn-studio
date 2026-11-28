@@ -145,6 +145,21 @@ public sealed class V9AppTests : IDisposable
     }
 
     [Fact]
+    public async Task Form_StartsWithThePrefill_OfThePreviewUser()
+    {
+        RepositoryRoot.AddFile(_workingCopy, "App/models/model.prefill.json", """{ "DSF": { "Name": "name" } }""");
+        Uri appRoot = await StartSession();
+        JsonObject instance = await Send(HttpMethod.Post, new Uri(appRoot, "instances?instanceOwnerPartyId=51001"));
+
+        JsonObject form = await Send(
+            HttpMethod.Get,
+            new Uri(appRoot, $"instances/{instance["id"]}/bootstrap-form/Task_1")
+        );
+
+        Assert.Equal("Test Testesen", (string?)form["dataModels"]?["model"]?["initialData"]?["name"]);
+    }
+
+    [Fact]
     public async Task Patch_ChangesNothing_WhenOnePatchFails()
     {
         Uri appRoot = await StartSession();
