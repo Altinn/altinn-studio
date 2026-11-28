@@ -17,6 +17,8 @@ import { PrefillSection } from './PrefillSection';
 import { SettingsPanelFrame, SettingsSection } from './SettingsPanelFrame';
 import { TextSetting } from './TextSetting';
 import { VisibilitySetting } from './VisibilitySetting';
+import { LikertSettings } from './LikertSettings';
+import { isLikertStatic } from '../../utils/likertUtils';
 import type { VisibilityTarget } from './VisibilitySetting';
 
 export type ComponentSettingsPanelProps = {
@@ -79,50 +81,56 @@ export function ComponentSettingsPanel({
         </StudioButton>
       }
     >
-      <SettingsSection title={t('app_builder.settings.content')}>
-        <TextSetting
-          component={component}
-          property={getMainTextProperty(component)}
-          label={t(getMainTextLabel(component))}
-          isMultiline={!isQuestion && !isGroup(component)}
-        />
-        {component.type === ComponentType.Alert && (
-          <StudioSelect
-            label={t('app_builder.settings.severity')}
-            value={component.severity ?? 'info'}
-            onChange={(event) =>
-              updateComponent(component.id, (current) =>
-                setProperty(current, 'severity', event.target.value),
-              )
-            }
-          >
-            {alertSeverities.map((severity) => (
-              <StudioSelect.Option key={severity} value={severity}>
-                {t(`app_builder.settings.severity.${severity}`)}
-              </StudioSelect.Option>
-            ))}
-          </StudioSelect>
-        )}
-        {(isQuestion || isGroup(component)) && (
-          <TextSetting
-            component={component}
-            property='description'
-            label={t('app_builder.settings.description')}
-            description={t('app_builder.settings.description.description')}
-          />
-        )}
-        {isQuestion && (
-          <TextSetting
-            component={component}
-            property='help'
-            label={t('app_builder.settings.help')}
-            description={t('app_builder.settings.help.description')}
-          />
-        )}
-      </SettingsSection>
-      {isQuestion && <AnswerSection component={component} />}
-      {isQuestion && <FillingSection component={component} />}
-      {savesToDataModel(component.type) && <PrefillSection component={component} />}
+      {isLikertStatic(component) ? (
+        <LikertSettings component={component} />
+      ) : (
+        <>
+          <SettingsSection title={t('app_builder.settings.content')}>
+            <TextSetting
+              component={component}
+              property={getMainTextProperty(component)}
+              label={t(getMainTextLabel(component))}
+              isMultiline={!isQuestion && !isGroup(component)}
+            />
+            {component.type === ComponentType.Alert && (
+              <StudioSelect
+                label={t('app_builder.settings.severity')}
+                value={component.severity ?? 'info'}
+                onChange={(event) =>
+                  updateComponent(component.id, (current) =>
+                    setProperty(current, 'severity', event.target.value),
+                  )
+                }
+              >
+                {alertSeverities.map((severity) => (
+                  <StudioSelect.Option key={severity} value={severity}>
+                    {t(`app_builder.settings.severity.${severity}`)}
+                  </StudioSelect.Option>
+                ))}
+              </StudioSelect>
+            )}
+            {(isQuestion || isGroup(component)) && (
+              <TextSetting
+                component={component}
+                property='description'
+                label={t('app_builder.settings.description')}
+                description={t('app_builder.settings.description.description')}
+              />
+            )}
+            {isQuestion && (
+              <TextSetting
+                component={component}
+                property='help'
+                label={t('app_builder.settings.help')}
+                description={t('app_builder.settings.help.description')}
+              />
+            )}
+          </SettingsSection>
+          {isQuestion && <AnswerSection component={component} />}
+          {isQuestion && <FillingSection component={component} />}
+          {savesToDataModel(component.type) && <PrefillSection component={component} />}
+        </>
+      )}
       <VisibilitySetting
         target={getVisibilityTarget(component)}
         hidden={component.hidden}
@@ -142,6 +150,7 @@ function getMainTextLabel(component: LayoutComponent): string {
 }
 
 function getVisibilityTarget(component: LayoutComponent): VisibilityTarget {
+  if (isLikertStatic(component)) return 'table';
   if (isGroup(component)) return 'group';
   return isQuestionType(component.type) ? 'field' : 'text';
 }

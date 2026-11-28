@@ -12,6 +12,7 @@ import type { ITextResources } from 'app-shared/types/global';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { textMock } from '@designer/testing/mocks/i18nMock';
 import { getLanguageFromCode } from '@app/language';
+import { FeatureFlagsContextProvider } from '@designer/feature-flags';
 import { AppBuilderProvider } from '../../contexts/AppBuilderContext';
 import type { DataModel } from '../../hooks/useDataModelQuery';
 import { usePageLayoutsQuery } from '../../hooks/usePageLayoutsQuery';
@@ -894,11 +895,13 @@ function renderPageCanvas(
       deletePage={backend.deletePage}
       client={queryClient}
     >
-      <TestAppBuilder
-        {...options}
-        // The other layout set is not in the cache, so its pages are fetched.
-        layoutSetNames={otherLayoutSet ? [layoutSetName, 'other'] : [layoutSetName]}
-      />
+      <FeatureFlagsContextProvider value={{ flags: [] }}>
+        <TestAppBuilder
+          {...options}
+          // The other layout set is not in the cache, so its pages are fetched.
+          layoutSetNames={otherLayoutSet ? [layoutSetName, 'other'] : [layoutSetName]}
+        />
+      </FeatureFlagsContextProvider>
     </ServicesContextProvider>,
   );
 }

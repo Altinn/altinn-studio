@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import type { KeyboardEvent, ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioButton, StudioHeading, StudioParagraph } from '@designer/components';
-import { addableComponentGroups } from '../../utils/newComponentUtils';
+import { FeatureFlag, useFeatureFlag } from '@designer/feature-flags';
+import { addableComponentGroups, flaggedComponentTypes } from '../../utils/newComponentUtils';
 import type { AddableComponentGroup, AddableComponentType } from '../../utils/newComponentUtils';
 import classes from './AddComponentBox.module.css';
 
@@ -21,6 +23,11 @@ export function AddComponentBox({
   onCancel,
 }: AddComponentBoxProps): ReactElement {
   const { t } = useTranslation();
+  const isLikertOn = useFeatureFlag(FeatureFlag.AppBuilderLikert);
+  // The type the pointer is over or that has focus, so its line says what it is for.
+  const [describedType, setDescribedType] = useState<AddableComponentType>();
+  const isOffered = (type: AddableComponentType): boolean =>
+    isLikertOn || !flaggedComponentTypes.includes(type);
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
     if (event.key === 'Escape') {
@@ -38,6 +45,19 @@ export function AddComponentBox({
         <StudioParagraph data-size='sm' className={classes.placement}>
           {placementText}
         </StudioParagraph>
+        {/*
+          One place for every type, with room for two lines kept free, so nothing moves while the
+          pointer goes from one button to the next. A line under each group moved the buttons
+          under the pointer, and a click could land on another type than the one aimed at.
+        */}
+        <p id='add-component-description' className={classes.description} aria-live='polite'>
+          {describedType && (
+            <>
+              <b>{t(`app_builder.component_type.${describedType}`)}:</b>{' '}
+              {t(`app_builder.component_description.${describedType}`)}
+            </>
+          )}
+        </p>
       </div>
       {groups.map((group, groupIndex) => (
         <div key={group} className={classes.group} role='group' aria-labelledby={`add-${group}`}>
@@ -45,18 +65,23 @@ export function AddComponentBox({
             {t(`app_builder.add_component.group.${group}`)}
           </span>
           <div className={classes.types}>
-            {addableComponentGroups[group].map((type, typeIndex) => (
-              <StudioButton
-                key={type}
-                variant='secondary'
-                data-size='sm'
-                // The box opens because the user asked for it, so its first choice takes focus.
-                autoFocus={groupIndex === 0 && typeIndex === 0}
-                onClick={() => onChooseType(type)}
-              >
-                {t(`app_builder.component_type.${type}`)}
-              </StudioButton>
-            ))}
+            {(addableComponentGroups[group] as readonly AddableComponentType[])
+              .filter(isOffered)
+              .map((type, typeIndex) => (
+                <StudioButton
+                  key={type}
+                  variant='secondary'
+                  data-size='sm'
+                  // The box opens because the user asked for it, so its first choice takes focus.
+                  autoFocus={groupIndex === 0 && typeIndex === 0}
+                  aria-describedby='add-component-description'
+                  onMouseEnter={() => setDescribedType(type)}
+                  onFocus={() => setDescribedType(type)}
+                  onClick={() => onChooseType(type)}
+                >
+                  {t(`app_builder.component_type.${type}`)}
+                </StudioButton>
+              ))}
           </div>
         </div>
       ))}

@@ -10,6 +10,8 @@ import { getTextKey } from '../../utils/componentUtils';
 import { hasOptions, isQuestionType } from '../../utils/newComponentUtils';
 import { getInlineOptions, getNextOptionValue, getOptionSource } from '../../utils/optionUtils';
 import { usePageEditing } from '../PageEditing/PageEditingContext';
+import { useCanvasState } from '../CanvasState/CanvasStateContext';
+import { isLikertStatic } from '../../utils/likertUtils';
 import classes from './EditableComponent.module.css';
 
 export type InlineAddButtonsProps = {
@@ -23,6 +25,7 @@ export type InlineAddButtonsProps = {
 export function InlineAddButtons({ component }: InlineAddButtonsProps): ReactElement | null {
   const { t } = useTranslation();
   const { pageName, updateComponent, saveTexts } = usePageEditing();
+  const { setOpenSettings } = useCanvasState();
   const ref = useRef<HTMLDivElement>(null);
   const [addedTextKey, setAddedTextKey] = useState<string>();
   useFocusAddedText(ref, addedTextKey, () => setAddedTextKey(undefined));
@@ -33,6 +36,22 @@ export function InlineAddButtons({ component }: InlineAddButtonsProps): ReactEle
     hasOptions(component.type) &&
     component.type !== ComponentType.Dropdown &&
     getOptionSource(component) === 'inline';
+
+  // A question in a Likert table asks for its text first, in the settings, since the text names its field.
+  if (isLikertStatic(component)) {
+    return (
+      <div ref={ref} className={classes.inlineAddButtons} data-size='sm'>
+        <StudioButton
+          variant='tertiary'
+          data-size='sm'
+          icon={<PlusIcon />}
+          onClick={() => setOpenSettings('component')}
+        >
+          {t('app_builder.likert.add_question')}
+        </StudioButton>
+      </div>
+    );
+  }
 
   if (!canAddDescription && !canAddOption && !addedTextKey) return null;
 

@@ -7,6 +7,7 @@ import { EDITOR_LANGUAGE } from '../constants';
 import type { LayoutComponent, PageLayout, TextsById } from '../types';
 import { setField } from '../utils/dataModelUtils';
 import { insertComponent } from '../utils/layoutUtils';
+import { insertLikert } from '../utils/likertUtils';
 import type { Placement } from '../utils/layoutUtils';
 import { useAddAttachmentDataTypeMutation } from './useAttachmentDataTypeMutations';
 import type { DataModel } from './useDataModelQuery';
@@ -19,6 +20,12 @@ export type AddComponentArgs = {
   placement: Placement;
   /** A field to create in the data model before the component is saved. */
   newField?: { name: string; schema: JsonSchema; dataModel: DataModel };
+  /** A whole schema to save first, such as one with the list every Likert table saves to. */
+  newSchema?: { schema: JsonSchema; dataModel: DataModel };
+  /** Components the added one shows, such as the questions of a Likert table. */
+  children?: LayoutComponent[];
+  /** Texts in other languages than the edited one, keyed by language. */
+  translations?: Record<string, TextsById>;
   /** A code list the component uses that the app does not have yet. */
   newCodeList?: { id: string; options: Option[] };
   /** The data type a file upload saves its attachments as. */
@@ -54,6 +61,9 @@ export const useAddComponent = (
     newField,
     newCodeList,
     newAttachmentDataType,
+    newSchema,
+    children,
+    translations,
   }: AddComponentArgs): Promise<void> => {
     if (newField) {
       const { name, schema, dataModel } = newField;
@@ -61,6 +71,9 @@ export const useAddComponent = (
         modelPath: dataModel.modelPath,
         schema: setField(dataModel.schema, name, schema),
       });
+    }
+    if (newSchema) {
+      await saveDataModel({ modelPath: newSchema.dataModel.modelPath, schema: newSchema.schema });
     }
     if (newCodeList) {
       await saveCodeList({ optionListId: newCodeList.id, optionList: newCodeList.options });
@@ -70,9 +83,17 @@ export const useAddComponent = (
       language: EDITOR_LANGUAGE,
       textResources: Object.entries(texts).map(([id, value]) => ({ id, value })),
     });
+    for (const [language, languageTexts] of Object.entries(translations ?? {})) {
+      await upsertTextResources({
+        language,
+        textResources: Object.entries(languageTexts).map(([id, value]) => ({ id, value })),
+      });
+    }
     await savePageLayout({
       pageName,
-      layout: insertComponent(layout, component, placement, fixedIds),
+      layout: children
+        ? insertLikert(layout, component, children, placement, fixedIds)
+        : insertComponent(layout, component, placement, fixedIds),
     });
   };
 
