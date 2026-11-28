@@ -5,8 +5,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration.ProcessHooks;
 
 /// <summary>
-/// H-DATACREATION: an app's <c>IInstantiationProcessor.DataCreation(Instance, object, prefill)</c>. With a data type
-/// that is created when its task starts, v9 runs it in the process transition's callback too.
+/// H-DATACREATION: an app's <c>IInstantiationProcessor.DataCreation(Instance, object, prefill)</c> that reaches a
+/// Storage call moves to the overload that gets the instance data mutator, which v9 calls and whose changes it saves.
+/// With a data type that is created when its task starts, v9 runs it in the process transition's callback too.
 /// </summary>
 internal static class DataCreationPort
 {

@@ -10,7 +10,7 @@ internal enum WindowEntryKind
     /// <summary>A task or process-end hook the port moves to a v9 handler.</summary>
     Hook,
 
-    /// <summary><c>IInstantiationProcessor.DataCreation</c>, whose writes are reported where v9 runs it in the transition.</summary>
+    /// <summary><c>IInstantiationProcessor.DataCreation</c>, moved to the overload that gets the mutator.</summary>
     DataCreation,
 
     /// <summary>A v8 <c>IServiceTask.Execute</c>, whose context already has the mutator.</summary>

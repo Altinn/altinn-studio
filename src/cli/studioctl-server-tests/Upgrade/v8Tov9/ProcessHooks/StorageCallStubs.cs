@@ -351,7 +351,7 @@ internal static class StorageCallStubs
 
             public interface IInstantiationProcessor
             {
-                Task DataCreation(Instance instance, object data, Dictionary<string, string>? prefill);
+                Task DataCreation(Instance instance, object data, Dictionary<string, string>? prefill) => Task.CompletedTask;
                 Task DataCreation(IInstanceDataMutator instanceDataMutator, object data, Dictionary<string, string>? prefill) => DataCreation(instanceDataMutator.Instance, data, prefill);
             }
         }
