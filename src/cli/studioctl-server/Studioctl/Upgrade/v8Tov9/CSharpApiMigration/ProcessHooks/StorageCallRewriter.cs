@@ -1816,13 +1816,13 @@ internal sealed class StorageCallRewriter(
                 return;
         }
 
-        var member = call.Name switch
+        var field = call.Name switch
         {
-            "UpdatePresentationTexts" => "SetPresentationText",
-            "UpdateDataValues" or "UpdateDataValue" => "SetDataValue",
+            "UpdatePresentationTexts" => "PresentationTexts",
+            "UpdateDataValues" or "UpdateDataValue" => "DataValues",
             _ => null,
         };
-        if (member is null || !Write(rewrite, call, target, $"{rewrite.Mutator}.{member}"))
+        if (field is null || !Write(rewrite, call, target, $"{rewrite.Mutator}.Instance.{field}"))
         {
             return;
         }
@@ -1930,12 +1930,13 @@ internal sealed class StorageCallRewriter(
             : null;
 
     /// <summary>
-    /// C-ID1, C-ID2 and C-IP: one <c>SetDataValue</c> (<c>SetPresentationText</c>) per entry of a literal dictionary,
-    /// per edit of <c>instance.DataValues</c>, or a loop over a dictionary variable.
+    /// C-ID1, C-ID2 and C-IP: one change of the mutator's <c>Instance.DataValues</c> (<c>Instance.PresentationTexts</c>)
+    /// per entry of a literal dictionary, per edit of <c>instance.DataValues</c>, or a loop over a dictionary variable.
+    /// The save sends the keys that changed, so other keys keep their values as with v8's update.
     /// </summary>
     private void Entries(MethodRewrite rewrite, StorageClientCall call, bool presentation)
     {
-        var member = presentation ? "SetPresentationText" : "SetDataValue";
+        var field = presentation ? "PresentationTexts" : "DataValues";
         var derived = presentation ? fields.PresentationFields : fields.DataFields;
         var mutator = Piece.Fixed(rewrite.MutatorExpression());
         var statements = new List<Piece>();
@@ -1960,7 +1961,7 @@ internal sealed class StorageCallRewriter(
                 Entry(
                     rewrite,
                     call,
-                    member,
+                    field,
                     derived,
                     key.Value,
                     value.Value,
@@ -2005,7 +2006,7 @@ internal sealed class StorageCallRewriter(
                         Entry(
                             rewrite,
                             call,
-                            member,
+                            field,
                             derived,
                             key,
                             value,
@@ -2037,7 +2038,7 @@ internal sealed class StorageCallRewriter(
                     : Piece.Of(dictionaryExpression);
                 statements.Add(
                     Piece.Statement(
-                        $"foreach (var ({key}, {value}) in $0) {{ $1.{member}({key}, {value}); }}",
+                        $"foreach (var ({key}, {value}) in $0) {{ ($1.Instance.{field} ??= new())[{key}] = {value}; }}",
                         source,
                         mutator
                     )
@@ -2046,9 +2047,9 @@ internal sealed class StorageCallRewriter(
                 {
                     rewrite.Moved(
                         call.Syntax,
-                        $"the keys set here are known only at run time; {member} throws for a key that "
-                            + $"{(presentation ? "presentationFields" : "dataFields")} in applicationmetadata.json derives "
-                            + $"({string.Join(", ", derived.Keys)}), which fails the step."
+                        $"the keys set here are known only at run time; the save fails the step when one of them is a key "
+                            + $"that {(presentation ? "presentationFields" : "dataFields")} in applicationmetadata.json "
+                            + $"derives ({string.Join(", ", derived.Keys)})."
                     );
                 }
             }
@@ -2069,7 +2070,8 @@ internal sealed class StorageCallRewriter(
 
         rewrite.Moved(
             call.Syntax,
-            $"{call.DisplayName} now sets each {(presentation ? "text" : "value")} with {rewrite.Mutator}.{member}."
+            $"{call.DisplayName} now sets each {(presentation ? "text" : "value")} on {rewrite.Mutator}.Instance.{field}, "
+                + "and the step saves the keys that changed."
         );
     }
 
@@ -2077,13 +2079,13 @@ internal sealed class StorageCallRewriter(
         target is not null && flow.Evaluate(TargetOperation(call)) is { IsCurrent: true, Part: InstancePart.Instance };
 
     /// <summary>
-    /// One entry: <c>SetDataValue(key, value)</c>; for a key <c>dataFields</c> derives, nothing when the value is that
-    /// field (C-ID2), else a to-do, since the mutator throws for it.
+    /// One entry: <c>(Instance.DataValues ??= new())[key] = value</c>; for a key <c>dataFields</c> derives, nothing when
+    /// the value is that field (C-ID2), else a to-do, since the save fails for it.
     /// </summary>
     private static IReadOnlyList<Piece>? Entry(
         MethodRewrite rewrite,
         StorageClientCall call,
-        string member,
+        string field,
         IReadOnlyDictionary<string, string> derived,
         IOperation key,
         IOperation value,
@@ -2101,7 +2103,7 @@ internal sealed class StorageCallRewriter(
             {
                 rewrite.Moved(
                     call.Syntax,
-                    $"dropped {constant}: {(member == "SetDataValue" ? "dataFields" : "presentationFields")} in applicationmetadata.json derives it from {path} already."
+                    $"dropped {constant}: {(field == "DataValues" ? "dataFields" : "presentationFields")} in applicationmetadata.json derives it from {path} already."
                 );
                 return [];
             }
@@ -2109,13 +2111,13 @@ internal sealed class StorageCallRewriter(
             Unported(
                 rewrite,
                 call,
-                $"it sets {(member == "SetDataValue" ? "data value" : "presentation text")} {constant}, which "
-                    + $"{(member == "SetDataValue" ? "dataFields" : "presentationFields")} derives from {path}; v9 does not allow both. Remove one"
+                $"it sets {(field == "DataValues" ? "data value" : "presentation text")} {constant}, which "
+                    + $"{(field == "DataValues" ? "dataFields" : "presentationFields")} derives from {path}; v9 does not allow both. Remove one"
             );
             return null;
         }
 
-        return [Piece.Statement($"$0.{member}($1, $2);", mutator, keyPiece, valuePiece)];
+        return [Piece.Statement($"($0.Instance.{field} ??= new())[$1] = $2;", mutator, keyPiece, valuePiece)];
     }
 
     /// <summary>The model path a value reads, <c>A.B</c> for <c>model.A.B</c>.</summary>
@@ -2152,9 +2154,9 @@ internal sealed class StorageCallRewriter(
         && flow.Evaluate(property.Instance) is { IsCurrent: true, Part: InstancePart.Instance };
 
     /// <summary>
-    /// C-ID1 with <c>instance.DataValues</c>: each edit of it in the method before the call becomes a
-    /// <c>SetDataValue</c>, its initialization goes, and so does the call. <c>null</c> (with a to-do) when an edit is of
-    /// another kind or there is none.
+    /// C-ID1 with <c>instance.DataValues</c>: each edit of it in the method before the call becomes the same edit of the
+    /// mutator's <c>Instance.DataValues</c>, its initialization goes, and so does the call. <c>null</c> (with a to-do)
+    /// when an edit is of another kind or there is none.
     /// </summary>
     private Action? DataValuesEdits(
         MethodRewrite rewrite,
@@ -2191,7 +2193,7 @@ internal sealed class StorageCallRewriter(
                         Entry(
                             rewrite,
                             call,
-                            "SetDataValue",
+                            "DataValues",
                             derived,
                             key.Value,
                             assignment.Value,
@@ -2213,7 +2215,7 @@ internal sealed class StorageCallRewriter(
                         Entry(
                             rewrite,
                             call,
-                            "SetDataValue",
+                            "DataValues",
                             derived,
                             key.Value,
                             value.Value,
@@ -2234,7 +2236,13 @@ internal sealed class StorageCallRewriter(
                     edits.Add(
                         (
                             statement,
-                            [Piece.Statement("$0.SetDataValue($1, null);", mutator, Piece.Of(key.Value.Syntax))]
+                            [
+                                Piece.Statement(
+                                    "$0.Instance.DataValues?.Remove($1);",
+                                    mutator,
+                                    Piece.Of(key.Value.Syntax)
+                                ),
+                            ]
                         )
                     );
                     break;

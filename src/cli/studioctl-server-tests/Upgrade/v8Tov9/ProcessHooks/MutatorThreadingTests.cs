@@ -46,7 +46,7 @@ public sealed class MutatorThreadingTests : IDisposable
                         {
                             Instance instance = dataMutator.Instance;
                             var id = new InstanceIdentifier(instance);
-                            dataMutator.SetPresentationText("periode", periode);
+                            (dataMutator.Instance.PresentationTexts ??= new())["periode"] = periode;
                         }
                     }
 
@@ -97,7 +97,7 @@ public sealed class MutatorThreadingTests : IDisposable
 
                         private async Task SetCaseNumber({{IInstanceDataMutator}} dataMutator, string caseNumber, InstanceIdentifier instanceIdentifier)
                         {
-                            dataMutator.SetPresentationText("CaseNumber", caseNumber);
+                            (dataMutator.Instance.PresentationTexts ??= new())["CaseNumber"] = caseNumber;
                         }
                     }
                     """
@@ -195,7 +195,7 @@ public sealed class MutatorThreadingTests : IDisposable
                         public async Task<{{HandlerResult}}> Execute({{OnTaskEndingContext}} context)
                         {
                             {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
-                            dataMutator.SetDataValue("k", "v");
+                            (dataMutator.Instance.DataValues ??= new())["k"] = "v";
                             return {{HandlerResult}}.Success();
                         }
 
@@ -227,7 +227,7 @@ public sealed class MutatorThreadingTests : IDisposable
                         public async Task<{{HandlerResult}}> Execute({{OnTaskEndingContext}} context)
                         {
                             {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
-                            dataMutator.SetDataValue("k", "v");
+                            (dataMutator.Instance.DataValues ??= new())["k"] = "v";
                             return {{HandlerResult}}.Success();
                         }
                     }
@@ -268,7 +268,7 @@ public sealed class MutatorThreadingTests : IDisposable
 
                         private async Task SetIt(string value, {{IInstanceDataMutator}} dataMutator)
                         {
-                            dataMutator.SetDataValue("k", value);
+                            (dataMutator.Instance.DataValues ??= new())["k"] = value;
                         }
                     }
                     """
