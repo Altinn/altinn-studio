@@ -57,7 +57,11 @@ internal static class WindowReports
     public static bool IsWrite(StorageClientCall call) => _writes.Contains(call.Name);
 
     /// <summary>C-LANG and P-IDENTITY in one method the transition runs.</summary>
-    public static void Plan(MethodRewrite rewrite, CurrentInstanceFlow flow)
+    /// <param name="callbackActorIsKnown">
+    /// Whether the app's libraries put the actor who started a transition on the contexts of hooks, service tasks and
+    /// <c>DataCreation</c>; until then the caller's identity is not available in a hook.
+    /// </param>
+    public static void Plan(MethodRewrite rewrite, CurrentInstanceFlow flow, bool callbackActorIsKnown)
     {
         foreach (var operation in rewrite.Body.Operation.DescendantsAndSelf())
         {
@@ -65,18 +69,18 @@ internal static class WindowReports
             {
                 case IPropertyReferenceOperation { Property.Name: "HttpContext" } httpContext
                     when IsHttpContextAccessor(httpContext.Instance?.Type):
-                    HttpContextRead(rewrite, httpContext, "HttpContext");
+                    HttpContextRead(rewrite, httpContext, "HttpContext", callbackActorIsKnown);
                     break;
                 // The accessor's HttpContext kept in a field or property in the constructor, which the reach does not see.
                 case IFieldReferenceOperation field
                     when IsHttpContext(field.Type) && MemberName(field.Syntax) is not null:
-                    HttpContextRead(rewrite, field, field.Field.Name);
+                    HttpContextRead(rewrite, field, field.Field.Name, callbackActorIsKnown);
                     break;
                 case IPropertyReferenceOperation property
                     when IsHttpContext(property.Type)
                         && IsAutoProperty(property.Property)
                         && MemberName(property.Syntax) is not null:
-                    HttpContextRead(rewrite, property, property.Property.Name);
+                    HttpContextRead(rewrite, property, property.Property.Name, callbackActorIsKnown);
                     break;
                 case IInvocationOperation http when IsHttpCall(http):
                     HttpCall(rewrite, http);
@@ -84,7 +88,13 @@ internal static class WindowReports
                 case IPropertyReferenceOperation { Property.Name: "Current" } current
                     when current.Property.ContainingType.OriginalDefinition.ToDisplayString() == AuthenticationContext
                         && rewrite.InCallback:
-                    Identity(rewrite, current.Syntax, "IAuthenticationContext.Current", CallerRead.Caller);
+                    Identity(
+                        rewrite,
+                        current.Syntax,
+                        "IAuthenticationContext.Current",
+                        CallerRead.Caller,
+                        callbackActorIsKnown
+                    );
                     break;
                 case IInvocationOperation
                 {
@@ -194,7 +204,12 @@ internal static class WindowReports
     /// what a callback request has too.
     /// </summary>
     /// <param name="name">How the code names the <c>HttpContext</c>, for the report.</param>
-    private static void HttpContextRead(MethodRewrite rewrite, IOperation httpContext, string name)
+    private static void HttpContextRead(
+        MethodRewrite rewrite,
+        IOperation httpContext,
+        string name,
+        bool callbackActorIsKnown
+    )
     {
         if (LanguageQuery(httpContext) is { } language)
         {
@@ -217,7 +232,8 @@ internal static class WindowReports
             rewrite,
             httpContext.Syntax,
             member is null ? name : $"{name}.{member}",
-            member == "User" ? CallerRead.Caller : CallerRead.Request
+            member == "User" ? CallerRead.Caller : CallerRead.Request,
+            callbackActorIsKnown
         );
     }
 
@@ -318,21 +334,38 @@ internal static class WindowReports
     }
 
     /// <summary>
-    /// P-IDENTITY: the report on a read of who moved the process on or of their request.
+    /// P-IDENTITY: the report on a read of who moved the process on or of their request. Once the app's libraries put
+    /// the actor on the contexts (#21487), a read of the caller points there, and the request itself stays the
+    /// engine's either way.
     /// </summary>
-    private static void Identity(MethodRewrite rewrite, SyntaxNode node, string what, CallerRead read)
+    private static void Identity(
+        MethodRewrite rewrite,
+        SyntaxNode node,
+        string what,
+        CallerRead read,
+        bool callbackActorIsKnown
+    )
     {
         var hook = rewrite.Entry.Name;
-        var text = read switch
+        const string readTheActor =
+            "read who started the transition from the Actor on the context that v9 hooks, service tasks and "
+            + "IInstantiationProcessor.DataCreation(DataCreationContext) get";
+        var text = (read, callbackActorIsKnown) switch
         {
-            CallerRead.Request =>
+            (CallerRead.Request, _) =>
                 $"reads {what} in {hook}. v9 runs the hook in the workflow engine's callback request, which has none "
                     + "of the caller's cookies, headers, query values or token. Store what the hook needs in the data "
                     + "model before the transition, for example in a data processor, and read it from there.",
-            _ => $"reads {what} in {hook}. In v9 the hook runs in the workflow engine's callback, where "
+            (_, false) => $"reads {what} in {hook}. In v9 the hook runs in the workflow engine's callback, where "
                 + "IAuthenticationContext.Current is the app itself and the HTTP request is the engine's, so the user who "
                 + "moved the process on is not available. This is a gap in the v9 app libraries, not in your code; "
-                + "keep this code until a release closes it.",
+                + $"keep this code until a release closes it, then {readTheActor}.",
+            (_, true) => $"reads {what} in {hook}. v9 runs the hook in the workflow engine's callback, where "
+                + "IAuthenticationContext.Current is the app itself and the HTTP request is the engine's. Instead, "
+                + $"{readTheActor}: UserId and NationalIdentityNumber for a user, OrgId for a service owner, SystemUserId "
+                + "for a system user, AuthenticationLevel for all three, and none of them for an organization's "
+                + "Maskinporten token. It does not say whether the user is in Altinn's portal, how they logged in, or "
+                + "their token, scopes and parties.",
         };
         rewrite.Todo(node, text);
     }
