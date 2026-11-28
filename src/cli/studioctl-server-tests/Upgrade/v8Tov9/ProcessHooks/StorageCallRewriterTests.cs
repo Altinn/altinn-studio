@@ -287,9 +287,11 @@ public sealed class StorageCallRewriterTests : IDisposable
                     """
             },
             {
-                // pat/patent App/logic/TaskProcessor/ProcessTaskEnd.cs:132-134, with a binary write.
+                // pat/patent App/logic/TaskProcessor/ProcessTaskEnd.cs:132-134.
                 "unlock, write, lock: the write alone (C-ML1)",
                 """
+                    public class AllocatedCaseNumber { public string? CaseNumber { get; set; } }
+
                     public class ProcessTaskEnd(IDataClient dataClient) : IProcessTaskEnd
                     {
                         public async Task End(string taskId, Instance instance)
@@ -297,14 +299,16 @@ public sealed class StorageCallRewriterTests : IDisposable
                             var modelData = instance.Data.Single(x => x.DataType == "AllocatedCaseNumber");
                             InstanceIdentifier instanceIdentifier = new(instance);
                             var modelDataId = Guid.Parse(modelData.Id);
-                            var bytes = Encoding.UTF8.GetBytes("1");
+                            var model = new AllocatedCaseNumber { CaseNumber = "1" };
                             await dataClient.UnlockDataElement(instanceIdentifier, modelDataId);
-                            await dataClient.UpdateBinaryData(instanceIdentifier, "text/plain", null, modelDataId, new MemoryStream(bytes));
+                            await dataClient.UpdateData(model, instanceIdentifier.InstanceGuid, typeof(AllocatedCaseNumber), instance.Org, instance.AppId, instanceIdentifier.InstanceOwnerPartyId, modelDataId);
                             await dataClient.LockDataElement(instanceIdentifier, modelDataId);
                         }
                     }
                     """,
                 $$"""
+                    public class AllocatedCaseNumber { public string? CaseNumber { get; set; } }
+
                     public class ProcessTaskEnd : {{IOnTaskEndingHandler}}
                     {
                         public bool ShouldRunForTask(string taskId) => true;
@@ -316,8 +320,8 @@ public sealed class StorageCallRewriterTests : IDisposable
                             var modelData = instance.Data.Single(x => x.DataType == "AllocatedCaseNumber");
                             InstanceIdentifier instanceIdentifier = new(instance);
                             var modelDataId = Guid.Parse(modelData.Id);
-                            var bytes = Encoding.UTF8.GetBytes("1");
-                            dataMutator.UpdateBinaryDataElement(new {{DataElementIdentifier}}(modelDataId), "text/plain", bytes);
+                            var model = new AllocatedCaseNumber { CaseNumber = "1" };
+                            await dataMutator.ReplaceFormData(new {{DataElementIdentifier}}(modelDataId), model);
                             return {{HandlerResult}}.Success();
                         }
                     }
@@ -611,6 +615,47 @@ public sealed class StorageCallRewriterTests : IDisposable
                             var language = dataMutator.Language;
                             (dataMutator.Instance.DataValues ??= new())["language"] = language;
                             return {{HandlerResult}}.Success();
+                        }
+                    }
+                    """
+            },
+            {
+                "a form write whose result a method that is not async waits for",
+                """
+                    public class ProcessTaskEnd(IDataClient dataClient) : IProcessTaskEnd
+                    {
+                        public async Task End(string taskId, Instance instance)
+                        {
+                            Save(instance, new object(), instance.Data[0]);
+                            await Task.CompletedTask;
+                        }
+
+                        private void Save(Instance instance, object model, DataElement el)
+                        {
+                            var saved = dataClient.UpdateFormData(instance, model, el).Result;
+                            Console.WriteLine(saved.Id);
+                        }
+                    }
+                    """,
+                $$"""
+                    public class ProcessTaskEnd : {{IOnTaskEndingHandler}}
+                    {
+                        public bool ShouldRunForTask(string taskId) => true;
+
+                        public async Task<{{HandlerResult}}> Execute({{OnTaskEndingContext}} context)
+                        {
+                            {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
+                            Instance instance = dataMutator.Instance;
+                            Save(dataMutator, new object(), instance.Data[0]);
+                            await Task.CompletedTask;
+                            return {{HandlerResult}}.Success();
+                        }
+
+                        private void Save({{IInstanceDataMutator}} dataMutator, object model, DataElement el)
+                        {
+                            dataMutator.ReplaceFormData(el, model).GetAwaiter().GetResult();
+                            var saved = dataMutator.GetDataElement(el);
+                            Console.WriteLine(saved.Id);
                         }
                     }
                     """
@@ -913,7 +958,7 @@ public sealed class StorageCallRewriterTests : IDisposable
                     }
                     """,
                 "await dataClient.UpdateFormData(instance, model, element);",
-                "DataClientWrapper.UpdateDataModel writes dataType right after Hook.End added it; in v9 an added element is saved as it is at the end of the step. Give the add path its own code that changes the object it passes to AddFormDataElement."
+                "DataClientWrapper.UpdateDataModel writes dataType right after Hook.End added it; in v9 an added element is saved as it is at the end of the step, and ReplaceFormData cannot target it. Give the add path its own code that changes the object it passes to AddFormDataElement."
             },
             {
                 "a read with an authentication method the code passes on",

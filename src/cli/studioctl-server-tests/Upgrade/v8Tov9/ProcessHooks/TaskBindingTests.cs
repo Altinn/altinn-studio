@@ -54,6 +54,45 @@ public sealed class TaskBindingTests : IDisposable
         }
         """;
 
+    private const string CaseNumberHookRewritten = $$"""
+        public class AllocatedCaseNumber { public string? CaseNumber { get; set; } }
+
+        public class ProcessTaskEnd : {{IOnTaskEndingHandler}}
+        {
+            public bool ShouldRunForTask(string taskId) => taskId == "Task_Signature" || taskId == "Task_Payment";
+
+            public async Task<{{HandlerResult}}> Execute({{OnTaskEndingContext}} context)
+            {
+                string taskId = context.TaskId;
+                {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
+                Instance instance = dataMutator.Instance;
+                var paymentMethod = instance.DataValues?["paymentMethod"];
+                if (paymentMethod == "invoice" && taskId == "Task_Signature" || paymentMethod != "invoice" && taskId == "Task_Payment")
+                {
+                    var (model, instanceIdentifier, modelData) = await GetAllocatedCaseNumberModel(dataMutator);
+                    model.CaseNumber = "2026/1";
+                    await UpdateData(dataMutator, instanceIdentifier, modelData, model);
+                }
+                return {{HandlerResult}}.Success();
+            }
+
+            private async Task<(AllocatedCaseNumber, InstanceIdentifier, DataElement)> GetAllocatedCaseNumberModel({{IInstanceDataMutator}} dataMutator)
+            {
+                Instance instance = dataMutator.Instance;
+                DataElement modelData = instance.Data.Single(x => x.DataType == "AllocatedCaseNumber");
+                InstanceIdentifier instanceIdentifier = new(instance);
+                var model = (AllocatedCaseNumber)await dataMutator.GetFormData(modelData);
+                return (model, instanceIdentifier, modelData);
+            }
+
+            private async Task UpdateData({{IInstanceDataMutator}} dataMutator, InstanceIdentifier instanceIdentifier, DataElement modelData, AllocatedCaseNumber model)
+            {
+                var modelDataId = Guid.Parse(modelData.Id);
+                await dataMutator.ReplaceFormData(new {{DataElementIdentifier}}(modelDataId), model);
+            }
+        }
+        """;
+
     private const string CaseNumberHookKept = $$"""
         public class AllocatedCaseNumber { public string? CaseNumber { get; set; } }
 
@@ -419,6 +458,37 @@ public sealed class TaskBindingTests : IDisposable
         }
         """;
 
+    private const string ReceiptHookRewritten = $$"""
+        public class Kvittering { public string? A { get; set; } }
+
+        public class ProcessTaskEnd : {{IOnTaskEndingHandler}}
+        {
+            public bool ShouldRunForTask(string taskId) => taskId == "Task_1" || taskId == "Task_2";
+
+            public async Task<{{HandlerResult}}> Execute({{OnTaskEndingContext}} context)
+            {
+                string taskId = context.TaskId;
+                {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
+                if (taskId == "Task_1")
+                {
+                    await Mark(dataMutator);
+                }
+                else if (taskId == "Task_2")
+                {
+                    await Mark(dataMutator);
+                }
+                return {{HandlerResult}}.Success();
+            }
+
+            private async Task Mark({{IInstanceDataMutator}} dataMutator)
+            {
+                Instance instance = dataMutator.Instance;
+                var element = instance.Data.First(d => d.DataType == "kvittering");
+                await dataMutator.ReplaceFormData(element, new Kvittering { A = "x" });
+            }
+        }
+        """;
+
     // The same helper, called by a task start for every task and by a task end for one.
     private const string ReceiptLifecycle = """
         public class Kvittering { public string? A { get; set; } }
@@ -446,6 +516,42 @@ public sealed class TaskBindingTests : IDisposable
         }
         """;
 
+    private const string ReceiptLifecycleRewritten = $$"""
+        public class Kvittering { public string? A { get; set; } }
+
+        public class Lifecycle : {{IOnTaskStartingHandler}}, {{IOnTaskEndingHandler}}
+        {
+            bool {{IOnTaskStartingHandler}}.ShouldRunForTask(string taskId) => true;
+
+            public async Task<{{HandlerResult}}> Execute({{OnTaskStartingContext}} context)
+            {
+                {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
+                await Mark(dataMutator);
+                return {{HandlerResult}}.Success();
+            }
+
+            bool {{IOnTaskEndingHandler}}.ShouldRunForTask(string taskId) => taskId == "Task_2";
+
+            public async Task<{{HandlerResult}}> Execute({{OnTaskEndingContext}} context)
+            {
+                string taskId = context.TaskId;
+                {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
+                if (taskId == "Task_2")
+                {
+                    await Mark(dataMutator);
+                }
+                return {{HandlerResult}}.Success();
+            }
+
+            private async Task Mark({{IInstanceDataMutator}} dataMutator)
+            {
+                Instance instance = dataMutator.Instance;
+                var element = instance.Data.First(d => d.DataType == "kvittering");
+                await dataMutator.ReplaceFormData(element, new Kvittering { A = "x" });
+            }
+        }
+        """;
+
     private const string DeadBranchHook = """
         public class Kvittering { public string? A { get; set; } }
 
@@ -467,6 +573,33 @@ public sealed class TaskBindingTests : IDisposable
         }
         """;
 
+    private const string DeadBranchHookRewritten = $$"""
+        public class Kvittering { public string? A { get; set; } }
+
+        public class ProcessTaskEnd : {{IOnTaskEndingHandler}}
+        {
+            public bool ShouldRunForTask(string taskId) => false;
+
+            public async Task<{{HandlerResult}}> Execute({{OnTaskEndingContext}} context)
+            {
+                string taskId = context.TaskId;
+                {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
+                Instance instance = dataMutator.Instance;
+                if (taskId != "Task_2")
+                {
+                    return {{HandlerResult}}.Success();
+                }
+
+                if (taskId == "Task_1")
+                {
+                    var element = instance.Data.First(d => d.DataType == "kvittering");
+                    await dataMutator.ReplaceFormData(element, new Kvittering { A = "x" });
+                }
+                return {{HandlerResult}}.Success();
+            }
+        }
+        """;
+
     // A form whose class two data types share, found by an id the code keeps in a data value.
     private const string SharedFormHook = """
         public class Skjema { public string? A { get; set; } }
@@ -480,6 +613,28 @@ public sealed class TaskBindingTests : IDisposable
                     var element = instance.Data.First(d => d.Id == instance.DataValues!["skjemaId"]);
                     await dataClient.UpdateFormData(instance, new Skjema { A = "x" }, element);
                 }
+            }
+        }
+        """;
+
+    private const string SharedFormHookRewritten = $$"""
+        public class Skjema { public string? A { get; set; } }
+
+        public class ProcessTaskEnd : {{IOnTaskEndingHandler}}
+        {
+            public bool ShouldRunForTask(string taskId) => taskId == "Task_2";
+
+            public async Task<{{HandlerResult}}> Execute({{OnTaskEndingContext}} context)
+            {
+                string taskId = context.TaskId;
+                {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
+                Instance instance = dataMutator.Instance;
+                if (taskId == "Task_2")
+                {
+                    var element = instance.Data.First(d => d.Id == instance.DataValues!["skjemaId"]);
+                    await dataMutator.ReplaceFormData(element, new Skjema { A = "x" });
+                }
+                return {{HandlerResult}}.Success();
             }
         }
         """;
@@ -713,6 +868,31 @@ public sealed class TaskBindingTests : IDisposable
         }
         """;
 
+    private const string FormIdHookRewritten = $$"""
+        public class Model { public string? A { get; set; } }
+
+        public class ProcessTaskEnd : {{IOnTaskEndingHandler}}
+        {
+            public bool ShouldRunForTask(string taskId) => taskId == "Task_2";
+
+            public async Task<{{HandlerResult}}> Execute({{OnTaskEndingContext}} context)
+            {
+                string taskId = context.TaskId;
+                {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
+                Instance instance = dataMutator.Instance;
+                if (taskId == "Task_2")
+                {
+                    var identifier = new InstanceIdentifier(instance);
+                    var model = instance.Data.First(d => d.DataType == "model");
+                    await dataMutator.ReplaceFormData(model, new Model { A = "x" });
+                    var element = instance.Data.First(d => d.Id == instance.DataValues!["formId"]);
+                    object form = await dataMutator.GetFormData(element);
+                }
+                return {{HandlerResult}}.Success();
+            }
+        }
+        """;
+
     // brg/rrh-innrapportering App/logic/Process/CustomTaskEndProcessor.cs:125-139: the PDF element of an earlier task
     // is unlocked and deleted, found with Equals.
     private const string PdfCleanupHook = """
@@ -768,6 +948,64 @@ public sealed class TaskBindingTests : IDisposable
         new()
         {
             {
+                "a data type without taskIds",
+                CaseNumberHook,
+                Metadata(Form("AllocatedCaseNumber", "App.Logic.AllocatedCaseNumber")),
+                _patentTasks,
+                CaseNumberHookRewritten
+            },
+            {
+                "a data type whose taskIds list one of the hook's tasks",
+                CaseNumberHook,
+                Metadata(
+                    Form(
+                        "AllocatedCaseNumber",
+                        "App.Logic.AllocatedCaseNumber",
+                        "\"taskIds\": [\"Task_FillOutForm\", \"Task_Payment\"]"
+                    )
+                ),
+                _patentTasks,
+                CaseNumberHookRewritten
+            },
+            {
+                "a helper whose type is bound to the task of one of the calls that lead to it",
+                ReceiptHook,
+                Metadata(Form("kvittering", "App.Logic.Kvittering", "\"taskId\": \"Task_2\"")),
+                ["Task_1", "Task_2"],
+                ReceiptHookRewritten
+            },
+            {
+                "a helper that a hook running at every task calls",
+                ReceiptLifecycle,
+                Metadata(Form("kvittering", "App.Logic.Kvittering", "\"taskId\": \"Task_1\"")),
+                ["Task_1", "Task_2"],
+                ReceiptLifecycleRewritten
+            },
+            {
+                "a write that no task reaches",
+                DeadBranchHook,
+                Metadata(Form("kvittering", "App.Logic.Kvittering", "\"taskId\": \"Task_1\"")),
+                ["Task_1", "Task_2"],
+                DeadBranchHookRewritten
+            },
+            {
+                "a form whose class one data type bound to the hook's task shares",
+                SharedFormHook,
+                Metadata(
+                    Form("skjema", "App.Logic.Skjema", "\"taskId\": \"Task_2\""),
+                    Form("utkast", "App.Logic.Skjema", "\"taskId\": \"Task_1\"")
+                ),
+                ["Task_1", "Task_2"],
+                SharedFormHookRewritten
+            },
+            {
+                "a write whose data type the code does not tell, next to an unlock of another element",
+                FormIdHook,
+                Metadata(Form("model", "App.Logic.Model", "\"taskId\": \"Task_2\"")),
+                ["Task_1", "Task_2"],
+                FormIdHookRewritten
+            },
+            {
                 "an unlock and delete of an element of a data type without taskIds, looked up with Equals",
                 PdfCleanupHook,
                 Metadata("{ \"id\": \"ref-data-as-pdf\" }"),
@@ -809,83 +1047,6 @@ public sealed class TaskBindingTests : IDisposable
 
         Assert.Equal(InApp(after), _app.Read(HookPath));
         Assert.Empty(result.Todos);
-    }
-
-    /// <summary>Form writes v9 accepts at a task the hook runs at; they stay, since the mutator cannot replace a form.</summary>
-    public static TheoryData<string, string, string, string[]> AcceptedFormWrites =>
-        new()
-        {
-            {
-                "a data type without taskIds",
-                CaseNumberHook,
-                Metadata(Form("AllocatedCaseNumber", "App.Logic.AllocatedCaseNumber")),
-                _patentTasks
-            },
-            {
-                "a data type whose taskIds list one of the hook's tasks",
-                CaseNumberHook,
-                Metadata(
-                    Form(
-                        "AllocatedCaseNumber",
-                        "App.Logic.AllocatedCaseNumber",
-                        "\"taskIds\": [\"Task_FillOutForm\", \"Task_Payment\"]"
-                    )
-                ),
-                _patentTasks
-            },
-            {
-                "a helper whose type is bound to the task of one of the calls that lead to it",
-                ReceiptHook,
-                Metadata(Form("kvittering", "App.Logic.Kvittering", "\"taskId\": \"Task_2\"")),
-                ["Task_1", "Task_2"]
-            },
-            {
-                "a helper that a hook running at every task calls",
-                ReceiptLifecycle,
-                Metadata(Form("kvittering", "App.Logic.Kvittering", "\"taskId\": \"Task_1\"")),
-                ["Task_1", "Task_2"]
-            },
-            {
-                "a write that no task reaches",
-                DeadBranchHook,
-                Metadata(Form("kvittering", "App.Logic.Kvittering", "\"taskId\": \"Task_1\"")),
-                ["Task_1", "Task_2"]
-            },
-            {
-                "a form whose class one data type bound to the hook's task shares",
-                SharedFormHook,
-                Metadata(
-                    Form("skjema", "App.Logic.Skjema", "\"taskId\": \"Task_2\""),
-                    Form("utkast", "App.Logic.Skjema", "\"taskId\": \"Task_1\"")
-                ),
-                ["Task_1", "Task_2"]
-            },
-            {
-                "a write whose data type the code does not tell, next to an unlock of another element",
-                FormIdHook,
-                Metadata(Form("model", "App.Logic.Model", "\"taskId\": \"Task_2\"")),
-                ["Task_1", "Task_2"]
-            },
-        };
-
-    [Theory]
-    [MemberData(nameof(AcceptedFormWrites))]
-    public void AFormWriteV9AcceptsAtATaskItRunsAt_IsNotRefused(
-        string label,
-        string source,
-        string metadata,
-        string[] tasks
-    )
-    {
-        _ = label;
-        _app.Write(HookPath, InApp(source));
-        _app.Write(MetadataPath, metadata);
-        _app.Write(ProcessPath, Process(tasks));
-
-        var result = Port(AppFolder);
-
-        Assert.NotEmpty(result.Todos);
-        Assert.All(result.Todos, todo => Assert.Contains(NoReplaceFormData, todo, StringComparison.Ordinal));
     }
 
     public static TheoryData<string, string, string, string[], string, string, string> Refused =>
