@@ -5,6 +5,17 @@ reviews:
     enabled: true
     base_branches:
       - ".*"
+  # Snapshot directories hold expected output that tests rewrite. Reviewing the diffs is noise; the
+  # tests and the PublicApiTests snapshots (not filtered, see below) carry the checks that matter.
+  path_filters:
+    - "!**/_snapshots/**"
+    - "!**/.snapshots/**"
+    - "!**/.Verify/**"
+    # Other Verify output next to the tests. path_filters has no re-include, so *.verified.txt is
+    # excluded by first letter, leaving only names that start with "Pu" (PublicApiTests) reviewed.
+    - "!**/*.verified.{json,md,xml,cs,pdf}"
+    - "!**/[!P]*.verified.txt"
+    - "!**/P[!u]*.verified.txt"
   path_instructions:
     - path: "src/App/backend/test/**/PublicApiTests.*.verified.txt"
       instructions: >-
